@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = new BoundQueryClause(this.Syntax, value, definedSymbol, queryInvocation, castInvocation, binder, unoptimizedForm, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
+                result.IsSuppressed = this.IsSuppressed;
                 return result;
             }
             return this;

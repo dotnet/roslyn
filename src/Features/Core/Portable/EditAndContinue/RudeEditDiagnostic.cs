@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct RudeEditDiagnostic
+    internal readonly struct RudeEditDiagnostic
     {
         public readonly RudeEditKind Kind;
         public readonly TextSpan Span;
@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, SyntaxNode node = null, string[] arguments = null)
         {
-            this.Kind = kind;
-            this.Span = span;
-            this.SyntaxKind = (ushort)(node != null ? node.RawKind : 0);
-            this.Arguments = arguments;
+            Kind = kind;
+            Span = span;
+            SyntaxKind = (ushort)(node != null ? node.RawKind : 0);
+            Arguments = arguments;
         }
 
         internal Diagnostic ToDiagnostic(SyntaxTree tree)
         {
-            var descriptor = RudeEditDiagnosticDescriptors.GetDescriptor(this.Kind);
-            return Diagnostic.Create(descriptor, tree.GetLocation(this.Span), Arguments);
+            var descriptor = RudeEditDiagnosticDescriptors.GetDescriptor(Kind);
+            return Diagnostic.Create(descriptor, tree.GetLocation(Span), Arguments);
         }
     }
 }

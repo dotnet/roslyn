@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            var typeWithAnnotations = this.TypeWithAnnotations;
+            var type = typeWithAnnotations.Type;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
             if (!_containingType.IsImplicitlyDeclared)
@@ -52,28 +54,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.TypeSymbol.ContainsDynamic() &&
+                type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (Type.TypeSymbol.ContainsTupleNames() &&
+            if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type.TypeSymbol));
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (Type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.Type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), typeWithAnnotations));
             }
         }
 
-        internal abstract override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        internal abstract override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            => FlowAnalysisAnnotations.None;
 
         public override string Name
         {

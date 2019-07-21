@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var outerLocalFunction = _staticLocalFunction;
-            if (node.Symbol.IsStaticLocalFunction)
+            if (node.Symbol.IsStatic)
             {
                 _staticLocalFunction = node.Symbol;
             }
@@ -164,21 +164,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
             }
 
-            return base.VisitSwitchExpression(node);
+            return base.VisitConvertedSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             if (!node.HasAnyErrors)
             {
-                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+                CheckForDeconstructionAssignmentToSelf((BoundTupleExpression)node.Left, node.Right);
             }
 
             return base.VisitDeconstructionAssignmentOperator(node);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
                     }
-                    if (p.Type.IsRestrictedType())
+                    if (p.TypeWithAnnotations.IsRestrictedType())
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                     }

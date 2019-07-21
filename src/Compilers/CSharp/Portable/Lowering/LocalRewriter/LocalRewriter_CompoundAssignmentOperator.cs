@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsInvariantArray(TypeSymbol type)
         {
-            return (type as ArrayTypeSymbol)?.ElementType.TypeSymbol.IsSealed == true;
+            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
@@ -729,6 +729,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
+
+                case BoundKind.TypeExpression:
+                    return false;
 
                 default:
                     return true;

@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _syntaxRef As SyntaxReference
 
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
         Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
         ' Set to 1 when the compilation event has been produced
@@ -112,13 +113,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         ''' <summary>

@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Commanding;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class InteractivePasteCommandHandler : VSCommanding.ICommandHandler<PasteCommandArgs>
     {
         // The following two field definitions have to stay in sync with VS editor implementation
@@ -87,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             var data = RoslynClipboard.GetDataObject();
             Debug.Assert(data != null);
 
-            bool dataHasLineCutCopyTag = false;
-            bool dataHasBoxCutCopyTag = false;
+            var dataHasLineCutCopyTag = false;
+            var dataHasBoxCutCopyTag = false;
 
             dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
             dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
@@ -138,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private static bool HasNonWhiteSpaceCharacter(ITextSnapshotLine line)
         {
             var snapshot = line.Snapshot;
-            int start = line.Start.Position;
-            int count = line.Length;
-            for (int i = 0; i < count; i++)
+            var start = line.Start.Position;
+            var count = line.Length;
+            for (var i = 0; i < count; i++)
             {
                 if (!char.IsWhiteSpace(snapshot[start + i]))
                 {

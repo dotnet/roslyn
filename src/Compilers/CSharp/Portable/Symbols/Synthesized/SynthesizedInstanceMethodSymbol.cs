@@ -56,5 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsDeclaredReadOnly => false;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
     }
 }

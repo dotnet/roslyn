@@ -76,6 +76,19 @@
       </Button>
 
       <!-- Organize top-level sub-menu -->
+      <Button guid="guidCSharpGrpId" id="cmdidCSharpOrganizeSortUsings" priority="0x0300" type="Button">
+        <Parent guid="guidCSharpGrpId" id="IDG_CSHARP_CODEGEN"/>
+        <Icon guid="ImageCatalogGuid" id="SortByNamespace"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Sort &amp;Usings</ButtonText>
+          <CanonicalName>SortUsings</CanonicalName>
+          <LocCanonicalName>SortUsings</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" priority="0x0400" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_LANGUAGE"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -411,6 +424,7 @@
       <IDSymbol name="IDG_CSHARP_CODEGEN" value="0x3490"/>
 
       <IDSymbol name="cmdidContextOrganizeRemoveAndSort" value="0x1913"/>
+      <IDSymbol name="cmdidCSharpOrganizeSortUsings" value="0x1922"/>
       <IDSymbol name="cmdidCSharpOrganizeRemoveAndSort" value="0x1923"/>
     </GuidSymbol>
 

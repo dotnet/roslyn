@@ -8,6 +8,6 @@
     /// </remarks>
     interface IDocumentOptionsProviderFactory
     {
-        IDocumentOptionsProvider Create(Workspace workspace);
+        IDocumentOptionsProvider TryCreate(Workspace workspace);
     }
 }

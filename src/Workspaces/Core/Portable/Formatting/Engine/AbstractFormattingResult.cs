@@ -94,19 +94,18 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var changes = GetChanges(cancellationToken);
 
                 // create a map
-                using (var pooledObject = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().GetPooledObject();
+
+                var map = pooledObject.Object;
+                changes.Do(change => map.Add(change.Item1, change.Item2));
+
+                // no changes, return as it is.
+                if (map.Count == 0)
                 {
-                    var map = pooledObject.Object;
-                    changes.Do(change => map.Add(change.Item1, change.Item2));
-
-                    // no changes, return as it is.
-                    if (map.Count == 0)
-                    {
-                        return this.TreeInfo.Root;
-                    }
-
-                    return Rewriter(map, cancellationToken);
+                    return this.TreeInfo.Root;
                 }
+
+                return Rewriter(map, cancellationToken);
             }
         }
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,25 +31,25 @@ namespace Microsoft.CodeAnalysis
 
         internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
-            long length = stream.Length;
+            var length = stream.Length;
 
-            long chunkCount = (length + ChunkSize - 1) / ChunkSize;
-            byte[][] chunks = new byte[chunkCount][];
+            var chunkCount = (length + ChunkSize - 1) / ChunkSize;
+            var chunks = new byte[chunkCount][];
 
             try
             {
                 for (long i = 0, c = 0; i < length; i += ChunkSize, c++)
                 {
-                    int count = (int)Math.Min(ChunkSize, length - i);
+                    var count = (int)Math.Min(ChunkSize, length - i);
                     var chunk = SharedPools.ByteArray.Allocate();
 
-                    int chunkOffset = 0;
+                    var chunkOffset = 0;
                     while (count > 0)
                     {
-                        int bytesRead = await stream.ReadAsync(chunk, chunkOffset, count, cancellationToken).ConfigureAwait(false);
+                        var bytesRead = await stream.ReadAsync(chunk, chunkOffset, count, cancellationToken).ConfigureAwait(false);
                         if (bytesRead > 0)
                         {
-                            count = count - bytesRead;
+                            count -= bytesRead;
                             chunkOffset += bytesRead;
                         }
                         else
@@ -147,23 +148,13 @@ namespace Microsoft.CodeAnalysis
                 long target;
                 try
                 {
-                    switch (origin)
+                    target = origin switch
                     {
-                        case SeekOrigin.Begin:
-                            target = offset;
-                            break;
-
-                        case SeekOrigin.Current:
-                            target = checked(offset + position);
-                            break;
-
-                        case SeekOrigin.End:
-                            target = checked(offset + length);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(origin));
-                    }
+                        SeekOrigin.Begin => offset,
+                        SeekOrigin.Current => checked(offset + position),
+                        SeekOrigin.End => checked(offset + length),
+                        _ => throw new ArgumentOutOfRangeException(nameof(origin)),
+                    };
                 }
                 catch (OverflowException)
                 {
@@ -218,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                     var chunk = chunks[GetChunkIndex(position)];
                     var currentOffset = GetChunkOffset(position);
 
-                    int copyCount = Math.Min(Math.Min(ChunkSize - currentOffset, count), (int)(length - position));
+                    var copyCount = Math.Min(Math.Min(ChunkSize - currentOffset, count), (int)(length - position));
                     Array.Copy(chunk, currentOffset, buffer, index, copyCount);
 
                     position += copyCount;
@@ -242,6 +233,12 @@ namespace Microsoft.CodeAnalysis
                 // read entire array
                 Read(this.chunks, 0, this.length, array, 0, array.Length);
                 return array;
+            }
+
+            public ImmutableArray<byte> ToImmutableArray()
+            {
+                var array = ToArray();
+                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }
@@ -285,8 +282,8 @@ namespace Microsoft.CodeAnalysis
 
         private class ReadStream : PooledStream
         {
-            public ReadStream(long length, byte[][] chunks) :
-                base(length, new List<byte[]>(chunks))
+            public ReadStream(long length, byte[][] chunks)
+                : base(length, new List<byte[]>(chunks))
             {
 
             }
@@ -361,7 +358,7 @@ namespace Microsoft.CodeAnalysis
                     var chunk = chunks[CurrentChunkIndex];
                     var currentOffset = CurrentChunkOffset;
 
-                    int writeCount = Math.Min(ChunkSize - currentOffset, countLeft);
+                    var writeCount = Math.Min(ChunkSize - currentOffset, countLeft);
                     Array.Copy(buffer, currentIndex, chunk, currentOffset, writeCount);
 
                     this.position += writeCount;

@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     {
         private readonly object _experimentationServiceOpt;
         private readonly MethodInfo _isCachedFlightEnabledInfo;
+        private readonly IVsFeatureFlags _featureFlags;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,11 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         {
             object experimentationServiceOpt = null;
             MethodInfo isCachedFlightEnabledInfo = null;
+            IVsFeatureFlags featureFlags = null;
 
             threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 try
                 {
+                    featureFlags = (IVsFeatureFlags)await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
                     experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
                     if (experimentationServiceOpt != null)
                     {
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 }
             });
 
+            _featureFlags = featureFlags;
             _experimentationServiceOpt = experimentationServiceOpt;
             _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
         }
@@ -51,6 +55,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             ThisCanBeCalledOnAnyThread();
             if (_isCachedFlightEnabledInfo != null)
             {
+                try
+                {
+                    // check whether "." exist in the experimentName since it is requirement for featureflag service.
+                    // we do this since RPS complains about resource file being loaded for invalid name exception
+                    // we are not testing all rules but just simple "." check
+                    if (experimentName.IndexOf(".") > 0)
+                    {
+                        var enabled = _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false);
+                        if (enabled)
+                        {
+                            return enabled;
+                        }
+                    }
+                }
+                catch
+                {
+                    // featureFlags can throw if given name is in incorrect format which can happen for us
+                    // since we use this for experimentation service as well
+                }
+
                 try
                 {
                     return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName });

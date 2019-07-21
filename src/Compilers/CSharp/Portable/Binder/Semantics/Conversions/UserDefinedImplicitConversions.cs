@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
-                    TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
+                    TypeSymbol convertsFrom = op.GetParameterType(0);
+                    TypeSymbol convertsTo = op.ReturnType;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
                         EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
@@ -362,12 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static int LiftingCount(UserDefinedConversionAnalysis conv)
         {
             int count = 0;
-            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.ParameterTypes[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.GetParameterType(0), TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
 
-            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
@@ -555,20 +555,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Doesn't even exist.
                 case ConversionKind.NoConversion:
 
-                // Specifically disallowed because there would be subtle
-                // consequences for the overload betterness rules.
+                // These are conversions from expression and do not apply.
+                // Specifically disallowed because there would be subtle consequences for the overload betterness rules.
+                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.InterpolatedString:
-
-                // DELIBERATE SPEC VIOLATION: 
-                // We do not support an encompassing implicit conversion from a zero constant
-                // to an enum type, because the native compiler did not.  It would be a breaking
-                // change.
+                case ConversionKind.SwitchExpression:
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
 
-                // Not built in.
+                // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
 
@@ -583,13 +581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.IntPtr:
-
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
-
-                // Because of target-typing, stackalloc conversions are handled separately
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
                     return false;
 
                 // Spec'd in C# 4.

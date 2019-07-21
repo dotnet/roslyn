@@ -30,9 +30,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
+            var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
             return Task.CompletedTask;
         }
@@ -181,8 +183,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
             {
             }
         }

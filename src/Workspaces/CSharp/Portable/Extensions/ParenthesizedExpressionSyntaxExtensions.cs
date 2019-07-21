@@ -255,6 +255,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
+            // This syntax is only allowed since C# 7.2
+            if (expression.IsKind(SyntaxKind.ConditionalExpression) &&
+                node.IsLeftSideOfAnyAssignExpression())
+            {
+                return false;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
@@ -270,13 +278,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             InterpolationSyntax interpolation = null;
             foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                switch (ancestor.Kind())
+                if (ancestor.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return false;
-                    case SyntaxKind.Interpolation:
-                        interpolation = (InterpolationSyntax)ancestor;
-                        break;
+                    return false;
+                }
+
+                if (ancestor.IsKind(SyntaxKind.Interpolation))
+                {
+                    interpolation = (InterpolationSyntax)ancestor;
+                    break;
                 }
             }
 

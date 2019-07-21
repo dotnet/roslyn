@@ -390,8 +390,8 @@
   <data name="Place_open_brace_on_new_line_for_properties_indexers_and_events" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
-  <data name="Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
-    <value>Suggest usings for types in _reference assemblies</value>
+  <data name="Suggest_usings_for_types_in_dotnet_framework_assemblies" xml:space="preserve">
+    <value>Suggest usings for types in .NET Framework assemblies</value>
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>
@@ -573,5 +573,31 @@
   </data>
   <data name="When_on_multiple_lines" xml:space="preserve">
     <value>When on multiple lines</value>
+  </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces (experimental)</value>
+  </data>
+  <data name="Inside_namespace" xml:space="preserve">
+    <value>Inside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Preferred_using_directive_placement" xml:space="preserve">
+    <value>Preferred 'using' directive placement</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="using_preferences_colon" xml:space="preserve">
+    <value>'using' preferences:</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+    <comment>Title of the control group on the General Formatting options page</comment>
+  </data>
+  <data name="Prefer_switch_expression" xml:space="preserve">
+    <value>Prefer switch expression</value>
   </data>
 </root>

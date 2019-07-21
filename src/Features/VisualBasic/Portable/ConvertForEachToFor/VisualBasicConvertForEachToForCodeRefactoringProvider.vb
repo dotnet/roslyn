@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ConvertForEachToFor
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
@@ -14,42 +13,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
         Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For
 
-        Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax
-            Dim forEachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
-            If forEachBlock Is Nothing Then
-                Return Nothing
-            End If
-
-            ' support refactoring only if caret Is on for each statement
-            Dim scope = forEachBlock.ForEachStatement.Span
-            If Not scope.IntersectsWith(selection) Then
-                Return Nothing
-            End If
-
-            ' we don't support colon seperated statements
-            If forEachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
-                Return Nothing
-            End If
-
-            ' check whether there Is any comments or line continuation within foreach statement
-            ' if they do, we don't support conversion.
-            For Each trivia In forEachBlock.ForEachStatement.DescendantTrivia()
-                If trivia.Span.End <= scope.Start OrElse
-                   scope.End <= trivia.Span.Start Then
-                    Continue For
-                End If
-
-                If trivia.Kind() <> SyntaxKind.WhitespaceTrivia AndAlso
-                   trivia.Kind() <> SyntaxKind.EndOfLineTrivia AndAlso
-                   trivia.Kind() <> SyntaxKind.LineContinuationTrivia Then
-                    ' we don't know what to do with these
-                    Return Nothing
-                End If
-            Next
-
-            Return forEachBlock
+        Protected Overrides Function IsValid(foreachNode As ForEachBlockSyntax) As Boolean
+            ' we don't support colon separated statements
+            Return Not foreachNode.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
         End Function
 
         Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean

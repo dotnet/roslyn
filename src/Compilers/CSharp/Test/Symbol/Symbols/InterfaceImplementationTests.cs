@@ -1857,7 +1857,7 @@ class Base
             var derived = global.GetMember<NamedTypeSymbol>("Derived");
 
             // Force completion of destructor symbol.  Calls IsMetadataVirtual on Base.Finalize.
-            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnType;
+            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnTypeWithAnnotations;
             Assert.Equal(SpecialType.System_Void, returnType.SpecialType);
 
             // Force completion of entire symbol.  Calls EnsureMetadataVirtual on Base.Finalize.

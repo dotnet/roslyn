@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
         CommandHandler_FormatCommand,
+        CommandHandler_CompleteStatement,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SymbolCompletionProvider_GetItemsWorker,
         Completion_KeywordCompletionProvider_GetItemsWorker,
         Completion_SnippetCompletionProvider_GetItemsWorker_CSharp,
+        Completion_TypeImportCompletionProvider_GetCompletionItemsAsync,
 
         SignatureHelp_ModelComputation_ComputeModelInBackground,
         SignatureHelp_ModelComputation_UpdateModelInBackground,
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
-        Experiment_ABTesting,
+        FxCopAnalyzersInstall,
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,
@@ -445,5 +447,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SyntaxTreeIndex_Precalculate_Create,
         SymbolTreeInfo_Create,
         SymbolTreeInfo_TryLoadOrCreate,
+        CommandHandler_GoToImplementation,
+        GraphQuery_ImplementedBy,
+        GraphQuery_Implements,
+        GraphQuery_IsCalledBy,
+        GraphQuery_IsUsedBy,
+        GraphQuery_Overrides,
+
+        Intellisense_AsyncCompletion_Data,
+        Intellisense_CompletionProviders_Data,
+
+        SnapshotService_IsExperimentEnabledAsync,
     }
 }

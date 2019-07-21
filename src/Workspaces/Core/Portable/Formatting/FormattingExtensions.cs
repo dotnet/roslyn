@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetParentWithBiggerSpan(node.Parent);
         }
 
-        public static IEnumerable<IFormattingRule> Concat(this IFormattingRule rule, IEnumerable<IFormattingRule> rules)
+        public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
         {
             return SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
         }
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static string CreateIndentationString(this int desiredIndentation, bool useTab, int tabSize)
         {
-            int numberOfTabs = 0;
-            int numberOfSpaces = Math.Max(0, desiredIndentation);
+            var numberOfTabs = 0;
+            var numberOfSpaces = Math.Max(0, desiredIndentation);
 
             if (useTab)
             {
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static StringBuilder AppendIndentationString(this StringBuilder sb, int desiredIndentation, bool useTab, int tabSize)
         {
-            int numberOfTabs = 0;
-            int numberOfSpaces = Math.Max(0, desiredIndentation);
+            var numberOfTabs = 0;
+            var numberOfSpaces = Math.Max(0, desiredIndentation);
 
             if (useTab)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // add rest of xml doc comments
-            for (int i = 1; i < lines.Length; i++)
+            for (var i = 1; i < lines.Length; i++)
             {
                 var line = lines[i].TrimEnd(s_trimChars);
                 var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(line);
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static int GetFirstNonWhitespaceIndexInString(this string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] != ' ' && text[i] != '\t')
                 {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var span = textChange.Span;
             var newText = textChange.NewText;
 
-            int i = 0;
+            var i = 0;
             for (; i < span.Length; i++)
             {
                 if (i >= newText.Length || text[i] != newText[i])

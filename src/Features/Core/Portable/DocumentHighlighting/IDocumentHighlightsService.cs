@@ -16,27 +16,27 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         WrittenReference,
     }
 
-    internal struct HighlightSpan
+    internal readonly struct HighlightSpan
     {
         public TextSpan TextSpan { get; }
         public HighlightSpanKind Kind { get; }
 
         public HighlightSpan(TextSpan textSpan, HighlightSpanKind kind) : this()
         {
-            this.TextSpan = textSpan;
-            this.Kind = kind;
+            TextSpan = textSpan;
+            Kind = kind;
         }
     }
 
-    internal struct DocumentHighlights
+    internal readonly struct DocumentHighlights
     {
         public Document Document { get; }
         public ImmutableArray<HighlightSpan> HighlightSpans { get; }
 
         public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
         {
-            this.Document = document;
-            this.HighlightSpans = highlightSpans;
+            Document = document;
+            HighlightSpans = highlightSpans;
         }
     }
 

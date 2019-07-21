@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -289,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return destinationMember;
             }
 
-            int currentParamsCount = currentParameterList.Parameters.Count;
-            bool seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
-            bool isFirstParam = currentParamsCount == 0;
+            var currentParamsCount = currentParameterList.Parameters.Count;
+            var seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
+            var isFirstParam = currentParamsCount == 0;
 
             var parameterNodesAndTokens = currentParameterList.Parameters.GetWithSeparators().ToList();
             foreach (var parameter in parameters)
@@ -671,14 +672,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CodeGenerationOptions options)
         {
-            var newModifierTokens = new List<SyntaxToken>();
+            var newModifierTokens = ArrayBuilder<SyntaxToken>.GetInstance();
             CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, options, Accessibility.NotApplicable);
             if (newModifierTokens.Count == 0)
             {
                 return modifiersList;
             }
 
-            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+            // TODO: Move more APIs to use pooled ArrayBuilder
+            // https://github.com/dotnet/roslyn/issues/34960
+            var list = newModifierTokens.ToList();
+            newModifierTokens.Free();
+            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
                 .ToSyntaxTokenList();
         }
 

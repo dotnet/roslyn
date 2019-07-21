@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // otherwise construct type using the field types
-            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type.TypeSymbol);
+            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type);
             return template.Construct(typeArguments);
         }
 
@@ -371,11 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return x.MetadataName.CompareTo(y.MetadataName);
             }
-        }
-
-        internal static Microsoft.CodeAnalysis.Emit.AnonymousTypeKey GetAnonymousTypeKey(NamedTypeSymbol type)
-        {
-            return ((AnonymousTypeTemplateSymbol)type).GetAnonymousTypeKey();
         }
 
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()

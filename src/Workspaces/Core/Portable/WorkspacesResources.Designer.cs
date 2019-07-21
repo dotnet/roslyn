@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -238,6 +237,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Adding_additional_documents_is_not_supported {
             get {
                 return ResourceManager.GetString("Adding_additional_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding analyzer config documents is not supported..
+        /// </summary>
+        internal static string Adding_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Adding_analyzer_config_documents_is_not_supported", resourceCulture);
             }
         }
         
@@ -495,6 +503,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Changing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing compilation options is not supported..
         /// </summary>
         internal static string Changing_compilation_options_is_not_supported {
@@ -590,6 +607,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cycle_detected_in_extensions {
             get {
                 return ResourceManager.GetString("Cycle_detected_in_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTimeKind must be Utc.
+        /// </summary>
+        internal static string DateTimeKind_must_be_Utc {
+            get {
+                return ResourceManager.GetString("DateTimeKind_must_be_Utc", resourceCulture);
             }
         }
         
@@ -1134,6 +1160,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming styles.
+        /// </summary>
+        internal static string Naming_styles {
+            get {
+                return ResourceManager.GetString("Naming_styles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested quantifier {0}.
         /// </summary>
         internal static string Nested_quantifier_0 {
@@ -1269,6 +1313,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private Method.
         /// </summary>
         internal static string Private_Method {
@@ -1368,11 +1430,1748 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories..
+        /// </summary>
+        internal static string Regex_all_control_characters_long {
+            get {
+                return ResourceManager.GetString("Regex_all_control_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all control characters.
+        /// </summary>
+        internal static string Regex_all_control_characters_short {
+            get {
+                return ResourceManager.GetString("Regex_all_control_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All diacritic marks. This includes the Mn, Mc, and Me categories..
+        /// </summary>
+        internal static string Regex_all_diacritic_marks_long {
+            get {
+                return ResourceManager.GetString("Regex_all_diacritic_marks_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all diacritic marks.
+        /// </summary>
+        internal static string Regex_all_diacritic_marks_short {
+            get {
+                return ResourceManager.GetString("Regex_all_diacritic_marks_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters..
+        /// </summary>
+        internal static string Regex_all_letter_characters_long {
+            get {
+                return ResourceManager.GetString("Regex_all_letter_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all letter characters.
+        /// </summary>
+        internal static string Regex_all_letter_characters_short {
+            get {
+                return ResourceManager.GetString("Regex_all_letter_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All numbers. This includes the Nd, Nl, and No categories..
+        /// </summary>
+        internal static string Regex_all_numbers_long {
+            get {
+                return ResourceManager.GetString("Regex_all_numbers_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all numbers.
+        /// </summary>
+        internal static string Regex_all_numbers_short {
+            get {
+                return ResourceManager.GetString("Regex_all_numbers_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories..
+        /// </summary>
+        internal static string Regex_all_punctuation_characters_long {
+            get {
+                return ResourceManager.GetString("Regex_all_punctuation_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all punctuation characters.
+        /// </summary>
+        internal static string Regex_all_punctuation_characters_short {
+            get {
+                return ResourceManager.GetString("Regex_all_punctuation_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All separator characters. This includes the Zs, Zl, and Zp categories..
+        /// </summary>
+        internal static string Regex_all_separator_characters_long {
+            get {
+                return ResourceManager.GetString("Regex_all_separator_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all separator characters.
+        /// </summary>
+        internal static string Regex_all_separator_characters_short {
+            get {
+                return ResourceManager.GetString("Regex_all_separator_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All symbols. This includes the Sm, Sc, Sk, and So categories..
+        /// </summary>
+        internal static string Regex_all_symbols_long {
+            get {
+                return ResourceManager.GetString("Regex_all_symbols_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all symbols.
+        /// </summary>
+        internal static string Regex_all_symbols_short {
+            get {
+                return ResourceManager.GetString("Regex_all_symbols_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern..
+        /// </summary>
+        internal static string Regex_alternation_long {
+            get {
+                return ResourceManager.GetString("Regex_alternation_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to alternation.
+        /// </summary>
+        internal static string Regex_alternation_short {
+            get {
+                return ResourceManager.GetString("Regex_alternation_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the &apos;s&apos; option, . matches any character..
+        /// </summary>
+        internal static string Regex_any_character_group_long {
+            get {
+                return ResourceManager.GetString("Regex_any_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to any character.
+        /// </summary>
+        internal static string Regex_any_character_group_short {
+            get {
+                return ResourceManager.GetString("Regex_any_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a backspace character, \u0008.
+        /// </summary>
+        internal static string Regex_backspace_character_long {
+            get {
+                return ResourceManager.GetString("Regex_backspace_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to backspace character.
+        /// </summary>
+        internal static string Regex_backspace_character_short {
+            get {
+                return ResourceManager.GetString("Regex_backspace_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        ///    
+        ///&apos;name1&apos; is the current group (optional), &apos;name2&apos; is a previously defined group, and &apos;subexpression&apos; is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Be [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_balancing_group_long {
+            get {
+                return ResourceManager.GetString("Regex_balancing_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to balancing group.
+        /// </summary>
+        internal static string Regex_balancing_group_short {
+            get {
+                return ResourceManager.GetString("Regex_balancing_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to base-group.
+        /// </summary>
+        internal static string Regex_base_group {
+            get {
+                return ResourceManager.GetString("Regex_base_group", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a bell (alarm) character, \u0007.
+        /// </summary>
+        internal static string Regex_bell_character_long {
+            get {
+                return ResourceManager.GetString("Regex_bell_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to bell character.
+        /// </summary>
+        internal static string Regex_bell_character_short {
+            get {
+                return ResourceManager.GetString("Regex_bell_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n..
+        /// </summary>
+        internal static string Regex_carriage_return_character_long {
+            get {
+                return ResourceManager.GetString("Regex_carriage_return_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to carriage-return character.
+        /// </summary>
+        internal static string Regex_carriage_return_character_short {
+            get {
+                return ResourceManager.GetString("Regex_carriage_return_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        ///
+        ///&apos;base_group&apos; is a positive or negative character group or range. The &apos;excluded_group&apos; component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions)..
+        /// </summary>
+        internal static string Regex_character_class_subtraction_long {
+            get {
+                return ResourceManager.GetString("Regex_character_class_subtraction_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to character class subtraction.
+        /// </summary>
+        internal static string Regex_character_class_subtraction_short {
+            get {
+                return ResourceManager.GetString("Regex_character_class_subtraction_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to character-group.
+        /// </summary>
+        internal static string Regex_character_group {
+            get {
+                return ResourceManager.GetString("Regex_character_group", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to comment.
+        /// </summary>
+        internal static string Regex_comment {
+            get {
+                return ResourceManager.GetString("Regex_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+        ///
+        ///&apos;expression&apos; is the initial pattern to match, &apos;yes&apos; is the pattern to match if expression is matched, and &apos;no&apos; is the optional pattern to match if expression is not matched..
+        /// </summary>
+        internal static string Regex_conditional_expression_match_long {
+            get {
+                return ResourceManager.GetString("Regex_conditional_expression_match_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to conditional expression match.
+        /// </summary>
+        internal static string Regex_conditional_expression_match_short {
+            get {
+                return ResourceManager.GetString("Regex_conditional_expression_match_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+        ///
+        ///&apos;name&apos; is the name (or number) of a capturing group, &apos;yes&apos; is the expression to match if &apos;name&apos; (or &apos;number&apos;) has a match, and &apos;no&apos; is the optional expression to match if it does not..
+        /// </summary>
+        internal static string Regex_conditional_group_match_long {
+            get {
+                return ResourceManager.GetString("Regex_conditional_group_match_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to conditional group match.
+        /// </summary>
+        internal static string Regex_conditional_group_match_short {
+            get {
+                return ResourceManager.GetString("Regex_conditional_group_match_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous..
+        /// </summary>
+        internal static string Regex_contiguous_matches_long {
+            get {
+                return ResourceManager.GetString("Regex_contiguous_matches_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to contiguous matches.
+        /// </summary>
+        internal static string Regex_contiguous_matches_short {
+            get {
+                return ResourceManager.GetString("Regex_contiguous_matches_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C..
+        /// </summary>
+        internal static string Regex_control_character_long {
+            get {
+                return ResourceManager.GetString("Regex_control_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to control character.
+        /// </summary>
+        internal static string Regex_control_character_short {
+            get {
+                return ResourceManager.GetString("Regex_control_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9].
+        /// </summary>
+        internal static string Regex_decimal_digit_character_long {
+            get {
+                return ResourceManager.GetString("Regex_decimal_digit_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to decimal-digit character.
+        /// </summary>
+        internal static string Regex_decimal_digit_character_short {
+            get {
+                return ResourceManager.GetString("Regex_decimal_digit_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method..
+        /// </summary>
+        internal static string Regex_end_of_line_comment_long {
+            get {
+                return ResourceManager.GetString("Regex_end_of_line_comment_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end-of-line comment.
+        /// </summary>
+        internal static string Regex_end_of_line_comment_short {
+            get {
+                return ResourceManager.GetString("Regex_end_of_line_comment_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string..
+        /// </summary>
+        internal static string Regex_end_of_string_only_long {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_only_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string only.
+        /// </summary>
+        internal static string Regex_end_of_string_only_short {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_only_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        ///
+        ///The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern..
+        /// </summary>
+        internal static string Regex_end_of_string_or_before_ending_newline_long {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_or_before_ending_newline_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string or before ending newline.
+        /// </summary>
+        internal static string Regex_end_of_string_or_before_ending_newline_short {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_or_before_ending_newline_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+        ///
+        ///The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern..
+        /// </summary>
+        internal static string Regex_end_of_string_or_line_long {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_or_line_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string or line.
+        /// </summary>
+        internal static string Regex_end_of_string_or_line_short {
+            get {
+                return ResourceManager.GetString("Regex_end_of_string_or_line_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches an escape character, \u001B.
+        /// </summary>
+        internal static string Regex_escape_character_long {
+            get {
+                return ResourceManager.GetString("Regex_escape_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to escape character.
+        /// </summary>
+        internal static string Regex_escape_character_short {
+            get {
+                return ResourceManager.GetString("Regex_escape_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to excluded-group.
+        /// </summary>
+        internal static string Regex_excluded_group {
+            get {
+                return ResourceManager.GetString("Regex_excluded_group", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression.
+        /// </summary>
+        internal static string Regex_expression {
+            get {
+                return ResourceManager.GetString("Regex_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a form-feed character, \u000C.
+        /// </summary>
+        internal static string Regex_form_feed_character_long {
+            get {
+                return ResourceManager.GetString("Regex_form_feed_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to form-feed character.
+        /// </summary>
+        internal static string Regex_form_feed_character_short {
+            get {
+                return ResourceManager.GetString("Regex_form_feed_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        ///
+        ///    i	Use case-insensitive matching.
+        ///    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+        ///	(instead of the beginning and end of the input string).
+        ///    s	Use single-line mode, where the period (.) matches every character
+        ///	(instead of every character exc [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_group_options_long {
+            get {
+                return ResourceManager.GetString("Regex_group_options_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to group options.
+        /// </summary>
+        internal static string Regex_group_options_short {
+            get {
+                return ResourceManager.GetString("Regex_group_options_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches an ASCII character, where ## is a two-digit hexadecimal character code..
+        /// </summary>
+        internal static string Regex_hexadecimal_escape_long {
+            get {
+                return ResourceManager.GetString("Regex_hexadecimal_escape_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hexidecimal escape.
+        /// </summary>
+        internal static string Regex_hexadecimal_escape_short {
+            get {
+                return ResourceManager.GetString("Regex_hexadecimal_escape_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis..
+        /// </summary>
+        internal static string Regex_inline_comment_long {
+            get {
+                return ResourceManager.GetString("Regex_inline_comment_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to inline comment.
+        /// </summary>
+        internal static string Regex_inline_comment_short {
+            get {
+                return ResourceManager.GetString("Regex_inline_comment_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        ///
+        ///    i	Use case-insensitive matching.
+        ///    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+        ///	(instead of the beginning and end of the input string).
+        ///    s	Use single-line mode, where the period (.) matches every character
+        ///	(instead of every charac [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_inline_options_long {
+            get {
+                return ResourceManager.GetString("Regex_inline_options_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to inline options.
+        /// </summary>
+        internal static string Regex_inline_options_short {
+            get {
+                return ResourceManager.GetString("Regex_inline_options_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex issue: {0}.
         /// </summary>
         internal static string Regex_issue_0 {
             get {
                 return ResourceManager.GetString("Regex_issue_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, lowercase.
+        /// </summary>
+        internal static string Regex_letter_lowercase {
+            get {
+                return ResourceManager.GetString("Regex_letter_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, modifier.
+        /// </summary>
+        internal static string Regex_letter_modifier {
+            get {
+                return ResourceManager.GetString("Regex_letter_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, other.
+        /// </summary>
+        internal static string Regex_letter_other {
+            get {
+                return ResourceManager.GetString("Regex_letter_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, titlecase.
+        /// </summary>
+        internal static string Regex_letter_titlecase {
+            get {
+                return ResourceManager.GetString("Regex_letter_titlecase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, uppercase.
+        /// </summary>
+        internal static string Regex_letter_uppercase {
+            get {
+                return ResourceManager.GetString("Regex_letter_uppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, enclosing.
+        /// </summary>
+        internal static string Regex_mark_enclosing {
+            get {
+                return ResourceManager.GetString("Regex_mark_enclosing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, nonspacing.
+        /// </summary>
+        internal static string Regex_mark_nonspacing {
+            get {
+                return ResourceManager.GetString("Regex_mark_nonspacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, spacing combining.
+        /// </summary>
+        internal static string Regex_mark_spacing_combining {
+            get {
+                return ResourceManager.GetString("Regex_mark_spacing_combining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}.
+        /// </summary>
+        internal static string Regex_match_at_least_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_at_least_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string Regex_match_at_least_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_at_least_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?.
+        /// </summary>
+        internal static string Regex_match_at_least_n_times_long {
+            get {
+                return ResourceManager.GetString("Regex_match_at_least_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times.
+        /// </summary>
+        internal static string Regex_match_at_least_n_times_short {
+            get {
+                return ResourceManager.GetString("Regex_match_at_least_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}.
+        /// </summary>
+        internal static string Regex_match_between_m_and_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_between_m_and_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string Regex_match_between_m_and_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_between_m_and_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?.
+        /// </summary>
+        internal static string Regex_match_between_m_and_n_times_long {
+            get {
+                return ResourceManager.GetString("Regex_match_between_m_and_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match between &apos;m&apos; and &apos;n&apos; times.
+        /// </summary>
+        internal static string Regex_match_between_m_and_n_times_short {
+            get {
+                return ResourceManager.GetString("Regex_match_between_m_and_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+.
+        /// </summary>
+        internal static string Regex_match_exactly_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_exactly_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match exactly &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string Regex_match_exactly_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_exactly_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?.
+        /// </summary>
+        internal static string Regex_match_exactly_n_times_long {
+            get {
+                return ResourceManager.GetString("Regex_match_exactly_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match exactly &apos;n&apos; times.
+        /// </summary>
+        internal static string Regex_match_exactly_n_times_short {
+            get {
+                return ResourceManager.GetString("Regex_match_exactly_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +.
+        /// </summary>
+        internal static string Regex_match_one_or_more_times_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_one_or_more_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match one or more times (lazy).
+        /// </summary>
+        internal static string Regex_match_one_or_more_times_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_one_or_more_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?..
+        /// </summary>
+        internal static string Regex_match_one_or_more_times_long {
+            get {
+                return ResourceManager.GetString("Regex_match_one_or_more_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match one or more times.
+        /// </summary>
+        internal static string Regex_match_one_or_more_times_short {
+            get {
+                return ResourceManager.GetString("Regex_match_one_or_more_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *.
+        /// </summary>
+        internal static string Regex_match_zero_or_more_times_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_more_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or more times (lazy).
+        /// </summary>
+        internal static string Regex_match_zero_or_more_times_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_more_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?..
+        /// </summary>
+        internal static string Regex_match_zero_or_more_times_long {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_more_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or more times.
+        /// </summary>
+        internal static string Regex_match_zero_or_more_times_short {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_more_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?.
+        /// </summary>
+        internal static string Regex_match_zero_or_one_time_lazy_long {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_one_time_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or one time (lazy).
+        /// </summary>
+        internal static string Regex_match_zero_or_one_time_lazy_short {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_one_time_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??..
+        /// </summary>
+        internal static string Regex_match_zero_or_one_time_long {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_one_time_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or one time.
+        /// </summary>
+        internal static string Regex_match_zero_or_one_time_short {
+            get {
+                return ResourceManager.GetString("Regex_match_zero_or_one_time_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This grouping construct captures a matched &apos;subexpression&apos;, where &apos;subexpression&apos; is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern..
+        /// </summary>
+        internal static string Regex_matched_subexpression_long {
+            get {
+                return ResourceManager.GetString("Regex_matched_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to matched subexpression.
+        /// </summary>
+        internal static string Regex_matched_subexpression_short {
+            get {
+                return ResourceManager.GetString("Regex_matched_subexpression_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name.
+        /// </summary>
+        internal static string Regex_name {
+            get {
+                return ResourceManager.GetString("Regex_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name-or-number.
+        /// </summary>
+        internal static string Regex_name_or_number {
+            get {
+                return ResourceManager.GetString("Regex_name_or_number", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name1.
+        /// </summary>
+        internal static string Regex_name1 {
+            get {
+                return ResourceManager.GetString("Regex_name1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name2.
+        /// </summary>
+        internal static string Regex_name2 {
+            get {
+                return ResourceManager.GetString("Regex_name2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A named or numbered backreference.
+        ///
+        ///&apos;name&apos; is the name of a capturing group defined in the regular expression pattern..
+        /// </summary>
+        internal static string Regex_named_backreference_long {
+            get {
+                return ResourceManager.GetString("Regex_named_backreference_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to named backreference.
+        /// </summary>
+        internal static string Regex_named_backreference_short {
+            get {
+                return ResourceManager.GetString("Regex_named_backreference_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Captures a matched subexpression and lets you access it by name or by number.
+        ///
+        ///&apos;name&apos; is a valid group name, and &apos;subexpression&apos; is any valid regular expression pattern. &apos;name&apos; must not contain any punctuation characters and cannot begin with a number.
+        ///
+        ///If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing gro [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_named_matched_subexpression_long {
+            get {
+                return ResourceManager.GetString("Regex_named_matched_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to named matched subexpression.
+        /// </summary>
+        internal static string Regex_named_matched_subexpression_short {
+            get {
+                return ResourceManager.GetString("Regex_named_matched_subexpression_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+        ///
+        ///Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from &quot;0&quot; through &quot;9&quot;, the range of lowercase letters from &quot;a&quot; through &quot;f&quot;, and the range of uppercase letters from &quot;A&quot; through &quot;F&quot;, use [0-9a-fA-F]..
+        /// </summary>
+        internal static string Regex_negative_character_group_long {
+            get {
+                return ResourceManager.GetString("Regex_negative_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative character group.
+        /// </summary>
+        internal static string Regex_negative_character_group_short {
+            get {
+                return ResourceManager.GetString("Regex_negative_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A negative character range specifies a list of characters that must not appear in an input string for a match to occur. &apos;firstCharacter&apos; is the character that begins the range, and &apos;lastCharacter&apos; is the character that ends the range.
+        ///
+        ///Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from &quot;0&quot; through &quot;9&quot;, the range of lowercase letters from &quot;a&quot; through &quot;f&quot;, and the range of uppercase letters from &quot;A&quot; through &quot;F&quot;, use [0-9a-fA-F]..
+        /// </summary>
+        internal static string Regex_negative_character_range_long {
+            get {
+                return ResourceManager.GetString("Regex_negative_character_range_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative character range.
+        /// </summary>
+        internal static string Regex_negative_character_range_short {
+            get {
+                return ResourceManager.GetString("Regex_negative_character_range_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name..
+        /// </summary>
+        internal static string Regex_negative_unicode_category_long {
+            get {
+                return ResourceManager.GetString("Regex_negative_unicode_category_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative unicode category.
+        /// </summary>
+        internal static string Regex_negative_unicode_category_short {
+            get {
+                return ResourceManager.GetString("Regex_negative_unicode_category_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a new-line character, \u000A.
+        /// </summary>
+        internal static string Regex_new_line_character_long {
+            get {
+                return ResourceManager.GetString("Regex_new_line_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to new-line character.
+        /// </summary>
+        internal static string Regex_new_line_character_short {
+            get {
+                return ResourceManager.GetString("Regex_new_line_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to no.
+        /// </summary>
+        internal static string Regex_no {
+            get {
+                return ResourceManager.GetString("Regex_no", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9].
+        /// </summary>
+        internal static string Regex_non_digit_character_long {
+            get {
+                return ResourceManager.GetString("Regex_non_digit_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-digit character.
+        /// </summary>
+        internal static string Regex_non_digit_character_short {
+            get {
+                return ResourceManager.GetString("Regex_non_digit_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v].
+        /// </summary>
+        internal static string Regex_non_white_space_character_long {
+            get {
+                return ResourceManager.GetString("Regex_non_white_space_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-white-space character.
+        /// </summary>
+        internal static string Regex_non_white_space_character_short {
+            get {
+                return ResourceManager.GetString("Regex_non_white_space_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor..
+        /// </summary>
+        internal static string Regex_non_word_boundary_long {
+            get {
+                return ResourceManager.GetString("Regex_non_word_boundary_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-word boundary.
+        /// </summary>
+        internal static string Regex_non_word_boundary_short {
+            get {
+                return ResourceManager.GetString("Regex_non_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \W matches any non-word character. It matches any character except for those in the following Unicode categories:
+        ///
+        ///    Ll	Letter, Lowercase
+        ///    Lu	Letter, Uppercase
+        ///    Lt	Letter, Titlecase
+        ///    Lo	Letter, Other
+        ///    Lm	Letter, Modifier
+        ///    Mn	Mark, Nonspacing
+        ///    Nd	Number, Decimal Digit
+        ///    Pc	Punctuation, Connector
+        ///
+        ///If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9].
+        /// </summary>
+        internal static string Regex_non_word_character_long {
+            get {
+                return ResourceManager.GetString("Regex_non_word_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-word character.
+        /// </summary>
+        internal static string Regex_non_word_character_short {
+            get {
+                return ResourceManager.GetString("Regex_non_word_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+        ///
+        ///This option is recommended if you know that backtracking will not succeed. Preven [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_nonbacktracking_subexpression_long {
+            get {
+                return ResourceManager.GetString("Regex_nonbacktracking_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to nonbacktracking subexpression.
+        /// </summary>
+        internal static string Regex_nonbacktracking_subexpression_short {
+            get {
+                return ResourceManager.GetString("Regex_nonbacktracking_subexpression_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This construct does not capture the substring that is matched by a subexpression:
+        ///
+        ///The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+        ///
+        ///If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs..
+        /// </summary>
+        internal static string Regex_noncapturing_group_long {
+            get {
+                return ResourceManager.GetString("Regex_noncapturing_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to noncapturing group.
+        /// </summary>
+        internal static string Regex_noncapturing_group_short {
+            get {
+                return ResourceManager.GetString("Regex_noncapturing_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to number, decimal digit.
+        /// </summary>
+        internal static string Regex_number_decimal_digit {
+            get {
+                return ResourceManager.GetString("Regex_number_decimal_digit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to number, letter.
+        /// </summary>
+        internal static string Regex_number_letter {
+            get {
+                return ResourceManager.GetString("Regex_number_letter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to number, other.
+        /// </summary>
+        internal static string Regex_number_other {
+            get {
+                return ResourceManager.GetString("Regex_number_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A numbered backreference, where &apos;number&apos; is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+        ///
+        ///There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot b [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_numbered_backreference_long {
+            get {
+                return ResourceManager.GetString("Regex_numbered_backreference_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to numbered backreference.
+        /// </summary>
+        internal static string Regex_numbered_backreference_short {
+            get {
+                return ResourceManager.GetString("Regex_numbered_backreference_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, control.
+        /// </summary>
+        internal static string Regex_other_control {
+            get {
+                return ResourceManager.GetString("Regex_other_control", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, format.
+        /// </summary>
+        internal static string Regex_other_format {
+            get {
+                return ResourceManager.GetString("Regex_other_format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, not assigned.
+        /// </summary>
+        internal static string Regex_other_not_assigned {
+            get {
+                return ResourceManager.GetString("Regex_other_not_assigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, private use.
+        /// </summary>
+        internal static string Regex_other_private_use {
+            get {
+                return ResourceManager.GetString("Regex_other_private_use", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, surrogate.
+        /// </summary>
+        internal static string Regex_other_surrogate {
+            get {
+                return ResourceManager.GetString("Regex_other_surrogate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur..
+        /// </summary>
+        internal static string Regex_positive_character_group_long {
+            get {
+                return ResourceManager.GetString("Regex_positive_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to positive character group.
+        /// </summary>
+        internal static string Regex_positive_character_group_short {
+            get {
+                return ResourceManager.GetString("Regex_positive_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  &apos;firstCharacter&apos; is the character that begins the range and &apos;lastCharacter&apos; is the character that ends the range. .
+        /// </summary>
+        internal static string Regex_positive_character_range_long {
+            get {
+                return ResourceManager.GetString("Regex_positive_character_range_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to positive character range.
+        /// </summary>
+        internal static string Regex_positive_character_range_short {
+            get {
+                return ResourceManager.GetString("Regex_positive_character_range_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, close.
+        /// </summary>
+        internal static string Regex_punctuation_close {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, connector.
+        /// </summary>
+        internal static string Regex_punctuation_connector {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_connector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, dash.
+        /// </summary>
+        internal static string Regex_punctuation_dash {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_dash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, final quote.
+        /// </summary>
+        internal static string Regex_punctuation_final_quote {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_final_quote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, initial quote.
+        /// </summary>
+        internal static string Regex_punctuation_initial_quote {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_initial_quote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, open.
+        /// </summary>
+        internal static string Regex_punctuation_open {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, other.
+        /// </summary>
+        internal static string Regex_punctuation_other {
+            get {
+                return ResourceManager.GetString("Regex_punctuation_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, line.
+        /// </summary>
+        internal static string Regex_separator_line {
+            get {
+                return ResourceManager.GetString("Regex_separator_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, paragraph.
+        /// </summary>
+        internal static string Regex_separator_paragraph {
+            get {
+                return ResourceManager.GetString("Regex_separator_paragraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, space.
+        /// </summary>
+        internal static string Regex_separator_space {
+            get {
+                return ResourceManager.GetString("Regex_separator_space", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string..
+        /// </summary>
+        internal static string Regex_start_of_string_only_long {
+            get {
+                return ResourceManager.GetString("Regex_start_of_string_only_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to start of string only.
+        /// </summary>
+        internal static string Regex_start_of_string_only_short {
+            get {
+                return ResourceManager.GetString("Regex_start_of_string_only_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line..
+        /// </summary>
+        internal static string Regex_start_of_string_or_line_long {
+            get {
+                return ResourceManager.GetString("Regex_start_of_string_or_line_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to start of string or line.
+        /// </summary>
+        internal static string Regex_start_of_string_or_line_short {
+            get {
+                return ResourceManager.GetString("Regex_start_of_string_or_line_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to subexpression.
+        /// </summary>
+        internal static string Regex_subexpression {
+            get {
+                return ResourceManager.GetString("Regex_subexpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, currency.
+        /// </summary>
+        internal static string Regex_symbol_currency {
+            get {
+                return ResourceManager.GetString("Regex_symbol_currency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, math.
+        /// </summary>
+        internal static string Regex_symbol_math {
+            get {
+                return ResourceManager.GetString("Regex_symbol_math", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, modifier.
+        /// </summary>
+        internal static string Regex_symbol_modifier {
+            get {
+                return ResourceManager.GetString("Regex_symbol_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, other.
+        /// </summary>
+        internal static string Regex_symbol_other {
+            get {
+                return ResourceManager.GetString("Regex_symbol_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a tab character, \u0009.
+        /// </summary>
+        internal static string Regex_tab_character_long {
+            get {
+                return ResourceManager.GetString("Regex_tab_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tab character.
+        /// </summary>
+        internal static string Regex_tab_character_short {
+            get {
+                return ResourceManager.GetString("Regex_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name..
+        /// </summary>
+        internal static string Regex_unicode_category_long {
+            get {
+                return ResourceManager.GetString("Regex_unicode_category_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unicode category.
+        /// </summary>
+        internal static string Regex_unicode_category_short {
+            get {
+                return ResourceManager.GetString("Regex_unicode_category_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a UTF-16 code unit whose value is #### hexadecimal..
+        /// </summary>
+        internal static string Regex_unicode_escape_long {
+            get {
+                return ResourceManager.GetString("Regex_unicode_escape_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unicode escape.
+        /// </summary>
+        internal static string Regex_unicode_escape_short {
+            get {
+                return ResourceManager.GetString("Regex_unicode_escape_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unicode General Category: {0}.
+        /// </summary>
+        internal static string Regex_unicode_general_category_0 {
+            get {
+                return ResourceManager.GetString("Regex_unicode_general_category_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a vertical-tab character, \u000B.
+        /// </summary>
+        internal static string Regex_vertical_tab_character_long {
+            get {
+                return ResourceManager.GetString("Regex_vertical_tab_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to vertical-tab character.
+        /// </summary>
+        internal static string Regex_vertical_tab_character_short {
+            get {
+                return ResourceManager.GetString("Regex_vertical_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+        ///
+        ///    \f	The form feed character, \u000C
+        ///    \n	The newline character, \u000A
+        ///    \r	The carriage return character, \u000D
+        ///    \t	The tab character, \u0009
+        ///    \v	The vertical tab character, \u000B
+        ///    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+        ///    \p{Z}	Matches any separator character
+        ///
+        ///If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v].
+        /// </summary>
+        internal static string Regex_white_space_character_long {
+            get {
+                return ResourceManager.GetString("Regex_white_space_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to white-space character.
+        /// </summary>
+        internal static string Regex_white_space_character_short {
+            get {
+                return ResourceManager.GetString("Regex_white_space_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        ///
+        ///The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beg [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_word_boundary_long {
+            get {
+                return ResourceManager.GetString("Regex_word_boundary_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to word boundary.
+        /// </summary>
+        internal static string Regex_word_boundary_short {
+            get {
+                return ResourceManager.GetString("Regex_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \w matches any word character. A word character is a member of any of the following Unicode categories:
+        ///
+        ///    Ll	Letter, Lowercase
+        ///    Lu	Letter, Uppercase
+        ///    Lt	Letter, Titlecase
+        ///    Lo	Letter, Other
+        ///    Lm	Letter, Modifier
+        ///    Mn	Mark, Nonspacing
+        ///    Nd	Number, Decimal Digit
+        ///    Pc	Punctuation, Connector
+        ///
+        ///If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9].
+        /// </summary>
+        internal static string Regex_word_character_long {
+            get {
+                return ResourceManager.GetString("Regex_word_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to word character.
+        /// </summary>
+        internal static string Regex_word_character_short {
+            get {
+                return ResourceManager.GetString("Regex_word_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yes.
+        /// </summary>
+        internal static string Regex_yes {
+            get {
+                return ResourceManager.GetString("Regex_yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        ///
+        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_zero_width_negative_lookahead_assertion_long {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_negative_lookahead_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width negative lookahead assertion.
+        /// </summary>
+        internal static string Regex_zero_width_negative_lookahead_assertion_short {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_negative_lookahead_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A zero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
+        ///
+        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or character [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_zero_width_negative_lookbehind_assertion_long {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_negative_lookbehind_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width negative lookbehind assertion.
+        /// </summary>
+        internal static string Regex_zero_width_negative_lookbehind_assertion_short {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_negative_lookbehind_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        ///
+        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Regex_zero_width_positive_lookahead_assertion_long {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_positive_lookahead_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width positive lookahead assertion.
+        /// </summary>
+        internal static string Regex_zero_width_positive_lookahead_assertion_short {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_positive_lookahead_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A zero-width positive lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must occur at the input string to the left of the current position. &apos;subexpression&apos; is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        ///
+        ///Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result..
+        /// </summary>
+        internal static string Regex_zero_width_positive_lookbehind_assertion_long {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_positive_lookbehind_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width positive lookbehind assertion.
+        /// </summary>
+        internal static string Regex_zero_width_positive_lookbehind_assertion_short {
+            get {
+                return ResourceManager.GetString("Regex_zero_width_positive_lookbehind_assertion_short", resourceCulture);
             }
         }
         
@@ -1401,6 +3200,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Removing_additional_documents_is_not_supported {
             get {
                 return ResourceManager.GetString("Removing_additional_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Removing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Removing_analyzer_config_documents_is_not_supported", resourceCulture);
             }
         }
         
@@ -1546,6 +3354,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_0_is_not_from_source {
             get {
                 return ResourceManager.GetString("Symbol_0_is_not_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol specifications.
+        /// </summary>
+        internal static string Symbol_specifications {
+            get {
+                return ResourceManager.GetString("Symbol_specifications", resourceCulture);
             }
         }
         
@@ -1784,6 +3601,69 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Base Type.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_BaseType {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Construct.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Construct {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Declare {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Import {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Qualify {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Constraint.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -1901,11 +3781,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NameOnly.
+        ///   Looks up a localized string similar to Name.
         /// </summary>
-        internal static string ValueUsageInfo_NameOnly {
+        internal static string ValueUsageInfo_Name {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
             }
         }
         

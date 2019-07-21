@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
+#if !CODE_STYLE
+                return member.AttributeLists;
+#else
                 switch (member.Kind())
                 {
                     case SyntaxKind.EnumDeclaration:
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.IncompleteMember:
                         return ((IncompleteMemberSyntax)member).AttributeLists;
                 }
+#endif
             }
 
             return SyntaxFactory.List<AttributeListSyntax>();

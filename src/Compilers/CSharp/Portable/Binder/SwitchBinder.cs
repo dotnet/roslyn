@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // compute the constant value to place in the label symbol
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
-                        var boundLabelExpression = sectionBinder.BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
+                        var boundLabelExpression = sectionBinder.BindRValueWithoutTargetType(caseLabel.Value, tempDiagnosticBag);
                         boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
@@ -365,8 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 
-            var switchGoverningExpression = binder.BindValue(node, diagnostics, BindValueKind.RValue);
-
+            var switchGoverningExpression = binder.BindRValueWithoutTargetType(node, diagnostics);
             var switchGoverningType = switchGoverningExpression.Type;
 
             if ((object)switchGoverningType != null && !switchGoverningType.IsErrorType())
@@ -410,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
                         return binder.CreateConversion(node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, resultantGoverningType, diagnostics);
                     }
-                    else if (switchGoverningType.SpecialType != SpecialType.System_Void)
+                    else if (!switchGoverningType.IsVoidType())
                     {
                         // Otherwise (3) satisfied
                         if (!PatternsEnabled)
@@ -429,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!switchGoverningExpression.HasAnyErrors)
             {
-                Debug.Assert((object)switchGoverningExpression.Type == null || switchGoverningExpression.Type.SpecialType == SpecialType.System_Void);
+                Debug.Assert((object)switchGoverningExpression.Type == null || switchGoverningExpression.Type.IsVoidType());
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchGoverningExpression.Display);
             }
 

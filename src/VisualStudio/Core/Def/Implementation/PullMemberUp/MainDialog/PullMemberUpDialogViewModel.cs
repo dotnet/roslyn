@@ -43,6 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             Destinations = destinations;
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
+            if (destinations != default && !destinations.IsEmpty)
+            {
+                // Select a destination by default
+                destinations[0].IsChecked = true;
+            }
         }
 
         public BaseTypeTreeNodeViewModel SelectedDestination
@@ -60,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     foreach (var member in fields)
                     {
                         member.IsCheckable = !isInterface;
+                        member.TooltipText = isInterface ? ServicesVSResources.Interface_cannot_have_field : string.Empty;
                     }
 
                     foreach (var member in makeAbstractEnabledCheckboxes)

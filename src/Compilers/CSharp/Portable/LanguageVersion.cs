@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     public enum LanguageVersion
     {
         /// <summary>
-        /// The default language version, which is the latest major supported version.
-        /// </summary>
-        Default = 0,
-
-        /// <summary>
         /// C# language version 1
         /// </summary>
         CSharp1 = 1,
@@ -130,9 +125,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp8 = 800,
 
         /// <summary>
-        /// The latest version of the language supported.
+        /// The latest major supported version.
+        /// </summary>
+        LatestMajor = int.MaxValue - 2,
+
+        /// <summary>
+        /// Preview of the next language version.
+        /// </summary>
+        Preview = int.MaxValue - 1,
+
+        /// <summary>
+        /// The latest supported version of the language.
         /// </summary>
         Latest = int.MaxValue,
+
+        /// <summary>
+        /// The default language version, which is the latest supported version.
+        /// </summary>
+        Default = 0,
     }
 
     internal static class LanguageVersionExtensionsInternal
@@ -152,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_2:
                 case LanguageVersion.CSharp7_3:
                 case LanguageVersion.CSharp8:
+                case LanguageVersion.Preview:
                     return true;
             }
 
@@ -196,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpRequiredLanguageVersion(LanguageVersion version)
         {
-            Version = version;
+            Version = (version == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()) ? LanguageVersion.Preview : version;
         }
 
         public override string ToString() => Version.ToDisplayString();
@@ -238,6 +249,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "default";
                 case LanguageVersion.Latest:
                     return "latest";
+                case LanguageVersion.LatestMajor:
+                    return "latestmajor";
+                case LanguageVersion.Preview:
+                    return "preview";
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -262,6 +277,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case "latest":
                     result = LanguageVersion.Latest;
+                    return true;
+
+                case "latestmajor":
+                    result = LanguageVersion.LatestMajor;
+                    return true;
+
+                case "preview":
+                    result = LanguageVersion.Preview;
                     return true;
 
                 case "1":
@@ -332,13 +355,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
-                    return LanguageVersion.CSharp7_3;
                 case LanguageVersion.Default:
-                    return LanguageVersion.CSharp7;
+                case LanguageVersion.LatestMajor:
+                    return LanguageVersion.CSharp8;
                 default:
                     return version;
             }
         }
+
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp8;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public override bool HasNotNullConstraint => false;
+
+        internal override bool? IsNotNullable => null;
+
         public override bool HasValueTypeConstraint
         {
             get { return false; }
@@ -83,13 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+            return ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

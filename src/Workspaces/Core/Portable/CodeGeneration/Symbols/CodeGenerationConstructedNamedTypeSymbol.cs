@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => t.GetNullability());
+
         public override int Arity => _constructedFrom.Arity;
 
         public override bool IsGenericType => _constructedFrom.IsGenericType;

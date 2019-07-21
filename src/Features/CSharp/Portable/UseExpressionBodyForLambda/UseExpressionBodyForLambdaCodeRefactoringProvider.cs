@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
@@ -19,21 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
         public UseExpressionBodyForLambdaCodeRefactoringProvider()
         {
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.Length > 0)
+            var (document, textSpan, cancellationToken) = context;
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var lambdaNode = root.FindToken(position).Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
             if (lambdaNode == null)

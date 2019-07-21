@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As TupleErrorFieldSymbol) As Boolean
             Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._tupleElementIndex = other._tupleElementIndex AndAlso Me.ContainingType = other.ContainingType)
+                (other IsNot Nothing AndAlso Me._tupleElementIndex = other._tupleElementIndex AndAlso TypeSymbol.Equals(Me.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything))
         End Function
     End Class
 End Namespace

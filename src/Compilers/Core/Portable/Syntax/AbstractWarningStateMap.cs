@@ -15,8 +15,14 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// </summary>
         private readonly WarningStateMapEntry[] _warningStateMapEntries;
 
-        protected AbstractWarningStateMap(SyntaxTree syntaxTree)
+        /// <summary>
+        /// Records if this state map is for generated code, which can have differing semantics in some cases
+        /// </summary>
+        protected readonly bool _isGeneratedCode;
+
+        protected AbstractWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode)
         {
+            _isGeneratedCode = isGeneratedCode;
             _warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
         }
 

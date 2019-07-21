@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
         private Lazy<IProjectInfoService> _singleton =
             new Lazy<IProjectInfoService>(() => new DefaultProjectInfoService());
 
+        [ImportingConstructor]
+        public DefaultProjectInfoServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton.Value;

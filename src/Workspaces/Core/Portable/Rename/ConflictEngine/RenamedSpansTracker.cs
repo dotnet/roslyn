@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ? _documentToModifiedSpansMap[documentId].Where(pair => pair.oldSpan.Start < startingPosition) :
                 SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
 
-            int adjustedStartingPosition = startingPosition;
+            var adjustedStartingPosition = startingPosition;
             foreach (var textSpanPair in documentReplacementSpans)
             {
                 adjustedStartingPosition += textSpanPair.newSpan.Length - textSpanPair.oldSpan.Length;
@@ -119,26 +119,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             return adjustedStartingPosition;
-        }
-
-        // test only
-        internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
-        {
-            if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans) &&
-                modifiedSpans.Contains(t => t.oldSpan == originalSpan))
-            {
-                return modifiedSpans.First(t => t.oldSpan == originalSpan).newSpan;
-            }
-
-            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
-            {
-                return complexifiedSpans.First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
-            }
-
-            // The RenamedSpansTracker doesn't currently track unresolved conflicts for
-            // unmodified locations.  If the document wasn't modified, we can just use the 
-            // original span as the new span.
-            return originalSpan;
         }
 
         /// <summary>
@@ -231,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var annotationAndTokens2 = renameAnnotations.GetAnnotatedNodesAndTokens<RenameTokenSimplificationAnnotation>(node)
                                .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameTokenSimplificationAnnotation>(x).First(), (SyntaxToken)x));
 
-                        List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
+                        var modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
                         foreach (var annotationAndToken in annotationAndTokens2)
                         {
                             modifiedTokensInComplexifiedStatements.Add(annotationAndToken.Item2);
@@ -299,6 +279,38 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             return SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly RenamedSpansTracker _renamedSpansTracker;
+
+            public TestAccessor(RenamedSpansTracker renamedSpansTracker)
+            {
+                _renamedSpansTracker = renamedSpansTracker;
+            }
+
+            internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
+            {
+                if (_renamedSpansTracker._documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans) &&
+                    modifiedSpans.Contains(t => t.oldSpan == originalSpan))
+                {
+                    return modifiedSpans.First(t => t.oldSpan == originalSpan).newSpan;
+                }
+
+                if (_renamedSpansTracker._documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
+                {
+                    return complexifiedSpans.First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
+                }
+
+                // The RenamedSpansTracker doesn't currently track unresolved conflicts for
+                // unmodified locations.  If the document wasn't modified, we can just use the 
+                // original span as the new span.
+                return originalSpan;
+            }
         }
     }
 }

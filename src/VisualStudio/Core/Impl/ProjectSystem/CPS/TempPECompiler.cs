@@ -49,16 +49,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            var options = project.LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions()
+            // We need to inherit most of the projects options, mainly for VB (RootNamespace, GlobalImports etc.), but we need to override about some specific things surrounding the output
+            var options = project.CompilationOptions
                     // copied from the old TempPE compiler used by legacy, for parity.
                     // See: https://github.com/dotnet/roslyn/blob/fab7134296816fc80019c60b0f5bef7400cf23ea/src/VisualStudio/CSharp/Impl/ProjectSystemShim/TempPECompilerService.cs#L58
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .WithSourceReferenceResolver(SourceFileResolver.Default)
                     .WithXmlReferenceResolver(XmlFileResolver.Default)
-                    // we always want to produce a DLL
-                    .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+                    // We always want to produce a debug, AnyCPU DLL
+                    .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+                    .WithPlatform(Platform.AnyCpu)
+                    .WithOptimizationLevel(OptimizationLevel.Debug)
+                    // Turn off any warnings as errors just in case
+                    .WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+                    .WithReportSuppressedDiagnostics(false)
+                    .WithSpecificDiagnosticOptions(null)
+                    // Turn off any signing and strong naming
+                    .WithDelaySign(false)
+                    .WithCryptoKeyFile(null)
+                    .WithPublicSign(false)
+                    .WithStrongNameProvider(null);
 
-            project = project.WithCompilationOptions(options);
+            project = project
+                .WithCompilationOptions(options)
+                // AssemblyName should be set to the filename of the output file because multiple TempPE DLLs can be created for the same project
+                .WithAssemblyName(Path.GetFileName(outputFileName));
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 

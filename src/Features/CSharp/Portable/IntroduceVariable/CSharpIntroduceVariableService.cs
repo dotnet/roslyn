@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntroduceVariable;
@@ -18,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     internal partial class CSharpIntroduceVariableService :
         AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax, NameSyntax>
     {
+        [ImportingConstructor]
+        public CSharpIntroduceVariableService()
+        {
+        }
+
         protected override bool IsInNonFirstQueryClause(ExpressionSyntax expression)
         {
             var query = expression.GetAncestor<QueryExpressionSyntax>();

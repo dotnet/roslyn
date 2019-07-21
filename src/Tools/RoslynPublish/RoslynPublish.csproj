@@ -2,8 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <RootNamespace>RoslynPublish</RootNamespace>
     <TargetFramework>net472</TargetFramework>
@@ -14,8 +12,6 @@
     <!-- https://github.com/dotnet/roslyn/issues/21183 -->
     <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -24,6 +20,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.DotNet.VersionTools" Version="$(MicrosoftDotNetVersionToolsVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

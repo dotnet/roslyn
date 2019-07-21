@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -16,6 +17,7 @@ namespace Roslyn.Compilers.Extension
 {
     [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97")]
     public sealed class CompilerPackage : AsyncPackage
     {
         public static string RoslynHive = null;
@@ -152,7 +154,18 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                 throw new Exception($"Unrecognized Visual Studio Version: {dte.Version}");
             }
 
-            return parts[0] + ".0";
+            int majorVersion = int.Parse(parts[0]);
+
+            if (majorVersion >= 16)
+            {
+                // Starting in Visual Studio 2019, the folder is just called "Current". See
+                // https://github.com/Microsoft/msbuild/issues/4149 for further commentary.
+                return "Current";
+            }
+            else
+            {
+                return majorVersion + ".0";
+            }
         }
 
         private async Task<string> GetMSBuildPathAsync(CancellationToken cancellationToken)

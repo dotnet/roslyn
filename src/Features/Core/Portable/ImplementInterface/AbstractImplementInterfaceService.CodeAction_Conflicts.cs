@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // At this point, we have two members of the same type with the same name.  If they
                 // have a different signature (for example, methods, or parameterized properties),
                 // then they do not conflict.
-                if (!SignatureComparer.Instance.HaveSameSignature(member1, member2, this.IsCaseSensitive))
+                if (!SignatureComparer.Instance.HaveSameSignature(member1, member2, IsCaseSensitive))
                 {
                     return false;
                 }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // b) different accessibility
                 // c) different constraints
                 if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
-                    !SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member1, member2, this.IsCaseSensitive))
+                    !SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member1, member2, IsCaseSensitive))
                 {
                     return true;
                 }

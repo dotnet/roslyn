@@ -87,5 +87,31 @@ $"Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function Parameter_Unused_SpecialNames() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Sub M(_0 As Integer, _1 As Char, _3 As C)|]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(36816, "https://github.com/dotnet/roslyn/issues/36816")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function PartialMethodParameter_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Partial Private Sub M(str As String)|]
+    End Sub
+End Class
+
+Partial Class C
+    Private Sub M(str As String)
+        Dim x = str.ToString()
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 get { return DiagnosticSeverity.Error; }
             }
 
+            public override DiagnosticSeverity DefaultSeverity
+            {
+                get { return DiagnosticSeverity.Error; }
+            }
+
             public override bool IsSuppressed
             {
                 get { return false; }

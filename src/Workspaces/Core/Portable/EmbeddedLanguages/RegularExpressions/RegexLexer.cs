@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
-    using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -37,42 +36,34 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal struct RegexLexer
     {
-        public readonly ImmutableArray<VirtualChar> Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public RegexLexer(ImmutableArray<VirtualChar> text) : this()
+        public RegexLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
-        public ImmutableArray<VirtualChar> GetSubPatternToCurrentPos(int start)
+        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
-        {
-            var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
-            for (var i = start; i < end; i++)
-            {
-                result.Add(Text[i]);
-            }
-
-            return result.ToImmutableAndFree();
-        }
+        public VirtualCharSequence GetSubPattern(int start, int end)
+            => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
         {
             var trivia = ScanLeadingTrivia(allowTrivia, options);
             if (Position == Text.Length)
             {
-                return CreateToken(RegexKind.EndOfFile, trivia, ImmutableArray<VirtualChar>.Empty);
+                return CreateToken(RegexKind.EndOfFile, trivia, VirtualCharSequence.Empty);
             }
 
             var ch = this.CurrentChar;
             Position++;
 
-            return CreateToken(GetKind(ch), trivia, ImmutableArray.Create(ch));
+            return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
         private static RegexKind GetKind(char ch)
@@ -391,7 +382,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(Text[beforeSlash].Char == '\\');
             Debug.Assert(Text[beforeSlash + 1].Char == 'x' || Text[beforeSlash + 1].Char == 'u');
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (Position < Text.Length && IsHexChar(this.CurrentChar))
                 {
@@ -435,9 +426,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(IsOctalDigit(Text[start].Char));
 
             const int maxChars = 3;
-            int currentVal = 0;
+            var currentVal = 0;
 
-            for (int i = 0; i < maxChars; i++)
+            for (var i = 0; i < maxChars; i++)
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
@@ -449,7 +440,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     Position++;
 
                     // Ecmascript doesn't allow octal values above 32 (0x20 in hex). Note: we do
-                    // *not* add a diagnostic.  This is not an error situation. The .net lexer
+                    // *not* add a diagnostic.  This is not an error situation. The .NET lexer
                     // simply stops once it hits a value greater than a legal octal value.
                     if (HasOption(options, RegexOptions.ECMAScript) && currentVal >= 0x20)
                     {

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,11 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private static TypeSyntax s_voidType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
-        private static TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+        private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+
+        [ImportingConstructor]
+        public CSharpUseLocalFunctionCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;
@@ -75,12 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var languageVersion = ((CSharpParseOptions)semanticModel.SyntaxTree.Options).LanguageVersion;
+            var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
+                options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+
             // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.
             foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
             {
                 var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
                 var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
+                var makeStatic = MakeStatic(semanticModel, makeStaticIfPossible, localDeclaration, cancellationToken);
 
                 var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
@@ -88,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 currentRoot = ReplaceAnonymousWithLocalFunction(
                     document.Project.Solution.Workspace, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
-                    delegateType.DelegateInvokeMethod, parameterList);
+                    delegateType.DelegateInvokeMethod, parameterList, makeStatic);
 
                 // these invocations might actually be inside the local function! so we have to do this separately
                 currentRoot = ReplaceReferences(
@@ -100,12 +113,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             editor.ReplaceNode(root, currentRoot);
         }
 
+        private static bool MakeStatic(
+            SemanticModel semanticModel,
+            bool makeStaticIfPossible,
+            LocalDeclarationStatementSyntax localDeclaration,
+            CancellationToken cancellationToken)
+        {
+            // Determines if we can make the local function 'static'.  We can make it static
+            // if the original lambda did not capture any variables (other than the local 
+            // variable itself).  it's ok for the lambda to capture itself as a static-local
+            // function can reference itself without any problems.
+            if (makeStaticIfPossible)
+            {
+                var localSymbol = semanticModel.GetDeclaredSymbol(
+                    localDeclaration.Declaration.Variables[0], cancellationToken);
+
+                var dataFlow = semanticModel.AnalyzeDataFlow(localDeclaration);
+                if (dataFlow.Succeeded)
+                {
+                    var capturedVariables = dataFlow.Captured.Remove(localSymbol);
+                    if (capturedVariables.IsEmpty)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
             Workspace workspace, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
-            IMethodSymbol delegateMethod, ParameterListSyntax parameterList)
+            IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {
-            var newLocalFunctionStatement = CreateLocalFunctionStatement(localDeclaration, anonymousFunction, delegateMethod, parameterList)
+            var newLocalFunctionStatement = CreateLocalFunctionStatement(localDeclaration, anonymousFunction, delegateMethod, parameterList, makeStatic)
                 .WithTriviaFrom(localDeclaration)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -149,11 +191,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             LocalDeclarationStatementSyntax localDeclaration,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod,
-            ParameterListSyntax parameterList)
+            ParameterListSyntax parameterList,
+            bool makeStatic)
         {
-            var modifiers = anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
-                ? new SyntaxTokenList(anonymousFunction.AsyncKeyword)
-                : default;
+            var modifiers = new SyntaxTokenList();
+            if (makeStatic)
+            {
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            }
+
+            if (anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
+            {
+                modifiers = modifiers.Add(anonymousFunction.AsyncKeyword);
+            }
 
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
 
@@ -183,21 +233,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
             var parameterList = TryGetOrCreateParameterList(anonymousFunction);
-            int i = 0;
+            var i = 0;
 
             return parameterList != null
                 ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
                 : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
                     PromoteParameter(SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
-            ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
+            static ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
                 // delegateParameter may be null, consider this case: Action x = (a, b) => { };
                 // we will still fall back to object
 
                 if (parameterNode.Type == null)
                 {
-                    parameterNode = parameterNode.WithType(delegateParameter?.Type.GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter?.Type.WithNullability(delegateParameter.NullableAnnotation).GenerateTypeSyntax() ?? s_objectType);
                 }
 
                 if (delegateParameter?.HasExplicitDefaultValue == true)

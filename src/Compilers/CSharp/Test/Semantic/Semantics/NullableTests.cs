@@ -54,15 +54,25 @@ class C
     Console.WriteLine(s1.ToString() + s2.ToString());
   }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (7,11): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (7,11): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     string? s1 = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
                 // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     Nullable<string> s2 = null;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
-                );
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(expected);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     string? s1 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 11),
+                // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14));
         }
 
         [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]

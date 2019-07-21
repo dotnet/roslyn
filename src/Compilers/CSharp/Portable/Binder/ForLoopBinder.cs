@@ -28,6 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
+                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    foreach (var size in rankSpecifier.Sizes)
+                    {
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
+                    }
+                }, (binder: this, locals: locals));
+
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
                     var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable);

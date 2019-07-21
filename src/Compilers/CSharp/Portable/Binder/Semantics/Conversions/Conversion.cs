@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(kind);
         }
 
+        internal static Conversion UnsetConversion => new Conversion(ConversionKind.UnsetConversionKind);
         internal static Conversion NoConversion => new Conversion(ConversionKind.NoConversion);
         internal static Conversion Identity => new Conversion(ConversionKind.Identity);
         internal static Conversion ImplicitConstant => new Conversion(ConversionKind.ImplicitConstant);
@@ -235,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitDynamic => new Conversion(ConversionKind.ImplicitDynamic);
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
+        internal static Conversion SwitchExpression => new Conversion(ConversionKind.SwitchExpression);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
@@ -510,6 +512,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitThrow;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit switch expression conversion.
+        /// </summary>
+        public bool IsSwitchExpression
+        {
+            get
+            {
+                return Kind == ConversionKind.SwitchExpression;
             }
         }
 

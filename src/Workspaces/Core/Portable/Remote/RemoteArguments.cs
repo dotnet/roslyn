@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
-            var symbol = SymbolKey.Resolve(
+            var symbol = SymbolKey.ResolveString(
                 SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
 
             if (symbol == null)
@@ -91,6 +91,58 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    {
+        public bool IsValueUsageInfo;
+        public int UsageInfoUnderlyingValue;
+
+        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
+        {
+            bool isValueUsageInfo;
+            int usageInfoUnderlyingValue;
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                isValueUsageInfo = true;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
+            }
+            else
+            {
+                isValueUsageInfo = false;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+            }
+
+            return new SerializableSymbolUsageInfo
+            {
+                IsValueUsageInfo = isValueUsageInfo,
+                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
+            };
+        }
+
+        public SymbolUsageInfo Rehydrate()
+        {
+            return IsValueUsageInfo
+                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
+                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
+        }
+
+        public bool Equals(SerializableSymbolUsageInfo other)
+        {
+            return other != null &&
+                IsValueUsageInfo == other.IsValueUsageInfo &&
+                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SerializableSymbolUsageInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
+        }
+    }
+
     internal class SerializableReferenceLocation
     {
         public DocumentId Document { get; set; }
@@ -101,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool IsImplicit { get; set; }
 
-        internal ValueUsageInfo ValueUsageInfo { get; set; }
+        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -114,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
-                ValueUsageInfo = referenceLocation.ValueUsageInfo,
+                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -130,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                valueUsageInfo: ValueUsageInfo,
+                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
                 candidateReason: CandidateReason);
         }
 

@@ -600,7 +600,7 @@ public class C
                     Assert.False(field.IsReadOnly);
 
                     Assert.Equal("System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, int, int, int>>",
-                        field.Type.ToDisplayString());
+                        field.TypeWithAnnotations.ToDisplayString());
 
                     Assert.Equal(0, field.GetAttributes().Length);
 
@@ -2361,6 +2361,40 @@ public class C
   IL_0056:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void TestThrowDynamic()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M(new Exception());
+        M(new ArgumentException());
+        M(string.Empty);
+    }
+    static void M(dynamic d)
+    {
+        try
+        {
+            throw d;
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+";
+            CompileAndVerifyWithCSharp(source, expectedOutput:
+@"NullReferenceException
+Exception
+ArgumentException
+RuntimeBinderException");
         }
 
         #endregion

@@ -10328,7 +10328,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(null, default(TextSpan), null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(null, default, null, CancellationToken.None);
             }));
         }
 
@@ -10344,7 +10344,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, default(TextSpan));
+            await service.ExtractMethodAsync(document, default);
         }
 
         [WpfFact]
@@ -10353,7 +10353,7 @@ namespace ClassLibrary9
         public void ExtractMethodCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
@@ -11050,6 +11050,90 @@ class Program
     }
 }";
             await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+        }
+
+        [WorkItem(30750, "https://github.com/dotnet/roslyn/issues/30750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInInterface()
+        {
+            var code = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        [|Foo();|]
+    }
+}";
+            var expected = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+        Foo();
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedConstructors()
+        {
+            var code = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = [|bar|];
+}";
+            var expected = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = GetBar(bar);
+
+    private static string GetBar(string bar)
+    {
+        return bar;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedFinalizers()
+        {
+            var code = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = [|true|];
+}";
+            var expected = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = NewMethod();
+
+    private static bool NewMethod()
+    {
+        return true;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
         }
     }
 }

@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
 
                 Using DirectCast(tagger, IDisposable)
-                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateExpeditedWaitTask()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up
@@ -82,25 +82,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Assert.NotNull(run)
         End Sub
 
-#Disable Warning BC40000 ' Type or member is obsolete
-        <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
-        Private Class NoCompilationEditorClassificationService
-            Implements IEditorClassificationService
+        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        Public Async Function TestWrongDocument() As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="NoCompilation" AssemblyName="NoCompilationAssembly" CommonReferencesPortable="true">
+                    <Document>
+                        var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
+                </Project>
+            </Workspace>
 
-            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IEditorClassificationService.AddLexicalClassifications
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
+                .CreateExportProvider()
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
+                Dim project = workspace.CurrentSolution.Projects.First(Function(p) p.Language = LanguageNames.CSharp)
+                Dim classificationService = project.LanguageServices.GetService(Of IClassificationService)()
+
+                Dim wrongDocument = workspace.CurrentSolution.Projects.First(Function(p) p.Language = "NoCompilation").Documents.First()
+                Dim text = Await wrongDocument.GetTextAsync(CancellationToken.None)
+
+                ' make sure we don't crash with wrong document
+                Dim result = New List(Of ClassifiedSpan)()
+                Await classificationService.AddSyntacticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
+                Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
+            End Using
+        End Function
+
+#Disable Warning BC40000 ' Type or member is obsolete
+        <ExportLanguageService(GetType(IClassificationService), "NoCompilation"), [Shared]>
+        Private Class NoCompilationEditorClassificationService
+            Implements IClassificationService
+
+            <ImportingConstructor>
+            Public Sub New()
             End Sub
 
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
+            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
+            End Sub
+
+            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
+            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification
+            Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IClassificationService.AdjustStaleClassification
             End Function
         End Class
-#Enable Warning BC40008 ' Type or member is obsolete
     End Class
 End Namespace

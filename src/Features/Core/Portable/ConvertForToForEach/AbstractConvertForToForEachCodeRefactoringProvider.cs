@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertForToForEach
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
     {
         protected abstract string GetTitle();
 
-        protected abstract bool IsValidCursorPosition(TForStatementSyntax forStatement, int cursorPos);
         protected abstract SyntaxList<TStatementSyntax> GetBodyStatements(TForStatementSyntax forStatement);
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax firstVariable);
 
@@ -50,33 +48,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
-
-            var forStatement = token.Parent.GetAncestorOrThis<TForStatementSyntax>();
+            var (document, textSpan, cancellationToken) = context;
+            var forStatement = await context.TryGetSelectedNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
             if (forStatement == null)
             {
                 return;
-            }
-
-            if (!context.Span.IsEmpty)
-            {
-                // if there is a selection, it must match the 'for' span exactly.
-                if (context.Span != forStatement.GetFirstToken().Span)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                // if there's no selection, defer to the language to decide if it's in an ok location.
-                if (!IsValidCursorPosition(forStatement, context.Span.Start))
-                {
-                    return;
-                }
             }
 
             if (!TryGetForStatementComponents(forStatement,
@@ -139,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var containingType = semanticModel.GetEnclosingNamedType(context.Span.Start, cancellationToken);
+            var containingType = semanticModel.GetEnclosingNamedType(textSpan.Start, cancellationToken);
             if (containingType == null)
             {
                 return;
@@ -370,7 +346,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
-                (currentFor, _) => this.ConvertForNode(
+                (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
                     collectionExpression, iterationType, options));
 

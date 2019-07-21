@@ -86,17 +86,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
 
-                    // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
                         testOptions, workspace, expectedText, codeActionTitle);
 
-                    // the original source document does not exist in the new solution.
+                    // The code action updated the Name of the file in-place
                     var newSolution = oldSolutionAndNewSolution.Item2;
-                    Assert.Null(newSolution.GetDocument(oldDocumentId));
+                    var newDocument = newSolution.GetDocument(oldDocumentId);
+                    Assert.Equal(expectedDocumentName, newDocument.Name);
 
                     if (destinationDocumentContainers != null)
                     {
-                        var newDocument = newSolution.Projects.First().Documents.First();
                         Assert.Equal(destinationDocumentContainers, newDocument.Folders);
                     }
                 }
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
             string destinationDocumentText,
-            ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
+            ImmutableArray<string> destinationDocumentContainers = default,
             bool expectedCodeAction = true,
             int index = 0,
             Action<Workspace> onAfterWorkspaceCreated = null)

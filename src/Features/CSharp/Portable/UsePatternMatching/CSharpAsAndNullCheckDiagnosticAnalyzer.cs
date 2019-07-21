@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -26,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
-                    new LocalizableResourceString(
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
+                   LanguageNames.CSharp,
+                   new LocalizableResourceString(
                         nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
                 SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression);
+                SyntaxKind.NotEqualsExpression,
+                SyntaxKind.IsExpression,
+                SyntaxKind.IsPatternExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -67,8 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var comparison = (BinaryExpressionSyntax)node;
-            var operand = GetNullCheckOperand(comparison.Left, comparison.Right)?.WalkDownParentheses();
+            var comparison = (ExpressionSyntax)node;
+            var (comparisonLeft, comparisonRight) = comparison switch
+            {
+                BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, (SyntaxNode)binaryExpression.Right),
+                IsPatternExpressionSyntax isPattern => (isPattern.Expression, isPattern.Pattern),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            var operand = GetNullCheckOperand(comparisonLeft, comparison.Kind(), comparisonRight)?.WalkDownParentheses();
             if (operand == null)
             {
                 return;
@@ -91,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             if (!TryGetTypeCheckParts(semanticModel, operand,
-                    out VariableDeclaratorSyntax declarator,
-                    out BinaryExpressionSyntax asExpression,
-                    out ILocalSymbol localSymbol))
+                    out var declarator,
+                    out var asExpression,
+                    out var localSymbol))
             {
                 return;
             }
@@ -145,30 +154,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             //      if (s != null) { ... }
             //
             // It's no longer safe to use pattern-matching because 'field is string s' would never be true.
+            // 
+            // Additionally, also bail out if the assigned local is referenced (i.e. read/write/nameof) up to the point of null check.
+            //      var s = field as string;
+            //      MethodCall(flag: s == null);
+            //      if (s != null) { ... }
+            //
             var asOperand = semanticModel.GetSymbolInfo(asExpression.Left, cancellationToken).Symbol;
-            var symbolName = asOperand?.Name;
-            if (symbolName != null)
+            var localStatementStart = localStatement.SpanStart;
+            var comparisonSpanStart = comparison.SpanStart;
+
+            foreach (var descendentNode in enclosingBlock.DescendantNodes())
             {
-                var localStatementStart = localStatement.SpanStart;
-                var comparisonSpanStart = comparison.SpanStart;
-
-                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                var descendentNodeSpanStart = descendentNode.SpanStart;
+                if (descendentNodeSpanStart <= localStatementStart)
                 {
-                    var descendentNodeSpanStart = descendentNode.SpanStart;
-                    if (descendentNodeSpanStart <= localStatementStart)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (descendentNodeSpanStart >= comparisonSpanStart)
-                    {
-                        break;
-                    }
+                if (descendentNodeSpanStart >= comparisonSpanStart)
+                {
+                    break;
+                }
 
-                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
-                        identifierName.Identifier.ValueText == symbolName &&
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                {
+                    // Check if this is a 'write' to the asOperand.
+                    if (identifierName.Identifier.ValueText == asOperand?.Name &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
                         identifierName.IsWrittenTo())
+                    {
+                        return;
+                    }
+
+                    // Check is a reference of any sort (i.e. read/write/nameof) to the local.
+                    if (identifierName.Identifier.ValueText == localSymbol.Name)
                     {
                         return;
                     }
@@ -262,15 +282,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return declarator != null;
         }
 
-        private static ExpressionSyntax GetNullCheckOperand(ExpressionSyntax left, ExpressionSyntax right)
+        private static ExpressionSyntax GetNullCheckOperand(ExpressionSyntax left, SyntaxKind comparisonKind, SyntaxNode right)
         {
             if (left.IsKind(SyntaxKind.NullLiteralExpression))
             {
-                return right;
+                // null == x
+                // null != x
+                return (ExpressionSyntax)right;
             }
 
             if (right.IsKind(SyntaxKind.NullLiteralExpression))
             {
+                // x == null
+                // x != null
+                return left;
+            }
+
+            if (right.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType)
+                && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword)
+                && comparisonKind == SyntaxKind.IsExpression)
+            {
+                // x is object
+                return left;
+            }
+
+            if (right.IsKind(SyntaxKind.ConstantPattern, out ConstantPatternSyntax constantPattern)
+                && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)
+                && comparisonKind == SyntaxKind.IsPatternExpression)
+            {
+                // x is null
                 return left;
             }
 

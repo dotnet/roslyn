@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [Guid(Guids.RoslynOptionPageFeatureManagerComponentsIdString)]
     internal class InternalComponentsOnOffPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalOptionsControl(nameof(EditorComponentOnOffOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(EditorComponentOnOffOptions), optionStore);
         }
     }
 }

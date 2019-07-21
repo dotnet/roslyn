@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return sourceProperty IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
-                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
                 (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
                 ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
@@ -522,6 +522,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_NullableAnnotation As NullableAnnotation Implements IPropertySymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 

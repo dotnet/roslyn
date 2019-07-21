@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public MethodExtractor(SelectionResult selectionResult)
         {
             Contract.ThrowIfNull(selectionResult);
-            this.OriginalSelectionResult = selectionResult;
+            OriginalSelectionResult = selectionResult;
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(CancellationToken cancellationToken)
         {
-            var operationStatus = this.OriginalSelectionResult.Status;
+            var operationStatus = OriginalSelectionResult.Status;
 
-            var analyzeResult = await AnalyzeAsync(this.OriginalSelectionResult, cancellationToken).ConfigureAwait(false);
+            var analyzeResult = await AnalyzeAsync(OriginalSelectionResult, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             operationStatus = await CheckVariableTypesAsync(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken).ConfigureAwait(false);
@@ -46,17 +46,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return new FailedExtractMethodResult(operationStatus);
             }
 
-            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, this.OriginalSelectionResult.OriginalSpan.Start, cancellationToken).ConfigureAwait(false);
+            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, OriginalSelectionResult.OriginalSpan.Start, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var triviaResult = await PreserveTriviaAsync(this.OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var expandedDocument = await ExpandAsync(this.OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
 
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
-                this.OriginalSelectionResult.With(expandedDocument),
+                OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
                 cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var document = analyzeResult.SemanticDocument;
 
             // sync selection result to same semantic data as analyzeResult
-            var firstToken = this.OriginalSelectionResult.With(document).GetFirstTokenInSelection();
+            var firstToken = OriginalSelectionResult.With(document).GetFirstTokenInSelection();
             var context = firstToken.Parent;
 
             var result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status, cancellationToken).ConfigureAwait(false);

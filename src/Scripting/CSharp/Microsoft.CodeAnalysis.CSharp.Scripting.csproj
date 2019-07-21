@@ -2,8 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -21,8 +19,6 @@
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Update="CSharpScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -33,7 +29,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
     <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" />
     <!-- /TODO -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
@@ -42,6 +38,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
+    <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

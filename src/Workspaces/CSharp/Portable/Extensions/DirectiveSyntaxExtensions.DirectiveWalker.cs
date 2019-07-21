@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
                 IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> conditionalMap,
-                CancellationToken cancellationToken) :
-                base(SyntaxWalkerDepth.Token)
+                CancellationToken cancellationToken)
+                : base(SyntaxWalkerDepth.Token)
             {
                 _directiveMap = directiveMap;
                 _conditionalMap = conditionalMap;

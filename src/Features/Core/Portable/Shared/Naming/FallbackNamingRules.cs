@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
             new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "Field", ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field))),
+                new SymbolSpecification(Guid.NewGuid(), "Field", ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field), new SymbolKindOrTypeKind(SymbolKind.Parameter))),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
             new NamingRule(

@@ -21,8 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed ||

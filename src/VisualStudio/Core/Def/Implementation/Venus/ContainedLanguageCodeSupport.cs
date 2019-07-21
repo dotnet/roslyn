@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             string eventHandlerName,
             uint itemidInsertionPoint,
             bool useHandlesClause,
-            IFormattingRule additionalFormattingRule,
+            AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
@@ -421,7 +421,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 case ContainedLanguageRenameType.CLRT_NAMESPACE:
                     var ns = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GlobalNamespace;
                     var parts = fullyQualifiedName.Split('.');
-                    for (int i = 0; i < parts.Length && ns != null; i++)
+                    for (var i = 0; i < parts.Length && ns != null; i++)
                     {
                         ns = ns.GetNamespaceMembers().SingleOrDefault(n => n.Name == parts[i]);
                     }

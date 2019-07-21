@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (!type.IsMissing)
                     {
-                        PatternSyntax p = ParsePatternContinued(type, false);
+                        PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword: false);
                         if (p != null)
                         {
                             return p;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    PatternSyntax p = ParsePatternContinued(null, false);
+                    PatternSyntax p = ParsePatternContinued(type: null, precedence, whenIsKeyword: false);
                     if (p != null)
                     {
                         return p;
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //
         // Parse an expression where a declaration expression would be permitted. This is suitable for use after
         // the `out` keyword in an argument list, or in the elements of a tuple literal (because they may
-        // be on the left-hand-side of a deconstruction). The first element of a tuple is handled slightly
+        // be on the left-hand-side of a positional subpattern). The first element of a tuple is handled slightly
         // differently, as we check for the comma before concluding that the identifier should cause a
         // disambiguation. For example, for the input `(A < B , C > D)`, we treat this as a tuple with
         // two elements, because if we considered the `A<B,C>` to be a type, it wouldn't be a tuple at
-        // all. Since we don't have such a thing as a one-element tuple (even for deconstruction), the
+        // all. Since we don't have such a thing as a one-element tuple (even for positional subpattern), the
         // absence of the comma after the `D` means we don't treat the `D` as contributing to the
         // disambiguation of the expression/type. More formally, ...
         //
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// pattern
         /// 	: declaration_pattern
         /// 	| constant_pattern
-        /// 	| deconstruction_pattern
+        /// 	| positional_pattern
         /// 	| property_pattern
         /// 	| discard_pattern
         /// 	;
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// constant_pattern
         /// 	: expression
         /// 	;
-        /// deconstruction_pattern
+        /// positional_pattern
         /// 	: type? '(' subpatterns? ')' property_subpattern? identifier?
         /// 	;
         /// subpatterns
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                PatternSyntax p = ParsePatternContinued(type, whenIsKeyword);
+                PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword);
                 if (p != null)
                 {
                     return (whenIsKeyword && p is ConstantPatternSyntax c) ? c.expression : (CSharpSyntaxNode)p;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
+        private PatternSyntax ParsePatternContinued(TypeSyntax type, Precedence precedence, bool whenIsKeyword)
         {
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
@@ -442,19 +442,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null)
+                    subPatterns[0].NameColon == null &&
+                    subPatterns.SeparatorCount == 0)
                 {
                     if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
                     {
-                        // There is an ambiguity between a deconstruction pattern `(` pattern `)`
+                        // There is an ambiguity between a positional pattern `(` pattern `)`
                         // and a constant expression pattern that happens to be parenthesized.
                         // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
-                        return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                        ExpressionSyntax expression = _syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken);
+                        expression = ParseExpressionContinued(expression, precedence);
+                        return _syntaxFactory.ConstantPattern(expression);
                     }
                 }
 
-                var deconstructionPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause0, designation0);
+                var positionalPatternClause = _syntaxFactory.PositionalPatternClause(openParenToken, subPatterns, closeParenToken);
+                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause0, designation0);
 
                 bool singleElementPattern =
                     type == null &&
@@ -471,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                return _syntaxFactory.RecursivePattern(type, deconstructionPatternClause: null, propertyPatternClause, designation0);
+                return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
             }
 
             if (type != null && parseDesignation(out VariableDesignationSyntax designation))
@@ -577,6 +580,10 @@ tryAgain:
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            {
+                                break;
+                            }
                             list.Add(this.ParseSubpatternElement());
                             continue;
                         }
@@ -610,7 +617,7 @@ tryAgain:
                 nameColon = _syntaxFactory.NameColon(name, colon);
             }
 
-            var pattern = ParsePattern(Precedence.Ternary);
+            var pattern = ParsePattern(Precedence.Conditional);
             return this._syntaxFactory.Subpattern(nameColon, pattern);
         }
 
@@ -638,13 +645,11 @@ tryAgain:
                 false);
         }
 
-        private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax leftOperand)
+        private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword)
         {
             // For better error recovery when an expression is typed on a line before a switch statement,
             // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
             // would we attempt to parse it as a switch expression here.
-            var governingExpression = leftOperand;
-            var switchKeyword = this.EatToken();
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
             var arms = this.ParseSwitchExpressionArms();
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
@@ -659,29 +664,25 @@ tryAgain:
 
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                // We use a precedence that excludes lambdas, assignments, and a ternary which could have a
+                // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
-                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
+                // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
                 var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
                 var whenClause = ParseWhenClause(Precedence.Coalescing);
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 var expression = ParseExpressionCore();
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
-                arms.Add(switchExpressionCase);
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    var commaToken = this.EatToken();
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken, this.CurrentToken.Text);
-                    }
 
-                    arms.AddSeparator(commaToken);
-                }
-                else
-                {
+                // If we're not making progress, abort
+                if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)
                     break;
+
+                arms.Add(switchExpressionCase);
+                if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                {
+                    var commaToken = this.EatToken(SyntaxKind.CommaToken);
+                    arms.AddSeparator(commaToken);
                 }
             }
 

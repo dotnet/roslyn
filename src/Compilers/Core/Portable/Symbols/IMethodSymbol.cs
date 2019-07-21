@@ -91,11 +91,23 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ReturnType { get; }
 
         /// <summary>
+        /// Gets the top-level nullability of the return type of the method.
+        /// </summary>
+        NullableAnnotation ReturnNullableAnnotation { get; }
+
+        /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
         /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        /// <summary>
+        /// Returns the top-level nullability of the type arguments that have been substituted
+        /// for the type parameters. If nothing has been substituted for a given type parameter,
+        /// then <see cref="NullableAnnotation.NotApplicable"/> is returned.
+        /// </summary>
+        ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,
@@ -118,6 +130,14 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
+        /// Indicates whether the method is readonly, i.e.
+        /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
+        /// Returns true for readonly instance methods and accessors
+        /// and for reduced extension methods with a 'this in' parameter.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.
@@ -134,6 +154,11 @@ namespace Microsoft.CodeAnalysis
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
         ITypeSymbol ReceiverType { get; }
+
+        /// <summary>
+        /// If this method can be applied to an object, returns the top-level nullability of the object it is applied to.
+        /// </summary>
+        NullableAnnotation ReceiverNullableAnnotation { get; }
 
         /// <summary>
         /// If this method is a reduced extension method, returns the definition of extension

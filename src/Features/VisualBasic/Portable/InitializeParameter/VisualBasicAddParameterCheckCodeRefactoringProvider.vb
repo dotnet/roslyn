@@ -1,11 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -18,16 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
         Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, TypeStatementSyntax).Parent
-        End Function
-
-        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
-            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken)
         End Function
 
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
@@ -40,6 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
     End Class
 End Namespace

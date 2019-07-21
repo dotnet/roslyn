@@ -17,7 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+        private static readonly SymbolDisplayFormat s_symbolAutomationFormat = new SymbolDisplayFormat(
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+            kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         public SymbolViewModel(T symbol, IGlyphService glyphService)
         {
@@ -37,6 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public ImageSource Glyph => Symbol.GetGlyph().GetImageSource(_glyphService);
 
-        public string SymbolAutomationText => $"{Symbol.Kind} {SymbolName}";
+        public string SymbolAutomationText => Symbol.ToDisplayString(s_symbolAutomationFormat);
     }
 }

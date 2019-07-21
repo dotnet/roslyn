@@ -401,9 +401,9 @@ public class Test : short { }
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
+                // (2,21): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "Test").WithArguments("Test", "short"));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "short").WithArguments("Test", "short"));
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -752,9 +752,9 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
-        public void CheckSymbols(TypeSymbolWithAnnotations a, TypeSymbolWithAnnotations b, bool recurse)
+        public void CheckSymbols(TypeWithAnnotations a, TypeWithAnnotations b, bool recurse)
         {
-            CheckSymbols(a.TypeSymbol, b.TypeSymbol, recurse);
+            CheckSymbols(a.Type, b.Type, recurse);
         }
 
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
@@ -823,7 +823,7 @@ class C1<T>
         public void CheckFields(FieldSymbol a, FieldSymbol b)
         {
             Assert.Equal(a.Name, b.Name);
-            CheckSymbols(a.Type, b.Type, recurse: false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, recurse: false);
             CheckSymbols(a.AssociatedSymbol, b.AssociatedSymbol, recurse: false);
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation);
         }
@@ -832,7 +832,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             CheckSymbols(a.Parameters, b.Parameters, false);
-            CheckSymbols(a.ReturnType, b.ReturnType, false);
+            CheckSymbols(a.ReturnTypeWithAnnotations, b.ReturnTypeWithAnnotations, false);
             CheckSymbols(a.TypeParameters, b.TypeParameters, true);
             CheckMarshallingInformation(a.ReturnValueMarshallingInformation, b.ReturnValueMarshallingInformation);
         }
@@ -847,7 +847,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             Assert.Equal(a.Ordinal, b.Ordinal);
-            CheckSymbols(a.Type, b.Type, false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, false);
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation);
         }
 
@@ -855,7 +855,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             CheckSymbols(a.Parameters, b.Parameters, false);
-            CheckSymbols(a.Type, b.Type, false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, false);
             CheckSymbols(a.GetMethod, b.GetMethod, true);
             CheckSymbols(a.SetMethod, b.SetMethod, true);
         }

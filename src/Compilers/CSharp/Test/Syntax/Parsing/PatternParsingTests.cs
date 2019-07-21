@@ -1838,85 +1838,95 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_03()
         {
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expect = new[]
+            { 
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (x: ((3))): ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
-            N(SyntaxKind.SwitchStatement);
+            };
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns, expect);
+            checkNodes();
+
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
+            checkNodes();
+
+            void checkNodes()
             {
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.SwitchStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "e");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchSection);
-                {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.RecursivePattern);
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CasePatternSwitchLabel);
                         {
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.RecursivePattern);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Subpattern);
+                                N(SyntaxKind.PositionalPatternClause);
                                 {
-                                    N(SyntaxKind.NameColon);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Subpattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.NameColon);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "x");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.ColonToken);
                                         }
-                                        N(SyntaxKind.ColonToken);
-                                    }
-                                    N(SyntaxKind.ConstantPattern);
-                                    {
-                                        N(SyntaxKind.ParenthesizedExpression);
+                                        N(SyntaxKind.ConstantPattern);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.ParenthesizedExpression);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
+                                                N(SyntaxKind.ParenthesizedExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
                                             }
-                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
                             }
+                            N(SyntaxKind.ColonToken);
                         }
-                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (1,19): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(((x: 3)))").WithLocation(1, 19),
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
-                // (1,20): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (1,20): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "((x: 3))").WithLocation(1, 20)
                 );
@@ -1937,21 +1947,21 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.RecursivePattern);
                                     {
-                                        N(SyntaxKind.DeconstructionPatternClause);
+                                        N(SyntaxKind.PositionalPatternClause);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.Subpattern);
                                             {
                                                 N(SyntaxKind.RecursivePattern);
                                                 {
-                                                    N(SyntaxKind.DeconstructionPatternClause);
+                                                    N(SyntaxKind.PositionalPatternClause);
                                                     {
                                                         N(SyntaxKind.OpenParenToken);
                                                         N(SyntaxKind.Subpattern);
@@ -1999,7 +2009,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void RecursivePattern_01()
         {
             UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
                 );
@@ -2024,7 +2034,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Subpattern);
@@ -2110,7 +2120,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_06()
         {
             UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,20): error CS1001: Identifier expected
@@ -2140,7 +2150,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 M(SyntaxKind.CloseParenToken);
@@ -2162,7 +2172,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_07()
         {
             UsingStatement(@"switch (e) { case (", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,20): error CS1026: ) expected
@@ -2181,10 +2191,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_07()
         {
             UsingStatement(@"switch (e) { case (): }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (): }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "()").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "()").WithArguments("recursive patterns", "8.0").WithLocation(1, 19));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2202,7 +2211,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.CloseParenToken);
@@ -2236,7 +2245,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_05()
         {
             UsingStatement(@"switch (e) { case (x: ): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (x: ): ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: )").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,23): error CS8504: Pattern missing
@@ -2260,7 +2269,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Subpattern);
@@ -2300,7 +2309,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void EmptySwitchExpression()
         {
             UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
@@ -2321,7 +2330,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression01()
         {
             UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch {a => b, c => d}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
@@ -2373,7 +2382,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression02()
         {
             UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
                 // (1,13): error CS1003: Syntax error, '=>' expected
@@ -2436,7 +2445,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression03()
         {
             UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch { (a, b, c) => d }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
@@ -2452,7 +2461,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -2507,7 +2516,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
             UsingStatement("switch (e) { case T( : Q x = n; break; } ", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x = n").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,22): error CS1001: Identifier expected
@@ -2547,7 +2556,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.DeconstructionPatternClause);
+                            N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Subpattern);
@@ -2767,7 +2776,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParseFuzz()
         {
             Random random = new Random();
-            for (int i = 0; i < 2000; i++)
+            for (int i = 0; i < 4000; i++)
             {
                 string source = $"class C{{void M(){{switch(e){{case {makePattern0()}:T v = e;}}}}}}";
                 try
@@ -2836,7 +2845,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
             }
-            string makePattern0() => makePattern(random.Next(5));
+            string makePattern0() => makePattern(random.Next(6));
         }
 
         [Fact]
@@ -4148,7 +4157,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     {
                                         N(SyntaxKind.IdentifierToken, "Type");
                                     }
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -4254,7 +4263,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 N(SyntaxKind.IsKeyword);
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -4496,7 +4505,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     {
                                         N(SyntaxKind.IdentifierToken, "Type");
                                     }
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -4579,7 +4588,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 N(SyntaxKind.IsKeyword);
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -4711,7 +4720,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     {
                                         N(SyntaxKind.IdentifierToken, "Type");
                                     }
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -4813,7 +4822,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 N(SyntaxKind.IsKeyword);
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -5043,7 +5052,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     {
                                         N(SyntaxKind.IdentifierToken, "Type");
                                     }
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -5122,7 +5131,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 N(SyntaxKind.IsKeyword);
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -5400,7 +5409,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 N(SyntaxKind.IsKeyword);
                 N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.DeconstructionPatternClause);
+                    N(SyntaxKind.PositionalPatternClause);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Subpattern);
@@ -5527,7 +5536,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.CloseParenToken);
@@ -5566,7 +5575,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -5597,7 +5606,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -5628,7 +5637,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -5660,7 +5669,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -5699,7 +5708,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         {
                             N(SyntaxKind.IdentifierToken, "C");
                         }
-                        N(SyntaxKind.DeconstructionPatternClause);
+                        N(SyntaxKind.PositionalPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Subpattern);
@@ -5725,7 +5734,6 @@ case KeyValuePair<String, DateTime>[] pairs2:
             }
             EOF();
         }
-
 
         [Fact]
         public void NestedShortTuplePatterns()
@@ -5806,7 +5814,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.CloseParenToken);
@@ -5883,7 +5891,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -5933,7 +5941,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -5983,7 +5991,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -6034,7 +6042,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.RecursivePattern);
                                 {
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -6092,7 +6100,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     {
                                         N(SyntaxKind.IdentifierToken, "C");
                                     }
-                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    N(SyntaxKind.PositionalPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.Subpattern);
@@ -6119,6 +6127,233 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray01()
+        {
+            // OK, this means `(o is A[]) ? b : c` because nullable types are not permitted for a pattern's type
+            UsingExpression("o is A[] ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray02()
+        {
+            // error: 'cannot use nullable reference type for a pattern' or 'expected :'
+            UsingExpression("o is A[] ? b && c",
+                // (1,18): error CS1003: Syntax error, ':' expected
+                // o is A[] ? b && c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 18),
+                // (1,18): error CS1733: Expected expression
+                // o is A[] ? b && c
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18)
+                );
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalAndExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.AmpersandAmpersandToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray03()
+        {
+            // OK, this means `(o is A[][]) ? b : c`
+            UsingExpression("o is A[][] ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableType01()
+        {
+            UsingExpression("o is A ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableType02()
+        {
+            UsingExpression("o is A? ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
             }
             EOF();
         }
@@ -6252,6 +6487,1343 @@ switch (e)
                 }
                 EOF();
             }
+        }
+
+        [Fact]
+        public void TrailingCommaInSwitchExpression_01()
+        {
+            UsingExpression("1 switch { 1 => 2, }");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TrailingCommaInSwitchExpression_02()
+        {
+            UsingExpression("1 switch { , }",
+                // (1,12): error CS8504: Pattern missing
+                // 1 switch { , }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 12),
+                // (1,12): error CS1003: Syntax error, '=>' expected
+                // 1 switch { , }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 12),
+                // (1,12): error CS1525: Invalid expression term ','
+                // 1 switch { , }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TrailingCommaInPropertyPattern_01()
+        {
+            UsingExpression("e is { X: 3, }");
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TrailingCommaInPropertyPattern_02()
+        {
+            UsingExpression("e is { , }",
+                // (1,8): error CS8504: Pattern missing
+                // e is { , }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 8)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TrailingCommaInPositionalPattern_01()
+        {
+            UsingExpression("e is ( X: 3, )",
+                // (1,14): error CS8504: Pattern missing
+                // e is ( X: 3, )
+                Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 14)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TrailingCommaInPositionalPattern_02()
+        {
+            UsingExpression("e is ( , )",
+                // (1,8): error CS8504: Pattern missing
+                // e is ( , )
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 8),
+                // (1,10): error CS8504: Pattern missing
+                // e is ( , )
+                Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 10)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtraCommaInSwitchExpression()
+        {
+            UsingExpression("e switch { 1 => 2,, }",
+                // (1,19): error CS8504: Pattern missing
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 19),
+                // (1,19): error CS1003: Syntax error, '=>' expected
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 19),
+                // (1,19): error CS1525: Invalid expression term ','
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 19)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtraCommaInPropertyPattern()
+        {
+            UsingExpression("e is { A: 1,, }",
+                // (1,13): error CS8504: Pattern missing
+                // e is { A: 1,, }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 13)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33054, "https://github.com/dotnet/roslyn/issues/33054")]
+        public void ParenthesizedExpressionInPattern_01()
+        {
+            UsingStatement(
+@"switch (e) {
+    case (('C') << 24) + (('g') << 16) + (('B') << 8) + 'I': break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.AddExpression);
+                        {
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.AddExpression);
+                                {
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.LeftShiftExpression);
+                                        {
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CharacterLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.CharacterLiteralToken);
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.LessThanLessThanToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "24");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.PlusToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.LeftShiftExpression);
+                                        {
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CharacterLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.CharacterLiteralToken);
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.LessThanLessThanToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "16");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.LeftShiftExpression);
+                                    {
+                                        N(SyntaxKind.ParenthesizedExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CharacterLiteralExpression);
+                                            {
+                                                N(SyntaxKind.CharacterLiteralToken);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.LessThanLessThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "8");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.CharacterLiteralExpression);
+                            {
+                                N(SyntaxKind.CharacterLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
+        public void ParenthesizedExpressionInPattern_02()
+        {
+            UsingStatement(
+@"switch (e) {
+    case ((2) + (2)): break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
+        public void ParenthesizedExpressionInPattern_03()
+        {
+            UsingStatement(
+@"switch (e) {
+    case ((2 + 2) - 2): break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SubtractExpression);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AddExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.PlusToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.MinusToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
+        public void ParenthesizedExpressionInPattern_04()
+        {
+            UsingStatement(
+@"switch (e) {
+    case (2) | (2): break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.BitwiseOrExpression);
+                        {
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.BarToken);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
+        public void ParenthesizedExpressionInPattern_05()
+        {
+            UsingStatement(
+@"switch (e) {
+    case ((2 << 2) | 2): break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.BitwiseOrExpression);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.LeftShiftExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.LessThanLessThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.BarToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ChainedSwitchExpression_01()
+        {
+            UsingExpression("1 switch { 1 => 2 } switch { 2 => 3 }");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
+                    {
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ChainedSwitchExpression_02()
+        {
+            UsingExpression("a < b switch { 1 => 2 } < c switch { 2 => 3 }");
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.LessThanExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
+                    {
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_01()
+        {
+            UsingExpression("a < b switch { true => 1 }");
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
+                    {
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_02()
+        {
+            // The left-hand-side of a switch is equality, which binds more loosely than the `switch`,
+            // so `b` ends up on the left of the `switch` and the `a ==` expression has a switch on the right.
+            UsingExpression("a == b switch { true => 1 }");
+            N(SyntaxKind.EqualsExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.EqualsEqualsToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
+                    {
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_03()
+        {
+            UsingExpression("a * b switch {}");
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_04()
+        {
+            UsingExpression("a + b switch {}");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_05()
+        {
+            UsingExpression("-a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.UnaryMinusExpression);
+                {
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_06()
+        {
+            UsingExpression("(Type)a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_07()
+        {
+            UsingExpression("(Type)a++ switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.PostIncrementExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.PlusPlusToken);
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_08()
+        {
+            UsingExpression("+a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.UnaryPlusExpression);
+                {
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_09()
+        {
+            UsingExpression("a switch {}.X",
+                // (1,1): error CS1073: Unexpected token '.'
+                // a switch {}.X
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments(".").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_10()
+        {
+            UsingExpression("a switch {}[i]",
+                // (1,1): error CS1073: Unexpected token '['
+                // a switch {}[i]
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("[").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_11()
+        {
+            UsingExpression("a switch {}(b)",
+                // (1,1): error CS1073: Unexpected token '('
+                // a switch {}(b)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("(").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_12()
+        {
+            UsingExpression("a switch {}!",
+                // (1,1): error CS1073: Unexpected token '!'
+                // a switch {}!
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("!").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_01()
+        {
+            UsingExpression("(e switch {)",
+                // (1,12): error CS1513: } expected
+                // (e switch {)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 12)
+                );
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_02()
+        {
+            UsingExpression("(e switch {,)",
+                // (1,12): error CS8504: Pattern missing
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 12),
+                // (1,12): error CS1003: Syntax error, '=>' expected
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 12),
+                // (1,12): error CS1525: Invalid expression term ','
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12),
+                // (1,13): error CS1513: } expected
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 13)
+                );
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.SwitchExpressionArm);
+                    {
+                        M(SyntaxKind.ConstantPattern);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.EqualsGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_03()
+        {
+            UsingExpression("e switch {,",
+                // (1,11): error CS8504: Pattern missing
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '=>' expected
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term ','
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 11),
+                // (1,12): error CS1513: } expected
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 12)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
+        public void ParenthesizedNamedConstantPatternInSwitchExpression()
+        {
+            UsingExpression("e switch { (X) => 1 }");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
     }
 }

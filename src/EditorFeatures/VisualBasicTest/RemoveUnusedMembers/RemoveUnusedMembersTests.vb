@@ -639,36 +639,34 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")>
         Public Async Function FieldInNameOf() As Task
-            Await TestDiagnosticsAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Private _goo2 As String = NameOf(_goo)
-End Class", parameters:=Nothing,
-    Diagnostic("IDE0052"))
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function MethodInNameOf() As Task
-            Await TestDiagnosticsAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M|]()
     End Sub
     Private _goo2 As String = NameOf(M)
-End Class", parameters:=Nothing,
-    Diagnostic("IDE0052"))
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function PropertyInNameOf() As Task
-            Await TestDiagnosticsAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private ReadOnly Property [|P|] As Integer
     Private _goo2 As String = NameOf(P)
-End Class", parameters:=Nothing,
-    Diagnostic("IDE0052"))
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -1561,6 +1559,24 @@ End Class")
         ReDim Preserve intArray(10, 10, 20)
     End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")>
+        Public Async Function UsedPrivateExtensionMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Runtime.CompilerServices
+
+Public Module B
+    <Extension()>
+    Sub PublicExtensionMethod(s As String)
+        s.PrivateExtensionMethod()
+    End Sub
+
+    <Extension()>
+    Private Sub [|PrivateExtensionMethod|](s As String)
+    End Sub
+End Module")
         End Function
     End Class
 End Namespace

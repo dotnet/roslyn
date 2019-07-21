@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
 
             var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type;
 
             // Static method no args.
             var method = type.GetMember<MethodSymbol>("M1");
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.False(method.IsStatic);
             Assert.False(method.IsExtensionMethod);
 
-            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type.TypeSymbol;
+            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type;
 
             // Static method no args.
             method = type.GetMember<MethodSymbol>("M1");
@@ -2438,7 +2438,7 @@ B");
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // mscorlib.dll
-                var mscorlib = type.GetMember<FieldSymbol>("F").Type.TypeSymbol.ContainingAssembly;
+                var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
                 Assert.True(mscorlib.MightContainExtensionMethods);
@@ -2447,7 +2447,7 @@ B");
                 if (isFromSource)
                 {
                     // System.Core.dll
-                    var systemCore = type.GetMember<FieldSymbol>("G").Type.TypeSymbol.ContainingAssembly;
+                    var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
                     Assert.True(systemCore.MightContainExtensionMethods);
                 }
 
@@ -2512,12 +2512,12 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeSymbolWithAnnotations.Create(stringType), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(stringType), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbolWithAnnotations>(),
+                    ImmutableArray.Create<TypeWithAnnotations>(),
                     "void object.M1()",
                     "void S.M1(object o)",
                     "void object.M1()",
@@ -2526,7 +2526,7 @@ static class S
                 // Generic method, one type argument.
                 method = type.GetMember<MethodSymbol>("M2");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create(TypeSymbolWithAnnotations.Create(intType)),
+                    ImmutableArray.Create(TypeWithAnnotations.Create(intType)),
                     "void IEnumerable<int>.M2<int>()",
                     "void S.M2<T>(IEnumerable<T> t)",
                     "void IEnumerable<T>.M2<T>()",
@@ -2535,7 +2535,7 @@ static class S
                 // Generic method, multiple type arguments.
                 method = type.GetMember<MethodSymbol>("M3");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create(TypeSymbolWithAnnotations.Create(intType), TypeSymbolWithAnnotations.Create(arrayType)),
+                    ImmutableArray.Create(TypeWithAnnotations.Create(intType), TypeWithAnnotations.Create(arrayType)),
                     "void string[].M3<int, string[]>(IEnumerable<int> t)",
                     "void S.M3<T, U>(U u, IEnumerable<T> t)",
                     "void U.M3<T, U>(IEnumerable<T> t)",
@@ -2547,7 +2547,7 @@ static class S
 
         private void CheckExtensionMethod(
             MethodSymbol method,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArgs,
+            ImmutableArray<TypeWithAnnotations> typeArgs,
             string reducedMethodDescription,
             string reducedFromDescription,
             string constructedFromDescription,
@@ -3831,8 +3831,9 @@ public class BaseClass<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 
         [Fact]
@@ -3926,8 +3927,9 @@ public class BaseClass<TMember> : I1<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 
         [Fact]

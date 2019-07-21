@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
@@ -663,6 +663,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsNumericTypeContext(this SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!(token.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            {
+                return false;
+            }
+
+            var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
+            return typeInfo.Type.IsNumericType();
         }
     }
 }

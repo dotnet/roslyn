@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 path = GetIncludePath(parent);
+                if (path == null)
+                {
+                    return null;
+                }
+
                 ruleSet = RuleSetProcessor.LoadFromFile(path);
             }
             catch (FileNotFoundException)
@@ -78,11 +83,9 @@ namespace Microsoft.CodeAnalysis
         private string GetIncludePath(RuleSet parent)
         {
             var resolvedIncludePath = ResolveIncludePath(_includePath, parent?.FilePath);
-
-            // If we still couldn't find it then throw an exception;
             if (resolvedIncludePath == null)
             {
-                throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
+                return null;
             }
 
             // Return the canonical full path

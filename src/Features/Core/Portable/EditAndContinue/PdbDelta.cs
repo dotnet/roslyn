@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct PdbDelta
+    internal readonly struct PdbDelta
     {
         // Tokens of updated methods. The debugger enumerates this list 
         // updated methods containing active statements.
@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public PdbDelta(MemoryStream stream, int[] updatedMethods)
         {
-            this.Stream = stream;
-            this.UpdatedMethods = updatedMethods;
+            Stream = stream;
+            UpdatedMethods = updatedMethods;
         }
     }
 }

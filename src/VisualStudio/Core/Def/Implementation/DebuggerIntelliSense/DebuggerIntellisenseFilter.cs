@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -16,26 +18,46 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable
+    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable, IFeatureController
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
-        private readonly IWpfTextView _wpfTextView;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
-
-        internal bool Enabled { get; set; }
+        private IFeatureDisableToken _completionDisabledToken;
 
         public DebuggerIntelliSenseFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService adapterFactory,
-            ICommandHandlerServiceFactory commandFactory)
+            ICommandHandlerServiceFactory commandFactory,
+            IFeatureServiceFactory featureServiceFactory)
             : base(languageService, wpfTextView, adapterFactory, commandFactory)
         {
-            _wpfTextView = wpfTextView;
             _commandFactory = commandFactory;
+            _featureServiceFactory = featureServiceFactory;
+        }
+
+        internal void EnableCompletion()
+        {
+            if (_completionDisabledToken == null)
+            {
+                return;
+            }
+
+            _completionDisabledToken.Dispose();
+            _completionDisabledToken = null;
+        }
+
+        internal void DisableCompletion()
+        {
+            var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
+            if (_completionDisabledToken == null)
+            {
+                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+            }
         }
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
@@ -81,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         // instead of trying to have our command handlers to work.
         public override int Exec(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (_context == null || !Enabled)
+            if (_context == null)
             {
                 return NextCommandTarget.Exec(pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -98,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
 
             // If the caret is outside our projection, defer to the next command target.
@@ -115,19 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
-                // HACK: If you look at EditCtlStatementCompletion.cpp, they translate CANCEL to
-                // SCROLLUP to do some hacking around their own command infrastructure and the
-                // legacy stuff they interfaced with. That means we get SCROLLUP if the user
-                // types escape, so treat SCROLLUP like CANCEL. It's actually a CANCEL.
-                case VSConstants.VSStd2KCmdID.SCROLLUP:
-                    ExecuteCancel(subjectBuffer, contentType, () =>
-                    {
-                        // We cannot just pass executeNextCommandTarget becuase it would execute SCROLLUP
-                        var cancelCmdGroupId = VSConstants.VSStd2K;
-                        NextCommandTarget.Exec(ref cancelCmdGroupId, (uint)VSConstants.VSStd2KCmdID.CANCEL, executeInformation, pvaIn, pvaOut);
-                    });
-                    break;
-
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild
                 // spans after all the other command handlers have run.
                 case VSConstants.VSStd2KCmdID.RETURN:
@@ -180,18 +189,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void SetContext(AbstractDebuggerIntelliSenseContext context)
         {
-            // We're never notified of being disabled in the immediate window, so the
-            // best we can do is only keep resources from one context alive at a time.
-            Dispose();
-
+            // If there was an old context, it must be cleaned before calling SetContext.
+            Debug.Assert(_context == null);
             _context = context;
             this.SetCommandHandlers(context.Buffer);
         }
 
         internal void RemoveContext()
         {
-            Dispose();
-            _context = null;
+            if (_context != null)
+            {
+                _context.Dispose();
+                _context = null;
+            }
         }
 
         internal void SetContentType(bool install)
@@ -199,10 +209,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public void Dispose()
         {
-            if (_context != null)
+            if (_completionDisabledToken != null)
             {
-                _context.Dispose();
+                _completionDisabledToken.Dispose();
             }
+
+            RemoveContext();
         }
     }
 }

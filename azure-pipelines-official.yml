@@ -2,8 +2,18 @@ resources:
 - repo: self
   clean: true
 
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: real
+#  SkipTests: false
+#  SkipApplyOptimizationData: false
+#  IbcSourceBranchName: 'default'
+#  IbcDropId: 'default'
+
 jobs:
-- job:
+- job: OfficialBuild
+  displayName: Official Build
   pool:
     name: VSEng-MicroBuildVS2017
     demands: 
@@ -12,38 +22,57 @@ jobs:
     - DotNetFramework
   timeoutInMinutes: 360
 
-  variables:
-    BuildPlatform: 'Any CPU'
-    InsertTargetBranchFullName: 'lab/d16.0stg'
-    InsertTargetBranchShortName: 'd16.0stg'
   steps:
-  - task: NuGetCommand@2
+  - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+
+  - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
+
+  - task: NuGetToolInstaller@0
     inputs:
-      command: custom
-      arguments: 'locals all -clear'
+      versionSpec: '4.9.2'
+
+  - task: NuGetCommand@2
+    displayName: Restore internal tools
+    inputs:
+      command: restore
+      feedsToUse: config
+      restoreSolution: 'eng\common\internal\Tools.csproj'
+      nugetConfigPath: 'NuGet.config'
+      restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
-      signType: real
-    condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
+      signType: $(SignType)
+      zipSources: false
+    condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
   - task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
     inputs:
       skipRunOptimize: true
     displayName: 'Install OptProf Plugin'
 
+  # Required by MicroBuildBuildVSBootstrapper
   - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
     inputs:
+      dropName: $(VisualStudio.DropName) 
       feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
 
-  - task: NuGetRestore@1
-    inputs:
-      solution: 'eng\internal\Toolset.csproj'
-      feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
-
   - script: eng\cibuild.cmd
-              -configuration $(BuildConfiguration) -official -testDesktop -procdump
-              /p:DotNetSignType=$(PB_SignType)
+              -configuration $(BuildConfiguration)
+              -officialBuildId $(Build.BuildNumber)
+              -officialSkipTests $(SkipTests)
+              -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+              -officialSourceBranchName $(SourceBranchName)
+              -officialIbcSourceBranchName $(IbcSourceBranchName)
+              -officialIbcDropId $(IbcDropId)
+              /p:RepositoryName=$(Build.Repository.Name)
+              /p:VisualStudioDropAccessToken=$(System.AccessToken)
+              /p:VisualStudioDropName=$(VisualStudio.DropName)
+              /p:DotNetSignType=$(SignType)
+              /p:DotNetPublishToBlobFeed=true
+              /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+              /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+              /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
     displayName: Build
@@ -52,48 +81,51 @@ jobs:
   - task: PowerShell@2
     displayName: Publish Assets
     inputs:
-      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
       filePath: 'eng\publish-assets.ps1'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
     condition: succeeded()
 
-  ### BEGIN OPTPROF TASKS ###
-
-  # Publish optprof configuration files
+  # Publish OptProf configuration files
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
-    displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
 
-  # Created a exe that will install visual studio with this version 
-  - task: PowerShell@2
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
     inputs:
-      filePath: eng\setmanifestpaths.ps1
-      failOnStderr: true
-    displayName: 'OPTPROF - Set VSTS variables for vsman files'
-    condition: succeededOrFailed()
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
+    condition: succeeded()
 
+  # Build VS bootstrapper
+  # Generates $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
   - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2
     inputs:
-      vsMajorVersion: 16
-      channelName: int.$(InsertTargetBranchShortName)
-      manifests: $(SetupManifests)
+      vsMajorVersion: $(VisualStudio.MajorVersion)
+      channelName: $(VisualStudio.ChannelName)
+      manifests: $(VisualStudio.SetupManifestList)
       outputFolder: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-    displayName: 'OPTPROF - Build VS bootstrapper'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Build VS bootstrapper'
+    condition: succeeded()
 
   # Publish run settings
   - task: PowerShell@2
     inputs:
-      filePath: eng\createrunsettings.ps1
+      filePath: eng\common\sdk-task.ps1
       arguments: -configuration $(BuildConfiguration)
-      failOnStderr: true
-    displayName: 'OPTPROF - generate runsettings file'
-    condition: succeededOrFailed()
+                 -task VisualStudio.BuildIbcTrainingSettings
+                 /p:VisualStudioDropName=$(VisualStudio.DropName)
+                 /p:BootstrapperInfoPath=$(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
+    displayName: 'OptProf - Build IBC training settings'
+    condition: succeeded()
 
   # Publish bootstrapper info
   - task: PublishBuildArtifacts@1
@@ -101,19 +133,8 @@ jobs:
       PathtoPublish: $(Build.StagingDirectory)\MicroBuild\Output
       ArtifactName: MicroBuildOutputs
       ArtifactType: Container
-    displayName: 'OPTPROF - Publish Artifact: MicroBuildOutputs'
-    condition: succeededOrFailed()
-
-  # Publish scripts to get the branch of VS that this inserts into
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\BranchInfo'
-      ArtifactName: BranchInfo
-      ArtifactType: Container
-    displayName: 'OPTPROF - Publish Artifact: BranchInfo'
-    condition: succeededOrFailed()
-
-  ### END OPTPROF TASKS ###
+    displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
+    condition: succeeded()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
@@ -124,20 +145,21 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
-    displayName: Publish Test Results
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
       mergeTestResults: true
       testRunTitle: 'Unit Tests'
-    condition: succeededOrFailed()
+    condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
-  # Publishes setup VSIXes to a drop with id defined by MicroBuildSwixPlugin.
+  # Publishes setup VSIXes to a drop.
   # Note: The insertion tool looks for the display name of this task in the logs.
   - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
     displayName: Upload VSTS Drop
     inputs:
+      DropName: $(VisualStudio.DropName)
       DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
     condition: succeeded()
 
@@ -168,6 +190,29 @@ jobs:
       ArtifactName: 'Packages'
     condition: succeeded()
 
+  # Publish Asset Manifests for Build Asset Registry job
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Asset Manifests
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+      ArtifactName: AssetManifests
+    condition: succeeded()
+
+  # Tag the build at the very end when we know it's been successful.
+  - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
+    displayName: Tag build as ready for optimization training
+    inputs:
+      tags: 'ready-for-training'
+    condition: succeeded()
+
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
     displayName: Perform Cleanup Tasks
     condition: succeededOrFailed()
+
+# Publish to Build Asset Registry
+- template: /eng/common/templates/job/publish-build-assets.yml
+  parameters:
+    dependsOn:
+      - OfficialBuild
+    queue:
+      name: Hosted VS2017

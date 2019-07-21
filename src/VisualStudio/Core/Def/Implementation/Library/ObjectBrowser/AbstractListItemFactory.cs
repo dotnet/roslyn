@@ -620,6 +620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var projectListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             var referenceListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             HashSet<AssemblyIdentity> assemblyIdentitySet = null;
+            var visitedAssemblies = new Dictionary<string, AssemblyIdentity>();
 
             foreach (var projectId in projectIds)
             {
@@ -647,7 +648,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         if (reference is PortableExecutableReference portableExecutableReference)
                         {
-                            var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                            var assemblyIdentity = visitedAssemblies.GetOrAdd(portableExecutableReference.FilePath, filePath => AssemblyIdentityUtils.TryGetAssemblyIdentity(filePath));
                             if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
                             {
                                 assemblyIdentitySet.Add(assemblyIdentity);

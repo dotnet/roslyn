@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.NonUser;
                 var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
 
-                bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
+                var isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
 
                 // MidStatement is set differently for leaf frames and non-leaf frames.
                 // We aggregate it so that if any frame has MidStatement the ActiveStatement is considered partially executed.
@@ -63,7 +63,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private static LinePositionSpan ToLinePositionSpan(DkmTextSpan span)
-            => new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        // internal for testing
+        internal static LinePositionSpan ToLinePositionSpan(DkmTextSpan span)
+        {
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartLine <= 0 || span.EndLine <= 0)
+            {
+                return default;
+            }
+
+            // C++ produces spans without columns
+            if (span.StartColumn == 0 && span.EndColumn == 0)
+            {
+                return new LinePositionSpan(new LinePosition(span.StartLine - 1, 0), new LinePosition(span.EndLine - 1, 0));
+            }
+
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartColumn <= 0 || span.EndColumn <= 0)
+            {
+                return default;
+            }
+
+            return new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        }
     }
 }

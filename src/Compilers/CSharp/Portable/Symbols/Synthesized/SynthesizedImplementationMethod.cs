@@ -3,8 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
             typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArguments);
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -96,10 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.RefKind; }
         }
 
-        public sealed override TypeSymbolWithAnnotations ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _interfaceMethod.ReturnType; }
+            get { return _interfaceMethod.ReturnTypeWithAnnotations; }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

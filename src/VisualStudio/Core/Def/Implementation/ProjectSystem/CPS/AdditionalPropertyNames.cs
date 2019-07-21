@@ -7,6 +7,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// </summary>
     internal static class AdditionalPropertyNames
     {
-        public const string RootNamespace = "rootnamespace";
+        // All supported properties can be found in dotnet/project-system repo
+        // https://github.com/dotnet/project-system/blob/master/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Rules/LanguageService.xaml
+
+        public const string RootNamespace = nameof(RootNamespace);
     }
 }

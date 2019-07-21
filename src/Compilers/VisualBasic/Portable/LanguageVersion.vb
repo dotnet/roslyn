@@ -80,14 +80,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
-                Case LanguageVersion.Latest
-                    Return LanguageVersion.VisualBasic15_5
-                Case LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic15
+                Case LanguageVersion.Latest,
+                     LanguageVersion.Default
+                    Return LanguageVersion.VisualBasic16
                 Case Else
                     Return version
             End Select
         End Function
+
+        Friend ReadOnly Property CurrentVersion As LanguageVersion
+            Get
+                Return LanguageVersion.VisualBasic16
+            End Get
+        End Property
 
         ''' <summary>
         ''' Displays the version number in the format understood on the command-line (/langver flag).

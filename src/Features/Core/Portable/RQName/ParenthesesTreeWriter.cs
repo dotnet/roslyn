@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             if (node is SimpleGroupNode group)
             {
                 sb.Append('(');
-                for (int i = 0; i < group.Count; i++)
+                for (var i = 0; i < group.Count; i++)
                 {
                     if (i > 0)
                     {

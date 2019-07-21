@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private static readonly SerializationAnalyzerAssemblyLoader s_loader = new SerializationAnalyzerAssemblyLoader();
 
+        [ImportingConstructor]
+        public DesktopReferenceSerializationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(
@@ -35,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Execution
             // typical low number, high volumn data cache.
             private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
 
-            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
-                base(service, documentationService)
+            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService)
+                : base(service, documentationService)
             {
             }
 
@@ -71,15 +76,14 @@ namespace Microsoft.CodeAnalysis.Execution
                     {
                         // we don't have cache, cache it
                         var formatter = new BinaryFormatter();
-                        using (var stream = SerializableBytes.CreateWritableStream())
-                        {
-                            // unfortunately, this is only way to properly clone encoding
-                            formatter.Serialize(stream, encoding);
-                            value = stream.ToArray();
+                        using var stream = SerializableBytes.CreateWritableStream();
 
-                            // add if not already exist. otherwise, noop
-                            s_encodingCache.TryAdd(encoding, value);
-                        }
+                        // unfortunately, this is only way to properly clone encoding
+                        formatter.Serialize(stream, encoding);
+                        value = stream.ToArray();
+
+                        // add if not already exist. otherwise, noop
+                        s_encodingCache.TryAdd(encoding, value);
                     }
 
                     return value;

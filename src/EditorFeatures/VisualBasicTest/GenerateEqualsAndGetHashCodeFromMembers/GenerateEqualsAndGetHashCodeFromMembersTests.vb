@@ -563,5 +563,14 @@ Class Z
 End Class",
 index:=1)
         End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestPartialSelection() As Task
+            Await TestMissingAsync(
+"Class Z
+    Private [|a|] As Integer
+End Class")
+        End Function
     End Class
 End Namespace

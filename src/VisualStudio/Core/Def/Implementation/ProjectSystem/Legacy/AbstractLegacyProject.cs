@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         internal VisualStudioProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
+
+        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
+
+        /// <summary>
+        /// The path to the directory of the project. Read-only, since although you can rename
+        /// a project in Visual Studio you can't change the folder of a project without an
+        /// unload/reload.
+        /// </summary>
+        private readonly string _projectDirectory = null;
 
         private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
@@ -64,6 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 projectFilePath = null;
             }
 
+            if (projectFilePath != null)
+            {
+                _projectDirectory = Path.GetDirectoryName(projectFilePath);
+            }
+
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
             VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
                 projectSystemName,
@@ -77,6 +90,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     Hierarchy = hierarchy,
                     ProjectGuid = GetProjectIDGuid(hierarchy),
                 });
+
+            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+                VisualStudioProject,
+                () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
             // by assigning the value of the project's root namespace to it. So various feature can choose to 
@@ -92,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
             try
             {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
                 _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
             }
             catch (Exception)
@@ -104,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         public string AssemblyName => VisualStudioProject.AssemblyName;
+
+        public string GetOutputFileName()
+            => VisualStudioProject.IntermediateOutputFilePath;
 
         public virtual void Disconnect()
         {
@@ -159,7 +179,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (!string.IsNullOrEmpty(linkMetadata))
             {
                 var linkFolderPath = Path.GetDirectoryName(linkMetadata);
-                folders = linkFolderPath.Split(PathSeparatorCharacters).ToImmutableArray();
+                folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            }
+            else if (!string.IsNullOrEmpty(VisualStudioProject.FilePath))
+            {
+                var relativePath = PathUtilities.GetRelativePath(_projectDirectory, filename);
+                var relativePathParts = relativePath.Split(PathSeparatorCharacters);
+                folders = ImmutableArray.Create(relativePathParts, start: 0, length: relativePathParts.Length - 1);
             }
 
             VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
@@ -167,8 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RemoveFile(string filename)
         {
-            AssertIsForeground();
-
             // We have tests that assert that XOML files should not get added; this was similar
             // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
             // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
@@ -178,12 +202,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.RemoveSourceFile(filename);
+            ProjectCodeModel.OnSourceFileRemoved(filename);
         }
 
-        private void RefreshBinOutputPath()
+        protected void RefreshBinOutputPath()
         {
-            var storage = Hierarchy as IVsBuildPropertyStorage;
-            if (storage == null)
+            if (!(Hierarchy is IVsBuildPropertyStorage storage))
             {
                 return;
             }
@@ -216,6 +240,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
+
+            if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
+            {
+                VisualStudioProject.OutputRefFilePath = targetRefPath;
+            }
+            else
+            {
+                VisualStudioProject.OutputRefFilePath = null;
+            }
         }
 
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
@@ -271,32 +304,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            using (var pooledObject = SharedPools.Default<List<string>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<List<string>>().GetPooledObject();
+
+            var newFolderNames = pooledObject.Object;
+
+            if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
             {
-                var newFolderNames = pooledObject.Object;
-                ImmutableArray<string> folderNames;
-
-                if (!_folderNameMap.TryGetValue(folderItemID, out folderNames))
-                {
-                    ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-                    folderNames = newFolderNames.ToImmutableArray();
-                    _folderNameMap.Add(folderItemID, folderNames);
-                }
-                else
-                {
-                    // verify names, and change map if we get a different set.
-                    // this is necessary because we only get document adds/removes from the project system
-                    // when a document name or folder name changes.
-                    ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-                    if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
-                    {
-                        folderNames = newFolderNames.ToImmutableArray();
-                        _folderNameMap[folderItemID] = folderNames;
-                    }
-                }
-
-                return folderNames;
+                ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
+                folderNames = newFolderNames.ToImmutableArray();
+                _folderNameMap.Add(folderItemID, folderNames);
             }
+            else
+            {
+                // verify names, and change map if we get a different set.
+                // this is necessary because we only get document adds/removes from the project system
+                // when a document name or folder name changes.
+                ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
+                if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
+                {
+                    folderNames = newFolderNames.ToImmutableArray();
+                    _folderNameMap[folderItemID] = folderNames;
+                }
+            }
+
+            return folderNames;
         }
 
         // Different hierarchies are inconsistent on whether they return ints or uints for VSItemIds.

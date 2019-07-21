@@ -201,7 +201,6 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IMetadataAsSourceFileService),
                                                              workspace.GetService(Of IWaitIndicator))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)

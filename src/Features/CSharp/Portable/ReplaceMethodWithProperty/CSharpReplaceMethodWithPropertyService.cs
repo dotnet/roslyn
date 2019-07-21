@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -17,28 +16,11 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
 {
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
+    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
     {
-        public SyntaxNode GetMethodDeclaration(SyntaxToken token)
+        [ImportingConstructor]
+        public CSharpReplaceMethodWithPropertyService()
         {
-            var containingMethod = token.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod == null)
-            {
-                return null;
-            }
-
-            var start = containingMethod.AttributeLists.Count > 0
-                ? containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingMethod.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the method.
-            var position = token.SpanStart;
-            if (position < start || position > containingMethod.ParameterList.Span.End)
-            {
-                return null;
-            }
-
-            return containingMethod;
         }
 
         public void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration)
@@ -376,11 +358,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            var newName = nameChanged
-                ? SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName).WithTriviaFrom(nameToken))
-                : nameNode;
-
             var invocation = nameNode?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+
+            var newName = nameNode;
+            if (nameChanged)
+            {
+                if (invocation == null)
+                {
+                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
+                        .WithTriviaFrom(nameToken));
+                }
+                else
+                {
+                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
+                        .WithLeadingTrivia(nameToken.LeadingTrivia)
+                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
+                }
+            }
+
             var invocationExpression = invocation?.Expression;
             if (!IsInvocationName(nameNode, invocationExpression))
             {

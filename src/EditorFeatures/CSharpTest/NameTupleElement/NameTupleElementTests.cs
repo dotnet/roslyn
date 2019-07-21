@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.NameTupleElement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
         }
 
         [Fact]
+        [WorkItem(35157, "https://github.com/dotnet/roslyn/issues/35157")]
         public async Task TestUntypedTuple()
         {
             await TestMissingAsync(

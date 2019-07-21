@@ -8,5 +8,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GeneratedCodeRecognition
     <ExportLanguageService(GetType(IGeneratedCodeRecognitionService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicGeneratedCodeRecognitionService
         Inherits AbstractGeneratedCodeRecognitionService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

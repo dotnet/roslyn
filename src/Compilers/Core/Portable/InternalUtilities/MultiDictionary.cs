@@ -201,7 +201,9 @@ namespace Roslyn.Utilities
 
         public bool IsEmpty => _dictionary.Count == 0;
 
-        public IEnumerable<K> Keys => _dictionary.Keys;
+        public Dictionary<K, ValueSet>.KeyCollection Keys => _dictionary.Keys;
+
+        public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
@@ -253,9 +255,14 @@ namespace Roslyn.Utilities
             return GetEnumerator();
         }
 
-        public IEnumerator<KeyValuePair<K, ValueSet>> GetEnumerator()
+        public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
         {
             return _dictionary.GetEnumerator();
+        }
+
+        IEnumerator<KeyValuePair<K, ValueSet>> IEnumerable<KeyValuePair<K, ValueSet>>.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public bool ContainsKey(K k)

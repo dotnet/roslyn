@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -264,6 +264,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Format_document_settings {
             get {
                 return ResourceManager.GetString("Format_document_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        internal static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
             }
         }
         
@@ -655,6 +664,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inside namespace.
+        /// </summary>
+        internal static string Inside_namespace {
+            get {
+                return ResourceManager.GetString("Inside_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Label Indentation.
         /// </summary>
         internal static string Label_Indentation {
@@ -777,6 +795,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outside namespace.
+        /// </summary>
+        internal static string Outside_namespace {
+            get {
+                return ResourceManager.GetString("Outside_namespace", resourceCulture);
             }
         }
         
@@ -1051,6 +1078,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer switch expression.
+        /// </summary>
+        internal static string Prefer_switch_expression {
+            get {
+                return ResourceManager.GetString("Prefer_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {
@@ -1074,6 +1110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_var {
             get {
                 return ResourceManager.GetString("Prefer_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preferred &apos;using&apos; directive placement.
+        /// </summary>
+        internal static string Preferred_using_directive_placement {
+            get {
+                return ResourceManager.GetString("Preferred_using_directive_placement", resourceCulture);
             }
         }
         
@@ -1249,6 +1294,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show items from unimported namespaces (experimental).
+        /// </summary>
+        internal static string Show_items_from_unimported_namespaces {
+            get {
+                return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show name s_uggestions.
         /// </summary>
         internal static string Show_name_suggestions {
@@ -1312,20 +1366,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggest usings for types in .NET Framework assemblies.
+        /// </summary>
+        internal static string Suggest_usings_for_types_in_dotnet_framework_assemblies {
+            get {
+                return ResourceManager.GetString("Suggest_usings_for_types_in_dotnet_framework_assemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
         /// </summary>
         internal static string Suggest_usings_for_types_in_NuGet_packages {
             get {
                 return ResourceManager.GetString("Suggest_usings_for_types_in_NuGet_packages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggest usings for types in _reference assemblies.
-        /// </summary>
-        internal static string Suggest_usings_for_types_in_reference_assemblies {
-            get {
-                return ResourceManager.GetString("Suggest_usings_for_types_in_reference_assemblies", resourceCulture);
             }
         }
         
@@ -1380,6 +1434,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Using_Directives {
             get {
                 return ResourceManager.GetString("Using_Directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; preferences:.
+        /// </summary>
+        internal static string using_preferences_colon {
+            get {
+                return ResourceManager.GetString("using_preferences_colon", resourceCulture);
             }
         }
         

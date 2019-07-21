@@ -20,9 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 AddKeyword(SyntaxKind.DefaultKeyword);
-                AddPunctuation(SyntaxKind.OpenParenToken);
-                type.Accept(this.NotFirstVisitor);
-                AddPunctuation(SyntaxKind.CloseParenToken);
+                if (!format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+                {
+                    AddPunctuation(SyntaxKind.OpenParenToken);
+                    type.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CloseParenToken);
+                }
             }
         }
 

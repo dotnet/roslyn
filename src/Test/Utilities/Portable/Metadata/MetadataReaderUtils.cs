@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
                 || headers.CoffHeader.Machine == Machine.IA64;
         }
 
-        public static string GetString(this MetadataReader[] readers, StringHandle handle)
+        public static string GetString(this IEnumerable<MetadataReader> readers, StringHandle handle)
         {
             int index = MetadataTokens.GetHeapOffset(handle);
             foreach (var reader in readers)
@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string[] GetStrings(this MetadataReader[] readers, StringHandle[] handles)
+        public static string[] GetStrings(this IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles)
         {
             return handles.Select(handle => readers.GetString(handle)).ToArray();
         }
@@ -114,6 +114,11 @@ namespace Roslyn.Test.Utilities
         public static StringHandle[] GetTypeDefNames(this MetadataReader reader)
         {
             return reader.TypeDefinitions.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
+        }
+
+        public static (StringHandle Namespace, StringHandle Name)[] GetTypeDefFullNames(this MetadataReader reader)
+        {
+            return reader.TypeDefinitions.Select(handle => { var td = reader.GetTypeDefinition(handle); return (td.Namespace, td.Name); }).ToArray();
         }
 
         public static StringHandle[] GetTypeRefNames(this MetadataReader reader)
@@ -349,6 +354,17 @@ namespace Roslyn.Test.Utilities
                     {
                         TypeReference type = reader.GetTypeReference((TypeReferenceHandle)handle);
                         return getQualifiedName(type.Namespace, type.Name);
+                    }
+                case HandleKind.FieldDefinition:
+                    {
+                        FieldDefinition field = reader.GetFieldDefinition((FieldDefinitionHandle)handle);
+                        var name = reader.GetString(field.Name);
+
+                        var blob = reader.GetBlobReader(field.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeFieldSignature(ref blob);
+
+                        return $"{type} {name}";
                     }
                 default:
                     return null;

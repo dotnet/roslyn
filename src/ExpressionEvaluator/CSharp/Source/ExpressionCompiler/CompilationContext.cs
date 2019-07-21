@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
+                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
                                         properties = default(ResultProperties);
                                         return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                     });
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type.TypeSymbol);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
                 properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // base type. Instead, we only allow valid C# expressions.
             var expression = IsDeconstruction(syntax)
                 ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
-                : binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+                : binder.BindRValueWithoutTargetType(syntax, diagnostics);
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new InContainerBinder(substitutedSourceType, binder);
                 if (substitutedSourceType.Arity > 0)
                 {
-                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArgumentsNoUseSiteDiagnostics, binder);
+                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, binder);
                 }
             }
 
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (substitutedSourceMethod.Arity > 0)
             {
-                binder = new WithTypeArgumentsBinder(substitutedSourceMethod.TypeArguments, binder);
+                binder = new WithTypeArgumentsBinder(substitutedSourceMethod.TypeArgumentsWithAnnotations, binder);
             }
 
             // Method locals and parameters shadow pseudo-variables.
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    var localType = local.Type.TypeSymbol;
+                    var localType = local.Type;
                     if ((object)localType != null && displayClassTypes.Add(localType))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 var field = (FieldSymbol)member;
-                var fieldType = field.Type.TypeSymbol;
+                var fieldType = field.Type;
                 var fieldName = field.Name;
                 TryParseGeneratedName(fieldName, out var fieldKind, out var part);
 
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private static bool IsDisplayClassParameter(ParameterSymbol parameter)
         {
-            var type = parameter.Type.TypeSymbol;
+            var type = parameter.Type;
             var result = type.Kind == SymbolKind.NamedType && IsDisplayClassType((NamedTypeSymbol)type);
             Debug.Assert(!result || parameter.MetadataName == "");
             return result;
@@ -1650,7 +1650,7 @@ REPARSE:
                     {
                         return desiredTypeParameters.Length == 0
                             ? candidateMethod
-                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsNoUseSiteDiagnostics);
+                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
                     }
                 }
 
@@ -1711,7 +1711,7 @@ REPARSE:
 
             internal TypeSymbol Type
             {
-                get { return this.Fields.Any() ? this.Fields.Head.Type.TypeSymbol : this.Instance.Type; }
+                get { return this.Fields.Any() ? this.Fields.Head.Type : this.Instance.Type; }
             }
 
             internal int Depth
@@ -1721,8 +1721,8 @@ REPARSE:
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType(field.Type.TypeSymbol) ||
-                    GeneratedNames.GetKind(field.Type.TypeSymbol.Name) == GeneratedNameKind.AnonymousType);
+                Debug.Assert(IsDisplayClassType(field.Type) ||
+                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
 

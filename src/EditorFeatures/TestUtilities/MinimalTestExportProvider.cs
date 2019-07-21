@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ExperimentationService;
+using Microsoft.CodeAnalysis.UnitTests.Fakes;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -34,10 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
                 typeof(Implementation.Classification.ClassificationTypeFormatDefinitions), // to include EditorFeatures.Wpf
                 typeof(DefaultSymbolMappingService),
-                typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
-                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                         .ToArray();
         }
 
-        public static IEnumerable<Assembly> GetEditorAssemblies()
+        public static ComposableCatalog GetEditorAssemblyCatalog()
         {
             var assemblies = new[]
             {
@@ -75,10 +74,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(BasicUndo.IBasicUndoHistory).Assembly,
 
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
-                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly
+                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
+
+                // Microsoft.VisualStudio.Language
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionBroker).Assembly,
+
+                // Microsoft.VisualStudio.CoreUtility
+                typeof(Microsoft.VisualStudio.Utilities.IFeatureServiceFactory).Assembly,
+
+                // Microsoft.VisualStudio.Text.Internal
+                typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
 
-            return assemblies;
+            // Consider removing the internal service from the output: https://github.com/dotnet/roslyn/issues/30249
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())
+                .WithPart(typeof(TestExperimentationServiceInternal));
+        }
+
+        public static ComposableCatalog WithDefaultFakes(this ComposableCatalog catalog)
+        {
+            return catalog
+                .WithPart(typeof(StubStreamingFindUsagesPresenter));
         }
     }
 }

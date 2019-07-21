@@ -97,9 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+            public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+            public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+            public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {
-                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -116,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return ImmutableArray<MethodSymbol>.Empty; }
             }
+
+            // methods on classes are never 'readonly'
+            internal sealed override bool IsDeclaredReadOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {

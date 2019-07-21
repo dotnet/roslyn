@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = tree.GetRoot();
 
             var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax || n is ClassDeclarationSyntax).ToList();
-            int computations = 0;
+            var computations = 0;
             var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {
                 computations++;

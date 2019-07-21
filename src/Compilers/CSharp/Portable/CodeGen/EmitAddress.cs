@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     if (expression.Type.IsValueType)
                     {
+
+                        if (!HasHome(expression, addressKind))
+                        {
+                            // a readonly method is calling a non-readonly method, therefore we need to copy 'this'
+                            goto default;
+                        }
+
                         _builder.EmitLoadArgumentOpcode(0);
                     }
                     else

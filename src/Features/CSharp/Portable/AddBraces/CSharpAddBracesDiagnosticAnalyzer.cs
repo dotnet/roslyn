@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using FormattingRangeHelper = Microsoft.CodeAnalysis.CSharp.Utilities.FormattingRangeHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
@@ -16,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
+                   CSharpCodeStyleOptions.PreferBraces,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
         }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
@@ -94,7 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
             if (option.Value == PreferBracesPreference.WhenMultiline
                 && !IsConsideredMultiLine(statement, embeddedStatement)
-                && !RequiresBracesToMatchContext(statement, embeddedStatement))
+                && !RequiresBracesToMatchContext(statement))
+            {
+                return;
+            }
+
+            if (ContainsInterleavedDirective(statement, embeddedStatement, cancellationToken))
             {
                 return;
             }
@@ -107,6 +114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));
+        }
+
+        /// <summary>
+        /// Check if there are interleaved directives on the statement.
+        /// Handles special case with if/else.
+        /// </summary>
+        private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
+        {
+            if (statement.Kind() == SyntaxKind.IfStatement)
+            {
+                var ifStatementNode = (IfStatementSyntax)statement;
+                var elseNode = ifStatementNode.Else;
+                if (elseNode != null && !embeddedStatement.IsMissing)
+                {
+                    // For IF/ELSE statements, only the IF part should be checked for interleaved directives when the diagnostic is triggered on the IF.
+                    // A separate diagnostic will be triggered to handle the ELSE part.
+                    var ifStatementSpanWithoutElse = TextSpan.FromBounds(statement.Span.Start, embeddedStatement.Span.End);
+                    return statement.ContainsInterleavedDirective(ifStatementSpanWithoutElse, cancellationToken);
+                }
+            }
+
+            return statement.ContainsInterleavedDirective(cancellationToken);
         }
 
         /// <summary>
@@ -201,11 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         }
 
         /// <summary>
-        /// Determines whether <paramref name="embeddedStatement"/> should use braces under a
+        /// Determines whether <paramref name="statement"/> should use braces under a
         /// <see cref="PreferBracesPreference.WhenMultiline"/> preference due to the presence of braces on one or more
         /// sibling statements (the "context").
         /// </summary>
-        private static bool RequiresBracesToMatchContext(SyntaxNode statement, StatementSyntax embeddedStatement)
+        private static bool RequiresBracesToMatchContext(SyntaxNode statement)
         {
             if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
             {

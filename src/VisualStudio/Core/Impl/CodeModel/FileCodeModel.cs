@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -46,8 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private string _incomingFilePath;
         private Document _previousDocument;
 
-        private readonly ITextManagerAdapter _textManagerAdapter;
-
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _parentHandle = new ComHandle<object, object>(parent);
             _documentId = documentId;
-            _textManagerAdapter = textManagerAdapter;
+            TextManagerAdapter = textManagerAdapter;
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITextManagerAdapter TextManagerAdapter
         {
-            get { return _textManagerAdapter; }
+            get; set;
         }
 
         /// <summary>
@@ -114,10 +114,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             if (_invisibleEditor != null)
             {
-                // we are shutting down, so do not worry about editCount. If the editor is still alive, dispose it.
+                // we are shutting down, so do not worry about editCount. We will detach our format tracking from the text
+                // buffer now; if anybody else had an invisible editor open to this file, we wouldn't want our format tracking
+                // to trigger. We can safely do that on a background thread since it's just disconnecting a few event handlers.
+                // We have to defer the shutdown of the invisible editor though as that requires talking to the UI thread.
+                // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
-                _invisibleEditor.Dispose();
-                _invisibleEditor = null;
+
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(() => { _invisibleEditor.Dispose(); });
             }
 
             base.Shutdown();
@@ -376,6 +380,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
+                // HACK HACK HACK: Ensure we've processed all files being opened before we let designers work further.
+                // In https://devdiv.visualstudio.com/DevDiv/_workitems/edit/728035, a file is opened in an invisible editor and contents are written
+                // to it. The file isn't saved, but it's added to the workspace; we won't have yet hooked up to the open file since that work was deferred.
+                // Since we're on the UI thread here, we can ensure those are all wired up since the analysis of this document may depend on that other file.
+                // We choose to do this here rather than in the project system code when it's added because we don't want to pay the penalty of checking the RDT for
+                // all files being opened on the UI thread if we really don't need it. This uses an 'as' cast, because in unit tests the workspace is a different
+                // derived form of VisualStudioWorkspace, and there we aren't dealing with open files at all so it doesn't matter.
+                (State.Workspace as VisualStudioWorkspaceImpl)?.ProcessQueuedWorkOnUIThread();
+
                 document = Workspace.CurrentSolution.GetDocument(GetDocumentId());
             }
 
@@ -575,9 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            var node = parent != null
-                ? parent.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope))
-                : null;
+            var node = parent?.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope));
 
             if (node == null)
             {
@@ -662,7 +673,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths = elementAndPaths ?? new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }

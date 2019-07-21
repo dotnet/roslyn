@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class CSharpSyntaxTreeFactoryServiceFactory
     {
-        internal partial class CSharpSyntaxTreeFactoryService
+        private partial class CSharpSyntaxTreeFactoryService
         {
             /// <summary>
             /// Represents a syntax reference that doesn't actually hold onto the 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private SyntaxNode GetNode(SyntaxNode root)
                 {
                     var current = root;
-                    int spanStart = _textSpan.Start;
+                    var spanStart = _textSpan.Start;
 
                     while (current.FullSpan.Contains(spanStart))
                     {

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -54,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
     internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
+        [ImportingConstructor]
+        public GenerateMethodCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             GenerateMethodDiagnosticIds.FixableDiagnosticIds;
 

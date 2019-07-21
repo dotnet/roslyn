@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseCollectionInitializerCodeFixProvider()
+        {
+        }
+
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
             ObjectCreationExpressionSyntax objectCreation,
@@ -46,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            for (int i = 0; i < matches.Length; i++)
+            for (var i = 0; i < matches.Length; i++)
             {
                 var expressionStatement = matches[i];
 

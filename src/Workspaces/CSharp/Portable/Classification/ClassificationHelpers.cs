@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
+        private const string NotNullKeyword = "notnull";
         private const string DynamicKeyword = "dynamic";
         private const string AwaitKeyword = "await";
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.YieldKeyword:
                 case SyntaxKind.DefaultKeyword: // Include DefaultKeyword as it can be part of a DefaultSwitchLabel
                 case SyntaxKind.InKeyword: // Include InKeyword as it can be part of an ForEachStatement
-                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause
+                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause or a pattern WhenClause
                     return true;
                 default:
                     return false;
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 // Checked Statements
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ElseClause:
@@ -126,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.CatchFilterClause:
                 case SyntaxKind.FinallyClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.ThrowExpression:
+                case SyntaxKind.WhenClause:
                     return true;
                 default:
                     return false;
@@ -202,11 +207,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return ClassificationTypeNames.MethodName;
+                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return ClassificationTypeNames.MethodName;
+                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
@@ -219,6 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
             {
                 return ClassificationTypeNames.EnumMemberName;
+            }
+            else if (token.Parent is CatchDeclarationSyntax catchDeclaration && catchDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
             }
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {
@@ -495,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
 
                     case UnmanagedKeyword:
+                    case NotNullKeyword:
                         return token.Parent is IdentifierNameSyntax
                             && token.Parent.Parent is TypeConstraintSyntax
                             && token.Parent.Parent.Parent is TypeParameterConstraintClauseSyntax;
@@ -547,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     var tokenString = token.ToString();
                     var isKeyword = SyntaxFacts.IsKeywordKind(token.Kind())
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
-                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword));
+                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword || tokenString == NotNullKeyword));
 
                     var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
 

@@ -105,25 +105,28 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       40 (0x28)
+  // Code size       43 (0x2b)
   .maxstack  3
-  .locals init (string V_0, //y
-                int V_1,
-                string V_2)
+  .locals init (long V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_1
-  IL_0007:  ldloca.s   V_2
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
   IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ldloc.1
+  IL_000e:  ldloc.2
   IL_000f:  conv.i8
-  IL_0010:  ldloc.2
-  IL_0011:  stloc.0
-  IL_0012:  box        ""long""
-  IL_0017:  ldstr      "" ""
-  IL_001c:  ldloc.0
-  IL_001d:  call       ""string string.Concat(object, object, object)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.3
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""string long.ToString()""
+  IL_001a:  ldstr      "" ""
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""string string.Concat(string, string, string)""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
 }");
         }
 
@@ -190,24 +193,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       39 (0x27)
+  // Code size       42 (0x2a)
   .maxstack  3
-  .locals init (string V_0, //y
-                int V_1,
-                string V_2)
+  .locals init (int V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_1
-  IL_0007:  ldloca.s   V_2
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
   IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ldloc.1
-  IL_000f:  ldloc.2
-  IL_0010:  stloc.0
-  IL_0011:  box        ""int""
-  IL_0016:  ldstr      "" ""
-  IL_001b:  ldloc.0
-  IL_001c:  call       ""string string.Concat(object, object, object)""
-  IL_0021:  call       ""void System.Console.WriteLine(string)""
-  IL_0026:  ret
+  IL_000e:  ldloc.2
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.3
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""string int.ToString()""
+  IL_0019:  ldstr      "" ""
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""string string.Concat(string, string, string)""
+  IL_0024:  call       ""void System.Console.WriteLine(string)""
+  IL_0029:  ret
 }");
         }
 
@@ -270,7 +276,7 @@ class C
             var defaultInfo = model.GetDeconstructionInfo(assignment);
             Assert.Null(defaultInfo.Method);
             Assert.Empty(defaultInfo.Nested);
-            Assert.Equal(ConversionKind.NoConversion, defaultInfo.Conversion.Value.Kind);
+            Assert.Equal(ConversionKind.UnsetConversionKind, defaultInfo.Conversion.Value.Kind);
         }
 
         [Fact]
@@ -301,7 +307,7 @@ class C
             var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
             var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
-            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
+            Assert.Equal(Conversion.UnsetConversion, deconstructionInfo.Conversion);
             Assert.Null(deconstructionInfo.Method);
             Assert.Empty(deconstructionInfo.Nested);
         }
@@ -1159,7 +1165,7 @@ class C
         int y;
 
         (x, x, x, x, x, x, x, x, x, y) = (1, 1, 1, 1, 1, 1, 1, 1, 4, 2);
-        System.Console.WriteLine(x + "" "" + y);
+        System.Console.WriteLine(string.Concat(x, "" "", y));
     }
 }
 ";
@@ -1673,7 +1679,7 @@ class C
 
                 var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
                 Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
-                Assert.True(x.Type.TypeSymbol.TupleElementNames.IsDefault);
+                Assert.True(x.Type.TupleElementNames.IsDefault);
 
                 Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
@@ -3019,18 +3025,21 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       32 (0x20)
   .maxstack  3
-  .locals init (string V_0) //x2
+  .locals init (int V_0, //x1
+                string V_1) //x2
   IL_0000:  ldc.i4.1
-  IL_0001:  ldstr      ""hello""
-  IL_0006:  stloc.0
-  IL_0007:  box        ""int""
-  IL_000c:  ldstr      "" ""
-  IL_0011:  ldloc.0
-  IL_0012:  call       ""string string.Concat(object, object, object)""
-  IL_0017:  call       ""void System.Console.WriteLine(string)""
-  IL_001c:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""hello""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""string int.ToString()""
+  IL_000f:  ldstr      "" ""
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""string string.Concat(string, string, string)""
+  IL_001a:  call       ""void System.Console.WriteLine(string)""
+  IL_001f:  ret
 }");
         }
 
@@ -3513,7 +3522,7 @@ Deconstructing (1, hello)
 
             var local = (SourceLocalSymbol)symbol;
             var typeSyntax = GetTypeSyntax(decl);
-            if (local.IsVar && local.Type.TypeSymbol.IsErrorType())
+            if (local.IsVar && local.Type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
@@ -3521,7 +3530,7 @@ Deconstructing (1, hello)
             {
                 if (typeSyntax != null)
                 {
-                    Assert.Equal(local.Type.TypeSymbol, model.GetSymbolInfo(typeSyntax).Symbol);
+                    Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
                 }
             }
 
@@ -3530,7 +3539,7 @@ Deconstructing (1, hello)
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -3549,7 +3558,7 @@ Deconstructing (1, hello)
                 Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(field.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -4078,7 +4087,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       91 (0x5b)
+  // Code size       75 (0x4b)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
@@ -4088,7 +4097,7 @@ class C
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0054
+  IL_0008:  br.s       IL_0044
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
@@ -4097,38 +4106,24 @@ class C
   IL_0017:  stloc.2
   IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_001d:  stloc.3
-  IL_001e:  ldc.i4.4
-  IL_001f:  newarr     ""object""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""int""
-  IL_002c:  stelem.ref
-  IL_002d:  dup
-  IL_002e:  ldc.i4.1
-  IL_002f:  ldstr      "" ""
-  IL_0034:  stelem.ref
-  IL_0035:  dup
-  IL_0036:  ldc.i4.2
-  IL_0037:  ldloc.3
-  IL_0038:  box        ""int""
-  IL_003d:  stelem.ref
-  IL_003e:  dup
-  IL_003f:  ldc.i4.3
-  IL_0040:  ldstr      "" - ""
-  IL_0045:  stelem.ref
-  IL_0046:  call       ""string string.Concat(params object[])""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ldloc.1
-  IL_0051:  ldc.i4.1
-  IL_0052:  add
-  IL_0053:  stloc.1
-  IL_0054:  ldloc.1
-  IL_0055:  ldloc.0
-  IL_0056:  ldlen
-  IL_0057:  conv.i4
-  IL_0058:  blt.s      IL_000a
-  IL_005a:  ret
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  call       ""string int.ToString()""
+  IL_0025:  ldstr      "" ""
+  IL_002a:  ldloca.s   V_3
+  IL_002c:  call       ""string int.ToString()""
+  IL_0031:  ldstr      "" - ""
+  IL_0036:  call       ""string string.Concat(string, string, string, string)""
+  IL_003b:  call       ""void System.Console.Write(string)""
+  IL_0040:  ldloc.1
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.1
+  IL_0044:  ldloc.1
+  IL_0045:  ldloc.0
+  IL_0046:  ldlen
+  IL_0047:  conv.i4
+  IL_0048:  blt.s      IL_000a
+  IL_004a:  ret
 }");
         }
 
@@ -5352,15 +5347,15 @@ int (x, y) = (1, 2);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.False(yType.Type.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5386,15 +5381,15 @@ int (x, y) = (1, 2);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.False(yType.Type.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5518,8 +5513,8 @@ var (x, y) = (1, 2);
             var xRef = GetReference(tree, "x");
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x, xRef);
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
         }
 
@@ -5556,18 +5551,18 @@ var (x, y) = (1, null);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.True(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.True(xType.Type.IsErrorType());
             Assert.Equal("var", xType.ToTestDisplayString());
 
-            var xTypeISymbol = (ISymbol)xType.TypeSymbol;
+            var xTypeISymbol = (ISymbol)xType.Type;
             Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.True(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.True(yType.Type.IsErrorType());
             Assert.Equal("var", yType.ToTestDisplayString());
         }
 
@@ -5597,18 +5592,18 @@ var (x1, x2) = (x2, x1);
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
-            var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x1Type.Name);
+            var x1Type = ((FieldSymbol)x1Symbol).TypeWithAnnotations;
+            Assert.True(x1Type.Type.IsErrorType());
+            Assert.Equal("var", x1Type.Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
             var x2Symbol = model.GetDeclaredSymbol(x2);
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
-            var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x2Type.Name);
+            var x2Type = ((FieldSymbol)x2Symbol).TypeWithAnnotations;
+            Assert.True(x2Type.Type.IsErrorType());
+            Assert.Equal("var", x2Type.Type.Name);
         }
 
         [Fact]
@@ -5641,18 +5636,18 @@ var (y1, y2) = (x1, x2);
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
-            var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x1Type.Name);
+            var x1Type = ((FieldSymbol)x1Symbol).TypeWithAnnotations;
+            Assert.True(x1Type.Type.IsErrorType());
+            Assert.Equal("var", x1Type.Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
             var x2Symbol = model.GetDeclaredSymbol(x2);
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
-            var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x2Type.Name);
+            var x2Type = ((FieldSymbol)x2Symbol).TypeWithAnnotations;
+            Assert.True(x2Type.Type.IsErrorType());
+            Assert.Equal("var", x2Type.Type.Name);
         }
 
         [Fact]
@@ -6302,7 +6297,7 @@ class C
             var discard = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, x)", discard.Parent.Parent.ToString());
             var symbol = (LocalSymbol)model.GetSymbolInfo(discard).Symbol;
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbol.TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]

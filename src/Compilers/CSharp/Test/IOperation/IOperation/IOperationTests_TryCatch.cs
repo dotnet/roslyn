@@ -3681,14 +3681,17 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .try {R1, R2}
 {
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 }
 .catch {R3} (System.Object)
 {
@@ -3696,17 +3699,15 @@ Block[B0] - Entry
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
-              Expression: 
+                Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
-                  Left: 
+                    Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-                  Right: 
+                    Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
         Next (Regular) Block[B3]
             Leaving: {R3} {R1}
 }
-
 Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
@@ -3741,7 +3742,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .try {R1, R2}
 {
     Block[B1] - Block
@@ -3750,13 +3750,16 @@ Block[B0] - Entry
         Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
             Leaving: {R2} {R1}
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 }
 .catch {R3} (System.Object)
 {
@@ -3764,17 +3767,15 @@ Block[B0] - Entry
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
-              Expression: 
+                Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
-                  Left: 
+                    Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-                  Right: 
+                    Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
         Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
-
 Block[B4] - Exit
     Predecessors: [B1] [B3]
     Statements (0)
@@ -3809,7 +3810,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .try {R1, R2}
 {
     Block[B1] - Block
@@ -3818,13 +3818,16 @@ Block[B0] - Entry
         Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
             Leaving: {R2} {R1}
-
         Next (Regular) Block[B2]
     Block[B2] - Block [UnReachable]
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 }
 .catch {R3} (System.Object)
 {
@@ -3832,17 +3835,15 @@ Block[B0] - Entry
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
-              Expression: 
+                Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
-                  Left: 
+                    Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-                  Right: 
+                    Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
         Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
-
 Block[B4] - Exit
     Predecessors: [B1] [B3]
     Statements (0)
@@ -6541,7 +6542,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .try {R1, R2}
 {
     Block[B1] - Block
@@ -6558,19 +6558,21 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
         Next (Regular) Block[B3]
     Block[B3] - Block
         Predecessors: [B2]
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Block[B4] - Block [UnReachable]
         Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
-
 Block[B5] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
@@ -6604,7 +6606,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .try {R1, R2}
 {
     Block[B1] - Block
@@ -6621,19 +6622,21 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
         Next (Regular) Block[B3]
     Block[B3] - Block [UnReachable]
         Predecessors: [B2]
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Block[B4] - Block
         Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
-
 Block[B5] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -6663,43 +6666,44 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
-{
-    Block[B1] - Block
-        Predecessors: [B0]
+    Block[B0] - Entry
         Statements (0)
-        Next (Regular) Block[B5]
-            Finalizing: {R3}
-            Leaving: {R2} {R1}
-}
-.finally {R3}
-{
-    Block[B2] - Block
-        Predecessors (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2}
+    .try {R1, R2}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R3}
+                Leaving: {R2} {R1}
+    }
+    .finally {R3}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (Throw) Block[null]
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    Block[B5] - Exit
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[B4]
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
-        Next (Regular) Block[B3]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (0)
-        Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B4] - Block
-        Predecessors: [B2]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit
-    Predecessors: [B1]
-    Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -6728,43 +6732,44 @@ label1:     ;
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
-{
-    Block[B1] - Block
-        Predecessors: [B0]
+    Block[B0] - Entry
         Statements (0)
-        Next (Regular) Block[B5]
-            Finalizing: {R3}
-            Leaving: {R2} {R1}
-}
-.finally {R3}
-{
-    Block[B2] - Block
-        Predecessors (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2}
+    .try {R1, R2}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R3}
+                Leaving: {R2} {R1}
+    }
+    .finally {R3}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Next (Regular) Block[B4]
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Next (Throw) Block[null]
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    Block[B5] - Exit
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
-            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block [UnReachable]
-        Predecessors: [B2]
-        Statements (0)
-        Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B4] - Block
-        Predecessors: [B2]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit
-    Predecessors: [B1]
-    Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -6793,43 +6798,44 @@ label1:     ;
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
-{
-    Block[B1] - Block
-        Predecessors: [B0]
+    Block[B0] - Entry
         Statements (0)
-        Next (Regular) Block[B5]
-            Finalizing: {R3}
-            Leaving: {R2} {R1}
-}
-.finally {R3}
-{
-    Block[B2] - Block
-        Predecessors (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2}
+    .try {R1, R2}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R3}
+                Leaving: {R2} {R1}
+    }
+    .finally {R3}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+            Next (Regular) Block[B4]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (Throw) Block[null]
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Block[B4] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    Block[B5] - Exit [UnReachable]
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
-            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (0)
-        Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B4] - Block [UnReachable]
-        Predecessors: [B2]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit [UnReachable]
-    Predecessors: [B1]
-    Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(11,24): warning CS0162: Unreachable code detected
@@ -7094,71 +7100,69 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4}
-
-.try {R1, R2}
-{
-    .try {R3, R4}
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2} {R3} {R4}
+    .try {R1, R2}
     {
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Next (Throw) Block[null]
-                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    }
-    .finally {R5}
-    {
-        Block[B2] - Block
+        .try {R3, R4}
+        {
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        }
+        .finally {R5}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (1)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1;')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 1')
+                          Left: 
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        Block[B3] - Block [UnReachable]
             Predecessors (0)
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1;')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
                   Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 1')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
                       Left: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                       Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Next (Regular) Block[B5]
+                Finalizing: {R6}
+                Leaving: {R2} {R1}
+    }
+    .finally {R6}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             Next (StructuredExceptionHandling) Block[null]
     }
-
-    Block[B3] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
-        Next (Regular) Block[B5]
-            Finalizing: {R6}
-            Leaving: {R2} {R1}
-}
-.finally {R6}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit [UnReachable]
-    Predecessors: [B3]
-    Statements (0)
+    Block[B5] - Exit [UnReachable]
+        Predecessors: [B3]
+        Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(17,13): warning CS0162: Unreachable code detected
@@ -7201,64 +7205,67 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4}
-
-.try {R1, R2}
-{
-    .try {R3, R4}
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2} {R3} {R4}
+    .try {R1, R2}
     {
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Next (Throw) Block[null]
-                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    }
-    .finally {R5}
-    {
-        Block[B2] - Block
+        .try {R3, R4}
+        {
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        }
+        .finally {R5}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        }
+        Block[B3] - Block [UnReachable]
             Predecessors (0)
-            Statements (0)
-            Next (Throw) Block[null]
-                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Next (Regular) Block[B5]
+                Finalizing: {R6}
+                Leaving: {R2} {R1}
     }
-
-    Block[B3] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
-        Next (Regular) Block[B5]
-            Finalizing: {R6}
-            Leaving: {R2} {R1}
-}
-.finally {R6}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit [UnReachable]
-    Predecessors: [B3]
-    Statements (0)
+    .finally {R6}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    Block[B5] - Exit [UnReachable]
+        Predecessors: [B3]
+        Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(17,13): warning CS0162: Unreachable code detected
@@ -7301,70 +7308,68 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4}
-
-.try {R1, R2}
-{
-    .try {R3, R4}
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2} {R3} {R4}
+    .try {R1, R2}
     {
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Next (Throw) Block[null]
-                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        .try {R3, R4}
+        {
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        }
+        .finally {R5}
+        {
+            Block[B2] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B3]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Next (Regular) Block[B2]
+            Block[B3] - Block [UnReachable]
+                Predecessors: [B2]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        Block[B4] - Block [UnReachable]
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Next (Regular) Block[B6]
+                Finalizing: {R6}
+                Leaving: {R2} {R1}
     }
-    .finally {R5}
+    .finally {R6}
     {
-        Block[B2] - Block
-            Predecessors: [B2]
-            Statements (0)
-            Jump if False (Regular) to Block[B3]
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
-            Next (Regular) Block[B2]
-        Block[B3] - Block [UnReachable]
-            Predecessors: [B2]
-            Statements (0)
+        Block[B5] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             Next (StructuredExceptionHandling) Block[null]
     }
-
-    Block[B4] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
-        Next (Regular) Block[B6]
-            Finalizing: {R6}
-            Leaving: {R2} {R1}
-}
-.finally {R6}
-{
-    Block[B5] - Block
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B6] - Exit [UnReachable]
-    Predecessors: [B4]
-    Statements (0)
+    Block[B6] - Exit [UnReachable]
+        Predecessors: [B4]
+        Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(17,13): warning CS0162: Unreachable code detected
@@ -7408,56 +7413,58 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4} {R5} {R6}
-
-.try {R1, R2}
-{
-    .try {R3, R4}
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2} {R3} {R4} {R5} {R6}
+    .try {R1, R2}
     {
-        .try {R5, R6}
+        .try {R3, R4}
         {
-            Block[B1] - Block
-                Predecessors: [B0]
-                Statements (0)
-                Next (Regular) Block[B5]
-                    Finalizing: {R7} {R9}
-                    Leaving: {R6} {R5} {R4} {R3} {R2} {R1}
+            .try {R5, R6}
+            {
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Regular) Block[B5]
+                        Finalizing: {R7} {R9}
+                        Leaving: {R6} {R5} {R4} {R3} {R2} {R1}
+            }
+            .finally {R7}
+            {
+                Block[B2] - Block
+                    Predecessors (0)
+                    Statements (0)
+                    Next (Regular) Block[B5]
+                        Finalizing: {R9}
+                        Leaving: {R7} {R5} {R4} {R3} {R2} {R1}
+            }
         }
-        .finally {R7}
+        .catch {R8} (System.Object)
         {
-            Block[B2] - Block
+            Block[B3] - Block
                 Predecessors (0)
                 Statements (0)
                 Next (Regular) Block[B5]
                     Finalizing: {R9}
-                    Leaving: {R7} {R5} {R4} {R3} {R2} {R1}
+                    Leaving: {R8} {R3} {R2} {R1}
         }
     }
-    .catch {R8} (System.Object)
+    .finally {R9}
     {
-        Block[B3] - Block
+        Block[B4] - Block
             Predecessors (0)
             Statements (0)
-            Next (Regular) Block[B5]
-                Finalizing: {R9}
-                Leaving: {R8} {R3} {R2} {R1}
+            Next (Throw) Block[null]
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     }
-}
-.finally {R9}
-{
-    Block[B4] - Block
-        Predecessors (0)
+    Block[B5] - Exit [UnReachable]
+        Predecessors: [B1] [B2] [B3]
         Statements (0)
-        Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-}
-
-Block[B5] - Exit [UnReachable]
-    Predecessors: [B1] [B2] [B3]
-    Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(15,21): error CS0157: Control cannot leave the body of a finally clause
@@ -7608,65 +7615,64 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1} {R2} {R3} {R4}
-
-.try {R1, R2}
-{
-    .try {R3, R4}
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2} {R3} {R4}
+    .try {R1, R2}
     {
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Next (Regular) Block[B5]
-                Finalizing: {R5} {R6}
-                Leaving: {R4} {R3} {R2} {R1}
-    }
-    .finally {R5}
-    {
-        Block[B2] - Block
+        .try {R3, R4}
+        {
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Finalizing: {R5} {R6}
+                    Leaving: {R4} {R3} {R2} {R1}
+        }
+        .finally {R5}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        }
+        Block[B3] - Block [UnReachable]
             Predecessors (0)
-            Statements (0)
-            Next (Throw) Block[null]
-                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Next (Regular) Block[B5]
+                Finalizing: {R6}
+                Leaving: {R2} {R1}
     }
-
-    Block[B3] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
-        Next (Regular) Block[B5]
-            Finalizing: {R6}
-            Leaving: {R2} {R1}
-}
-.finally {R6}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-
-        Next (StructuredExceptionHandling) Block[null]
-}
-
-Block[B5] - Exit [UnReachable]
-    Predecessors: [B1] [B3]
-    Statements (0)
+    .finally {R6}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    Block[B5] - Exit [UnReachable]
+        Predecessors: [B1] [B3]
+        Statements (0)
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(17,13): warning CS0162: Unreachable code detected

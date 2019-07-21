@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     /// </summary>
     internal class MultiLineConditionalExpressionFormattingRule : AbstractFormattingRule
     {
-        public static readonly IFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
 
         private MultiLineConditionalExpressionFormattingRule()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-            SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsQuestionOrColonOfNewConditional(currentToken))
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override void AddIndentBlockOperations(
-            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
             if (node.HasAnnotation(SpecializedFormattingAnnotation) &&
                 node is ConditionalExpressionSyntax conditional)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
                 }
             }
 
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
         }
     }
 }

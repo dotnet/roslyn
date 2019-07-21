@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
+using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -149,6 +150,46 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
             }
+        }
+
+        /// <summary>
+		/// Asserts that the emitted IL for a type is the same as the expected IL.
+		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+		/// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+		/// or you run it on both, but provide a different expected output string for each.
+		/// See <see cref="ExecutionConditionUtil"/>.
+		/// </summary>
+		/// <param name="typeName">The non-fully-qualified name of the type</param>
+		/// <param name="expected">The expected IL</param>
+        public void VerifyTypeIL(string typeName, string expected)
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            {
+                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+                IList<ModuleData> moduleData = testEnvironment.GetAllModuleData();
+                var mainModule = moduleData.Single(md => md.FullName == mainModuleFullName);
+                using (var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage()))
+                {
+                    var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+                    var metadataReader = moduleMetadata.GetMetadataReader();
+
+                    bool found = false;
+                    foreach (var typeDefHandle in metadataReader.TypeDefinitions)
+                    {
+                        var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
+                        if (metadataReader.GetString(typeDef.Name) == typeName)
+                        {
+                            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+                            disassembler.DisassembleType(peFile, typeDefHandle);
+                            found = true;
+                            break;
+                        }
+                    }
+                    Assert.True(found, "Could not find type named " + typeName);
+                }
+            }
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
         }
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
@@ -381,9 +422,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public void VerifySynthesizedFields(string containingTypeName, params string[] expectedFields)
         {
-            var types = TestData.Module.GetSynthesizedMembers();
+            var types = TestData.Module.GetAllSynthesizedMembers();
             Assert.Contains(types.Keys, t => containingTypeName == t.ToString());
-            var members = TestData.Module.GetSynthesizedMembers()
+            var members = TestData.Module.GetAllSynthesizedMembers()
                 .Where(e => e.Key.ToString() == containingTypeName)
                 .Single()
                 .Value

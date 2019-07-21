@@ -3,8 +3,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -14,12 +16,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicNavigateTo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicNavigateTo))
+        public BasicNavigateTo(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicNavigateTo))
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19530"), Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateTo()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -33,8 +35,7 @@ End Class");
 
             VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");
-            VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
-            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.InvokeNavigateTo("FirstMethod", VirtualKey.Enter);
             VisualStudio.Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
@@ -42,8 +43,7 @@ End Class");
             VisualStudio.SolutionExplorer.AddProject(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
             VisualStudio.SolutionExplorer.AddFile(csProject, "csfile.cs", open: true);
 
-            VisualStudio.Editor.InvokeNavigateTo("FirstClass");
-            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.InvokeNavigateTo("FirstClass", VirtualKey.Enter);
             VisualStudio.Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
         }

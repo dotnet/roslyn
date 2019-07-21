@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -13,48 +15,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "15";
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("16");
 
         public readonly Checksum Checksum;
-
-        private void WriteFormatAndChecksum(ObjectWriter writer, string formatVersion)
-        {
-            writer.WriteString(formatVersion);
-            Checksum.WriteTo(writer);
-        }
-
-        private static bool TryReadFormatAndChecksum(
-            ObjectReader reader, string formatVersion, out Checksum checksum)
-        {
-            checksum = null;
-            if (reader.ReadString() != formatVersion)
-            {
-                return false;
-            }
-
-            checksum = Checksum.ReadFrom(reader);
-            return true;
-        }
 
         private static async Task<SyntaxTreeIndex> LoadAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             try
             {
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-                using (var stream = await storage.ReadStreamAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false))
+                using (var stream = await storage.ReadStreamAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
-                        if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
-                        {
-                            return ReadFrom(GetStringTable(document.Project), reader, checksum);
-                        }
+                        return ReadFrom(GetStringTable(document.Project), reader, checksum);
                     }
                 }
             }
@@ -66,13 +46,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        private static bool FormatAndChecksumMatches(
-            ObjectReader reader, string formatVersion, Checksum checksum)
-        {
-            return TryReadFormatAndChecksum(reader, formatVersion, out var persistChecksum) &&
-                   persistChecksum == checksum;
-        }
-
         public static async Task<Checksum> GetChecksumAsync(
             Document document, CancellationToken cancellationToken)
         {
@@ -80,20 +53,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any time the SyntaxTree could have changed.  Right now, that can only happen if the
             // text of the document changes, or the ParseOptions change.  So we get the checksums
             // for both of those, and merge them together to make the final checksum.
+            //
+            // We also want the checksum to change any time our serialization format changes.  If
+            // the format has changed, all previous versions should be invalidated.
             var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var parseOptionsChecksum = projectChecksumState.ParseOptions;
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = documentChecksumState.Text;
 
-            return Checksum.Create(WellKnownSynchronizationKind.SyntaxTreeIndex, new[] { textChecksum, parseOptionsChecksum });
+            return Checksum.Create(
+                WellKnownSynchronizationKind.SyntaxTreeIndex,
+                new[] { textChecksum, parseOptionsChecksum, SerializationFormatChecksum });
         }
 
         private async Task<bool> SaveAsync(
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             try
             {
@@ -101,11 +79,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using (var stream = SerializableBytes.CreateWritableStream())
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
-                    this.WriteFormatAndChecksum(writer, SerializationFormat);
                     this.WriteTo(writer);
 
                     stream.Position = 0;
-                    return await storage.WriteStreamAsync(document, PersistenceName, stream, cancellationToken).ConfigureAwait(false);
+                    return await storage.WriteStreamAsync(document, PersistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
@@ -120,19 +97,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             // check whether we already have info for this document
             try
             {
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-                using (var stream = await storage.ReadStreamAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    if (reader != null)
-                    {
-                        return FormatAndChecksumMatches(reader, SerializationFormat, checksum);
-                    }
+                    // Check if we've already stored a checksum and it matches the checksum we 
+                    // expect.  If so, we're already precalculated and don't have to recompute
+                    // this index.  Otherwise if we don't have a checksum, or the checksums don't
+                    // match, go ahead and recompute it.
+                    var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
+                    return persistedChecksum == checksum;
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))

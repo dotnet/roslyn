@@ -62,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var fieldSymbol = LookupSymbol() as IFieldSymbol;
-                if (fieldSymbol == null)
+                if (!(LookupSymbol() is IFieldSymbol fieldSymbol))
                 {
                     return false;
                 }
@@ -101,8 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var fieldSymbol = LookupSymbol() as IFieldSymbol;
-                if (fieldSymbol == null)
+                if (!(LookupSymbol() is IFieldSymbol fieldSymbol))
                 {
                     return EnvDTE80.vsCMConstKind.vsCMConstKindNone;
                 }
@@ -132,8 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get
             {
                 // TODO: C# checks whether the field Type is generic. What does VB do?
-                var namedType = GetSymbolType() as INamedTypeSymbol;
-                return namedType != null
+                return GetSymbolType() is INamedTypeSymbol namedType
                     ? namedType.IsGenericType
                     : false;
             }

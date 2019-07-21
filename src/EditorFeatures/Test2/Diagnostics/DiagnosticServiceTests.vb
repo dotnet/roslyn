@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                                         ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(0, diagnostics.Count())
 
-                diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
+                diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.True(diagnostic.Id = "AD0001")
@@ -503,12 +503,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' check reporting diagnostic to a project that doesn't exist
                 exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
-                Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
+                Dim diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
 
                 ' check workspace diagnostic reporting
                 exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, Nothing)
-                diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
+                diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
 
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(expected.Id, diagnostics.First().Id)
@@ -1989,7 +1989,7 @@ class MyClass
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
-                Dim analyzer = New HiddenDiagnosticsCompilationAnalyzer()
+                Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Hidden, configurable:=False)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
@@ -2002,7 +2002,7 @@ class MyClass
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Length)
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, descriptors.Single().Id)
+                Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Force project analysis
                 incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, reasons:=InvocationReasons.Empty, cancellationToken:=CancellationToken.None).Wait()
@@ -2018,7 +2018,7 @@ class MyClass
                 ' Get diagnostics explicitly
                 Dim hiddenDiagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, hiddenDiagnostics.Count())
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
+                Assert.Equal(analyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
         End Sub
 

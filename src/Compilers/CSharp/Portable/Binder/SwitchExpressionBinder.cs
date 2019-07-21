@@ -34,14 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundInputExpression = InputExpression;
             diagnostics.AddRange(InputExpressionDiagnostics);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, diagnostics);
-            TypeSymbol resultType = InferResultType(switchArms, diagnostics);
-            switchArms = AddConversionsToArms(switchArms, resultType, diagnostics);
-            bool reportedNonexhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
+            TypeSymbol naturalType = InferResultType(switchArms, diagnostics);
+            bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
-            return new BoundSwitchExpression(node, boundInputExpression, switchArms, decisionDag, defaultLabel, reportedNonexhaustive, resultType);
+
+            return new BoundUnconvertedSwitchExpression(
+                node, boundInputExpression, switchArms, decisionDag,
+                defaultLabel: defaultLabel, reportedNotExhaustive: reportedNotExhaustive, type: naturalType);
         }
 
         /// <summary>
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We only report exhaustive warnings when the default label is reachable through some series of
-            // tests that do not include a test in which the value is know to be null.  Handling paths with
+            // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
             foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
             {
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundDagNonNullTest t: // checks that the input is not null
                                 return ImmutableArray.Create(p.WhenTrue);
-                            case BoundDagNullTest t: // checks that the input is null
+                            case BoundDagExplicitNullTest t: // checks that the input is null
                                 return ImmutableArray.Create(p.WhenFalse);
                             default:
                                 return BoundDecisionDag.Successors(n);
@@ -130,34 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, out _, ref useSiteDiagnostics);
+            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
-            if (commonType is null)
-            {
-                diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, SwitchExpressionSyntax.Location);
-                commonType = CreateErrorType();
-            }
-
             seenTypes.Free();
             return commonType;
-        }
-
-        /// <summary>
-        /// Rewrite the expressions in the switch expression cases to add a conversion to the result (common) type.
-        /// </summary>
-        private ImmutableArray<BoundSwitchExpressionArm> AddConversionsToArms(ImmutableArray<BoundSwitchExpressionArm> switchCases, TypeSymbol resultType, DiagnosticBag diagnostics)
-        {
-            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
-            foreach (var oldCase in switchCases)
-            {
-                var oldValue = oldCase.Value;
-                var newValue = GenerateConversionForAssignment(resultType, oldValue, diagnostics);
-                var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
-                builder.Add(newCase);
-            }
-
-            return builder.ToImmutableAndFree();
         }
 
         private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
@@ -211,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
         {
-            var switchGoverningExpression = BindValue(SwitchExpressionSyntax.GoverningExpression, diagnostics, BindValueKind.RValue);
-            if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.SpecialType == SpecialType.System_Void)
+            var switchGoverningExpression = BindRValueWithoutTargetType(SwitchExpressionSyntax.GoverningExpression, diagnostics);
+            if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadPatternExpression, SwitchExpressionSyntax.GoverningExpression.Location, switchGoverningExpression.Display);
                 switchGoverningExpression = this.GenerateConversionForAssignment(CreateErrorType(), switchGoverningExpression, diagnostics);

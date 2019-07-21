@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }
@@ -31,8 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
-            private readonly IFormattingRule _noopRule = new NoOpFormattingRule();
-
             public bool ShouldUseBaseIndentation(Document document)
             {
                 return IsContainedDocument(document);
@@ -49,25 +49,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
                 if (visualStudioWorkspace == null)
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
                 if (containedDocument == null)
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
                 var buffer = textContainer.TryGetTextBuffer() as IProjectionBuffer;
                 if (buffer == null)
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
                 using (var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject())
@@ -105,7 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         }
                     }
 
-                    throw new InvalidOperationException();
+                    FatalError.ReportWithoutCrash(
+                        new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
+
+                    return NoOpFormattingRule.Instance;
                 }
             }
 

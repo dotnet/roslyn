@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _underlyingParameter.Type; }
+            get { return _underlyingParameter.TypeWithAnnotations; }
         }
 
         public sealed override RefKind RefKind
@@ -157,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
             get { return _underlyingParameter.FlowAnalysisAnnotations; }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return _underlyingParameter.NotNullIfParameterNotNull; }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)

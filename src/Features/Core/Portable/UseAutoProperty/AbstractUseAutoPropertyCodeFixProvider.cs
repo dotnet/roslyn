@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
                 : base(title, createChangedSolution, title)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

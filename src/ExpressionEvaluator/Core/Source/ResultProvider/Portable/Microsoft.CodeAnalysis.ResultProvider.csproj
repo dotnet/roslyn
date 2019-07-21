@@ -2,14 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -64,8 +62,6 @@
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -84,8 +80,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
 </Project>

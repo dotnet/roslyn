@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -24,9 +23,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
-
-        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
+
+        protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
@@ -39,42 +38,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = root.FindToken(position);
-            var parameterNode = GetParameterNode(token, position);
+            var parameterNode = await context.TryGetSelectedNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;
             }
 
-            // Only offered when there isn't a selection, or the selection exactly selects
-            // a parameter name.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!context.Span.IsEmpty)
-            {
-                var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                if (parameterName == null || parameterName.Value.Span != context.Span)
-                {
-                    return;
-                }
-            }
-
             var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
             if (functionDeclaration == null)
-            {
-                return;
-            }
-
-            var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
-            // Don't offer inside the "=initializer" of a parameter
-            if (parameterDefault?.Span.Contains(position) == true)
             {
                 return;
             }
@@ -98,33 +73,53 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            // We support initializing parameters, even when the containing member doesn't have a
-            // body. This is useful for when the user is typing a new constructor and hasn't written
-            // the body yet.
-            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
-
-            // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
-            // actually determine if there are any viable refactorings here.
-            context.RegisterRefactorings(await GetRefactoringsAsync(
-                document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+            {
+                // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
+                // actually determine if there are any viable refactorings here.
+                context.RegisterRefactorings(await GetRefactoringsAsync(
+                    document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+            }
         }
 
-        private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
+        private bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
-            var parameterNode = token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            if (parameterNode != null)
+            blockStatementOpt = null;
+
+            var functionBody = GetBody(functionDeclaration);
+            if (functionBody == null)
             {
-                return parameterNode;
+                // We support initializing parameters, even when the containing member doesn't have a
+                // body. This is useful for when the user is typing a new constructor and hasn't written
+                // the body yet.
+                return true;
             }
 
-            // We may be on the comma of a param list.  Try the position before us.
-            token = token.GetPreviousToken();
-            if (position == token.FullSpan.End)
+            // In order to get the block operation for the body of an anonymous function, we need to
+            // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
+            var operation = semanticModel.GetOperation(
+                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                cancellationToken);
+
+            if (operation == null)
             {
-                return token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
+                return false;
             }
 
-            return null;
+            switch (operation.Kind)
+            {
+                case OperationKind.AnonymousFunction:
+                    blockStatementOpt = ((IAnonymousFunctionOperation)operation).Body;
+                    break;
+                case OperationKind.Block:
+                    blockStatementOpt = (IBlockOperation)operation;
+                    break;
+                default:
+                    return false;
+            }
+
+            return true;
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Shared
 {
@@ -32,13 +33,19 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 if (_map.TryGetValue(checksum, out var data))
                 {
                     list.Add(ValueTuple.Create(checksum, data));
-                    continue;
                 }
-
-                Debug.Fail("How?");
+                else
+                {
+                    Debug.Fail($"Unable to find asset for {checksum}");
+                }
             }
 
             return Task.FromResult<IList<(Checksum, object)>>(list);
+        }
+
+        public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.False;
         }
     }
 }

@@ -6,7 +6,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsShipping>false</IsShipping>
-    <PlatformTarget>AnyCpu</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

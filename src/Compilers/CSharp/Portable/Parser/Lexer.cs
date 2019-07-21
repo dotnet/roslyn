@@ -939,28 +939,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
-            var options = this.Options;
-            if (options.IsFeatureEnabled(feature))
+            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(Options);
+            if (info != null)
             {
-                return;
+                AddError(info.Code, info.Arguments);
             }
-
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
-            {
-                if (!options.IsFeatureEnabled(feature))
-                {
-                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
-                }
-                return;
-            }
-
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-            var requiredVersion = feature.RequiredVersion();
-            if (availableVersion >= requiredVersion) return;
-            var featureName = feature.Localize();
-
-            this.AddError(availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         private bool ScanInteger()

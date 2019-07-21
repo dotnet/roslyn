@@ -1326,17 +1326,17 @@ oneMoreTime:
 
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
-            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, RefKind.None, 0) :
+            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, RefKind.None, 0) :
                 ImmutableArray<bool>.Empty;
-            var tupleElementNames = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type.TypeSymbol) :
+            var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type) :
                 ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type.TypeSymbol, local.ConstantValue, syntaxNode, _diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
                     local.Locations.FirstOrDefault() ?? Location.None,
@@ -1358,15 +1358,15 @@ oneMoreTime:
             if (local.DeclarationKind == LocalDeclarationKind.FixedVariable && local.IsPinned) // Excludes pointer local and string local in fixed string case.
             {
                 Debug.Assert(local.RefKind == RefKind.None);
-                Debug.Assert(local.Type.IsPointerType());
+                Debug.Assert(local.TypeWithAnnotations.Type.IsPointerType());
 
                 constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
-                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type.TypeSymbol;
-                TypeSymbol pointedAtType = pointerType.PointedAtType.TypeSymbol;
+                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
+                TypeSymbol pointedAtType = pointerType.PointedAtType;
 
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
-                translatedType = pointedAtType.SpecialType == SpecialType.System_Void
+                translatedType = pointedAtType.IsVoidType()
                     ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics)
                     : _module.Translate(pointedAtType, syntaxNode, _diagnostics);
             }
@@ -1374,7 +1374,7 @@ oneMoreTime:
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type.TypeSymbol, syntaxNode, _diagnostics);
+                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
@@ -1435,13 +1435,8 @@ oneMoreTime:
             if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-
-                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
-                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
-                // change if switch cases are reordered.
-                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
-                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
+                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

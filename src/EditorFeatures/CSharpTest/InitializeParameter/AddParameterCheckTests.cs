@@ -45,12 +45,40 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_CSharp6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -73,7 +101,7 @@ class C
 {
     public C(int? i)
     {
-        if (i == null)
+        if (i is null)
         {
             throw new ArgumentNullException(nameof(i));
         }
@@ -193,7 +221,7 @@ class C
 
     partial void M(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -223,7 +251,7 @@ class C
 {
     partial void M(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -366,7 +394,7 @@ class C
 
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -422,7 +450,7 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -451,7 +479,7 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -486,7 +514,7 @@ class C
     {
         int F(string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -521,7 +549,7 @@ class C
     {
         void F(string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -558,7 +586,7 @@ class C
     {
         Func<string, int> f = s =>
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -597,7 +625,7 @@ class C
     {
         Action<string> f = s =>
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -637,7 +665,7 @@ class C
         {
         }
 
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -668,7 +696,7 @@ class C
 {
     public C(string a, string s)
     {
-        if (a == null)
+        if (a is null)
         {
             throw new ArgumentNullException(nameof(a));
         }
@@ -864,7 +892,7 @@ class C
 {
     void F(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -892,7 +920,7 @@ class C
 {
     public static C operator +(C c1, [||]string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -924,7 +952,7 @@ class C
     {
         Func<string, int> f = s =>
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -959,7 +987,7 @@ class C
     {
         Action<string> f = s =>
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -992,7 +1020,7 @@ class C
     {
         Func<string, int> f = (string s) =>
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -1027,7 +1055,7 @@ class C
     {
         Func<string, int> f = delegate (string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -1064,7 +1092,7 @@ class C
     {
         void F(string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
@@ -1220,7 +1248,7 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
             throw new ArgumentNullException(nameof(s));
     }
 }",
@@ -1247,7 +1275,7 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -1279,7 +1307,7 @@ class C
 {
     public int Foo(int[] array)
     {
-        if (array == null)
+        if (array is null)
         {
             throw new ArgumentNullException(nameof(array));
         }
@@ -1315,7 +1343,7 @@ class C
 {
     public int Foo(int[] array) /* Bar */
     {
-        if (array == null)
+        if (array is null)
         {
             throw new ArgumentNullException(nameof(array));
         }
@@ -1395,7 +1423,7 @@ class C
 {
     public void Foo(int[] array)
     {
-        if (array == null)
+        if (array is null)
         {
             throw new ArgumentNullException(nameof(array));
         }
@@ -1428,10 +1456,27 @@ class C
 {
     public C(string s)
     {
-        if (s == null)
+        if (s is null)
         {
             throw new ArgumentNullException(nameof(s));
         }
+    }
+}");
+        }
+
+        [WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestLambdaWithIncorrectNumberOfParameters()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M(Action<int, int> a)
+    {
+        M((x[||]
     }
 }");
         }

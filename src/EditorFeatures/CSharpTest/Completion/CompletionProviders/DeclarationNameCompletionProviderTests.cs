@@ -1522,6 +1522,376 @@ class Configuration
             }
         }
 
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseForeachVariableName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB {}
+
+    readonly List<ClassB> classBList;
+
+    void M()
+    {
+        foreach (var classB in classBList)
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseParameterName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M(ClassB classB)
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUsePropertyName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    ClassB classB { get; set; }
+
+    void M()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseFieldName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    ClassB classB;
+
+    void M()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB();
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalNameMultiple()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB();
+        ClassB classB1 = new ClassB();
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemIsAbsentAsync(markup, "classB1");
+            await VerifyItemExistsAsync(markup, "classB2", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalInsideIf()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M(bool flag)
+    {
+        ClassB $$
+        if (flag)
+        {
+            ClassB classB = new ClassB();
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseClassName()
+        {
+            var markup = @"
+class classA
+{
+    void M()
+    {
+        classA $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classA", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalInDifferentScope()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB(); 
+    }
+
+    void M2()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionParameter()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1(ClassB $$) { }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalInNestedLocalFunction()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1()
+        {
+            void LocalM2()
+            {
+                ClassB $$
+            }
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalFunctionParameterInNestedLocalFunction()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB)
+        {
+            void LocalM2()
+            {
+                ClassB $$
+            }
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionParameterAsParameter()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB) { }
+        void LocalM2(ClassB $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionVariableAsParameter()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1()
+        {
+            ClassB classB
+        }
+        void LocalM2(ClassB $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionParameterAsVariable()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB) { }
+        void LocalM2()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionVariableAsVariable()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1()
+        {
+            ClassB classB
+        }
+        void LocalM2()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
         private static NamingStylePreferences NamesEndWithSuffixPreferences()
         {
             var specificationStyles = new[]
@@ -1540,7 +1910,7 @@ class Configuration
 
             // Local functions
 
-            (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
+            static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
                     id: null,
@@ -1560,7 +1930,7 @@ class Configuration
                 return (symbolSpecification, namingStyle);
             }
 
-            SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+            static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
             {
                 return new SerializableNamingRule()
                 {

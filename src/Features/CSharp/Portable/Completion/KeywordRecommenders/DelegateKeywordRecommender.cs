@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

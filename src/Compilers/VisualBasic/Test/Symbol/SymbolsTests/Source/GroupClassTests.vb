@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GroupClassTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/34467")>
         Public Sub SimpleTest1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -34,7 +34,7 @@ Module Module1
         Dim methods = gr.GetMethods(bindingFlags).OrderBy(Function(f) f.Name)
 
         For Each method In methods
-            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, method.GetMethodImplementationFlags())
+            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, CInt(method.GetMethodImplementationFlags()))
             For Each attribute In method.GetCustomAttributes(False)
                 System.Console.WriteLine("  {0}", attribute)
             Next
@@ -124,15 +124,15 @@ m_DefaultInstanceTest1 DefaultInstanceTest1 Public
 m_DefaultInstanceTest2 DefaultInstanceTest2 Public
   System.ComponentModel.EditorBrowsableAttribute
 ----------------------
-Create PrivateScope, Private, Static IL
-Dispose PrivateScope, Private, Static IL
-get_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+Create PrivateScope, Private, Static 0
+Dispose PrivateScope, Private, Static 0
+get_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-get_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+get_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
 ----------------------
 DefaultInstanceTest1 None
@@ -2457,8 +2457,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
             compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
-            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, options:=TestOptions.Regular))
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
 
             compilation.MyTemplate = Nothing
 

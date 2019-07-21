@@ -1144,6 +1144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property TypeArgumentNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements INamedTypeSymbol.TypeArgumentNullableAnnotations
+            Get
+                Return Me.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
+            End Get
+        End Property
+
         Private ReadOnly Property INamedTypeSymbol_TypeParameters As ImmutableArray(Of ITypeParameterSymbol) Implements INamedTypeSymbol.TypeParameters
             Get
                 Return StaticCast(Of ITypeParameterSymbol).From(Me.TypeParameters)
@@ -1163,12 +1169,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function INamedTypeSymbol_Construct(ParamArray arguments() As ITypeSymbol) As INamedTypeSymbol Implements INamedTypeSymbol.Construct
-            For Each arg In arguments
-                arg.EnsureVbSymbolOrNothing(Of TypeSymbol)("typeArguments")
+        Private Function INamedTypeSymbol_Construct(ParamArray typeArguments() As ITypeSymbol) As INamedTypeSymbol Implements INamedTypeSymbol.Construct
+            Dim builder = ArrayBuilder(Of TypeSymbol).GetInstance(typeArguments.Length)
+            For Each typeArg In typeArguments
+                builder.Add(typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
             Next
+            Return Construct(builder.ToImmutableAndFree())
+        End Function
 
-            Return Construct(arguments.Cast(Of TypeSymbol).ToArray())
+        Private Function INamedTypeSymbol_Construct(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As INamedTypeSymbol Implements INamedTypeSymbol.Construct
+            If typeArguments.IsDefault Then
+                Throw New ArgumentException(NameOf(typeArguments))
+            End If
+
+            Dim n = typeArguments.Length
+            If Not typeArgumentNullableAnnotations.IsDefault AndAlso typeArgumentNullableAnnotations.Length <> n Then
+                Throw New ArgumentException(NameOf(typeArgumentNullableAnnotations))
+            End If
+
+            Return Construct(typeArguments.SelectAsArray(Function(typeArg) typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments))))
         End Function
 
         Private Function INamedTypeSymbol_ConstructUnboundGenericType() As INamedTypeSymbol Implements INamedTypeSymbol.ConstructUnboundGenericType
@@ -1283,11 +1302,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Do
                         levelsOfNesting += 1
                         typeToCheck = DirectCast(typeToCheck, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1)
-                    Loop While typeToCheck.OriginalDefinition = Me.OriginalDefinition AndAlso Not typeToCheck.IsDefinition
+                    Loop While TypeSymbol.Equals(typeToCheck.OriginalDefinition, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything) AndAlso Not typeToCheck.IsDefinition
 
                     If typeToCheck.IsTupleType Then
                         Dim underlying = typeToCheck.TupleUnderlyingType
-                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso underlying.OriginalDefinition <> Me.OriginalDefinition Then
+                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso Not TypeSymbol.Equals(underlying.OriginalDefinition, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
                             tupleCardinality = 0
                             Return False
                         End If

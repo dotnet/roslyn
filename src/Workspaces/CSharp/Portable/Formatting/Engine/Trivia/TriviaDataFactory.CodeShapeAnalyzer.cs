@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _lastLineBreakIndex = currentIndex;
             }
 
-            private bool OnComment(SyntaxTrivia trivia, int currentIndex)
+            private bool OnComment(SyntaxTrivia trivia)
             {
                 if (!trivia.IsRegularOrDocComment())
                 {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         OnWhitespace(trivia) ||
                         OnEndOfLine(trivia, index) ||
                         OnTouchedNoisyCharacter(trivia) ||
-                        OnComment(trivia, index) ||
+                        OnComment(trivia) ||
                         OnSkippedTokensOrText(trivia) ||
                         OnRegion(trivia, index) ||
                         OnPreprocessor(trivia, index) ||

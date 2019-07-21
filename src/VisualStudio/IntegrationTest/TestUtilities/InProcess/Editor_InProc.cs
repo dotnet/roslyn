@@ -12,10 +12,18 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -23,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -34,36 +43,110 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private Editor_InProc() { }
+        private readonly SendKeys_InProc _sendKeys;
+
+        private Editor_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static Editor_InProc Create()
             => new Editor_InProc();
+
+        protected override bool HasActiveTextView()
+            => ErrorHandler.Succeeded(TryGetActiveTextViewHost().hr);
 
         protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
         {
+            var (textView, hr) = TryGetActiveVsTextView();
+            Marshal.ThrowExceptionForHR(hr);
+            return textView;
+        }
+
+        private static (IVsTextView textView, int hr) TryGetActiveVsTextView()
+        {
             var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-
             var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return vsTextView;
+            return (vsTextView, hresult);
         }
 
         private static IWpfTextViewHost GetActiveTextViewHost()
         {
+            var (textViewHost, hr) = TryGetActiveTextViewHost();
+            Marshal.ThrowExceptionForHR(hr);
+            return textViewHost;
+        }
+
+        private static (IWpfTextViewHost textViewHost, int hr) TryGetActiveTextViewHost()
+        {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-            WaitForApplicationIdle();
+            WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
-            var activeVsTextView = (IVsUserData)GetActiveVsTextView();
+            var (activeVsTextView, hr) = TryGetActiveVsTextView();
+            if (!ErrorHandler.Succeeded(hr))
+            {
+                return (null, hr);
+            }
 
-            var hresult = activeVsTextView.GetData(IWpfTextViewId, out var wpfTextViewHost);
-            Marshal.ThrowExceptionForHR(hresult);
+            var hresult = ((IVsUserData)activeVsTextView).GetData(IWpfTextViewId, out var wpfTextViewHost);
+            return ((IWpfTextViewHost)wpfTextViewHost, hresult);
+        }
 
-            return (IWpfTextViewHost)wpfTextViewHost;
+        public bool IsUseSuggestionModeOn()
+        {
+            var asyncCompletionService = (AsyncCompletionService)GetComponentModelService<IAsyncCompletionService>();
+            return ExecuteOnActiveView(textView =>
+            {
+                var featureServiceFactory = GetComponentModelService<IFeatureServiceFactory>();
+                var subjectBuffer = GetBufferContainingCaret(textView);
+                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer))
+                {
+                    return GetComponentModelService<VisualStudioWorkspace>().Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
+                }
+                else
+                {
+                    var options = textView.Options.GlobalOptions;
+                    EditorOptionKey<bool> optionKey;
+                    Option<bool> roslynOption;
+                    if (IsDebuggerTextView(textView))
+                    {
+                        optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+                        roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
+                    }
+                    else
+                    {
+                        optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+                        roslynOption = EditorCompletionOptions.UseSuggestionMode;
+                    }
+
+                    if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
+                    {
+                        return roslynOption.DefaultValue;
+                    }
+
+                    return options.GetOptionValue(optionKey);
+                }
+            });
+
+            bool IsDebuggerTextView(IWpfTextView textView)
+                => textView.Roles.Contains("DEBUGVIEW");
+        }
+
+        public void SetUseSuggestionMode(bool value)
+        {
+            if (IsUseSuggestionModeOn() != value)
+            {
+                ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
+
+                if (IsUseSuggestionModeOn() != value)
+                {
+                    throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
+                }
+            }
         }
 
         public string GetActiveBufferName()
@@ -367,15 +450,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void DialogSendKeys(string dialogAutomationName, string keys)
+        public void DialogSendKeys(string dialogAutomationName, object[] keys)
         {
             var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
-        public void SendKeysToNavigateTo(string keys)
+        public void SendKeysToNavigateTo(object[] keys)
         {
             var dialogAutomationElement = FindNavigateTo();
             if (dialogAutomationElement == null)
@@ -384,7 +467,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
@@ -471,7 +554,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 try
                 {
                     var mainForm = (Form)designerHost.RootComponent;
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
                         newControl.Parent = mainForm;
@@ -504,7 +587,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
                     });
@@ -556,7 +639,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var properties = TypeDescriptor.GetProperties(button);
@@ -598,7 +681,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
@@ -623,12 +706,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return properties[propertyName].GetValue(button) as string;
         }
 
+        public void FormatDocumentViaCommand()
+            => ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+
+        public void Paste()
+            => ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+
         public void Undo()
-            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
+            => ExecuteCommand(WellKnownCommandNames.Edit_Undo);
+
+        public void Redo()
+            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Redo);
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return view.GetBufferContainingCaret();
+            var caretBuffer = view.GetBufferContainingCaret();
+            if (caretBuffer is null)
+            {
+                throw new InvalidOperationException($"Unable to find the buffer containing the caret. Ensure the Editor is activated berfore calling.");
+            }
+
+            return caretBuffer;
         }
 
         public string[] GetOutliningSpans()
@@ -647,7 +745,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public List<string> GetF1Keywords()
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 var results = new List<string>();
                 GetActiveVsTextView().GetBuffer(out var textLines);
@@ -679,10 +777,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void GoToDefinition()
-            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
+            => ExecuteCommand(WellKnownCommandNames.Edit_GoToDefinition);
 
         public void GoToImplementation()
-            => GetDTE().ExecuteCommand("Edit.GoToImplementation");
+            => ExecuteCommand(WellKnownCommandNames.Edit_GoToImplementation);
 
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.
@@ -692,7 +790,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
         /// </returns>
         public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveTextView();
                 var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
@@ -703,7 +801,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void SendExplicitFocus()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();

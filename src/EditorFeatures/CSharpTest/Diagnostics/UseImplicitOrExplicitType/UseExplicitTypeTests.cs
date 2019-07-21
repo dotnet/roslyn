@@ -31,29 +31,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ExplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeEnforcements() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeSilentEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -231,6 +231,46 @@ class Program
     void Method()
     {
         [|var|] x = new Goo();
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnErrorConvertedType_ForEachVariableStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+ @"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        // Error CS1061: 'KeyValuePair<int, int>' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'KeyValuePair<int, int>' could be found (are you missing a using directive or an assembly reference?)
+        // Error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'KeyValuePair<int, int>', with 2 out parameters and a void return type.
+        foreach ([|var|] (key, value) in new Dictionary<int, int>())
+        {
+        }
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnErrorConvertedType_AssignmentExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+ @"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(C c)
+    {
+        // Error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+        // Error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+        [|var|] (key, value) = c;
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
@@ -1031,7 +1071,7 @@ class C
 {
     static void M()
     {
-        [|var|] cc = new Customer { City = ""Madras"" };
+        [|var|] cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1045,7 +1085,7 @@ class C
 {
     static void M()
     {
-        Customer cc = new Customer { City = ""Madras"" };
+        Customer cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1094,7 +1134,7 @@ class C
     {
         [|var|] cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 
@@ -1112,7 +1152,7 @@ class C
     {
         List<Customer> cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 

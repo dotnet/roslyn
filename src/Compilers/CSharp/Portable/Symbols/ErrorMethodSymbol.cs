@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
+        internal override bool IsDeclaredReadOnly => false;
+
         internal override int ParameterCount
         {
             get { return 0; }
@@ -139,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override RefKind RefKind
@@ -149,15 +151,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return TypeSymbolWithAnnotations.Create(_returnType); }
+            get { return TypeWithAnnotations.Create(_returnType); }
         }
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.IsVoidType(); }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override bool IsVararg
         {

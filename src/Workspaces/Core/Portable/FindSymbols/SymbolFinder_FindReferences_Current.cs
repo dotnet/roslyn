@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
-            progress = progress ?? StreamingFindReferencesProgress.Instance;
+            progress ??= StreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options, cancellationToken);
             return engine.FindReferencesAsync(symbolAndProjectId);
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                 return await solution.TryRunCodeAnalysisRemoteAsync(
-                    RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
                     new object[]

@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -61,6 +60,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
         /// <summary>
         /// Method to update the identifier token for the local/parameter declaration or reference
         /// that was flagged as an unused value write by the analyzer.
@@ -86,6 +87,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// Inserts the given declaration statement at the start of the given switch case block.
         /// </summary>
         protected abstract void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
+
+        /// <summary>
+        /// Gets the replacement node for a compound assignment expression whose
+        /// assigned value is redundant.
+        /// For example, "x += MethodCall()", where assignment to 'x' is redundant
+        /// is replaced with "_ = MethodCall()" or "var unused = MethodCall()"
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForCompoundAssignment(
+            SyntaxNode originalCompoundAssignment,
+            SyntaxNode newAssignmentTarget,
+            SyntaxEditor editor,
+            ISyntaxFactsService syntaxFacts);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -251,11 +264,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
                     var containingMemberDeclaration = diagnosticsToFix.Key;
-                    using (var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken))
-                    {
-                        await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
-                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
-                    }
+                    using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
+
+                    await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
+                        removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Second pass to post process the document.
@@ -291,7 +303,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     FixAllExpressionValueIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, nameGenerator, editor, syntaxFacts, cancellationToken);
+                        preference, nameGenerator, editor, syntaxFacts);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
@@ -311,8 +323,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             UnusedValuePreference preference,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts)
         {
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
@@ -380,6 +391,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             var nodeReplacementMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
             var nodesToRemove = PooledHashSet<SyntaxNode>.GetInstance();
+            var nodesToAdd = PooledHashSet<(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)>.GetInstance();
+            // Indicates if the node's trivia was processed.
+            var processedNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var candidateDeclarationStatementsForRemoval = PooledHashSet<TLocalDeclarationStatementSyntax>.GetInstance();
             var hasAnyUnusedLocalAssignment = false;
 
@@ -465,7 +479,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Compound assignment is changed to simple assignment.
                             // For example, "x += MethodCall();", where assignment to 'x' is redundant
                             // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
-                            nodeReplacementMap.Add(node.Parent, editor.Generator.AssignmentStatement(newNameNode, syntaxFacts.GetRightHandSideOfAssignment(node.Parent)));
+                            nodeReplacementMap.Add(node.Parent, GetReplacementNodeForCompoundAssignment(node.Parent, newNameNode, editor, syntaxFacts));
                         }
                         else
                         {
@@ -483,7 +497,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             declarationStatement = declarationStatement.WithAdditionalAnnotations(s_unusedLocalDeclarationAnnotation);
                         }
 
-                        InsertLocalDeclarationStatement(declarationStatement, node);
+                        nodesToAdd.Add((declarationStatement, node));
                     }
                     else
                     {
@@ -497,7 +511,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             Debug.Assert(type != null);
                             Debug.Assert(newLocalNameOpt != null);
                             var declarationStatement = CreateLocalDeclarationStatement(type, newLocalNameOpt);
-                            InsertLocalDeclarationStatement(declarationStatement, node);
+                            nodesToAdd.Add((declarationStatement, node));
                         }
                     }
                 }
@@ -512,6 +526,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         nodesToRemove.Add(localDeclarationStatement);
                         nodesToRemove.RemoveRange(variables);
                     }
+                }
+
+                foreach (var (declarationStatement, node) in nodesToAdd)
+                {
+                    InsertLocalDeclarationStatement(declarationStatement, node);
                 }
 
                 if (hasAnyUnusedLocalAssignment)
@@ -534,7 +553,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 foreach (var node in nodesToRemove)
                 {
-                    editor.RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
+                    var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
+                    // If the leading trivia was not added to a new node, process it now.
+                    if (!processedNodes.Contains(node))
+                    {
+                        // Don't keep trivia if the node is part of a multiple declaration statement.
+                        // e.g. int x = 0, y = 0, z = 0; any white space left behind can cause problems if the declaration gets split apart.
+                        var containingDeclaration = node.GetAncestor<TLocalDeclarationStatementSyntax>();
+                        if (containingDeclaration != null && candidateDeclarationStatementsForRemoval.Contains(containingDeclaration))
+                        {
+                            removeOptions = SyntaxRemoveOptions.KeepNoTrivia;
+                        }
+                        else
+                        {
+                            removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+                        }
+                    }
+                    editor.RemoveNode(node, removeOptions);
                 }
 
                 foreach (var kvp in nodeReplacementMap)
@@ -546,6 +581,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 nodeReplacementMap.Free();
                 nodesToRemove.Free();
+                nodesToAdd.Free();
+                processedNodes.Free();
             }
 
             return;
@@ -582,6 +619,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
                 else if (insertionNode is TStatementSyntax)
                 {
+                    // If the insertion node is being removed, keep the leading trivia with the new declaration.
+                    if (nodesToRemove.Contains(insertionNode) && !processedNodes.Contains(insertionNode))
+                    {
+                        declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia());
+                        // Mark the node as processed so that the trivia only gets added once.
+                        processedNodes.Add(insertionNode);
+                    }
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }
@@ -770,7 +814,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (await IsLocalDeclarationWithNoReferencesAsync(newDecl, document, cancellationToken).ConfigureAwait(false))
                     {
                         document = document.WithSyntaxRoot(
-                        root.RemoveNode(newDecl, SyntaxGenerator.DefaultRemoveOptions));
+                        root.RemoveNode(newDecl, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia));
                         return true;
                     }
                 }
@@ -796,8 +840,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey) :
-                base(title, createChangedDocument, equivalenceKey)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

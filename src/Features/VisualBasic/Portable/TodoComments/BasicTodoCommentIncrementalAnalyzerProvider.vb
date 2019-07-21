@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
     Friend Class VisualBasicTodoCommentServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicTodoCommentService(languageServices.WorkspaceServices.Workspace)
         End Function

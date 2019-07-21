@@ -1181,5 +1181,34 @@ class Program
   IL_002a:  ret
 }");
         }
+
+        [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        public void NullableDecimalToEnumConversion()
+        {
+            var source = @"
+enum E { }
+class C
+{
+    static E F(decimal? d) => (E)d;
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        public void NullableMethodGroupConversion()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(decimal? d)
+    {
+        Func<string> f = d.ToString;
+    }
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
     }
 }

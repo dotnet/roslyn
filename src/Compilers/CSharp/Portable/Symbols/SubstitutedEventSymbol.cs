@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         internal SubstitutedEventSymbol(SubstitutedNamedTypeSymbol containingType, EventSymbol originalDefinition)
             : base(originalDefinition)
@@ -19,16 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                if (_lazyType.IsNull)
+                if (_lazyType == null)
                 {
-                    _lazyType.InterlockedInitialize(_containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type));
+                    var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.TypeWithAnnotations);
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
 
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
         }
 

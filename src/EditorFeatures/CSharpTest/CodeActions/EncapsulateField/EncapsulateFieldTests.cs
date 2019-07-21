@@ -84,6 +84,48 @@ class goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task PrivateNullableFieldToPropertyIgnoringReferences()
+        {
+            var text = @"#nullable enable
+class goo
+{
+    private string? b[|a|]r;
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+
+            var expected = @"#nullable enable
+class goo
+{
+    private string? bar;
+
+    public string? Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+            await TestAllOptionsOffAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyUpdatingReferences()
         {
             var text = @"

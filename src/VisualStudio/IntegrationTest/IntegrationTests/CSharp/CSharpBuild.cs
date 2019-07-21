@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -15,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild : AbstractIntegrationTest
     {
-        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpBuild(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -45,7 +46,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.SolutionExplorer.SaveAll();

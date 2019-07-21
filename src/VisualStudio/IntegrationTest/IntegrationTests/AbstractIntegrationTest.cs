@@ -7,26 +7,29 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
-        protected readonly string ProjectName = "TestProj";
-        protected readonly string SolutionName = "TestSolution";
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
 
         private readonly MessageFilter _messageFilter;
         private readonly VisualStudioInstanceFactory _instanceFactory;
+        private readonly ITestOutputHelper _testOutputHelper;
         private VisualStudioInstanceContext _visualStudioContext;
 
-        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
+        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
         {
             Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
             // Install a COM message filter to handle retry operations when the first attempt fails
             _messageFilter = RegisterMessageFilter();
             _instanceFactory = instanceFactory;
+            _testOutputHelper = testOutputHelper;
 
             try
             {
@@ -63,6 +66,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public virtual Task DisposeAsync()
         {
+            if (VisualStudio?.Editor.IsCompletionActive() ?? false)
+            {
+                // Make sure completion isn't visible.
+                // 🐛 Only needed as a workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/801435
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            }
+
             _visualStudioContext.Dispose();
             return Task.CompletedTask;
         }

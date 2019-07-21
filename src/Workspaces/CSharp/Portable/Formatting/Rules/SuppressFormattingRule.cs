@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             AddInitializerSuppressOperations(list, node);
 
@@ -44,20 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsKind(SyntaxKindEx.RecursivePattern))
             {
 #if !CODE_STYLE
-                var deconstruct = ((RecursivePatternSyntax)node).DeconstructionPatternClause;
+                var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
                 var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
 #else
-                var deconstruct = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.DeconstructionPatternClause));
+                var positional = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PositionalPatternClause));
                 var property = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PropertyPatternClause));
 #endif
-                if (deconstruct != null)
+                if (positional != null)
                 {
 #if !CODE_STYLE
-                    var openParenToken = deconstruct.OpenParenToken;
-                    var closeParenToken = deconstruct.CloseParenToken;
+                    var openParenToken = positional.OpenParenToken;
+                    var closeParenToken = positional.CloseParenToken;
 #else
-                    var openParenToken = deconstruct.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenParenToken));
-                    var closeParenToken = deconstruct.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseParenToken));
+                    var openParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenParenToken));
+                    var closeParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseParenToken));
 #endif
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                     AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, closeParenToken);
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 else
                 {
                     // Add Separate suppression for each Label and for the last label, add the <> 
-                    for (int i = 0; i < switchSection.Labels.Count - 1; ++i)
+                    for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
                     {
                         if (switchSection.Labels[i] != null)
                         {
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),
                     node.GetLastToken(includeZeroWidth: true),
-                    SuppressOption.IgnoreElastic);
+                    SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
@@ -330,18 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ObjectCreationExpressionSyntax objectCreationNode:
-                    return objectCreationNode.Initializer;
-                case ArrayCreationExpressionSyntax arrayCreationNode:
-                    return arrayCreationNode.Initializer;
-                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
-                    return implicitArrayNode.Initializer;
-            }
-
-            return null;
-        }
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
+                ArrayCreationExpressionSyntax arrayCreationNode => arrayCreationNode.Initializer,
+                ImplicitArrayCreationExpressionSyntax implicitArrayNode => implicitArrayNode.Initializer,
+                _ => null,
+            };
     }
 }

@@ -74,17 +74,17 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Uid="SelectableMemberCheckBox"
-                                          AutomationProperties.Name="{Binding MemberAutomationText}"
+                                          AutomationProperties.Name="{Binding SymbolAutomationText}"
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
                                           Focusable="False"
-                                          AutomationProperties.AutomationId="{Binding MemberName}">
+                                          AutomationProperties.AutomationId="{Binding SymbolName}">
                                 </CheckBox>
                                 <Image x:Uid="SelectableMemberGlyph" 
                                        Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
                                 <TextBlock x:Uid="SelectableMemberName" 
-                                                   Text="{Binding MemberName}"/>
+                                                   Text="{Binding SymbolName}"/>
                             </StackPanel>
                         </DataTemplate>
                     </u:AutomationDelegatingListView.ItemTemplate>
@@ -158,6 +158,7 @@
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
@@ -166,6 +167,7 @@
                     MinWidth="73"
                     MinHeight="21"/>
             <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

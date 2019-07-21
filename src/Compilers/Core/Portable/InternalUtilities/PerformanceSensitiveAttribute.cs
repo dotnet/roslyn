@@ -56,6 +56,15 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether implicit boxing of value types is allowed.
+        /// </summary>
+        public bool AllowImplicitBoxing
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether enumeration of a generic <see cref="IEnumerable{T}"/> is allowed.
         /// </summary>
         public bool AllowGenericEnumeration

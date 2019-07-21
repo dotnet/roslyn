@@ -152,6 +152,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Binds the provided expression in the given context.
+        /// </summary>
+        /// <param name="position">The position to bind at.</param>
+        /// <param name="expression">The expression to bind</param>
+        /// <param name="bindingOption">How to speculatively bind the given expression. If this is <see cref="SpeculativeBindingOption.BindAsTypeOrNamespace"/>
+        /// then the provided expression should be a <see cref="TypeSyntax"/>.</param>
+        /// <param name="binder">The binder that was used to bind the given syntax.</param>
+        /// <param name="crefSymbols">The symbols used in a cref. If this is not default, then the return is null.</param>
+        /// <returns>The expression that was bound. If <paramref name="crefSymbols"/> is not default, this is null.</returns>
+        internal abstract BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols);
+
+        /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node. This is overridden by various specializations of SemanticModel.
         /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called, as well as that named
         /// argument nodes have been handled.
@@ -261,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep in sync with Binder.BindCrefParameterOrReturnType.
         /// </remarks>
-        private BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        protected BoundExpression GetSpeculativelyBoundExpressionWithoutNullability(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
         {
             if (expression == null)
             {
@@ -281,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
-                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).TypeSymbol);
+                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).Type);
                 unusedDiagnostics.Free();
                 return null;
             }
@@ -402,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
             var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
@@ -491,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the SymbolInfo for the Deconstruct method used for a deconstruction pattern clause, if any.
         /// </summary>
-        public SymbolInfo GetSymbolInfo(DeconstructionPatternClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        public SymbolInfo GetSymbolInfo(PositionalPatternClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             return this.GetSymbolInfoWorker(node, SymbolInfoOptions.DefaultOptions, cancellationToken);
@@ -526,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (parent.Designation.Kind())
                 {
                     case SyntaxKind.SingleVariableDesignation:
-                        return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken));
+                        return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken).Type);
 
                     case SyntaxKind.DiscardDesignation:
                         return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type);
@@ -571,22 +583,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
         /// figure out its type by looking at the declared symbol of the corresponding variable.
         /// </summary>
-        private ITypeSymbol TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
+        private (ITypeSymbol Type, CodeAnalysis.NullableAnnotation Annotation) TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
         {
             var variable = GetDeclaredSymbol(variableDesignation, cancellationToken);
 
-            if (variable != null)
+            switch (variable)
             {
-                switch (variable.Kind)
-                {
-                    case SymbolKind.Local:
-                        return ((ILocalSymbol)variable).Type;
-                    case SymbolKind.Field:
-                        return ((IFieldSymbol)variable).Type;
-                }
+                case ILocalSymbol local:
+                    return (local.Type, local.NullableAnnotation);
+                case IFieldSymbol field:
+                    return (field.Type, field.NullableAnnotation);
             }
 
-            return null;
+            return default;
         }
 
         /// <summary>
@@ -862,12 +871,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (parent.Designation.Kind())
                 {
                     case SyntaxKind.SingleVariableDesignation:
-                        var declarationType = (TypeSymbol)TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
-                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+                        var (declarationType, annotation) = ((TypeSymbol, CodeAnalysis.NullableAnnotation))TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+                        var nullabilityInfo = annotation.ToNullabilityInfo(declarationType);
+                        return new CSharpTypeInfo(declarationType, declarationType, nullabilityInfo, nullabilityInfo, Conversion.Identity);
 
                     case SyntaxKind.DiscardDesignation:
-                        declarationType = GetTypeInfoWorker(parent, cancellationToken).Type;
-                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+                        var declarationInfo = GetTypeInfoWorker(parent, cancellationToken);
+                        return new CSharpTypeInfo(declarationInfo.Type, declarationInfo.Type, declarationInfo.Nullability, declarationInfo.Nullability, Conversion.Identity);
 
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
@@ -941,9 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpTypeInfo.None;
             }
 
-            Binder binder;
             ImmutableArray<Symbol> crefSymbols;
-            BoundNode boundNode = GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols); //calls CheckAndAdjustPosition
+            BoundNode boundNode = GetSpeculativelyBoundExpression(position, expression, bindingOption, out _, out crefSymbols); //calls CheckAndAdjustPosition
             Debug.Assert(boundNode == null || crefSymbols.IsDefault);
             if (boundNode == null)
             {
@@ -1909,9 +1918,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var position = CheckAndAdjustPosition(pattern.Syntax.Position);
+                // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
-                    pattern.InputType, pattern.ConvertedType,
+                    pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
                     Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
             }
 
@@ -1927,16 +1936,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is right. For example, C# allows the assignment statement:
                 //    (i) = 9;  
                 // So I don't assume this code should special case parenthesized expressions.
-                TypeSymbol type = null, convertedType = null;
-                Conversion conversion;
+                TypeSymbol type = null;
+                NullabilityInfo nullability = boundExpr.TopLevelNullability;
 
                 if (boundExpr.HasExpressionType())
                 {
                     type = boundExpr.Type;
 
-                    switch (boundExpr.Kind)
+                    switch (boundExpr)
                     {
-                        case BoundKind.Local:
+                        case BoundLocal local:
                             {
                                 // Use of local before declaration requires some additional fixup.
                                 // Due to complications around implicit locals and type inference, we do not
@@ -1948,16 +1957,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // from the local at this point.
                                 if (type is ExtendedErrorTypeSymbol extended && extended.VariableUsedBeforeDeclaration)
                                 {
-                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type.TypeSymbol;
+                                    type = local.LocalSymbol.Type;
+                                    nullability = local.LocalSymbol.TypeWithAnnotations.NullableAnnotation.ToNullabilityInfo(type);
                                 }
                                 break;
                             }
-                        case BoundKind.ConvertedTupleLiteral:
+                        case BoundConvertedTupleLiteral { SourceTuple: BoundTupleLiteral original }:
                             {
-                                // The bound tree always fully binds tuple literals. From the language point of
+                                // The bound tree fully binds tuple literals. From the language point of
                                 // view, however, converted tuple literals represent tuple conversions
                                 // from tuple literal expressions which may or may not have types
-                                type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
+                                type = original.Type;
                                 break;
                             }
                     }
@@ -1966,6 +1976,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we match highestBoundExpr.Kind to various kind frequently, so cache it here.
                 // use NoOp kind for the case when highestBoundExpr == null - NoOp will not match anything below.
                 var highestBoundExprKind = highestBoundExpr?.Kind ?? BoundKind.NoOpStatement;
+                TypeSymbol convertedType;
+                NullabilityInfo convertedNullability;
+                Conversion conversion;
 
                 if (highestBoundExprKind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
@@ -1976,6 +1989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // ConvertedType, not a Type. So set Type to null here. Otherwise you get the edge case where both
                     // Type and ConvertedType are the same, but the conversion isn't Identity.
                     type = null;
+                    nullability = default;
+                    convertedNullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
                 else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
@@ -1984,27 +1999,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (tupleLiteralConversion.Operand.Kind == BoundKind.ConvertedTupleLiteral)
                     {
                         var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
-                        type = convertedTuple.NaturalTypeOpt;
+                        type = convertedTuple.SourceTuple.Type;
+                        nullability = convertedTuple.TopLevelNullability;
                     }
                     else
                     {
-                        type = tupleLiteralConversion.Operand.Type;
+                        (type, nullability) = getTypeAndNullability(tupleLiteralConversion.Operand);
                     }
-                    convertedType = tupleLiteralConversion.Type;
+
+                    (convertedType, convertedNullability) = getTypeAndNullability(tupleLiteralConversion);
                     conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExprKind == BoundKind.FixedLocalCollectionInitializer)
                 {
                     var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
-                    convertedType = initializer.Type;
-                    type = initializer.Expression.Type;
+                    (convertedType, convertedNullability) = getTypeAndNullability(initializer);
+                    (type, nullability) = getTypeAndNullability(initializer.Expression);
 
                     // the most pertinent conversion is the pointer conversion 
                     conversion = initializer.ElementPointerTypeConversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
-                    convertedType = highestBoundExpr.Type;
+                    (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);
                     if (highestBoundExprKind != BoundKind.Conversion)
                     {
                         conversion = Conversion.Identity;
@@ -2016,6 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // See comment above: anonymous functions do not have a type
                             type = null;
+                            nullability = default;
                         }
                     }
                     else
@@ -2030,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // A delegate creation expression takes the place of a method group or anonymous function conversion.
                     var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
-                    convertedType = delegateCreation.Type;
+                    (convertedType, convertedNullability) = getTypeAndNullability(delegateCreation);
                     switch (boundExpr.Kind)
                     {
                         case BoundKind.MethodGroup:
@@ -2058,13 +2076,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     convertedType = type;
+                    convertedNullability = nullability;
                     conversion = Conversion.Identity;
                 }
 
-                return new CSharpTypeInfo(type, convertedType, conversion);
+                return new CSharpTypeInfo(type, convertedType, nullability, convertedNullability, conversion);
             }
 
             return CSharpTypeInfo.None;
+
+            static (TypeSymbol, NullabilityInfo) getTypeAndNullability(BoundExpression expr) => (expr.Type, expr.TopLevelNullability);
         }
 
         // Gets the method or property group from a specific bound node.
@@ -2153,7 +2174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Determine type. Dig through aliases if necessary.
             TypeSymbol type = UnwrapAlias(symbol) as TypeSymbol;
-            return new CSharpTypeInfo(type, type, Conversion.Identity);
+            // https://github.com/dotnet/roslyn/issues/35033: Examine this and make sure that we're using the correct nullabilities
+            return new CSharpTypeInfo(type, type, default, default, Conversion.Identity);
         }
 
         protected static Symbol UnwrapAlias(Symbol symbol)
@@ -2499,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
+            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
             diagnostics.Free();
             speculativeModel = AttributeSemanticModel.CreateSpeculative((SyntaxTreeSemanticModel)this, attribute, attributeType, aliasOpt, binder, position);
             return true;
@@ -4159,7 +4181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
-            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.DeconstructionPatternClause))
+            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 return GetSymbolInfoWorker(identifierNameSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken);
             }
@@ -4322,7 +4344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             MethodSymbol method,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType)
         {
             MethodSymbol constructedMethod;
@@ -4360,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             SingleLookupResult singleResult,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
             ref LookupResultKind resultKind)
         {
@@ -4424,7 +4446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeSymbolWithAnnotations>), extensionThisType);
+                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToImmutableAndFree();
@@ -4621,8 +4643,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
                 case OrderingSyntax orderingSyntax:
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
-                case DeconstructionPatternClauseSyntax dpcSyntax:
-                    return this.GetSymbolInfo(dpcSyntax, cancellationToken);
+                case PositionalPatternClauseSyntax ppcSyntax:
+                    return this.GetSymbolInfo(ppcSyntax, cancellationToken);
             }
 
             return SymbolInfo.None;
@@ -5000,6 +5022,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override bool IsEventUsableAsFieldCore(int position, IEventSymbol symbol)
         {
             return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
+        }
+
+        public sealed override NullableContext GetNullableContext(int position)
+        {
+            var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+            NullableContextState contextState = syntaxTree.GetNullableContextState(position);
+            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+
+            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
+            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
+
+            return context;
+
+            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+                contextState switch
+                {
+                    null when defaultEnableState => (inheritedFlag | enableFlag),
+                    null => inheritedFlag,
+                    true => enableFlag,
+                    false => NullableContext.Disabled
+                };
         }
 
         #endregion

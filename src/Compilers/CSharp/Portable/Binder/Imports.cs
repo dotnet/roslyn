@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
                     var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
-                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
+                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
                 }
             }
 

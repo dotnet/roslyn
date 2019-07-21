@@ -2,8 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
@@ -13,9 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonFixedVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <!--
       DO NOT ADD ANY IVTs TO AN ASSEMBLY OUTSIDE THE CODE STYLE LAYER.
@@ -34,6 +31,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.cs" Link="InternalUtilities\SpecializedCollections.Empty.cs" />
@@ -79,10 +77,8 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ActionCache`1.cs" Link="Formatting\Engine\ActionCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ChainedFormattingRules.cs" Link="Formatting\Engine\ChainedFormattingRules.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\NodeOperations.cs" Link="Formatting\Engine\NodeOperations.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\OperationCache`1.cs" Link="Formatting\Engine\OperationCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenData.cs" Link="Formatting\Engine\TokenData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenPairWithOperations.cs" Link="Formatting\Engine\TokenPairWithOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.Changes.cs" Link="Formatting\Engine\TokenStream.Changes.cs" />
@@ -102,11 +98,13 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ListPool.cs" Link="Formatting\ListPool.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\AbstractFormattingRule.cs" Link="Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\BaseIndentationFormattingRule.cs" Link="Formatting\Rules\BaseIndentationFormattingRule.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IActionHolder`1.cs" Link="Formatting\Rules\IActionHolder`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IFormattingRule.cs" Link="Formatting\Rules\IFormattingRule.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IOperationHolder`1.cs" Link="Formatting\Rules\IOperationHolder`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAction`1.cs" Link="Formatting\Rules\NextAction`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextOperation`1.cs" Link="Formatting\Rules\NextOperation`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\CompatAbstractFormattingRule.cs" Link="Formatting\Rules\CompatAbstractFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAlignTokensOperationAction.cs" Link="Formatting\Rules\NextAlignTokensOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAnchorIndentationOperationAction.cs" Link="Formatting\Rules\NextAnchorIndentationOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextGetAdjustNewLinesOperation.cs" Link="Formatting\Rules\NextGetAdjustNewLinesOperation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextGetAdjustSpacesOperation.cs" Link="Formatting\Rules\NextGetAdjustSpacesOperation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextIndentBlockOperationAction.cs" Link="Formatting\Rules\NextIndentBlockOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextSuppressOperationAction.cs" Link="Formatting\Rules\NextSuppressOperationAction.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NoOpFormattingRule.cs" Link="Formatting\Rules\NoOpFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOperation.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOption.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOption.cs" />
@@ -153,6 +151,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree.cs" Link="Formatting\SimpleIntervalTree.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`1.cs" Link="Formatting\Context\SimpleIntervalTree`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\TextSpanIntervalIntrospector.cs" Link="Formatting\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ChildSyntaxListExtensions.cs" Link="Formatting\ChildSyntaxListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Formatting\LinkedListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SimpleIntervalTreeExtensions.cs" Link="Formatting\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" Link="Formatting\SourceTextExtensions_SharedWithCodeStyle.cs" />
@@ -162,6 +161,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTokenExtensions.cs" Link="Formatting\SyntaxTokenExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaListExtensions.cs" Link="Formatting\SyntaxTriviaListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\TextLineExtensions.cs" Link="Formatting\TextLineExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
@@ -173,6 +173,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\IBidirectionalMap.cs" Link="InternalUtilities\IBidirectionalMap.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\LazyInitialization.cs" Link="Formatting\LazyInitialization.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Formatting\NonReentrantLock.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NullableHelpers\NullableAttributes.cs" Link="Formatting\NullableAttributes.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\Extensions.cs" Link="Formatting\Extensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\PooledObject.cs" Link="Formatting\PooledObject.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\SharedPools.cs" Link="Formatting\SharedPools.cs" />

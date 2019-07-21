@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As StatementSyntax
