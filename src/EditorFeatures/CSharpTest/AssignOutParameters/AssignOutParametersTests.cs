@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
-        public async Task TestWhenNotAssignedThroughAllPaths()
+        public async Task TestWhenNotAssignedThroughAllPaths1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -72,6 +72,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             i = 1;
         i = 0;
         return '';
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestWhenNotAssignedThroughAllPaths2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M(out int i1, out int i2)
+    {
+        [|return Try(out i1) || Try(out i2);|]
+    }
+
+    bool Try(out int i)
+    {
+        i = 0;
+        return true;
+    }
+}",
+@"class C
+{
+    bool M(out int i1, out int i2)
+    {
+        i2 = 0;
+        return Try(out i1) || Try(out i2);
+    }
+
+    bool Try(out int i)
+    {
+        i = 0;
+        return true;
     }
 }");
         }
