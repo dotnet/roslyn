@@ -18,6 +18,61 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SymbolKeyTests : TestBase
     {
         [Fact]
+        public void TestVersionMismatch()
+        {
+            var source = @"
+
+public class C
+{
+    public class B { };
+    public delegate int D(int v);
+
+    public int F;
+    public B F2;
+    public int P { get; set;}
+    public B P2 { get; set; }
+    public void M() { };
+    public void M(int a) { };
+    public void M(int a, string b) { };
+    public void M(string a, int b) { };
+    public void M(B b) { };
+    public int M2() { return 0; }
+    public int M2(int a) { return 0; }
+    public int M2(int a, string b) { return 0; }
+    public int M2(string a, int b) { return 0; }
+    public B M3() { return default(B); }
+    public int this[int index] { get { return 0; } }
+    public int this[int a, int b] { get { return 0; } }
+    public B this[B b] { get { return b; } }
+    public event D E;
+    public event D E2 { add; remove; }
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            foreach (var symbol in GetDeclaredSymbols(compilation))
+            {
+                Test(symbol, compilation);
+            }
+
+            return;
+
+            static void Test(ISymbol symbol, Compilation compilation)
+            {
+                TestVersion(symbol, compilation, SymbolKey.FormatVersion - 1);
+                TestVersion(symbol, compilation, SymbolKey.FormatVersion + 1);
+                TestVersion(symbol, compilation, int.MaxValue);
+            }
+
+            static void TestVersion(ISymbol symbol, Compilation compilation, int version)
+            {
+                var id = SymbolKey.CreateStringWorker(version, symbol);
+                Assert.NotNull(id);
+                var found = SymbolKey.ResolveString(id, compilation).GetAnySymbol();
+                Assert.Null(found);
+            }
+        }
+
+        [Fact]
         public void TestMemberDeclarations()
         {
             var source = @"
@@ -636,9 +691,9 @@ class C
             foreach (var symbol in symbols)
             {
                 // Ensure we don't crash getting these symbol keys.
-                var id = SymbolKey.ToString(symbol);
+                var id = SymbolKey.CreateString(symbol);
                 Assert.NotNull(id);
-                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
+                var found = SymbolKey.ResolveString(id, compilation).GetAnySymbol();
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
@@ -674,12 +729,12 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -711,12 +766,12 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -736,9 +791,9 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation).GetAnySymbol();
             Assert.NotNull(found);
 
             if (fnId != null)
