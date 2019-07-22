@@ -157,6 +157,16 @@
         <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
+      <trans-unit id="asynchronous_foreach_statement">
+        <source>asynchronous foreach statement</source>
+        <target state="new">asynchronous foreach statement</target>
+        <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="asynchronous_using_declaration">
+        <source>asynchronous using declaration</source>
+        <target state="new">asynchronous using declaration</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">Die If-Anweisung kann vereinfacht werden.</target>
@@ -425,7 +435,7 @@
       <trans-unit id="using_declaration">
         <source>using declaration</source>
         <target state="new">using declaration</target>
-        <note />
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_statement">
         <source>using statement</source>

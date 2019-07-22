@@ -283,6 +283,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract string TryGetDisplayName(SyntaxNode node, EditKind editKind);
 
+        protected virtual string GetSuspensionPointDisplayName(SyntaxNode node, EditKind editKind)
+            => GetDisplayName(node, editKind);
+
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
@@ -1420,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             RudeEditKind.ChangingStateMachineShape,
                             newNode.Span,
                             newNode,
-                            new[] { GetDisplayName(oldNode, EditKind.Update), GetDisplayName(newNode, EditKind.Update) }));
+                            new[] { GetSuspensionPointDisplayName(oldNode, EditKind.Update), GetSuspensionPointDisplayName(newNode, EditKind.Update) }));
                     }
 
                     ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
@@ -1458,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.Delete,
                 GetDeletedNodeDiagnosticSpan(match.Matches, deletedSuspensionPoint),
                 deletedSuspensionPoint,
-                new[] { GetDisplayName(deletedSuspensionPoint, EditKind.Delete) }));
+                new[] { GetSuspensionPointDisplayName(deletedSuspensionPoint, EditKind.Delete) }));
         }
 
         internal virtual void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
@@ -1467,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 aroundActiveStatement ? RudeEditKind.InsertAroundActiveStatement : RudeEditKind.Insert,
                 GetDiagnosticSpan(insertedSuspensionPoint, EditKind.Insert),
                 insertedSuspensionPoint,
-                new[] { GetDisplayName(insertedSuspensionPoint, EditKind.Insert) }));
+                new[] { GetSuspensionPointDisplayName(insertedSuspensionPoint, EditKind.Insert) }));
         }
 
         private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)

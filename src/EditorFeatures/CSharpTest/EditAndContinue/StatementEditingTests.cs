@@ -8709,7 +8709,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.foreach_statement));
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_foreach_statement));
         }
 
         [Fact]
@@ -8736,7 +8736,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.using_declaration));
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -8763,7 +8763,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.using_declaration));
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -8789,8 +8789,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.using_declaration),
-                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.using_declaration));
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -9031,7 +9031,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.using_declaration));
+                Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -9098,9 +9098,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.foreach_statement),
-                Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.using_declaration),
-                Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_foreach_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 1;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));

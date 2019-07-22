@@ -8086,7 +8086,7 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatement1()
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitExpression()
         {
             var src1 = @"
 class C
@@ -8114,6 +8114,71 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitForEach()
+        {
+            var src1 = @"
+class C
+{
+    static Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+
+        return Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        await foreach (var x in AsyncIter()) { }
+        return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await foreach (var x in AsyncIter())", CSharpFeaturesResources.asynchronous_foreach_statement));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitUsing()
+        {
+            var src1 = @"
+class C
+{
+    static Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+
+        return Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        await using IAsyncDisposable x = new AsyncDisposable(), y = new AsyncDisposable();
+        return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "x = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "y = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -8487,7 +8552,13 @@ class C
 {
     static async Task<int> F()
     {
-        Console.WriteLine(1);
+        await using var x = new AsyncDisposable();
+
+        await foreach (var x in AsyncIter()) 
+        {
+            Console.WriteLine(x);
+        }
+
         return await Task.FromResult(1);
     }
 }
@@ -8500,8 +8571,14 @@ class C
 {
     static async Task<int> F()
     {
-        Console.WriteLine(2);
-        return await Task.FromResult(1);
+        await using var x = new AsyncDisposable();
+
+        await foreach (var x in AsyncIter()) 
+        {
+            Console.WriteLine(x + 1);
+        }
+
+        return await Task.FromResult(2);
     }
 }
 ";
@@ -8544,6 +8621,45 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void AsyncIteratorMethodEdit_Semantics()
+        {
+            var src1 = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        Console.WriteLine(1);
+        await Task.Delay(1);
+        yield return 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        Console.WriteLine(2);
+        await Task.Delay(2);
+        yield return 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp30 });
         }
 
         [Fact]

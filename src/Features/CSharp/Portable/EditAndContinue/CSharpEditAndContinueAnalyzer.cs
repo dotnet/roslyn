@@ -1729,6 +1729,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        protected override string GetSuspensionPointDisplayName(SyntaxNode node, EditKind editKind)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    Debug.Assert(((CommonForEachStatementSyntax)node).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword));
+                    return CSharpFeaturesResources.asynchronous_foreach_statement;
+
+                case SyntaxKind.VariableDeclarator:
+                    Debug.Assert(((LocalDeclarationStatementSyntax)node.Parent.Parent).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword));
+                    return CSharpFeaturesResources.asynchronous_using_declaration;
+
+                default:
+                    return base.GetSuspensionPointDisplayName(node, editKind);
+            }
+        }
+
         #endregion
 
         #region Top-Level Syntactic Rude Edits
@@ -3121,7 +3138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newLocalDeclaration.AwaitKeyword.Span,
                     newLocalDeclaration,
                     new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
-
+                
                 return;
             }
 

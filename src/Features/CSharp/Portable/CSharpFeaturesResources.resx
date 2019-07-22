@@ -316,6 +316,18 @@
     <value>foreach statement</value>
     <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="asynchronous_foreach_statement" xml:space="preserve">
+    <value>asynchronous foreach statement</value>
+    <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="using_declaration" xml:space="preserve">
+    <value>using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="asynchronous_using_declaration" xml:space="preserve">
+    <value>asynchronous using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="checked_statement" xml:space="preserve">
     <value>checked statement</value>
     <comment>{Locked="checked"} "checked" is a C# keyword and should not be localized.</comment>
@@ -640,8 +652,5 @@
   </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
-  </data>
-  <data name="using_declaration" xml:space="preserve">
-    <value>using declaration</value>
   </data>
 </root>
