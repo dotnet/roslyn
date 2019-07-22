@@ -70,19 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var slot in state1.Assigned.TrueBits())
             {
-                if (slot >= variableBySlot.Length)
-                {
-                    continue;
-                }
-
-                // It's not definitely assigned if it's not assigned through both 
-                // when-true and when-false paths.
-                if (state2opt?.IsAssigned(slot) == false)
-                {
-                    continue;
-                }
-
-                if (variableBySlot[slot].Symbol is { } symbol &&
+                if (slot < variableBySlot.Length &&
+                    state2opt?.IsAssigned(slot) != false &&
+                    variableBySlot[slot].Symbol is { } symbol &&
                     symbol.Kind != SymbolKind.Field)
                 {
                     _definitelyAssignedOnEntry.Add(symbol);
