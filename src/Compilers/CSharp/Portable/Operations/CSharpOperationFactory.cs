@@ -1416,8 +1416,10 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            var parameters = (_semanticModel as MemberSemanticModel)?.MemberSymbol.GetParameters() ?? ImmutableArray<ParameterSymbol>.Empty;
-            var nullChecksToPrepend = GenerateNullChecksForParameters(parameters, syntax);
+            var nullChecksToPrepend =
+                (_semanticModel is MemberSemanticModel memberModel && memberModel.Root.ChildNodes().Contains(syntax)) ?
+                GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax) :
+                ImmutableArray<ConditionalOperation>.Empty;
             return new CSharpLazyBlockOperation(this, boundBlock, locals, nullChecksToPrepend, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1469,14 +1471,8 @@ namespace Microsoft.CodeAnalysis.Operations
             var argumentNullExceptionMethodSymbol = (IMethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
             var argumentNullExceptionType = compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException);
             var argumentNullExceptionObject = new ObjectCreationOperation(
-                        constructor: argumentNullExceptionMethodSymbol,
-                        initializer: new ObjectOrCollectionInitializerOperation(
-                                initializers: ImmutableArray<IOperation>.Empty,
-                                _semanticModel,
-                                syntax,
-                                compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException),
-                                constantValue,
-                                isImplicit: true),
+                        argumentNullExceptionMethodSymbol,
+                        initializer: null,
                         ImmutableArray.Create<IArgumentOperation>(
                             new ArgumentOperation(
                                 new LiteralOperation(_semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true),
@@ -1489,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 isImplicit: true)),
                         _semanticModel,
                         syntax,
-                        type: argumentNullExceptionType,
+                        argumentNullExceptionType,
                         constantValue,
                         isImplicit: true);
 
@@ -1498,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     argumentNullExceptionObject,
                     _semanticModel,
                     syntax,
-                    type: argumentNullExceptionType,
+                    argumentNullExceptionType,
                     constantValue,
                     isImplicit: true),
                 _semanticModel,
