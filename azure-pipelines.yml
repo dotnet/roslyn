@@ -2,6 +2,7 @@ trigger:
   branches:
     include:
     - master
+    - microbuild
     - validate/*
   paths:
     exclude:
