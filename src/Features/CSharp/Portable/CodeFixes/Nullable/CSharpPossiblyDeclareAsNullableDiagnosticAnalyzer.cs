@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PossiblyDeclareAsNullable
         private static readonly DiagnosticDescriptor s_possiblyDeclareAsNullableRule
             = new DiagnosticDescriptor(
             IDEDiagnosticIds.PossiblyDeclareAsNullableDiagnosticId,
-            title: new LocalizableResourceString(nameof(FeaturesResources.Disposable_fields_should_be_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_field_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            title: new LocalizableResourceString(nameof(FeaturesResources.Variable_could_be_annotated_as_nullable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Variable_0_could_be_annotated_as_nullable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             DiagnosticCategory.CodeQuality,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(FeaturesResources.DisposableFieldsShouldBeDisposedDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)));
+            description: new LocalizableResourceString(nameof(FeaturesResources.NullTestedVariablePossiblyDeclaredNullableDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)));
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(s_possiblyDeclareAsNullableRule);
@@ -35,9 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PossiblyDeclareAsNullable
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (IsFixable(context.Node, context.SemanticModel) != null)
+            var fixableSymbol = IsFixable(context.Node, context.SemanticModel);
+            if (fixableSymbol != null)
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_possiblyDeclareAsNullableRule, context.Node.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(s_possiblyDeclareAsNullableRule, context.Node.GetLocation(), fixableSymbol.Name));
             }
         }
 

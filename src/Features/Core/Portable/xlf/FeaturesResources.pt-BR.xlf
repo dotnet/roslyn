@@ -437,6 +437,11 @@
         <target state="translated">Mover para o namespace...</target>
         <note />
       </trans-unit>
+      <trans-unit id="NullTestedVariablePossiblyDeclaredNullableDescription">
+        <source>A variable that is tested against 'null' could be annotated as nullable</source>
+        <target state="new">A variable that is tested against 'null' could be annotated as nullable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">O membro particular '{0}' pode ser removido pois o valor atribuído a ele nunca é lido.</target>
@@ -700,6 +705,16 @@
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
         <target state="translated">Usar a instrução 'using' simples</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_0_could_be_annotated_as_nullable">
+        <source>Variable '{0}' could be annotated as nullable</source>
+        <target state="new">Variable '{0}' could be annotated as nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_could_be_annotated_as_nullable">
+        <source>Variable could be annotated as nullable</source>
+        <target state="new">Variable could be annotated as nullable</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

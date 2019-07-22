@@ -3009,6 +3009,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A variable that is tested against &apos;null&apos; could be annotated as nullable.
+        /// </summary>
+        internal static string NullTestedVariablePossiblyDeclaredNullableDescription {
+            get {
+                return ResourceManager.GetString("NullTestedVariablePossiblyDeclaredNullableDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Object initialization can be simplified.
         /// </summary>
         internal static string Object_initialization_can_be_simplified {
@@ -4785,6 +4794,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable &apos;{0}&apos; could be annotated as nullable.
+        /// </summary>
+        internal static string Variable_0_could_be_annotated_as_nullable {
+            get {
+                return ResourceManager.GetString("Variable_0_could_be_annotated_as_nullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable could be annotated as nullable.
+        /// </summary>
+        internal static string Variable_could_be_annotated_as_nullable {
+            get {
+                return ResourceManager.GetString("Variable_could_be_annotated_as_nullable", resourceCulture);
             }
         }
         

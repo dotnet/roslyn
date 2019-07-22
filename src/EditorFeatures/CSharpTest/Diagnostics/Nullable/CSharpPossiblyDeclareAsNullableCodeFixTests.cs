@@ -132,7 +132,7 @@ public class D
         }
 
         [Fact]
-        public async Task ConditionalAccess()
+        public async Task ConditionalAccess_Simple()
         {
             var code = NullableEnable + @"
 class C
@@ -152,6 +152,70 @@ class C
     static void M(string? s)
     {
         if (s?.Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            await TestInRegularAndScript1Async(code, expected, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task ConditionalAccess_Nested_Outer()
+        {
+            var code = NullableEnable + @"
+class C
+{
+    string s;
+    static void M(C c)
+    {
+        if (c.s?.[||]Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            var expected = NullableEnable + @"
+class C
+{
+    string? s;
+    static void M(C c)
+    {
+        if (c.s?.Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            await TestInRegularAndScript1Async(code, expected, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task ConditionalAccess_Nested_Inner()
+        {
+            var code = NullableEnable + @"
+class C
+{
+    string s;
+    static void M(C c)
+    {
+        if (c[||]?.s?.Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            var expected = NullableEnable + @"
+class C
+{
+    string s;
+    static void M(C? c)
+    {
+        if (c?.s?.Length == 0)
         {
             return;
         }

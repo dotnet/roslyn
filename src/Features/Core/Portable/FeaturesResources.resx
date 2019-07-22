@@ -1708,8 +1708,17 @@ This version used in: {2}</value>
   <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
     <value>Disposable field '{0}' is never disposed</value>
   </data>
+  <data name="Variable_could_be_annotated_as_nullable" xml:space="preserve">
+    <value>Variable could be annotated as nullable</value>
+  </data>
+  <data name="Variable_0_could_be_annotated_as_nullable" xml:space="preserve">
+    <value>Variable '{0}' could be annotated as nullable</value>
+  </data>
   <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
     <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="NullTestedVariablePossiblyDeclaredNullableDescription" xml:space="preserve">
+    <value>A variable that is tested against 'null' could be annotated as nullable</value>
   </data>
   <data name="Wrap_and_align_call_chain" xml:space="preserve">
     <value>Wrap and align call chain</value>
