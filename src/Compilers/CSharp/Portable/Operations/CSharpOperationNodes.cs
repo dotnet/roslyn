@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var bodyBlock = (_body as BoundBlock);
             var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(bodyBlock.Statements)
                                                .InsertRange(0, _nullChecksToPrepend);
-            return (IBlockOperation)new BlockOperation(
+            return new BlockOperation(
                 constructed,
                 bodyBlock.Locals.CastArray<ILocalSymbol>(),
                 this.OwningSemanticModel,
