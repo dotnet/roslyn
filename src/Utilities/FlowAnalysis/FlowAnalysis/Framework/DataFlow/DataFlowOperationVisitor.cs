@@ -90,6 +90,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         internal Dictionary<ThrownExceptionInfo, TAnalysisData> AnalysisDataForUnhandledThrowOperations { get; private set; }
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
 
+        /// <summary>
+        /// Optional map from points to values of tasks to the underlying abstract value returned by the task.
+        /// Awaiting the task produces the task wrapped value from this map.
+        /// </summary>
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> TaskWrappedValuesMapOpt { get; private set; }
+
         protected TAnalysisContext DataFlowAnalysisContext { get; }
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain => DataFlowAnalysisContext.ValueDomain;
         protected ISymbol OwningSymbol => DataFlowAnalysisContext.OwningSymbol;
@@ -223,8 +229,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
         }
 
-        public override int GetHashCode() => HashUtilities.Combine(GetType().GetHashCode(), DataFlowAnalysisContext.GetHashCode());
-
         protected CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
                 => _addressSharedEntitiesProvider.GetDefaultCopyValue(analysisEntity);
 
@@ -250,7 +254,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PredicateValueKind? mergedPredicateValueKind = null;
             foreach (var operation in _returnValueOperationsOpt)
             {
-                mergedValue = ValueDomain.Merge(mergedValue, GetCachedAbstractValue(operation));
+                mergedValue = ValueDomain.Merge(mergedValue, GetAbstractValueForReturnOperation(operation, out _));
                 if (PredicateAnalysis)
                 {
                     if (!_predicateValueKindCacheBuilder.TryGetValue(operation, out var predicateValueKind))
@@ -632,12 +636,55 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected virtual void ProcessReturnValue(IOperation returnValue)
+        /// <summary>
+        /// Get analysis value for an implicitly created completed task wrapping a returned value in an async method.
+        /// For example, "return 0;" in an async method returning "Task(Of int)".
+        /// </summary>
+        private protected virtual TAbstractAnalysisValue GetAbstractValueForImplicitWrappingTaskCreation(
+            IOperation returnValueOperation,
+            TAbstractAnalysisValue returnValue,
+            PointsToAbstractValue implicitTaskPointsToValue)
         {
-            if (returnValue != null)
+            // Conservatively assume default unknown value for implicit task.
+            return ValueDomain.UnknownOrMayBeValue;
+        }
+
+        protected virtual void ProcessReturnValue(IOperation returnValueOperation)
+        {
+            if (returnValueOperation != null)
             {
-                _returnValueOperationsOpt?.Add(returnValue);
+                _returnValueOperationsOpt?.Add(returnValueOperation);
+
+                _ = GetAbstractValueForReturnOperation(returnValueOperation, out var implicitTaskPointsToValueOpt);
+                if (implicitTaskPointsToValueOpt != null)
+                {
+                    Debug.Assert(implicitTaskPointsToValueOpt.Kind == PointsToAbstractValueKind.KnownLocations);
+                    SetTaskWrappedValue(implicitTaskPointsToValueOpt, GetCachedAbstractValue(returnValueOperation));
+                }
             }
+        }
+
+        private TAbstractAnalysisValue GetAbstractValueForReturnOperation(IOperation returnValueOperation, out PointsToAbstractValue implicitTaskPointsToValueOpt)
+        {
+            Debug.Assert(returnValueOperation != null);
+
+            implicitTaskPointsToValueOpt = null;
+            var returnValue = GetCachedAbstractValue(returnValueOperation);
+
+            // Check if returned value is wrapped in an implicitly created completed task in an async method.
+            // For example, "return 0;" in an async method returning "Task<int>".
+            // If so, we return the abstract value for the task wrapping the underlying return value.
+            if (OwningSymbol is IMethodSymbol method &&
+                method.IsAsync &&
+                method.ReturnType.OriginalDefinition.Equals(WellKnownTypeProvider.GenericTask) &&
+                !method.ReturnType.Equals(returnValueOperation.Type))
+            {
+                var location = AbstractLocation.CreateAllocationLocation(returnValueOperation, method.ReturnType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
+                implicitTaskPointsToValueOpt = PointsToAbstractValue.Create(location, mayBeNull: false);
+                return GetAbstractValueForImplicitWrappingTaskCreation(returnValueOperation, returnValue, implicitTaskPointsToValueOpt);
+            }
+
+            return returnValue;
         }
 
         protected virtual void HandlePossibleThrowingOperation(IOperation operation)
@@ -966,6 +1013,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             nullAbstractValue = pointsToAbstractValue.NullState;
             return true;
+        }
+
+        private protected void SetTaskWrappedValue(PointsToAbstractValue pointsToValueForTask, TAbstractAnalysisValue wrappedValue)
+        {
+            if (pointsToValueForTask.Kind == PointsToAbstractValueKind.Unknown)
+            {
+                return;
+            }
+
+            TaskWrappedValuesMapOpt ??= new Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>();
+            TaskWrappedValuesMapOpt[pointsToValueForTask] = wrappedValue;
+        }
+
+        private protected bool TryGetTaskWrappedValue(PointsToAbstractValue pointsToAbstractValue, out TAbstractAnalysisValue wrappedValue)
+        {
+            if (TaskWrappedValuesMapOpt == null)
+            {
+                wrappedValue = default;
+                return false;
+            }
+
+            return TaskWrappedValuesMapOpt.TryGetValue(pointsToAbstractValue, out wrappedValue);
         }
 
         protected virtual TAbstractAnalysisValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TAbstractAnalysisValue defaultValue)
@@ -1950,6 +2019,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
                     }
 
+                    if (analysisResult.TaskWrappedValuesMapOpt is Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMap)
+                    {
+                        foreach (var (key, value) in taskWrappedValuesMap)
+                        {
+                            SetTaskWrappedValue(key, value);
+                        }
+                    }
+
                     // Apply interprocedural result analysis data for non-exception paths.
                     var resultData = GetExitBlockOutputData(analysisResult);
                     ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, analysisResult);
@@ -2618,6 +2695,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // Invocation of a lambda or delegate or local function.
                 value = VisitInvocation_LambdaOrDelegateOrLocalFunction(operation, argument, out var resolvedMethodTargetsOpt);
+                CacheAbstractValue(operation, value);
 
                 // Check if we have known possible set of invoked methods.
                 if (resolvedMethodTargetsOpt != null)
@@ -2631,6 +2709,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             else
             {
                 value = VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation, argument);
+                CacheAbstractValue(operation, value);
+
+                if (operation.Arguments.Length == 1 &&
+                    operation.Instance != null &&
+                    operation.TargetMethod.IsTaskConfigureAwaitMethod(WellKnownTypeProvider.GenericTask))
+                {
+                    // ConfigureAwait invocation - just return the abstract value of the visited instance on which it is invoked.
+                    value = GetCachedAbstractValue(operation.Instance);
+                }
+                else if (operation.Arguments.Length == 1 &&
+                   operation.TargetMethod.IsTaskFromResultMethod(WellKnownTypeProvider.Task))
+                {
+                    // Result wrapped within a task.
+                    var wrappedOperationValue = GetCachedAbstractValue(operation.Arguments[0].Value);
+                    var pointsToValueOfTask = GetPointsToAbstractValue(operation);
+                    SetTaskWrappedValue(pointsToValueOfTask, wrappedOperationValue);
+                }
+
                 PostVisitInvocation(operation.TargetMethod, operation.Arguments);
             }
 
@@ -2714,7 +2810,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             else
             {
                 resolvedMethodTargetsOpt = null;
-                ResetCurrentAnalysisData();
+                if (PessimisticAnalysis)
+                {
+                    ResetCurrentAnalysisData();
+                }
             }
 
             return value;
@@ -3121,13 +3220,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var value = Visit(operation.ReturnedValue, argument);
             ProcessReturnValue(operation.ReturnedValue);
 
-            if (OwningSymbol is IMethodSymbol method && method.IsAsync)
-            {
-                // Returned value is wrapped in a task in an async method.
-                // We conservatively assume task has an unknown/maybe value.
-                return ValueDomain.UnknownOrMayBeValue;
-            }
-
             return value;
         }
 
@@ -3157,6 +3249,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return ValueDomain.UnknownOrMayBeValue;
+        }
+
+        public override TAbstractAnalysisValue VisitAwait(IAwaitOperation operation, object argument)
+        {
+            var value = base.VisitAwait(operation, argument);
+
+            var pointsToValue = GetPointsToAbstractValue(operation.Operation);
+            return TryGetTaskWrappedValue(pointsToValue, out var awaitedValue) ?
+                awaitedValue :
+                value;
         }
 
         #region Overrides for lowered IOperations

@@ -16,6 +16,7 @@ namespace Analyzer.Utilities
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -300,6 +301,9 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyRfc2898DeriveBytes = "System.Security.Cryptography.Rfc2898DeriveBytes";
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
         public const string MicrosoftWindowsAzureStorageCloudStorageAccount = "Microsoft.WindowsAzure.Storage.CloudStorageAccount";
+        public const string NewtonsoftJsonJsonConvert = "Newtonsoft.Json.JsonConvert";
+        public const string NewtonsoftJsonJsonSerializer = "Newtonsoft.Json.JsonSerializer";
+        public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string SystemNullable1 = "System.Nullable`1";
         public const string MicrosoftWindowsAzureStorageSharedAccessProtocol = "Microsoft.WindowsAzure.Storage.SharedAccessProtocol";
         public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
@@ -329,5 +333,6 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
+        public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
     }
 }

@@ -25,6 +25,7 @@ namespace Analyzer.Utilities.Extensions
                 case SpecialType.System_UInt64:
                 case SpecialType.System_SByte:
                 case SpecialType.System_Single:
+                case SpecialType.System_String:
                     return true;
                 default:
                     return false;
