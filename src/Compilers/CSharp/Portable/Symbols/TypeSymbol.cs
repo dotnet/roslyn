@@ -313,17 +313,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, SymbolEqualityComparer.Default.CompareKind, isValueTypeOverrideOpt: null);
+            return this.Equals(t2, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        public override bool Equals(ISymbol other, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             var t2 = other as TypeSymbol;
             if (t2 is null)
             {
                 return false;
             }
-            return this.Equals(t2, compareKind, isValueTypeOverrideOpt: null);
+            return this.Equals(t2, compareKind);
         }
 
         /// <summary>

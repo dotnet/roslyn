@@ -769,8 +769,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return equalityComparer.Equals(Me, other)
         End Function
 
+        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+            Return Me.Equals(TryCast(other, Symbol), compareKind)
+        End Function
+
         ' By default we don't consider the compareKind. This can be overridden.
-        Public Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
             Return Me.Equals(DirectCast(other, Object))
         End Function
 

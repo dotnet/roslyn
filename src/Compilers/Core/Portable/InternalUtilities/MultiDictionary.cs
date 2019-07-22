@@ -97,8 +97,6 @@ namespace Roslyn.Utilities
 
             private readonly IEqualityComparer<V> _equalityComparer;
 
-            private IEqualityComparer<V> EqualityComparer => _equalityComparer ?? ImmutableHashSet<V>.Empty.KeyComparer;
-
             public int Count
             {
                 get
@@ -128,7 +126,7 @@ namespace Roslyn.Utilities
             public ValueSet(object value, IEqualityComparer<V> equalityComparer = null)
             {
                 _value = value;
-                _equalityComparer = equalityComparer;
+                _equalityComparer = equalityComparer ?? ImmutableHashSet<V>.Empty.KeyComparer;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -153,15 +151,15 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    if (EqualityComparer.Equals((V)_value, v))
+                    if (_equalityComparer.Equals((V)_value, v))
                     {
                         return this;
                     }
 
-                    set = ImmutableHashSet.Create(EqualityComparer, (V)_value);
+                    set = ImmutableHashSet.Create(_equalityComparer, (V)_value);
                 }
 
-                return new ValueSet(set.Add(v), EqualityComparer);
+                return new ValueSet(set.Add(v), _equalityComparer);
             }
 
             public bool Contains(V v)
@@ -169,7 +167,7 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    return EqualityComparer.Equals((V)_value, v);
+                    return _equalityComparer.Equals((V)_value, v);
                 }
 
                 return set.Contains(v);
@@ -212,12 +210,14 @@ namespace Roslyn.Utilities
 
         public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
+        private readonly ValueSet _emptySet = new ValueSet(null, null);
+
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
         {
             get
             {
-                return _dictionary.TryGetValue(k, out var set) ? set : default;
+                return _dictionary.TryGetValue(k, out var set) ? set : _emptySet;
             }
         }
 
@@ -231,12 +231,7 @@ namespace Roslyn.Utilities
             _dictionary = new Dictionary<K, ValueSet>(comparer);
         }
 
-        public MultiDictionary(int capacity, IEqualityComparer<K> comparer)
-        {
-            _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
-        }
-
-        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V> valueComparer)
+        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V> valueComparer = null)
         {
             _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
             _valueComparer = valueComparer;

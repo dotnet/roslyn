@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(ISymbol other)
         {
-            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
+            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
         public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
@@ -609,8 +609,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return equalityComparer.Equals(this, other);
         }
 
+        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        {
+            return this.Equals(other as Symbol, compareKind);
+        }
+
         // By default we don't consider the compareKind. This can be overridden.
-        public virtual bool Equals(ISymbol other, TypeCompareKind compareKind)
+        public virtual bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             return this.Equals((object)other);
         }

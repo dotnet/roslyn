@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeconstructValuePlaceholder Update(uint valEscape, TypeSymbol type)
         {
-            if (valEscape != this.ValEscape || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDeconstructValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTupleOperandPlaceholder Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTupleOperandPlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAwaitableValuePlaceholder Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAwaitableValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDisposableValuePlaceholder Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDisposableValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDup Update(RefKind refKind, TypeSymbol? type)
         {
-            if (refKind != this.RefKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (refKind != this.RefKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDup(this.Syntax, refKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPassByCopy Update(BoundExpression expression, TypeSymbol? type)
         {
-            if (expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPassByCopy(this.Syntax, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type)
         {
-            if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundBadExpression(this.Syntax, resultKind, symbols, childBoundNodes, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTypeExpression(this.Syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeOrValueExpression Update(BoundTypeOrValueData data, TypeSymbol type)
         {
-            if (data != this.Data || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (data != this.Data || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTypeOrValueExpression(this.Syntax, data, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundUnaryOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundUnaryOperator(this.Syntax, operatorKind, operand, constantValueOpt, methodOpt, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || operandConversion != this.OperandConversion || resultConversion != this.ResultConversion || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operatorKind != this.OperatorKind || operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || operandConversion != this.OperandConversion || resultConversion != this.ResultConversion || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIncrementOperator(this.Syntax, operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAddressOfOperator Update(BoundExpression operand, bool isManaged, TypeSymbol type)
         {
-            if (operand != this.Operand || isManaged != this.IsManaged || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || isManaged != this.IsManaged || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPointerIndirectionOperator Update(BoundExpression operand, TypeSymbol type)
         {
-            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPointerIndirectionOperator(this.Syntax, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type)
         {
-            if (expression != this.Expression || index != this.Index || @checked != this.Checked || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRefTypeOperator Update(BoundExpression operand, MethodSymbol? getTypeFromHandle, TypeSymbol type)
         {
-            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRefTypeOperator(this.Syntax, operand, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMakeRefOperator Update(BoundExpression operand, TypeSymbol type)
         {
-            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMakeRefOperator(this.Syntax, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRefValueOperator Update(NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type)
         {
-            if (nullableAnnotation != this.NullableAnnotation || operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (nullableAnnotation != this.NullableAnnotation || operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRefValueOperator(this.Syntax, nullableAnnotation, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1131,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFromEndIndexExpression Update(BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFromEndIndexExpression(this.Syntax, operand, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1167,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRangeExpression Update(BoundExpression? leftOperandOpt, BoundExpression? rightOperandOpt, MethodSymbol? methodOpt, TypeSymbol type)
         {
-            if (leftOperandOpt != this.LeftOperandOpt || rightOperandOpt != this.RightOperandOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (leftOperandOpt != this.LeftOperandOpt || rightOperandOpt != this.RightOperandOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRangeExpression(this.Syntax, leftOperandOpt, rightOperandOpt, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || left != this.Left || right != this.Right || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operatorKind != this.OperatorKind || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundBinaryOperator(this.Syntax, operatorKind, constantValueOpt, methodOpt, resultKind, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTupleBinaryOperator(this.Syntax, left, right, operatorKind, operators, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || !SymbolEqualityComparer.ConsiderEverything.Equals(logicalOperator, this.LogicalOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(trueOperator, this.TrueOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(falseOperator, this.FalseOperator) || resultKind != this.ResultKind || left != this.Left || right != this.Right || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operatorKind != this.OperatorKind || !SymbolEqualityComparer.ConsiderEverything.Equals(logicalOperator, this.LogicalOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(trueOperator, this.TrueOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(falseOperator, this.FalseOperator) || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, operatorKind, logicalOperator, trueOperator, falseOperator, resultKind, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (@operator != this.Operator || left != this.Left || right != this.Right || leftConversion != this.LeftConversion || finalConversion != this.FinalConversion || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (@operator != this.Operator || left != this.Left || right != this.Right || leftConversion != this.LeftConversion || finalConversion != this.FinalConversion || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundCompoundAssignmentOperator(this.Syntax, @operator, left, right, leftConversion, finalConversion, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, bool isRef, TypeSymbol? type)
         {
-            if (left != this.Left || right != this.Right || isRef != this.IsRef || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (left != this.Left || right != this.Right || isRef != this.IsRef || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAssignmentOperator(this.Syntax, left, right, isRef, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeconstructionAssignmentOperator Update(BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || isUsed != this.IsUsed || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (left != this.Left || right != this.Right || isUsed != this.IsUsed || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDeconstructionAssignmentOperator(this.Syntax, left, right, isUsed, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol? type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftConversion, operatorResultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1507,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNullCoalescingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol? type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConditionalOperator Update(bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol type)
         {
-            if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConditionalOperator(this.Syntax, isRef, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundArrayAccess Update(BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type)
         {
-            if (expression != this.Expression || indices != this.Indices || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || indices != this.Indices || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArrayAccess(this.Syntax, expression, indices, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundArrayLength Update(BoundExpression expression, TypeSymbol type)
         {
-            if (expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArrayLength(this.Syntax, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1653,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAwaitExpression Update(BoundExpression expression, AwaitableInfo awaitableInfo, TypeSymbol type)
         {
-            if (expression != this.Expression || awaitableInfo != this.AwaitableInfo || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || awaitableInfo != this.AwaitableInfo || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAwaitExpression(this.Syntax, expression, awaitableInfo, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1708,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeOfOperator Update(BoundTypeExpression sourceType, MethodSymbol? getTypeFromHandle, TypeSymbol type)
         {
-            if (sourceType != this.SourceType || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (sourceType != this.SourceType || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTypeOfOperator(this.Syntax, sourceType, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1749,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodDefIndex Update(MethodSymbol method, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMethodDefIndex(this.Syntax, method, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMaximumMethodDefIndex Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMaximumMethodDefIndex(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundInstrumentationPayloadRoot Update(int analysisKind, TypeSymbol type)
         {
-            if (analysisKind != this.AnalysisKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (analysisKind != this.AnalysisKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundInstrumentationPayloadRoot(this.Syntax, analysisKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1858,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundModuleVersionId Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundModuleVersionId(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1893,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundModuleVersionIdString Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundModuleVersionIdString(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSourceDocumentIndex Update(Cci.DebugSourceDocument document, TypeSymbol type)
         {
-            if (document != this.Document || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (document != this.Document || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSourceDocumentIndex(this.Syntax, document, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodInfo Update(MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !SymbolEqualityComparer.ConsiderEverything.Equals(getMethodFromHandle, this.GetMethodFromHandle) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !SymbolEqualityComparer.ConsiderEverything.Equals(getMethodFromHandle, this.GetMethodFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMethodInfo(this.Syntax, method, getMethodFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2024,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFieldInfo Update(FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || !SymbolEqualityComparer.ConsiderEverything.Equals(getFieldFromHandle, this.GetFieldFromHandle) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || !SymbolEqualityComparer.ConsiderEverything.Equals(getFieldFromHandle, this.GetFieldFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFieldInfo(this.Syntax, field, getFieldFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDefaultExpression Update(BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol? type)
         {
-            if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDefaultExpression(this.Syntax, targetType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIsOperator Update(BoundExpression operand, BoundTypeExpression targetType, Conversion conversion, TypeSymbol type)
         {
-            if (operand != this.Operand || targetType != this.TargetType || conversion != this.Conversion || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || targetType != this.TargetType || conversion != this.Conversion || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIsOperator(this.Syntax, operand, targetType, conversion, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2130,7 +2130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAsOperator Update(BoundExpression operand, BoundTypeExpression targetType, Conversion conversion, TypeSymbol type)
         {
-            if (operand != this.Operand || targetType != this.TargetType || conversion != this.Conversion || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || targetType != this.TargetType || conversion != this.Conversion || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAsOperator(this.Syntax, operand, targetType, conversion, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2164,7 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSizeOfOperator Update(BoundTypeExpression sourceType, ConstantValue? constantValueOpt, TypeSymbol type)
         {
-            if (sourceType != this.SourceType || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (sourceType != this.SourceType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSizeOfOperator(this.Syntax, sourceType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2213,7 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundReadOnlySpanFromArray Update(BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type)
         {
-            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(conversionMethod, this.ConversionMethod) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(conversionMethod, this.ConversionMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundReadOnlySpanFromArray(this.Syntax, operand, conversionMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2283,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundArgList Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArgList(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2316,7 +2316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundArgListOperator Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol? type)
         {
-            if (arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArgListOperator(this.Syntax, arguments, argumentRefKindsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol? getPinnableOpt, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(elementPointerType, this.ElementPointerType) || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(getPinnableOpt, this.GetPinnableOpt) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(elementPointerType, this.ElementPointerType, TypeCompareKind.ConsiderEverything) || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(getPinnableOpt, this.GetPinnableOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, getPinnableOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3470,7 +3470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCatchBlock Update(ImmutableArray<LocalSymbol> locals, BoundExpression? exceptionSourceOpt, TypeSymbol? exceptionTypeOpt, BoundExpression? exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll)
         {
-            if (locals != this.Locals || exceptionSourceOpt != this.ExceptionSourceOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(exceptionTypeOpt, this.ExceptionTypeOpt) || exceptionFilterOpt != this.ExceptionFilterOpt || body != this.Body || isSynthesizedAsyncCatchAll != this.IsSynthesizedAsyncCatchAll)
+            if (locals != this.Locals || exceptionSourceOpt != this.ExceptionSourceOpt || !TypeSymbol.Equals(exceptionTypeOpt, this.ExceptionTypeOpt, TypeCompareKind.ConsiderEverything) || exceptionFilterOpt != this.ExceptionFilterOpt || body != this.Body || isSynthesizedAsyncCatchAll != this.IsSynthesizedAsyncCatchAll)
             {
                 var result = new BoundCatchBlock(this.Syntax, locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3501,7 +3501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLiteral Update(ConstantValue? constantValueOpt, TypeSymbol? type)
         {
-            if (constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLiteral(this.Syntax, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3536,7 +3536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundThisReference Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundThisReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3571,7 +3571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPreviousSubmissionReference Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPreviousSubmissionReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3606,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHostObjectMemberReference Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundHostObjectMemberReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3635,7 +3635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBaseReference Update(TypeSymbol? type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundBaseReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3688,7 +3688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocal Update(LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLocal(this.Syntax, localSymbol, declarationKind, constantValueOpt, isNullableUnknown, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3735,7 +3735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPseudoVariable Update(LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || emitExpressions != this.EmitExpressions || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || emitExpressions != this.EmitExpressions || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPseudoVariable(this.Syntax, localSymbol, emitExpressions, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3770,7 +3770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRangeVariable Update(RangeVariableSymbol rangeVariableSymbol, BoundExpression value, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(rangeVariableSymbol, this.RangeVariableSymbol) || value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(rangeVariableSymbol, this.RangeVariableSymbol) || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRangeVariable(this.Syntax, rangeVariableSymbol, value, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3811,7 +3811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundParameter Update(ParameterSymbol parameterSymbol, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(parameterSymbol, this.ParameterSymbol) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(parameterSymbol, this.ParameterSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundParameter(this.Syntax, parameterSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3951,7 +3951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLabel Update(LabelSymbol label, TypeSymbol? type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLabel(this.Syntax, label, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4122,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundUnconvertedSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
         {
-            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4155,7 +4155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConvertedSwitchExpression Update(TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(naturalTypeOpt, this.NaturalTypeOpt) || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4398,7 +4398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagTemp Update(TypeSymbol type, BoundDagEvaluation? source, int index)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type) || source != this.Source || index != this.Index)
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything) || source != this.Source || index != this.Index)
             {
                 var result = new BoundDagTemp(this.Syntax, type, source, index, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4427,7 +4427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagTypeTest Update(TypeSymbol type, BoundDagTemp input)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type) || input != this.Input)
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything) || input != this.Input)
             {
                 var result = new BoundDagTypeTest(this.Syntax, type, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4576,7 +4576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagTypeEvaluation Update(TypeSymbol type, BoundDagTemp input)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type) || input != this.Input)
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything) || input != this.Input)
             {
                 var result = new BoundDagTypeEvaluation(this.Syntax, type, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4780,7 +4780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSequencePointExpression Update(BoundExpression expression, TypeSymbol? type)
         {
-            if (expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSequencePointExpression(this.Syntax, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4819,7 +4819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type)
         {
-            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4858,7 +4858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSpillSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type)
         {
-            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSpillSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4902,7 +4902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
         {
-            if (receiver != this.Receiver || typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || invoked != this.Invoked || indexed != this.Indexed || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiver != this.Receiver || typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || invoked != this.Invoked || indexed != this.Indexed || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicMemberAccess(this.Syntax, receiver, typeArgumentsOpt, name, invoked, indexed, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4960,7 +4960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicInvocation Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicInvocation(this.Syntax, argumentNamesOpt, argumentRefKindsOpt, applicableMethods, expression, arguments, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4995,7 +4995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConditionalAccess Update(BoundExpression receiver, BoundExpression accessExpression, TypeSymbol type)
         {
-            if (receiver != this.Receiver || accessExpression != this.AccessExpression || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiver != this.Receiver || accessExpression != this.AccessExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConditionalAccess(this.Syntax, receiver, accessExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5039,7 +5039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLoweredConditionalAccess Update(BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, TypeSymbol type)
         {
-            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLoweredConditionalAccess(this.Syntax, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5078,7 +5078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConditionalReceiver Update(int id, TypeSymbol type)
         {
-            if (id != this.Id || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConditionalReceiver(this.Syntax, id, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5113,7 +5113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundComplexConditionalReceiver Update(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type)
         {
-            if (valueTypeReceiver != this.ValueTypeReceiver || referenceTypeReceiver != this.ReferenceTypeReceiver || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (valueTypeReceiver != this.ValueTypeReceiver || referenceTypeReceiver != this.ReferenceTypeReceiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundComplexConditionalReceiver(this.Syntax, valueTypeReceiver, referenceTypeReceiver, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5248,7 +5248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCall Update(BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder? binderOpt, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundCall(this.Syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, resultKind, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5292,7 +5292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundEventAssignmentOperator Update(EventSymbol @event, bool isAddition, bool isDynamic, BoundExpression? receiverOpt, BoundExpression argument, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(@event, this.Event) || isAddition != this.IsAddition || isDynamic != this.IsDynamic || receiverOpt != this.ReceiverOpt || argument != this.Argument || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(@event, this.Event) || isAddition != this.IsAddition || isDynamic != this.IsDynamic || receiverOpt != this.ReceiverOpt || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundEventAssignmentOperator(this.Syntax, @event, isAddition, isDynamic, receiverOpt, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5343,7 +5343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundExpression> namedArguments, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, namedArguments, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5403,7 +5403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue? constantValueOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, Binder? binderOpt, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectCreationExpression(this.Syntax, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, constantValueOpt, initializerExpressionOpt, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5451,7 +5451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
         {
-            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTupleLiteral(this.Syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5479,7 +5479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
         {
-            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5527,7 +5527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicObjectCreationExpression Update(string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
         {
-            if (name != this.Name || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (name != this.Name || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicObjectCreationExpression(this.Syntax, name, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerExpressionOpt, applicableMethods, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5560,7 +5560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNoPiaObjectCreationExpression Update(string? guidString, BoundObjectInitializerExpressionBase? initializerExpressionOpt, TypeSymbol type)
         {
-            if (guidString != this.GuidString || initializerExpressionOpt != this.InitializerExpressionOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (guidString != this.GuidString || initializerExpressionOpt != this.InitializerExpressionOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNoPiaObjectCreationExpression(this.Syntax, guidString, initializerExpressionOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5604,7 +5604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectInitializerExpression Update(ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
-            if (initializers != this.Initializers || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectInitializerExpression(this.Syntax, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5661,7 +5661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectInitializerMember Update(Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol receiverType, Binder? binderOpt, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(receiverType, this.ReceiverType) || binderOpt != this.BinderOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, receiverType, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5708,7 +5708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol receiverType, TypeSymbol type)
         {
-            if (memberName != this.MemberName || !SymbolEqualityComparer.ConsiderEverything.Equals(receiverType, this.ReceiverType) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (memberName != this.MemberName || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, receiverType, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5734,7 +5734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCollectionInitializerExpression Update(ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
-            if (initializers != this.Initializers || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundCollectionInitializerExpression(this.Syntax, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5788,7 +5788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder? binderOpt, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5821,7 +5821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicCollectionElementInitializer Update(ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
-            if (applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicCollectionElementInitializer(this.Syntax, applicableMethods, expression, arguments, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5856,7 +5856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundImplicitReceiver Update(TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundImplicitReceiver(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5895,7 +5895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAnonymousObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || arguments != this.Arguments || declarations != this.Declarations || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || arguments != this.Arguments || declarations != this.Declarations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAnonymousObjectCreationExpression(this.Syntax, constructor, arguments, declarations, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5936,7 +5936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAnonymousPropertyDeclaration Update(PropertySymbol property, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAnonymousPropertyDeclaration(this.Syntax, property, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5966,7 +5966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNewT Update(BoundObjectInitializerExpressionBase? initializerExpressionOpt, TypeSymbol type)
         {
-            if (initializerExpressionOpt != this.InitializerExpressionOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (initializerExpressionOpt != this.InitializerExpressionOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNewT(this.Syntax, initializerExpressionOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6003,7 +6003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDelegateCreationExpression Update(BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, TypeSymbol type)
         {
-            if (argument != this.Argument || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (argument != this.Argument || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDelegateCreationExpression(this.Syntax, argument, methodOpt, isExtensionMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6037,7 +6037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundArrayCreation Update(ImmutableArray<BoundExpression> bounds, BoundArrayInitialization? initializerOpt, TypeSymbol type)
         {
-            if (bounds != this.Bounds || initializerOpt != this.InitializerOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (bounds != this.Bounds || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArrayCreation(this.Syntax, bounds, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6114,7 +6114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(elementType, this.ElementType) || count != this.Count || initializerOpt != this.InitializerOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || count != this.Count || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6143,7 +6143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(elementType, this.ElementType) || count != this.Count || initializerOpt != this.InitializerOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || count != this.Count || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6190,7 +6190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFieldAccess Update(BoundExpression? receiverOpt, FieldSymbol fieldSymbol, ConstantValue? constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFieldAccess(this.Syntax, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, isDeclaration, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6231,7 +6231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHoistedFieldAccess Update(FieldSymbol fieldSymbol, TypeSymbol type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundHoistedFieldAccess(this.Syntax, fieldSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6269,7 +6269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPropertyAccess Update(BoundExpression? receiverOpt, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPropertyAccess(this.Syntax, receiverOpt, propertySymbol, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6310,7 +6310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundEventAccess Update(BoundExpression? receiverOpt, EventSymbol eventSymbol, bool isUsableAsField, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(eventSymbol, this.EventSymbol) || isUsableAsField != this.IsUsableAsField || resultKind != this.ResultKind || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(eventSymbol, this.EventSymbol) || isUsableAsField != this.IsUsableAsField || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundEventAccess(this.Syntax, receiverOpt, eventSymbol, isUsableAsField, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6366,7 +6366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder? binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, useSetterForDefaultArgumentGeneration, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6409,7 +6409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, Symbol patternSymbol, BoundExpression argument, TypeSymbol type)
         {
-            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(lengthOrCountProperty, this.LengthOrCountProperty) || !SymbolEqualityComparer.ConsiderEverything.Equals(patternSymbol, this.PatternSymbol) || argument != this.Argument || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(lengthOrCountProperty, this.LengthOrCountProperty) || !SymbolEqualityComparer.ConsiderEverything.Equals(patternSymbol, this.PatternSymbol) || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, receiver, lengthOrCountProperty, patternSymbol, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6453,7 +6453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDynamicIndexerAccess Update(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableIndexers != this.ApplicableIndexers || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (receiverOpt != this.ReceiverOpt || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableIndexers != this.ApplicableIndexers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDynamicIndexerAccess(this.Syntax, receiverOpt, arguments, argumentNamesOpt, argumentRefKindsOpt, applicableIndexers, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6499,7 +6499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda Update(UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol? type)
         {
-            if (unboundLambda != this.UnboundLambda || !SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (unboundLambda != this.UnboundLambda || !SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLambda(this.Syntax, unboundLambda, symbol, body, diagnostics, binder, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6576,7 +6576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol? definedSymbol, Binder binder, TypeSymbol type)
         {
-            if (value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || binder != this.Binder || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundQueryClause(this.Syntax, value, definedSymbol, binder, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6636,7 +6636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNameOfOperator Update(BoundExpression argument, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (argument != this.Argument || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (argument != this.Argument || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNameOfOperator(this.Syntax, argument, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6664,7 +6664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundInterpolatedString Update(ImmutableArray<BoundExpression> parts, TypeSymbol? type)
         {
-            if (parts != this.Parts || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (parts != this.Parts || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundInterpolatedString(this.Syntax, parts, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6698,7 +6698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStringInsert Update(BoundExpression value, BoundExpression? alignment, BoundLiteral? format, TypeSymbol? type)
         {
-            if (value != this.Value || alignment != this.Alignment || format != this.Format || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (value != this.Value || alignment != this.Alignment || format != this.Format || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundStringInsert(this.Syntax, value, alignment, format, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6742,7 +6742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIsPatternExpression Update(BoundExpression expression, BoundPattern pattern, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type)
         {
-            if (expression != this.Expression || pattern != this.Pattern || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || pattern != this.Pattern || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIsPatternExpression(this.Syntax, expression, pattern, decisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6799,7 +6799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue, TypeSymbol inputType)
         {
-            if (value != this.Value || constantValue != this.ConstantValue || !SymbolEqualityComparer.ConsiderEverything.Equals(inputType, this.InputType))
+            if (value != this.Value || constantValue != this.ConstantValue || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundConstantPattern(this.Syntax, value, constantValue, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6832,7 +6832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDiscardPattern Update(TypeSymbol inputType)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(inputType, this.InputType))
+            if (!TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDiscardPattern(this.Syntax, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6869,7 +6869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !SymbolEqualityComparer.ConsiderEverything.Equals(inputType, this.InputType))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDeclarationPattern(this.Syntax, variable, variableAccess, declaredType, isVar, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6912,7 +6912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRecursivePattern Update(BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || !SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !SymbolEqualityComparer.ConsiderEverything.Equals(inputType, this.InputType))
+            if (declaredType != this.DeclaredType || !SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6949,7 +6949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> subpatterns, TypeSymbol inputType)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(getLengthMethod, this.GetLengthMethod) || !SymbolEqualityComparer.ConsiderEverything.Equals(getItemMethod, this.GetItemMethod) || subpatterns != this.Subpatterns || !SymbolEqualityComparer.ConsiderEverything.Equals(inputType, this.InputType))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(getLengthMethod, this.GetLengthMethod) || !SymbolEqualityComparer.ConsiderEverything.Equals(getItemMethod, this.GetItemMethod) || subpatterns != this.Subpatterns || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundITuplePattern(this.Syntax, getLengthMethod, getItemMethod, subpatterns, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7009,7 +7009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDiscardExpression Update(TypeSymbol? type)
         {
-            if (!SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDiscardExpression(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7037,7 +7037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundThrowExpression Update(BoundExpression expression, TypeSymbol? type)
         {
-            if (expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundThrowExpression(this.Syntax, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7231,7 +7231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpressionWithNullability Update(BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type)
         {
-            if (expression != this.Expression || nullableAnnotation != this.NullableAnnotation || !SymbolEqualityComparer.ConsiderEverything.Equals(type, this.Type))
+            if (expression != this.Expression || nullableAnnotation != this.NullableAnnotation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundExpressionWithNullability(this.Syntax, expression, nullableAnnotation, type, this.HasErrors);
                 result.CopyAttributes(this);

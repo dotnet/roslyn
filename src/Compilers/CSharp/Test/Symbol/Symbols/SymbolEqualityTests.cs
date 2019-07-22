@@ -192,6 +192,39 @@ public class B
         }
 
         [Fact]
+        public void Internal_Symbol_Equality_With_Null()
+        {
+            var source =
+@"
+#nullable enable
+public class A<T>
+{
+    public static A<object?> field1;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var symbol1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            ISymbol symbol2 = null;
+            ISymbol symbol3 = null;
+
+            Assert.False(SymbolEqualityComparer.Default.Equals(symbol1, symbol2));
+            Assert.False(SymbolEqualityComparer.Default.Equals(symbol2, symbol1));
+            Assert.NotEqual(SymbolEqualityComparer.Default.GetHashCode(symbol1), SymbolEqualityComparer.Default.GetHashCode(symbol2));
+            Assert.False(SymbolEqualityComparer.ConsiderEverything.Equals(symbol1, symbol2));
+            Assert.False(SymbolEqualityComparer.ConsiderEverything.Equals(symbol2, symbol1));
+            Assert.NotEqual(SymbolEqualityComparer.ConsiderEverything.GetHashCode(symbol1), SymbolEqualityComparer.ConsiderEverything.GetHashCode(symbol2));
+
+            Assert.True(SymbolEqualityComparer.Default.Equals(symbol2, symbol3));
+            Assert.True(SymbolEqualityComparer.Default.Equals(symbol3, symbol2));
+            Assert.Equal(SymbolEqualityComparer.Default.GetHashCode(symbol2), SymbolEqualityComparer.Default.GetHashCode(symbol3));
+            Assert.True(SymbolEqualityComparer.ConsiderEverything.Equals(symbol2, symbol3));
+            Assert.True(SymbolEqualityComparer.ConsiderEverything.Equals(symbol3, symbol2));
+            Assert.Equal(SymbolEqualityComparer.ConsiderEverything.GetHashCode(symbol2), SymbolEqualityComparer.ConsiderEverything.GetHashCode(symbol3));
+        }
+
+        [Fact]
         public void SemanticModel_Symbol_Equality()
         {
             var source =
@@ -412,6 +445,11 @@ public class A
             Assert.Equal(true, type2.Equals(type2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal(expectedIncludeNullability, type1.Equals(type2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal(expectedIncludeNullability, type2.Equals(type1, SymbolEqualityComparer.IncludeNullability));
+
+            // GetHashCode
+            Assert.Equal(type1.GetHashCode(), type2.GetHashCode());
+            Assert.Equal(SymbolEqualityComparer.Default.GetHashCode(type1), SymbolEqualityComparer.Default.GetHashCode(type2));
+            Assert.Equal(SymbolEqualityComparer.IncludeNullability.GetHashCode(type1), SymbolEqualityComparer.IncludeNullability.GetHashCode(type2));
         }
     }
 

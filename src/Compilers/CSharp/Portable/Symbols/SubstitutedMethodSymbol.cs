@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SymbolEqualityComparer.Default.Equals(this, obj as SubstitutedMethodSymbol);
         }
 
-        public override bool Equals(ISymbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
             if ((object)other == null) return false;
