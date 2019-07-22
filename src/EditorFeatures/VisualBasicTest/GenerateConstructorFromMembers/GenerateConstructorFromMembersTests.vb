@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
@@ -358,6 +359,34 @@ End Class",
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog1WithNullCheck() As Task
+            Dim options = New Dictionary(Of OptionKey, Object)
+            options(New OptionKey(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
+
+            Dim parameters = New TestParameters()
+            parameters = parameters.WithOptions(options)
+
+            Await TestWithPickMembersDialogAsync(
+"Class Program
+    Private s As String
+    [||]
+End Class",
+"Imports System
+
+Class Program
+    Private s As String
+
+    Public Sub New(s As String{|Navigation:)|}
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
+
+        Me.s = s
+    End Sub
+End Class", chosenSymbols:={"s"}, parameters:=parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
