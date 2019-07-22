@@ -53,10 +53,22 @@ namespace Templates.EditorConfig.FileGenerator
                 selectedItem = selItem.Object;
                 if (selItem.Object is ProjectItem item && item.Properties != null)
                 {
-                    return (selectedItem != null, item.Properties.Item("FullPath").Value.ToString(), false, selectedItem);
+                    if (item.Kind.Equals(Constants.vsProjectItemKindPhysicalFolder, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // The selected item is a folder; add the .editorconfig file to the folder.
+                        var directoryPath = item.Properties.Item("FullPath").Value.ToString();
+                        return (selectedItem != null, directoryPath, false, selectedItem);
+                    }
+                    else if (item.Kind.Equals(Constants.vsProjectItemKindPhysicalFile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // The selected item is a file; add the .editorconfig file to the same folder.
+                        var directoryPath = Path.GetDirectoryName(item.Properties.Item("FullPath").Value.ToString());
+                        return (selectedItem != null, directoryPath, false, selectedItem);
+                    }
                 }
                 else if (selItem.Object is Project proj && proj.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}") // solution folder
                 {
+                    // The selected item is a project; add the .editorconfig to the project's root.
                     (bool success, string rootFolder) = proj.TryGetRootFolder(_dte.Solution.FullName);
                     return (success && selectedItem != null, rootFolder, true, selectedItem);
                 }
