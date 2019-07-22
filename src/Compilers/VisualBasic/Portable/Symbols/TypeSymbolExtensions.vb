@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If compareKind = TypeCompareKind.ConsiderEverything Then
-                Return t1.Equals(DirectCast(t2, Object))
+                Return t1.Equals(t2)
             End If
 
             Dim kind = t1.Kind
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return t1.ContainingType.IsSameType(t2.ContainingType, compareKind)
             End If
 
-            Return t1.Equals(DirectCast(t2, Object))
+            Return t1.Equals(t2)
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean

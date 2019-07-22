@@ -775,7 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' By default we don't consider the compareKind. This can be overridden.
         Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
-            Return Me.Equals(DirectCast(other, Object))
+            Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
