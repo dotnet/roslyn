@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             var compilation = (CSharpCompilation)_semanticModel.Compilation;
             ITypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-
+            var paramReference = new ParameterReferenceOperation(parameter, _semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
             IOperation conditionOp;
             if (parameter.Type.IsNullableType())
             {
@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     UnaryOperatorKind.Not,
                     new InvocationOperation(
                         targetMethod: ((IMethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue)).Construct(parameter.Type),
-                        instance: new ParameterReferenceOperation(parameter, _semanticModel, syntax, parameter.Type, constantValue, isImplicit: true),
+                        instance: paramReference,
                         isVirtual: false,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         _semanticModel,
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 conditionOp = new BinaryOperation(
                     BinaryOperatorKind.Equals,
-                    new ParameterReferenceOperation(parameter, _semanticModel, syntax, parameter.Type, constantValue, isImplicit: true),
+                    paramReference,
                     new LiteralOperation(_semanticModel, syntax, parameter.Type, ConstantValue.Null, isImplicit: true),
                     isLifted: false,
                     isChecked: false,
