@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
-        private readonly ConcurrentDictionary<LocalSymbol, LocalSymbol> _analyzedVariableTypesOpt = new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
+        private readonly ConcurrentDictionary<LocalSymbol, LocalSymbol> _analyzedVariableTypesOpt;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
         /// <summary>
         /// Only used when this is a speculative semantic model.
@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
+
+            if (Compilation.NullableSemanticAnalysisEnabled)
+            {
+                _analyzedVariableTypesOpt = new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
+            }
         }
 
         public override CSharpCompilation Compilation
@@ -1964,6 +1969,9 @@ done:
             }
         }
 
+        /// <summary>
+        /// Rewrites the given bound node with nullability information, and returns snapshots for later speculative analysis at positions inside this member.
+        /// </summary>
         protected abstract BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool takeSnapshots, out NullableWalker.SnapshotManager snapshotManager);
 
         /// <summary>

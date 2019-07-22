@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal ImmutableDictionary<Symbol, TypeWithAnnotations> GetVariableTypesForPosition(int position)
             {
                 var snapshot = GetSnapshotForPosition(position);
-                var globalState = _walkerSharedStates[snapshot.SharedStateIndex];
-                return globalState.VariableTypes;
+                var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
+                return sharedState.VariableTypes;
             }
 
             private Snapshot GetSnapshotForPosition(int position)

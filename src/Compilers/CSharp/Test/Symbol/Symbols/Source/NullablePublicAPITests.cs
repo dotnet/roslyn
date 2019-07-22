@@ -982,10 +982,7 @@ class C
             void verifyCompilation(CSharpCompilation compilation)
             {
                 var members = memberFunc(compilation);
-                for (int i = 0; i < expectedNullabilities.Length; i++)
-                {
-                    Assert.Equal(expectedNullabilities[i], nullabilityFunc(members[i]));
-                }
+                AssertEx.Equal(expectedNullabilities, members.Select(nullabilityFunc));
             }
         }
 
