@@ -761,11 +761,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
-        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+        Private Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
             Return Me.[Equals](other, SymbolEqualityComparer.Default.CompareKind)
         End Function
 
-        Public Overloads Function Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+        Private Overloads Function Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
             Return equalityComparer.Equals(Me, other)
         End Function
 

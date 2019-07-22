@@ -599,12 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)this == obj;
         }
 
-        public bool Equals(ISymbol other)
+        bool IEquatable<ISymbol>.Equals(ISymbol other)
         {
             return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
         {
             return equalityComparer.Equals(this, other);
         }
