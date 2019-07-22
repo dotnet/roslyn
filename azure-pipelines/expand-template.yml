@@ -10,6 +10,19 @@ steps:
   displayName: Expanding template
   failOnStderr: true
 # TODO: Verify that all changes are staged to the git index
+
+- powershell: .\init.ps1
+  displayName: Install prereqs and restore packages
+
+- task: VSBuild@1
+  displayName: Build Visual Studio solution (expanded template)
+  inputs:
+    msbuildArgs: /t:build,pack /m
+    platform: Any CPU
+    configuration: $(BuildConfiguration)
+  condition: eq(variables['Agent.OS'], 'Windows_NT')
+
 - script: dotnet build
-  workingDirectory: src
   displayName: dotnet build (expanded template)
+  workingDirectory: src
+  condition: ne(variables['Agent.OS'], 'Windows_NT')
