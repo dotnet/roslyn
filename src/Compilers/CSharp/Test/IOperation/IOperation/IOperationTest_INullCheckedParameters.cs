@@ -3249,5 +3249,67 @@ class Program
         Predecessors: [B1]
         Statements (0)");
         }
+
+        [Fact]
+        public void TestNullCheckedLocalFunctionWithMissingType()
+        {
+            var source =
+@"
+class Program
+{
+    public static void Main()
+    {
+        M(""ok"");
+        void M(string x!) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
+            comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            comp.VerifyDiagnostics(
+                    // (7,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    //         void M(string x!) { }
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 23));
+            var tree = comp.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var node2 = (IMethodBodyOperation)comp.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
+            comp.VerifyOperationTree(node1, expectedOperationTree: @"
+    ILocalFunctionOperation (Symbol: void M(System.String x)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void M(string x!) { }')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException[missing], IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                  IInvalidOperation (OperationKind.Invalid, Type: System.ArgumentNullException[missing], IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                    Children(1):
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+          WhenFalse: 
+            null
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue: 
+            null");
+            var graph = ControlFlowGraph.Create(node2);
+            Assert.NotNull(graph);
+            Assert.Null(graph.Parent);
+
+            var localFunc = graph.LocalFunctions.Single();
+            Assert.NotNull(localFunc);
+            Assert.Equal("M", localFunc.Name);
+
+            var graph_InnerM_FromExtension = graph.GetLocalFunctionControlFlowGraphInScope(localFunc);
+            Assert.NotNull(graph_InnerM_FromExtension);
+            Assert.Same(graph, graph_InnerM_FromExtension.Parent);
+
+            var graph_InnerM = graph.GetLocalFunctionControlFlowGraph(localFunc);
+            Assert.NotNull(graph_InnerM);
+            Assert.Same(graph_InnerM_FromExtension, graph_InnerM);
+        }
     }
 }
