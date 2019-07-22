@@ -116,9 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
 
             // class C {
-            //   public |
-
-            // class C {
             //   [Goo]
             //   |
 
@@ -129,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // previous token.
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+            // class C {
+            //   |
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
                 if (token.Parent is BaseTypeDeclarationSyntax)
@@ -220,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
+
             if (!validTypeDeclarations.Contains(typeDecl.Kind()))
             {
                 return false;
             }
-
-            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             // Check many of the simple cases first.
             var leftToken = contextOpt != null
@@ -368,9 +367,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // class C {
             //   int i;
             //   |
-
-            // class C {
-            //   public |
 
             // class C {
             //   [Goo]
