@@ -1455,7 +1455,8 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                conditionOp = new BinaryOperation(BinaryOperatorKind.Equals,
+                conditionOp = new BinaryOperation(
+                    BinaryOperatorKind.Equals,
                     new ParameterReferenceOperation(parameter, _semanticModel, syntax, parameter.Type, constantValue, isImplicit: true),
                     new LiteralOperation(_semanticModel, syntax, parameter.Type, ConstantValue.Null, isImplicit: true),
                     isLifted: false,
