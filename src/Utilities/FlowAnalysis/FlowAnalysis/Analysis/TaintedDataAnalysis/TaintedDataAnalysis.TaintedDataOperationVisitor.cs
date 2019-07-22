@@ -240,32 +240,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         out evaluateWithValueContentAnalysis))
                     {
                         ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
-                        if (evaluateWithPointsToAnalysis != null)
+                        IEnumerable<PointsToAbstractValue> pointsToAnalysisResult = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
+                        IEnumerable<ValueContentAbstractValue> valueContentAnalysisResult = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
+                        if ((evaluateWithPointsToAnalysis != null && evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResult)))
+                            || (evaluateWithValueContentAnalysis != null && evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResult, valueContentAnalysisResult))))
                         {
-                            IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                            if (pointsToAnalysisResultOpt == null
-                                || !evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResultOpt)))
-                            {
-                                return TaintedDataAbstractValue.NotTainted;
-                            }
-                        }
-                        else if (evaluateWithValueContentAnalysis != null)
-                        {
-                            IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                            IEnumerable<ValueContentAbstractValue> valueContentAnalysisResultOpt = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
-                            if (valueContentAnalysisResultOpt == null
-                                || pointsToAnalysisResultOpt == null
-                                || !evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
-                            {
-                                return TaintedDataAbstractValue.NotTainted;
-                            }
-                        }
-                        else
-                        {
-                            return TaintedDataAbstractValue.NotTainted;
+                            return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                         }
 
-                        return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                        return TaintedDataAbstractValue.NotTainted;
                     }
                     else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                     {
