@@ -872,21 +872,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateBody()
         {
-            if (_prependedNullChecks.IsDefaultOrEmpty)
-            {
-                return (IBlockOperation)_operationFactory.Create(_body);
-            }
-            var bodyBlock = (_body as BoundBlock);
-            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(bodyBlock.Statements)
-                                               .InsertRange(0, _prependedNullChecks);
-            return new BlockOperation(
-                constructed,
-                bodyBlock.Locals.CastArray<ILocalSymbol>(),
-                this.OwningSemanticModel,
-                this.Syntax,
-                this.Type,
-                this.ConstantValue,
-                isImplicit: true);
+            return CSharpOperationFactory.Helper.CreateNullCheckedIOperationBody(_operationFactory, _body as BoundBlock, _prependedNullChecks, this);
         }
     }
 
@@ -1498,20 +1484,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateBody()
         {
-            if (_prependedNullChecks.IsDefaultOrEmpty)
-            {
-                return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
-            }
-
-            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements).InsertRange(0, _prependedNullChecks);
-            return new BlockOperation(
-                constructed,
-                _localFunctionStatement.Body.Locals.CastArray<ILocalSymbol>(),
-                this.OwningSemanticModel,
-                this.Syntax,
-                this.Type,
-                this.ConstantValue,
-                isImplicit: true);
+            return CSharpOperationFactory.Helper.CreateNullCheckedIOperationBody(_operationFactory, _localFunctionStatement.Body, _prependedNullChecks, this);
         }
 
         protected override IBlockOperation CreateIgnoredBody()

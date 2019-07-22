@@ -1506,7 +1506,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 constantValue,
                 isImplicit: true);
             return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, _semanticModel, syntax, boolType, constantValue, isImplicit: true);
-
         }
 
         private ImmutableArray<ConditionalOperation> GenerateNullChecksForParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax)
