@@ -1427,6 +1427,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Optional<object> constantValue = default(Optional<object>);
             var compilation = (CSharpCompilation)_semanticModel.Compilation;
+            ITypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+
             IOperation conditionOp;
             if (parameter.Type.IsNullableType())
             {
@@ -1439,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         _semanticModel,
                         syntax,
-                        compilation.GetSpecialType(SpecialType.System_Boolean),
+                        boolType,
                         constantValue,
                         isImplicit: true),
                     isLifted: false,
@@ -1447,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     operatorMethod: null,
                     _semanticModel,
                     syntax,
-                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    boolType,
                     constantValue,
                     isImplicit: true);
             }
@@ -1463,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     unaryOperatorMethod: null,
                     _semanticModel,
                     syntax,
-                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    boolType,
                     constantValue,
                     isImplicit: true);
             }
@@ -1502,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 compilation.GetSpecialType(SpecialType.System_Void),
                 constantValue,
                 isImplicit: true);
-            return new ConditionalOperation(conditionOp, whenTrue, null, isRef: false, _semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_Boolean), constantValue, isImplicit: true);
+            return new ConditionalOperation(conditionOp, whenTrue, null, isRef: false, _semanticModel, syntax, boolType, constantValue, isImplicit: true);
 
         }
 
