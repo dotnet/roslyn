@@ -464,5 +464,67 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithChar() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim world = ""world""
+        Dim str = hello [||]& "" ""c & world
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim world = ""world""
+        Dim str = $""{hello} {world}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithCharAfterStringLiteral() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim world = ""world""
+        Dim str = ""hello"" [||]& "" ""c & world
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim world = ""world""
+        Dim str = $""hello {world}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithCharBeforeStringLiteral() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim str = hello [||]& "" ""c & ""world""
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim str = $""{hello} world""
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
