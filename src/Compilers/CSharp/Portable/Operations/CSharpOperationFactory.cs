@@ -1505,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 compilation.GetSpecialType(SpecialType.System_Void),
                 constantValue,
                 isImplicit: true);
-            return new ConditionalOperation(conditionOp, whenTrue, null, isRef: false, _semanticModel, syntax, boolType, constantValue, isImplicit: true);
+            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, _semanticModel, syntax, boolType, constantValue, isImplicit: true);
 
         }
 
