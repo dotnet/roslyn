@@ -98,10 +98,6 @@ try {
     dotnet remove "$LibraryName.Tests" reference Library/Library.csproj
     git add "$LibraryName.Tests/$LibraryName.Tests.csproj"
 
-    # Establish a new strong-name key
-    & $sn.Path -k 2048 strongname.snk
-    git add strongname.snk
-
     Set-Location ..
 
     # Replace placeholders in source files
