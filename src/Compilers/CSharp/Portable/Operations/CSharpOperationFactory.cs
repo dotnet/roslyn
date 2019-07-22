@@ -874,8 +874,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             bool isImplicit = boundLambda.WasCompilerGenerated;
-            ImmutableArray<ConditionalOperation> nullChecksToPrepend = GenerateNullChecksForParameters(boundLambda.Symbol.Parameters, syntax);
-            return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, nullChecksToPrepend, constantValue, isImplicit);
+            ImmutableArray<ConditionalOperation> prependedNullChecks = GenerateNullChecksForParameters(boundLambda.Symbol.Parameters, syntax);
+            return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, prependedNullChecks, constantValue, isImplicit);
         }
 
         private ILocalFunctionOperation CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
@@ -886,8 +886,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
 
-            ImmutableArray<ConditionalOperation> nullChecksToPrepend = GenerateNullChecksForParameters(boundLocalFunctionStatement.Symbol.Parameters, syntax);
-            return new CSharpLazyLocalFunctionOperation(this, boundLocalFunctionStatement, symbol, _semanticModel, syntax, type, nullChecksToPrepend, constantValue, isImplicit);
+            ImmutableArray<ConditionalOperation> prependedNullChecks = GenerateNullChecksForParameters(boundLocalFunctionStatement.Symbol.Parameters, syntax);
+            return new CSharpLazyLocalFunctionOperation(this, boundLocalFunctionStatement, symbol, _semanticModel, syntax, type, prependedNullChecks, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
@@ -1416,11 +1416,11 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            var nullChecksToPrepend =
+            var prependedNullChecks =
                 (_semanticModel is MemberSemanticModel memberModel && memberModel.Root.Parent?.DescendantNodes().Contains(syntax) == true) ?
                 GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax) :
                 ImmutableArray<ConditionalOperation>.Empty;
-            return new CSharpLazyBlockOperation(this, boundBlock, locals, nullChecksToPrepend, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyBlockOperation(this, boundBlock, locals, prependedNullChecks, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ConditionalOperation GenerateNullCheckForParameter(ParameterSymbol parameter, SyntaxNode syntax)

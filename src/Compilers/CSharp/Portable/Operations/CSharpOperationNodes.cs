@@ -860,25 +860,25 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _body;
-        private readonly ImmutableArray<ConditionalOperation> _nullChecksToPrepend;
+        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
         internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _body = body;
-            _nullChecksToPrepend = nullChecksToPrepend;
+            _prependedNullChecks = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            if (_nullChecksToPrepend.IsDefaultOrEmpty)
+            if (_prependedNullChecks.IsDefaultOrEmpty)
             {
                 return (IBlockOperation)_operationFactory.Create(_body);
             }
             var bodyBlock = (_body as BoundBlock);
             var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(bodyBlock.Statements)
-                                               .InsertRange(0, _nullChecksToPrepend);
+                                               .InsertRange(0, _prependedNullChecks);
             return new BlockOperation(
                 constructed,
                 bodyBlock.Locals.CastArray<ILocalSymbol>(),
@@ -1486,24 +1486,24 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundLocalFunctionStatement _localFunctionStatement;
-        private readonly ImmutableArray<ConditionalOperation> _nullChecksToPrepend;
+        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
         internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _localFunctionStatement = localFunctionStatement;
-            _nullChecksToPrepend = nullChecksToPrepend;
+            _prependedNullChecks = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            if (_nullChecksToPrepend.IsDefaultOrEmpty)
+            if (_prependedNullChecks.IsDefaultOrEmpty)
             {
                 return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
             }
 
-            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements).InsertRange(0, _nullChecksToPrepend);
+            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements).InsertRange(0, _prependedNullChecks);
             return new BlockOperation(
                 constructed,
                 _localFunctionStatement.Body.Locals.CastArray<ILocalSymbol>(),
