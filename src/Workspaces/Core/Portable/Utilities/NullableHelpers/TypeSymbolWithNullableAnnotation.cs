@@ -24,14 +24,9 @@ namespace Microsoft.CodeAnalysis
                 Nullability = nullability;
             }
 
-            public bool Equals(ISymbol other)
+            bool IEquatable<ISymbol>.Equals(ISymbol other)
             {
-                var t2 = other as ITypeSymbol;
-                if (t2 is null)
-                {
-                    return false;
-                }
-                return this.Equals(t2, SymbolEqualityComparer.Default);
+                return Equals(other, SymbolEqualityComparer.Default);
             }
 
             public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)

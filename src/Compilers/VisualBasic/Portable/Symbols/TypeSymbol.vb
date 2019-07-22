@@ -336,14 +336,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return left.IsSameType(right, comparison)
         End Function
 
-        Public Overloads Function Equals(other As ISymbol, comparison As TypeCompareKind) As Boolean
-            Dim typeSymbol As TypeSymbol = TryCast(other, TypeSymbol)
-            If typeSymbol Is Nothing Then
-                Return False
-            End If
-            Return Equals(Me, typeSymbol, comparison)
-        End Function
-
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
         ''' compared case-sensitively.
