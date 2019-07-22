@@ -324,6 +324,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
         public const string MicrosoftAspNetCoreMvcHttpDeleteAttribute = "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpPatchAttribute = "Microsoft.AspNetCore.Mvc.HttpPatchAttribute";
         public const string MicrosoftAspNetCoreMvcFiltersIFilterMetadata = "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata";
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
