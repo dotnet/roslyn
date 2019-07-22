@@ -47,8 +47,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public voi
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -122,8 +121,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public voi
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                        Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -197,8 +195,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public voi
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -275,8 +272,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public sta
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 2;')
@@ -355,8 +351,7 @@ public class C
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '=> null')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'null')
@@ -453,8 +448,7 @@ public class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'items[0] = value;')
@@ -564,8 +558,7 @@ public class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
       ExpressionBody: 
@@ -628,22 +621,21 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'internal o
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
             Left: 
-                IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
+              IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
             Right: 
-                ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
+              ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
         WhenTrue: 
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ }')
             Expression: 
               IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
                 IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                    Arguments(1):
+                  Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ }')
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""u"", IsImplicit) (Syntax: '{ }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -706,22 +698,21 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'internal o
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
             Left: 
-                IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
+              IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
             Right: 
-                ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
+              ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
         WhenTrue: 
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ }')
             Expression: 
               IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
                 IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                    Arguments(1):
+                  Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ }')
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""u"", IsImplicit) (Syntax: '{ }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -787,22 +778,21 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'internal o
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
             Left: 
-                IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
+              IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsImplicit) (Syntax: '{ }')
             Right: 
-                ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
+              ILiteralOperation (OperationKind.Literal, Type: U, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
         WhenTrue: 
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ }')
             Expression: 
               IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
                 IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                    Arguments(1):
+                  Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ }')
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""u"", IsImplicit) (Syntax: '{ }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -875,8 +865,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'void M<T>(
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -964,14 +953,12 @@ class C
                                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             Initializer: 
-                                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
-                                                Initializers(0)
+                                              null
                                   WhenFalse: 
                                     null
-                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-                                    ReturnedValue: 
-                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                  ReturnedValue: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
               Initializer: 
                 null
       ExpressionBody: 
@@ -1057,48 +1044,46 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
-      BlockBody: 
-        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-          Locals: Local_1: System.Func<System.String, System.String, System.String> func1
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... !, y) => x;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... x!, y) => x')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = (x!, y) => x')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x!, y) => x')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!, y) => x')
-                          Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(x!, y) => x')
-                              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
-                                IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y) => x')
-                                  Condition: 
-                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y) => x')
-                                      Left: 
-                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '(x!, y) => x')
-                                      Right: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '(x!, y) => x')
-                                  WhenTrue: 
-                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '(x!, y) => x')
-                                      Expression: 
-                                        IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
-                                          IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
-                                            Arguments(1):
-                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
-                                                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '(x!, y) => x')
-                                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Initializer: 
-                                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
-                                                Initializers(0)
-                                  WhenFalse: 
-                                    null
-                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-                                    ReturnedValue: 
-                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-              Initializer: 
-                null
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: System.Func<System.String, System.String, System.String> func1
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... !, y) => x;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... x!, y) => x')
+          Declarators:
+            IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = (x!, y) => x')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x!, y) => x')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!, y) => x')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(x!, y) => x')
+                          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
+                            IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y) => x')
+                              Condition: 
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y) => x')
+                                   Left: 
+                                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '(x!, y) => x')
+                                   Right: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '(x!, y) => x')
+                                WhenTrue: 
+                                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '(x!, y) => x')
+                                    Expression: 
+                                      IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
+                                        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
+                                          Arguments(1):
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '(x!, y) => x')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          Initializer: 
+                                            null
+                                WhenFalse: 
+                                  null
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                ReturnedValue: 
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+            Initializer: 
+              null
       ExpressionBody: 
         null");
 
@@ -1214,8 +1199,7 @@ class C
                                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             Initializer: 
-                                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y!) => x')
-                                                Initializers(0)
+                                              null
                                   WhenFalse: 
                                     null
                                 IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y!) => x')
@@ -1236,14 +1220,12 @@ class C
                                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             Initializer: 
-                                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y!) => x')
-                                                Initializers(0)
+                                              null
                                   WhenFalse: 
                                     null
-                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-                                    ReturnedValue: 
-                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                  ReturnedValue: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
               Initializer: 
                 null
       ExpressionBody: 
@@ -1351,53 +1333,51 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
-      BlockBody: 
-        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-          Locals: Local_1: System.Func<System.String, System.String> func1
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... _! => null;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ...  _! => null')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = _! => null')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= _! => null')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_! => null')
-                          Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '_! => null')
-                              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '_! => null')
-                                IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '_! => null')
-                                  Condition: 
-                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '_! => null')
-                                      Left: 
-                                        IParameterReferenceOperation: _ (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '_! => null')
-                                      Right: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '_! => null')
-                                  WhenTrue: 
-                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '_! => null')
-                                      Expression: 
-                                        IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
-                                          IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
-                                            Arguments(1):
-                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '_! => null')
-                                                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""_"", IsImplicit) (Syntax: '_! => null')
-                                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Initializer: 
-                                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
-                                                Initializers(0)
-                                  WhenFalse: 
-                                    null
-                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'null')
-                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'null')
-                                    ReturnedValue: 
-                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
-                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                        Operand: 
-                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-              Initializer: 
-                null
-      ExpressionBody: 
-        null");
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: System.Func<System.String, System.String> func1
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... _! => null;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ...  _! => null')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = _! => null')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= _! => null')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_! => null')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '_! => null')
+                          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '_! => null')
+                            IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '_! => null')
+                              Condition: 
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '_! => null')
+                                  Left: 
+                                    IParameterReferenceOperation: _ (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '_! => null')
+                                  Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '_! => null')
+                              WhenTrue: 
+                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '_! => null')
+                                  Expression: 
+                                    IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
+                                      IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
+                                        Arguments(1):
+                                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '_! => null')
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""_"", IsImplicit) (Syntax: '_! => null')
+                                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        Initializer: 
+                                          null
+                              WhenFalse: 
+                                null
+                            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'null')
+                              ReturnedValue: 
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand: 
+                                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          Initializer: 
+            null
+  ExpressionBody: 
+    null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -1503,8 +1483,7 @@ class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '=> s2! => s2 + s1')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
           IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2! => s2 + s1')
@@ -1531,18 +1510,16 @@ class C
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Initializer: 
-                                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 's2! => s2 + s1')
-                                      Initializers(0)
+                                    null
                         WhenFalse: 
                           null
-                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's2 + s1')
-                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2 + s1')
-                          ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 's2 + s1')
-                              Left: 
-                                IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's2')
-                              Right: 
-                                IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's1')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2 + s1')
+                        ReturnedValue: 
+                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 's2 + s1')
+                            Left: 
+                              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's2')
+                            Right: 
+                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's1')
 ");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
@@ -1662,14 +1639,12 @@ class C
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Initializer: 
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
-                        Initializers(0)
+                      null
           WhenFalse: 
             null
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-            ReturnedValue: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')");
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+         ReturnedValue: 
+           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')");
 
             VerifyFlowGraph(compilation, node2, expectedFlowGraph: @"
     Block[B0] - Entry
@@ -1748,36 +1723,32 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = (IMethodBodyOperation)compilation.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
-      Body: 
-        IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Left: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
-            ReturnedValue: 
-              null
-      IgnoredBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')");
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+          WhenFalse: 
+            null
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue: 
+            null");
 
             var graph = ControlFlowGraph.Create(node2);
             Assert.NotNull(graph);
@@ -1817,35 +1788,31 @@ class C
             var node2 = (IMethodBodyOperation)compilation.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
     ILocalFunctionOperation (Symbol: void InnerM(System.String x, System.String y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ring y) { }')
-      Body: 
-        IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                Left: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
-            ReturnedValue: 
-              null
-      IgnoredBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')");
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+                  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ring y) { }')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+          WhenFalse: 
+            null
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue: 
+            null");
 
             var graph = ControlFlowGraph.Create(node2);
             Assert.NotNull(graph);
@@ -1884,58 +1851,53 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = (IMethodBodyOperation)compilation.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-ILocalFunctionOperation (Symbol: void InnerM(System.String x, System.String y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing y!) { }')
-      Body: 
-        IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Left: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Left: 
-                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
-            ReturnedValue: 
-              null
-      IgnoredBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')");
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x, System.String y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing y!) { }')
+      IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+          WhenFalse: 
+            null
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Left: 
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+          WhenFalse: 
+            null
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue: 
+            null");
 
             var graph = ControlFlowGraph.Create(node2);
             Assert.NotNull(graph);
@@ -1974,73 +1936,19 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
 IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
-      BlockBody: 
-        IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-                Left: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ ... }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '{ ... }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'InnerM(""hello"");')
+  BlockBody: 
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+        Condition: 
+          IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+            Left: 
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+        WhenTrue: 
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ ... }')
             Expression: 
-              IInvocationOperation (void InnerM(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'InnerM(""hello"")')
-                Instance Receiver: 
-                  null
-                Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '""hello""')
-                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ring x) { }')
-            Body: 
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring x) { }')
-                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
-                  ReturnedValue: 
-                    null
-            IgnoredBody: 
-              IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ring x) { }')
-      ExpressionBody: 
-        null");
-
-            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-            Entering: {R1}
-    .locals {R1}
-    {
-        Methods: [void InnerM(System.String x)]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (0)
-            Jump if False (Regular) to Block[B3]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-                  Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
-            Next (Regular) Block[B2]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (0)
-            Next (Throw) Block[null]
+              IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
                 IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
@@ -2049,43 +1957,128 @@ Block[B0] - Entry
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
                     null
-        Block[B3] - Block
-            Predecessors: [B1]
-            Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'InnerM(""hello"");')
-                  Expression: 
-                    IInvocationOperation (void InnerM(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'InnerM(""hello"")')
-                      Instance Receiver: 
-                        null
+        WhenFalse: 
+          null
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'InnerM(""hello"");')
+        Expression: 
+          IInvocationOperation (void InnerM(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'InnerM(""hello"")')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '""hello""')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ring x) { }')
+        IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
+            Condition: 
+              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
+                Left: 
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ }')
+                Right: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
+            WhenTrue: 
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ }')
+                Expression: 
+                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
                       Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '""hello""')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ }')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '{ }')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Next (Regular) Block[B4]
-                Leaving: {R1}
-        
-        {   void InnerM(System.String x)
-        
-            Block[B0#0R1] - Entry
-                Statements (0)
-                Next (Regular) Block[B2#0R1]
-            .erroneous body {R1#0R1}
-            {
-                Block[B1#0R1] - Block [UnReachable]
-                    Predecessors (0)
-                    Statements (0)
-                    Next (Regular) Block[B2#0R1]
-                        Leaving: {R1#0R1}
-            }
-            Block[B2#0R1] - Exit
-                Predecessors: [B0#0R1] [B1#0R1]
-                Statements (0)
-        }
+                      Initializer: 
+                        null
+            WhenFalse: 
+              null
+          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+            ReturnedValue: 
+              null
+  ExpressionBody: 
+    null");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Methods: [void InnerM(System.String x)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '{ ... }')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'InnerM(""hello"");')
+              Expression: 
+                IInvocationOperation (void InnerM(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'InnerM(""hello"")')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '""hello""')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+    
+    {   void InnerM(System.String x)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (0)
+            Jump if False (Regular) to Block[B3#0R1]
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ }')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ }')
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Block
+            Predecessors: [B1#0R1]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '{ }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+        Block[B3#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
     }
-    Block[B4] - Exit
-        Predecessors: [B3]
-        Statements (0)");
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)");
         }
 
         [Fact]
@@ -2108,36 +2101,32 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = (IMethodBodyOperation)compilation.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
-      Body: 
-        IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Left: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
-            ReturnedValue: 
-              null
-      IgnoredBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')");
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+        IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+          Condition: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+          WhenTrue: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+              Expression: 
+                IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+          WhenFalse: 
+            null
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue: 
+            null");
 
             var graph = ControlFlowGraph.Create(node2);
             Assert.NotNull(graph);
@@ -2194,13 +2183,11 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
             null
   ExpressionBody: 
-    null
-");
+    null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -2277,8 +2264,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -2353,7 +2339,6 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
       IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ }')
@@ -2374,8 +2359,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ }')
-                      Initializers(0)
+                    null
         WhenFalse: 
           null
   ExpressionBody: 
@@ -2462,8 +2446,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ y++; }')
-                      Initializers(0)
+                    null
         WhenFalse: 
             null
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'y++;')
@@ -2556,13 +2539,12 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'object Loc
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '=> arg')
-                      Initializers(0)
+                    null
         WhenFalse: 
             null
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'arg')
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'arg')
         ReturnedValue: 
-            IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'arg')");
+          IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'arg')");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -2627,20 +2609,154 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(0);
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'IEnumerable ... }')
-      BlockBody: 
-        IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-            Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-                Left: 
-                  IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
-            WhenTrue: 
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ ... }')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'IEnumerable ... }')
+  BlockBody: 
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+        Condition: 
+          IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+            Left: 
+              IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+        WhenTrue: 
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ ... }')
+            Expression: 
+              IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: '{ ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+        WhenFalse: 
+            null
+      IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+        Locals: Local_1: System.Char c
+        LoopControlVariable: 
+          IVariableDeclaratorOperation (Symbol: System.Char c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+            Initializer: 
+                null
+        Collection: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+                IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
+        Body: 
+          IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+              Condition: 
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+                  Left: 
+                    IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+              WhenTrue: 
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsImplicit) (Syntax: '{ ... }')
+                  Expression: 
+                    IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+                      IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: '{ ... }')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer: 
+                            null
+              WhenFalse: 
+                null
+            IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return c;')
+              ReturnedValue: 
+                ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Char) (Syntax: 'c')
+        NextVariables(0)
+  ExpressionBody: 
+    null");
+
+        VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+          Left: 
+            IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+        Entering: {R1}
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: '{ ... }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's')
+              Value: 
+                IInvocationOperation ( System.CharEnumerator System.String.GetEnumerator()) (OperationKind.Invocation, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand: 
+                        IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
+                  Arguments(0)
+        Next (Regular) Block[B4]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B4] - Block
+            Predecessors: [B3] [B7]
+            Statements (0)
+            Jump if False (Regular) to Block[B11]
+                IInvocationOperation ( System.Boolean System.CharEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 's')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B5]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Char c]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left: 
+                        ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, IsImplicit) (Syntax: 'var')
+                      Right: 
+                        IPropertyReferenceOperation: System.Char System.CharEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'var')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
+                Jump if False (Regular) to Block[B7]
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
+                      Left: 
+                        IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (0)
+                Next (Throw) Block[null]
                     IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
@@ -2648,140 +2764,48 @@ class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                          Initializers(0)
-            WhenFalse: 
-              null
-          IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
-            Locals: Local_1: System.Char c
-            LoopControlVariable: 
-              IVariableDeclaratorOperation (Symbol: System.Char c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
-                Initializer: 
-                  null
-            Collection: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
-                Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
-            Body: 
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-                IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return c;')
-                  ReturnedValue: 
-                    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Char) (Syntax: 'c')
-            NextVariables(0)
-      ExpressionBody: 
-        null");
-
-            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '{ ... }')
-              Left: 
-                IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '{ ... }')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: '{ ... }')
-            Entering: {R1}
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ ... }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: '{ ... }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    .locals {R1}
-    {
-        CaptureIds: [0]
-        Block[B3] - Block
-            Predecessors: [B1]
-            Statements (1)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's')
-                  Value: 
-                    IInvocationOperation ( System.CharEnumerator System.String.GetEnumerator()) (OperationKind.Invocation, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (Identity)
-                          Operand: 
-                            IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
-                      Arguments(0)
-            Next (Regular) Block[B4]
-                Entering: {R2} {R3}
-        .try {R2, R3}
-        {
-            Block[B4] - Block
-                Predecessors: [B3] [B5]
-                Statements (0)
-                Jump if False (Regular) to Block[B9]
-                    IInvocationOperation ( System.Boolean System.CharEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 's')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
-                      Arguments(0)
-                    Finalizing: {R5}
-                    Leaving: {R3} {R2} {R1}
-                Next (Regular) Block[B5]
-                    Entering: {R4}
-            .locals {R4}
-            {
-                Locals: [System.Char c]
-                Block[B5] - Block
-                    Predecessors: [B4]
-                    Statements (2)
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
-                          Left: 
-                            ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, IsImplicit) (Syntax: 'var')
-                          Right: 
-                            IPropertyReferenceOperation: System.Char System.CharEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'var')
-                              Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
-                        IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return c;')
-                          ReturnedValue: 
-                            ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Char) (Syntax: 'c')
-                    Next (Regular) Block[B4]
-                        Leaving: {R4}
-            }
-        }
-        .finally {R5}
-        {
-            Block[B6] - Block
-                Predecessors (0)
-                Statements (0)
-                Jump if True (Regular) to Block[B8]
-                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 's')
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
-                Next (Regular) Block[B7]
+                        null
             Block[B7] - Block
-                Predecessors: [B6]
+                Predecessors: [B5]
                 Statements (1)
-                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitReference)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
-                      Arguments(0)
-                Next (Regular) Block[B8]
-            Block[B8] - Block
-                Predecessors: [B6] [B7]
-                Statements (0)
-                Next (StructuredExceptionHandling) Block[null]
+                    IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return c;')
+                      ReturnedValue: 
+                        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Char) (Syntax: 'c')
+                Next (Regular) Block[B4]
+                    Leaving: {R4}
         }
     }
-    Block[B9] - Exit
-        Predecessors: [B4]
-        Statements (0)");
+    .finally {R5}
+    {
+        Block[B8] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B10]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 's')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
+            Next (Regular) Block[B9]
+        Block[B9] - Block
+            Predecessors: [B8]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 's')
+                  Arguments(0)
+            Next (Regular) Block[B10]
+        Block[B10] - Block
+            Predecessors: [B8] [B9]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B11] - Exit
+    Predecessors: [B4]
+    Statements (0)");
         }
 
         [Fact]
@@ -2812,7 +2836,6 @@ class Iterators
             var node2 = (IMethodBodyOperation)compilation.GetSemanticModel(tree).GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single());
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
     ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<System.Char> GetChars(System.String s)) (OperationKind.LocalFunction, Type: null) (Syntax: 'IEnumerable ... }')
-      Body: 
         IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'IEnumerable ... }')
           IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsImplicit) (Syntax: 'IEnumerable ... }')
             Condition: 
@@ -2832,8 +2855,7 @@ class Iterators
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'IEnumerable ... }')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
           IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
@@ -2855,9 +2877,7 @@ class Iterators
             NextVariables(0)
           IReturnOperation (OperationKind.YieldBreak, Type: null, IsImplicit) (Syntax: '{ ... }')
             ReturnedValue: 
-              null
-      IgnoredBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'IEnumerable ... }')");
+              null");
 
             var graph = ControlFlowGraph.Create(node2);
             Assert.NotNull(graph);
@@ -2917,8 +2937,7 @@ class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
           IReturnOperation (OperationKind.YieldBreak, Type: null) (Syntax: 'yield break;')
@@ -2999,8 +3018,7 @@ class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{ ... }')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
           IReturnOperation (OperationKind.YieldBreak, Type: null) (Syntax: 'yield break;')
@@ -3076,15 +3094,14 @@ class C
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Initializer: 
-                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.ArgumentNullException, IsImplicit) (Syntax: '{}')
-                          Initializers(0)
+                        null
             WhenFalse: 
               null
       ExpressionBody: 
         null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-Block[B0] - Entry
+    Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
     Block[B1] - Block
