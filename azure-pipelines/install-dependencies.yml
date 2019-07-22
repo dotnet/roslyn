@@ -1,7 +1,10 @@
+parameters:
+  initArgs:
+
 steps:
 
 - powershell: |
-    .\init.ps1
+    .\init.ps1 -AccessToken '$(System.AccessToken)' ${{ parameters['initArgs'] }}
     dotnet --info
   displayName: Install prerequisites
 

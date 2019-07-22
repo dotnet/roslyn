@@ -45,5 +45,7 @@ jobs:
   - checkout: self
     clean: true # "all" doesn't work, but "true" does, despite YAML docs
   - template: install-dependencies.yml
+    parameters:
+      initArgs: -NoRestore
   - template: publish-codecoverage.yml
   - template: publish-deployables.yml
