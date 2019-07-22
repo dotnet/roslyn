@@ -3131,5 +3131,123 @@ class C
         Predecessors: [B1]
         Statements (0)");
         }
+
+        [Fact]
+        public void TestNullCheckedLambdaWithMissingType()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Func<string, string> func = x! => x;
+    }
+}
+
+";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
+            comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            comp.VerifyDiagnostics(
+                    // (7,37): error cs0656: missing compiler required member 'system.argumentnullexception..ctor'
+                    //         func<string, string> func = x! => x;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 37));
+            var tree = comp.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            comp.VerifyOperationTree(node1, expectedOperationTree: @"
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public stat ... }')
+      BlockBody: 
+        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+          Locals: Local_1: System.Func<System.String, System.String> func
+          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Func<string ...  = x! => x;')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Func<string ... c = x! => x')
+              Declarators:
+                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'func = x! => x')
+                    Initializer: 
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x! => x')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                          Target: 
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Condition: 
+                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Left: 
+                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Right: 
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  WhenTrue: 
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Expression: 
+                                        IThrowOperation (OperationKind.Throw, Type: System.ArgumentNullException[missing], IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                          IInvalidOperation (OperationKind.Invalid, Type: System.ArgumentNullException[missing], IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                            Children(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  WhenFalse: 
+                                    null
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                  ReturnedValue: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              Initializer: 
+                null
+      ExpressionBody: 
+        null");
+            VerifyFlowGraph(comp, node1, expectedFlowGraph: @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [System.Func<System.String, System.String> func]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+                  Left: 
+                    ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                        {
+                            Block[B0#A0] - Entry
+                                Statements (0)
+                                Next (Regular) Block[B1#A0]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (0)
+                                Jump if False (Regular) to Block[B3#A0]
+                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Left: 
+                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Right: 
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                Next (Regular) Block[B2#A0]
+                            Block[B2#A0] - Block
+                                Predecessors: [B1#A0]
+                                Statements (0)
+                                Next (Throw) Block[null]
+                                    IInvalidOperation (OperationKind.Invalid, Type: System.ArgumentNullException[missing], IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      Children(1):
+                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                            Block[B3#A0] - Block
+                                Predecessors: [B1#A0]
+                                Statements (0)
+                                Next (Return) Block[B4#A0]
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                            Block[B4#A0] - Exit
+                                Predecessors: [B3#A0]
+                                Statements (0)
+                        }
+            Next (Regular) Block[B2]
+                Leaving: {R1}
+    }
+    Block[B2] - Exit
+        Predecessors: [B1]
+        Statements (0)");
+        }
     }
 }

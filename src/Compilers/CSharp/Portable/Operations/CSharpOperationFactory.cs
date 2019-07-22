@@ -1473,14 +1473,29 @@ namespace Microsoft.CodeAnalysis.Operations
 
             var argumentNullExceptionMethodSymbol = (IMethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
             var argumentNullExceptionType = compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException);
-            var argumentNullExceptionObject = new ObjectCreationOperation(
+            var paramNameLiteral = new LiteralOperation(_semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
+            // Occurs when a member is missing.
+            IOperation argumentNullExceptionObject;
+            if (argumentNullExceptionMethodSymbol is null)
+            {
+                argumentNullExceptionObject = new InvalidOperation(
+                    children: ImmutableArray.Create((IOperation)paramNameLiteral),
+                    _semanticModel,
+                    syntax,
+                    argumentNullExceptionType,
+                    constantValue,
+                    isImplicit: true);
+            }
+            else
+            {
+                argumentNullExceptionObject = new ObjectCreationOperation(
                         argumentNullExceptionMethodSymbol,
                         initializer: null,
                         ImmutableArray.Create<IArgumentOperation>(
                             new ArgumentOperation(
-                                new LiteralOperation(_semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true),
+                                paramNameLiteral,
                                 ArgumentKind.Explicit,
-                                parameter: argumentNullExceptionMethodSymbol.Parameters[0],
+                                parameter: argumentNullExceptionMethodSymbol?.Parameters[0],
                                 inConversionOpt: null,
                                 outConversionOpt: null,
                                 _semanticModel,
@@ -1491,6 +1506,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         argumentNullExceptionType,
                         constantValue,
                         isImplicit: true);
+            }
 
             IOperation whenTrue = new ExpressionStatementOperation(
                 new ThrowOperation(
