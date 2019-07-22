@@ -835,11 +835,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing because it changes the shape of the state machine..
         /// </summary>
-        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing {
+        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine {
             get {
-                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing", resourceCulture);
+                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes" +
+                        "_the_shape_of_the_state_machine", resourceCulture);
             }
         }
         

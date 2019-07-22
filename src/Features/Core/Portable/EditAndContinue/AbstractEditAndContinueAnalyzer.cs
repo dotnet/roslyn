@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         diagnostics.Add(new RudeEditDiagnostic(
-                            RudeEditKind.Changing,
+                            RudeEditKind.ChangingStateMachineShape,
                             newNode.Span,
                             newNode,
                             new[] { GetDisplayName(oldNode, EditKind.Update), GetDisplayName(newNode, EditKind.Update) }));
