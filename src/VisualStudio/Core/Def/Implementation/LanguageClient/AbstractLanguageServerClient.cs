@@ -44,8 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public virtual IEnumerable<string> FilesToWatch { get; } = null;
 
+#pragma warning disable CS0067 // event never used - implementing interface ILanguageClient
         public event AsyncEventHandler<EventArgs> StartAsync;
         public event AsyncEventHandler<EventArgs> StopAsync;
+#pragma warning restore CS0067 // event never used
 
         public AbstractLanguageServerClient(Workspace workspace, string languageServerName, string clientName)
         {
