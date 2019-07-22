@@ -1,7 +1,4 @@
 steps:
-- script: dotnet restore  /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/restore.binlog"
-  displayName: dotnet restore
-  workingDirectory: src
 
 - script: dotnet build --no-restore -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: dotnet build

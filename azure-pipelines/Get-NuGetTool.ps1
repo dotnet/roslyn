@@ -9,13 +9,14 @@ Param(
     [string]$NuGetVersion='5.0.2'
 )
 
-$binaryToolsPath = "$PSScriptRoot\..\obj\tools\nuget.$NuGetVersion"
-if (!(Test-Path $binaryToolsPath)) { $null = New-Item -Type Directory -Path $binaryToolsPath }
-$nugetPath = "$binaryToolsPath\nuget.exe"
+$toolsPath = & "$PSScriptRoot\Get-TempToolsPath.ps1"
+$binaryToolsPath = Join-Path $toolsPath $NuGetVersion
+if (!(Test-Path $binaryToolsPath)) { $null = mkdir $binaryToolsPath }
+$nugetPath = Join-Path $binaryToolsPath nuget.exe
 
 if (!(Test-Path $nugetPath)) {
     Write-Host "Downloading nuget.exe $NuGetVersion..." -ForegroundColor Yellow
     Invoke-WebRequest -Uri "https://dist.nuget.org/win-x86-commandline/v$NuGetVersion/NuGet.exe" -OutFile $nugetPath | Out-Null
 }
 
-Write-Output (Resolve-Path $nugetPath).Path
+return (Resolve-Path $nugetPath).Path

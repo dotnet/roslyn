@@ -6,7 +6,6 @@ param (
 )
 
 $RepoRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..")
-if (!$env:BUILDCONFIGURATION) { throw "BUILDCONFIGURATION environment variable must be set." }
 if ($env:BUILD_ARTIFACTSTAGINGDIRECTORY) {
     $ArtifactStagingFolder = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
 } else {
