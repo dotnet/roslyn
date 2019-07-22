@@ -9,6 +9,8 @@
 ## Features
 
 * Follow the best and simplest patterns of build, pack and test with dotnet CLI.
+* MicroBuild signing built-in, with several more MicroBuild plugins' use streamlined for local installation.
+* Insertions to VS streamlined and automated with all inputs computed during the build and saved for the release pipeline.
 * Static analyzers: [FxCop](https://docs.microsoft.com/en-us/visualstudio/code-quality/fxcop-analyzers?view=vs-2019) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
 * Read-only source tree (builds to top-level bin/obj folders)
 * Auto-versioning (via [Nerdbank.GitVersioning](https://github.com/aarnott/nerdbank.gitversioning))

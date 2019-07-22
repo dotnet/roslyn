@@ -27,6 +27,12 @@ using Windows PowerShell or [PowerShell Core][pwsh] (on any OS).
 
 This repository can be built on Windows, Linux, and OSX.
 
+## Package restore
+
+The easiest way to restore packages may be to run `init.ps1` which automatically authenticates
+to the feeds that packages for this repo come from, if any.
+`dotnet restore` or `nuget restore` also work but may require extra steps to authenticate to any applicable feeds.
+
 ## Building
 
 Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
