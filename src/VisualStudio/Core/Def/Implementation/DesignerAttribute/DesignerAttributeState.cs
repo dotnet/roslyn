@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             public bool Update(DocumentId id, string designerAttributeArgument)
             {
-                if (_lastReported.TryGetValue(id, out string lastReported) &&
+                if (_lastReported.TryGetValue(id, out var lastReported) &&
                     lastReported == designerAttributeArgument)
                 {
                     // nothing is actually updated

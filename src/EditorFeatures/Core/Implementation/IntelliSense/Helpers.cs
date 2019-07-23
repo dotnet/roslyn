@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                resolvedSymbolKey = SymbolKey.Resolve(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
             }
             catch
             {

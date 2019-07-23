@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, this.SyntaxKindsOfInterest);
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKindsOfInterest);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {

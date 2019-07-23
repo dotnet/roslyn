@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void Cancel()
         {
-            bool transactionWasOpen = _transactionOpen;
+            var transactionWasOpen = _transactionOpen;
             _transactionOpen = false;
 
             // First, add an undo primitive so we can detect whether or not undo gets called

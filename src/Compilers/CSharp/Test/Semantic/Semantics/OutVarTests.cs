@@ -20363,43 +20363,48 @@ class B
 6")
                 .VerifyIL("B.Main()",
     @"{
-  // Code size      103 (0x67)
+  // Code size      113 (0x71)
   .maxstack  4
   .locals init (int V_0, //x1
                 int V_1, //x2
                 int V_2, //x3
-                int V_3) //x4
+                int V_3, //x4
+                int V_4)
   IL_0000:  newobj     ""A..ctor()""
   IL_0005:  dup
   IL_0006:  ldloca.s   V_0
   IL_0008:  callvirt   ""int IA.P[out int].get""
-  IL_000d:  box        ""int""
-  IL_0012:  ldstr      "" ""
-  IL_0017:  ldloc.0
-  IL_0018:  box        ""int""
-  IL_001d:  call       ""string string.Concat(object, object, object)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  dup
-  IL_0028:  ldloca.s   V_1
-  IL_002a:  ldc.i4.4
-  IL_002b:  callvirt   ""void IA.P[out int].set""
-  IL_0030:  ldloc.1
-  IL_0031:  call       ""void System.Console.WriteLine(int)""
-  IL_0036:  dup
-  IL_0037:  ldloca.s   V_2
-  IL_0039:  callvirt   ""int IA.this[out int].get""
-  IL_003e:  box        ""int""
-  IL_0043:  ldstr      "" ""
-  IL_0048:  ldloc.2
-  IL_0049:  box        ""int""
-  IL_004e:  call       ""string string.Concat(object, object, object)""
-  IL_0053:  call       ""void System.Console.WriteLine(string)""
-  IL_0058:  ldloca.s   V_3
-  IL_005a:  ldc.i4.4
-  IL_005b:  callvirt   ""void IA.this[out int].set""
-  IL_0060:  ldloc.3
-  IL_0061:  call       ""void System.Console.WriteLine(int)""
-  IL_0066:  ret
+  IL_000d:  stloc.s    V_4
+  IL_000f:  ldloca.s   V_4
+  IL_0011:  call       ""string int.ToString()""
+  IL_0016:  ldstr      "" ""
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""string int.ToString()""
+  IL_0022:  call       ""string string.Concat(string, string, string)""
+  IL_0027:  call       ""void System.Console.WriteLine(string)""
+  IL_002c:  dup
+  IL_002d:  ldloca.s   V_1
+  IL_002f:  ldc.i4.4
+  IL_0030:  callvirt   ""void IA.P[out int].set""
+  IL_0035:  ldloc.1
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  dup
+  IL_003c:  ldloca.s   V_2
+  IL_003e:  callvirt   ""int IA.this[out int].get""
+  IL_0043:  stloc.s    V_4
+  IL_0045:  ldloca.s   V_4
+  IL_0047:  call       ""string int.ToString()""
+  IL_004c:  ldstr      "" ""
+  IL_0051:  ldloca.s   V_2
+  IL_0053:  call       ""string int.ToString()""
+  IL_0058:  call       ""string string.Concat(string, string, string)""
+  IL_005d:  call       ""void System.Console.WriteLine(string)""
+  IL_0062:  ldloca.s   V_3
+  IL_0064:  ldc.i4.4
+  IL_0065:  callvirt   ""void IA.this[out int].set""
+  IL_006a:  ldloc.3
+  IL_006b:  call       ""void System.Console.WriteLine(int)""
+  IL_0070:  ret
 }");
             }
         }

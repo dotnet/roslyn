@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,15 +27,14 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdate);
 
-        protected abstract TQueryExpression FindNodeToRefactor(SyntaxNode root, TextSpan span);
+        protected abstract Task<TQueryExpression> FindNodeToRefactorAsync(CodeRefactoringContext context);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var queryExpression = FindNodeToRefactor(root, context.Span);
+            var queryExpression = await FindNodeToRefactorAsync(context).ConfigureAwait(false);
             if (queryExpression == null)
             {
                 return;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out DocumentUpdateInfo documentUpdateInfo))
+            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(

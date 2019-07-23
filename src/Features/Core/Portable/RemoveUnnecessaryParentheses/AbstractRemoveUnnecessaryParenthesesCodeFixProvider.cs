@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -20,6 +19,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     {
         public override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected abstract bool CanRemoveParentheses(TParenthesizedExpressionSyntax current, SemanticModel semanticModel);
 

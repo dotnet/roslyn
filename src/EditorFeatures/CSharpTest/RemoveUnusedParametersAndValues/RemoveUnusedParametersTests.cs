@@ -1213,5 +1213,139 @@ internal sealed class CustomSerializingType : ISerializable
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_02()
+        {
+            await TestDiagnosticsAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        try
+        {
+            value = LocalFunc(0);
+        }
+        finally
+        {
+            value = LocalFunc(0);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_03()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        Func<object, IEnumerable<object>> myDel = LocalFunc;
+        try
+        {
+            value = myDel(value);
+        }
+        finally
+        {
+            value = myDel(value);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}");
+        }
+
+        [WorkItem(34830, "https://github.com/dotnet/roslyn/issues/34830")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface I { event Action MyAction; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<I> task;
+
+    public C(Task<I> [|task|])
+    {
+        this.task = task;
+        Task.Run(async () => (await task).MyAction += myAction);
+    }
+
+    private void myAction() { }
+
+    public void Dispose() => task.Result.MyAction -= myAction;
+}", options);
+        }
+
+        [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter_02()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface I { event Action MyAction; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<I> task;
+
+    public C(Task<I> [|task|])
+    {
+        this.task = task;
+        Task.Run(async () => (await task).MyAction += myAction);
+    }
+
+    private void myAction() { }
+
+    public void Dispose() => task.Result.MyAction -= myAction;
+}", options);
+        }
+
+        [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ParameterWithoutName_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class C
+{
+    public void M[|(int )|]
+    {
+    }
+}");
+        }
     }
 }

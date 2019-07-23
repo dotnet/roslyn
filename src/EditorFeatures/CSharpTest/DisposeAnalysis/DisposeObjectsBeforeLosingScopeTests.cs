@@ -4803,9 +4803,10 @@ class C : IDisposable
         }
 
         [Fact, WorkItem(2212, "https://github.com/dotnet/roslyn-analyzers/issues/2212")]
-        public async Task AwaitedButNotDisposed_Diagnostic()
+        public async Task AwaitedButNotDisposed_NoDiagnostic()
         {
-            await TestDiagnosticsAsync(@"
+            // We are conservative when disposable object gets wrapped in a task and consider it as escaped.
+            await TestDiagnosticMissingAsync(@"
 using System;
 using System.Threading.Tasks;
 
@@ -4826,14 +4827,13 @@ class C : IDisposable
         var c = await M1_Task().ConfigureAwait(false);
     }
     |]
-}",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task().ConfigureAwait(false)").WithLocation(19, 17));
+}");
         }
 
         [Fact, WorkItem(2212, "https://github.com/dotnet/roslyn-analyzers/issues/2212")]
-        public async Task AwaitedButNotDisposed_TaskWrappingField_Diagnostic()
+        public async Task AwaitedButNotDisposed_TaskWrappingField_NoDiagnostic()
         {
-            await TestDiagnosticsAsync(@"
+            await TestDiagnosticMissingAsync(@"
 using System;
 using System.Threading.Tasks;
 
@@ -4855,8 +4855,7 @@ class C : IDisposable
         var c = await M1_Task().ConfigureAwait(false);
     }
     |]
-}",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task().ConfigureAwait(false)").WithLocation(20, 17));
+}");
         }
 
         [Fact, WorkItem(2347, "https://github.com/dotnet/roslyn-analyzers/issues/2347")]
@@ -4914,7 +4913,7 @@ class C : IDisposable
     }
     |]
 }",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task(null).ConfigureAwait(false)").WithLocation(20, 17));
+            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "M1_Task(null)").WithLocation(20, 23));
         }
 
         [Fact, WorkItem(2361, "https://github.com/dotnet/roslyn-analyzers/issues/2361")]
@@ -5024,6 +5023,37 @@ class C : IDisposable
 }");
         }
 
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public async Task UsingDeclaration()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+    void M1()
+    {
+        [|using var c = new C()|];
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public async Task UsingDeclarationWithInitializer()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public int P { get; set; }
+    public void Dispose() { }
+    void M1()
+    {
+        [|using var c = new C() { P = 1 }|];
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact]
         public async Task MissingDisposeInMethodWithAttributes()
         {
@@ -5040,6 +5070,25 @@ class C : IDisposable
     }
 }",
             Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId));
+        }
+
+        [Fact, WorkItem(36498, "https://github.com/dotnet/roslyn/issues/36498")]
+        public async Task DisposableObjectPushedToStackIsNotFlagged()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+using System.Collections.Generic;
+
+class C : IDisposable
+{
+    public void Dispose() { }
+
+    public void M1(Stack<object> stack)
+    {
+        var c = [|new C()|];
+        stack.Push(c);
+    }
+}");
         }
     }
 }

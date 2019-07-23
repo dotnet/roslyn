@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             var spanSet = new HashSet<DocumentSpan>();
             var tagMap = new MultiDictionary<Document, HighlightSpan>();
-            bool addAllDefinitions = true;
+            var addAllDefinitions = true;
 
             // Add definitions
             // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.

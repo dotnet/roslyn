@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal sealed class AnalyzerItemProvider : AttachedCollectionSourceProvider<AnalyzersFolderItem>
     {
         [Import(typeof(AnalyzersCommandHandler))]
-        private IAnalyzersCommandHandler _commandHandler = null;
+        private readonly IAnalyzersCommandHandler _commandHandler = null;
 
         [ImportingConstructor]
         public AnalyzerItemProvider()

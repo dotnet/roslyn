@@ -30,5 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!arguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault); // Frequently empty though.
         }
+
+        internal SynthesizedAttributeData(SourceAttributeData original)
+            : base(
+            applicationNode: original.ApplicationSyntaxReference,
+            attributeClass: original.AttributeClass,
+            attributeConstructor: original.AttributeConstructor,
+            constructorArguments: original.CommonConstructorArguments,
+            constructorArgumentsSourceIndices: original.ConstructorArgumentsSourceIndices,
+            namedArguments: original.CommonNamedArguments,
+            hasErrors: original.HasErrors,
+            isConditionallyOmitted: original.IsConditionallyOmitted)
+        {
+        }
     }
 }

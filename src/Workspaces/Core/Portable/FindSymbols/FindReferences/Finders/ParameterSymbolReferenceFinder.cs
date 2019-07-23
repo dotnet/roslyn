@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-            int ordinal = parameter.Ordinal;
+            var ordinal = parameter.Ordinal;
             if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
             {
                 return standardFunction;
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (int i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
                 {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol && ((IMethodSymbol)declaredSymbol).MethodKind != MethodKind.AnonymousFunction)
+                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
                 {
                     return current;
                 }

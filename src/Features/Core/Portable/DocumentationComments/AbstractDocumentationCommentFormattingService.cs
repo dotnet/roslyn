@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private bool _pendingLineBreak;
             private bool _pendingSingleSpace;
 
-            private static TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
-            private static TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
+            private static readonly TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
+            private static readonly TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefAttribute.Value, semanticModel.Compilation);
                     if (symbol is object)
                     {
-                        return (target: SymbolKey.ToString(symbol), hint: symbol.ToMinimalDisplayString(semanticModel, position, format ?? SymbolDisplayFormat.MinimallyQualifiedFormat));
+                        return (target: SymbolKey.CreateString(symbol), hint: symbol.ToMinimalDisplayString(semanticModel, position, format ?? SymbolDisplayFormat.MinimallyQualifiedFormat));
                     }
                 }
             }
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefValue, semanticModel.Compilation);
                 if (symbol != null)
                 {
-                    format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
+                    format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
                     if (symbol.IsConstructor())
                     {
                         format = format.WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // Normalize the whitespace.
             var pendingWhitespace = false;
             var hadAnyNonWhitespace = false;
-            for (int i = 0; i < rawText.Length; i++)
+            for (var i = 0; i < rawText.Length; i++)
             {
                 if (char.IsWhiteSpace(rawText[i]))
                 {

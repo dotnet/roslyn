@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         protected override bool TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage)
+            Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage)
         {
             if (!TryInitializeLibraries())
             {
@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             SQLitePersistentStorage sqlStorage = null;
-
             try
             {
                 sqlStorage = new SQLitePersistentStorage(

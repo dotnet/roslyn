@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         AssertIsBackground();
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = await Controller.DocumentProvider.GetDocumentAsync(caretPosition.Snapshot, cancellationToken).ConfigureAwait(false);
+                        var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);
                         if (document == null)
                         {
                             return currentModel;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return currentModel;
                         }
 
-                        var selectedItem = GetSelectedItem(currentModel, items, provider, out bool userSelected);
+                        var selectedItem = GetSelectedItem(currentModel, items, provider, out var userSelected);
 
                         var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
                             items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,

@@ -2429,7 +2429,7 @@
     </FactoryComment>
   </Node>
 
-  <Node Name="SwitchStatementSyntax" Base="StatementSyntax">
+  <Node Name="SwitchStatementSyntax" Base="StatementSyntax" SkipConvenienceFactories="true">
     <Kind Name="SwitchStatement"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
       <Kind Name="SwitchKeyword"/>
@@ -4348,10 +4348,6 @@
     <Field Name="DisableOrRestoreKeyword" Type="SyntaxToken">
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
-      <Kind Name="EnableKeyword"/>
-    </Field>
-    <Field Name="NullableKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="NullableKeyword"/>
     </Field>
     <Field Name="ErrorCodes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
@@ -4441,6 +4437,10 @@
       <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
+    </Field>
+    <Field Name="TargetToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="WarningsKeyword"/>
+      <Kind Name="AnnotationsKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

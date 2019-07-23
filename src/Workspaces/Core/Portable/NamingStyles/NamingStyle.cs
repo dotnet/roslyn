@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return FinishFixingName(name);
         }
 
-        private static string StripCommonPrefixes(string name, out string prefix)
+        public static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)
@@ -403,10 +403,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
-                    bool isWord = true;
+                    var isWord = true;
                     var parts = StringBreaker.GetParts(name, isWord);
-                    string[] newWords = new string[parts.Count];
-                    for (int i = 0; i < parts.Count; i++)
+                    var newWords = new string[parts.Count];
+                    for (var i = 0; i < parts.Count; i++)
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // If the name already ends with any prefix of the Suffix, only append the suffix of
             // the Suffix not contained in the longest such Suffix prefix. For example, if the 
             // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
-            for (int i = Suffix.Length; i > 0; i--)
+            for (var i = Suffix.Length; i > 0; i--)
             {
                 if (name.EndsWith(Suffix.Substring(0, i)))
                 {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // If the name already starts with any suffix of the Prefix, only prepend the prefix of
             // the Prefix not contained in the longest such Prefix suffix. For example, if the 
             // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
-            for (int i = 0; i < Prefix.Length; i++)
+            for (var i = 0; i < Prefix.Length; i++)
             {
                 if (name.StartsWith(Prefix.Substring(i)))
                 {

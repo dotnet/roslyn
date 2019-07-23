@@ -15,6 +15,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Features.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.InteractiveHost.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Scripting.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll")]
@@ -27,6 +28,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Implementation.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CSharp.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.LiveShare.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Xaml.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll")]
@@ -58,6 +60,9 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll")]
 

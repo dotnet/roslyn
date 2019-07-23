@@ -139,7 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => BaseMethod.ReturnTypeAnnotationAttributes;
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed  override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public sealed override bool IsVararg
         {

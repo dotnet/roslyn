@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var trees = new List<SyntaxTree>(capacity: sourceCount);
 
-            for (int i = 0; i < fileNames.Length; i++)
+            for (var i = 0; i < fileNames.Length; i++)
             {
                 // create a parse tree w/o encoding - the tree won't be used to emit PDBs
                 trees.Add(SyntaxFactory.ParseSyntaxTree(fileContents[i], parsedArguments.ParseOptions, fileNames[i]));
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var arguments = new List<string>();
 
-            for (int i = 0; i < optionNames.Length; i++)
+            for (var i = 0; i < optionNames.Length; i++)
             {
                 var optionName = optionNames[i];
                 var optionValue = optionValues[i];

@@ -89,35 +89,34 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
+
+            switch (reference)
             {
-                switch (reference)
-                {
-                    case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
-                        break;
+                case AnalyzerFileReference file:
+                    WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
+                    break;
 
-                    case UnresolvedAnalyzerReference unresolved:
-                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                        break;
+                case UnresolvedAnalyzerReference unresolved:
+                    WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                    break;
 
-                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                        break;
+                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                    WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                    break;
 
-                    case AnalyzerImageReference _:
-                        // TODO: think a way to support this or a way to deal with this kind of situation.
-                        // https://github.com/dotnet/roslyn/issues/15783
-                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+                case AnalyzerImageReference _:
+                    // TODO: think a way to support this or a way to deal with this kind of situation.
+                    // https://github.com/dotnet/roslyn/issues/15783
+                    throw new NotSupportedException(nameof(AnalyzerImageReference));
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(reference);
-                }
-
-                stream.Position = 0;
-                return Checksum.Create(stream);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reference);
             }
+
+            stream.Position = 0;
+            return Checksum.Create(stream);
         }
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
@@ -246,16 +245,15 @@ namespace Microsoft.CodeAnalysis.Execution
                 // picked up the dll
                 var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
 
-                using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                using (var peReader = new PEReader(stream))
-                {
-                    var metadataReader = peReader.GetMetadataReader();
+                using var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                using var peReader = new PEReader(stream);
 
-                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                    var guid = metadataReader.GetGuid(mvidHandle);
+                var metadataReader = peReader.GetMetadataReader();
 
-                    writer.WriteGuid(guid);
-                }
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                var guid = metadataReader.GetGuid(mvidHandle);
+
+                writer.WriteGuid(guid);
             }
             catch
             {
@@ -282,15 +280,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-            {
-                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
-                WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-                stream.Position = 0;
-                return Checksum.Create(stream);
-            }
+            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+            WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+
+            stream.Position = 0;
+            return Checksum.Create(stream);
         }
 
         private void WriteMvidsTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
@@ -469,34 +466,32 @@ namespace Microsoft.CodeAnalysis.Execution
                 return false;
             }
 
-            using (var pooled = Creator.CreateList<(string name, long offset, long size)>())
+            using var pooled = Creator.CreateList<(string name, long offset, long size)>();
+
+            foreach (var storage in storages)
             {
-                foreach (var storage in storages)
+                if (!(storage is ITemporaryStorageWithName storage2))
                 {
-                    var storage2 = storage as ITemporaryStorageWithName;
-                    if (storage2 == null)
-                    {
-                        return false;
-                    }
-
-                    pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
+                    return false;
                 }
 
-                WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
-
-                writer.WriteInt32((int)MetadataImageKind.Assembly);
-                writer.WriteInt32(pooled.Object.Count);
-
-                foreach (var tuple in pooled.Object)
-                {
-                    writer.WriteInt32((int)MetadataImageKind.Module);
-                    writer.WriteString(tuple.name);
-                    writer.WriteInt64(tuple.offset);
-                    writer.WriteInt64(tuple.size);
-                }
-
-                return true;
+                pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }
+
+            WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+
+            writer.WriteInt32((int)MetadataImageKind.Assembly);
+            writer.WriteInt32(pooled.Object.Count);
+
+            foreach (var (name, offset, size) in pooled.Object)
+            {
+                writer.WriteInt32((int)MetadataImageKind.Module);
+                writer.WriteString(name);
+                writer.WriteInt64(offset);
+                writer.WriteInt64(size);
+            }
+
+            return true;
         }
 
         private (Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storages)? TryReadMetadataFrom(
@@ -514,19 +509,18 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 if (metadataKind == MetadataImageKind.Assembly)
                 {
-                    using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
+                    using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
+
+                    var count = reader.ReadInt32();
+                    for (var i = 0; i < count; i++)
                     {
-                        var count = reader.ReadInt32();
-                        for (var i = 0; i < count; i++)
-                        {
-                            metadataKind = (MetadataImageKind)reader.ReadInt32();
-                            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+                        metadataKind = (MetadataImageKind)reader.ReadInt32();
+                        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                            pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
-                        }
-
-                        return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
+                        pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
                     }
+
+                    return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
                 }
 
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
@@ -535,23 +529,22 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (metadataKind == MetadataImageKind.Assembly)
             {
-                using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
-                using (var pooledStorage = Creator.CreateList<ITemporaryStreamStorage>())
+                using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
+                using var pooledStorage = Creator.CreateList<ITemporaryStreamStorage>();
+
+                var count = reader.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
-                    var count = reader.ReadInt32();
-                    for (var i = 0; i < count; i++)
-                    {
-                        metadataKind = (MetadataImageKind)reader.ReadInt32();
-                        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+                    metadataKind = (MetadataImageKind)reader.ReadInt32();
+                    Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                        var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                    var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
-                        pooledMetadata.Object.Add(metadata);
-                        pooledStorage.Object.Add(storage);
-                    }
-
-                    return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+                    pooledMetadata.Object.Add(metadata);
+                    pooledStorage.Object.Add(storage);
                 }
+
+                return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
             }
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
@@ -601,15 +594,14 @@ namespace Microsoft.CodeAnalysis.Execution
             if (kind == SerializationKinds.Bits)
             {
                 storage = _storageService.CreateTemporaryStreamStorage(cancellationToken);
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    CopyByteArrayToStream(reader, stream, cancellationToken);
+                using var stream = SerializableBytes.CreateWritableStream();
 
-                    length = stream.Length;
+                CopyByteArrayToStream(reader, stream, cancellationToken);
 
-                    stream.Position = 0;
-                    storage.WriteStream(stream, cancellationToken);
-                }
+                length = stream.Length;
+
+                stream.Position = 0;
+                storage.WriteStream(stream, cancellationToken);
 
                 return;
             }
@@ -762,8 +754,8 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly DocumentationProvider _provider;
 
             public MissingMetadataReference(
-                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
                 // TODO: doc comment provider is a bit wierd.
                 _provider = initialDocumentation;
@@ -801,8 +793,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public SerializedMetadataReference(
                 MetadataReferenceProperties properties, string fullPath,
-                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
                 _metadata = metadata;
                 _storagesOpt = storagesOpt;

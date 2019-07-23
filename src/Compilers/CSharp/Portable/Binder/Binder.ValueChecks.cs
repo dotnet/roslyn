@@ -246,9 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                        receiver = otherSymbol.IsStatic
-                            ? null // no receiver required
-                            : typeOrValue.Data.ValueExpression;
+                        receiver = otherSymbol.RequiresInstanceReceiver()
+                            ? typeOrValue.Data.ValueExpression
+                            : null; // no receiver required
                     }
                     return new BoundBadExpression(
                         expr.Syntax,
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            return !symbol.IsStatic
+            return symbol.RequiresInstanceReceiver()
                 && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1221,7 +1221,7 @@ moreArguments:
             //  o no ref or out argument(excluding the receiver and arguments of ref-like types) may have a narrower ref-safe-to-escape than E1; and
             //  o   no argument(including the receiver) may have a narrower safe-to-escape than E1.
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1327,7 +1327,7 @@ moreArguments:
             // - If there is a ref or out argument of a ref struct type (including the receiver), with safe-to-escape E1, then
             // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -2215,9 +2215,9 @@ moreArguments:
             foreach (var element in expr.Arguments)
             {
                 uint valEscape;
-                if (element.Kind == BoundKind.TupleLiteral)
+                if (element is BoundTupleExpression te)
                 {
-                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                    valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
                 }
                 else
                 {
@@ -2266,12 +2266,9 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2585,12 +2582,9 @@ moreArguments:
                     return true;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2845,7 +2839,8 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
-                case BoundKind.SwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
                     foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
                     {
                         var result = arm.Value;

@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private AnalyzerItem _analyzerItem;
+            private readonly AnalyzerItem _analyzerItem;
 
             public BrowseObject(AnalyzerItem analyzerItem)
             {

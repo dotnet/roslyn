@@ -419,6 +419,9 @@
   <data name="DiagnosticIdCantBeNullOrWhitespace" xml:space="preserve">
     <value>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
   </data>
+  <data name="SuppressionIdCantBeNullOrWhitespace" xml:space="preserve">
+    <value>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
+  </data>
   <data name="RuleSetHasDuplicateRules" xml:space="preserve">
     <value>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</value>
   </data>
@@ -443,6 +446,15 @@
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
+  <data name="UnsupportedSuppressionReported" xml:space="preserve">
+    <value>Reported suppression with ID '{0}' is not supported by the suppressor.</value>
+  </data>
+  <data name="InvalidDiagnosticSuppressionReported" xml:space="preserve">
+    <value>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</value>
+  </data>
+  <data name="NonReportedDiagnosticCannotBeSuppressed" xml:space="preserve">
+    <value>Non-reported diagnostic with ID '{0}' cannot be suppressed.</value>
+  </data>
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
@@ -451,6 +463,9 @@
   </data>
   <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
     <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
+  <data name="SupportedSuppressionsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</value>
   </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
@@ -570,6 +585,9 @@
   <data name="TupleElementLocationCountMismatch" xml:space="preserve">
     <value>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</value>
   </data>
+  <data name="TupleElementNullableAnnotationCountMismatch" xml:space="preserve">
+    <value>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</value>
+  </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>
   </data>
@@ -644,5 +662,11 @@
   </data>
   <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
     <value>Invalid severity in analyzer config file.</value>
+  </data>
+  <data name="SuppressionDiagnosticDescriptorTitle" xml:space="preserve">
+    <value>Programmatic suppression of an analyzer diagnostic</value>
+  </data>
+  <data name="SuppressionDiagnosticDescriptorMessage" xml:space="preserve">
+    <value>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</value>
   </data>
 </root>

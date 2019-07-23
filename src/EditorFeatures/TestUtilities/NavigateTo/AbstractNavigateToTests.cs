@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
             Assert.Equal(expecteditems.Count(), items.Count());
 
-            for (int i = 0; i < expecteditems.Count; i++)
+            for (var i = 0; i < expecteditems.Count; i++)
             {
                 var expectedItem = expecteditems[i];
                 var actualItem = items.ElementAt(i);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal BitmapSource CreateIconBitmapSource()
         {
-            int stride = PixelFormats.Bgr32.BitsPerPixel / 8 * 16;
+            var stride = PixelFormats.Bgr32.BitsPerPixel / 8 * 16;
             return BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgr32, null, new byte[16 * stride], stride);
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         // http://msdn.microsoft.com/en-us/library/microsoft.visualstudio.language.navigateto.interfaces.navigatetoitem.aspx
         protected static int CompareNavigateToItems(NavigateToItem a, NavigateToItem b)
         {
-            int result = ((int)a.PatternMatch.Kind) - ((int)b.PatternMatch.Kind);
+            var result = ((int)a.PatternMatch.Kind) - ((int)b.PatternMatch.Kind);
             if (result != 0)
             {
                 return result;

@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void UsingDelete1()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 ";
-            string src2 = @"";
+            var src2 = @"";
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyEdits("Delete [using System.Diagnostics;]@2");
@@ -33,12 +33,12 @@ using System.Diagnostics;
         [Fact]
         public void UsingDelete2()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Diagnostics;
 using System.Collections.Generic;
 ";
@@ -54,11 +54,11 @@ using System.Collections.Generic;
         [Fact]
         public void UsingInsert()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
@@ -75,12 +75,12 @@ using System.Collections.Generic;
         [Fact]
         public void UsingUpdate1()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Diagnostics;
 using X = System.Collections;
 using System.Collections.Generic;
@@ -97,12 +97,12 @@ using System.Collections.Generic;
         [Fact]
         public void UsingUpdate2()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using X1 = System.Collections;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Diagnostics;
 using X2 = System.Collections;
 using System.Collections.Generic;
@@ -119,12 +119,12 @@ using System.Collections.Generic;
         [Fact]
         public void UsingUpdate3()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -141,12 +141,12 @@ using System.Collections.Generic;
         [Fact]
         public void UsingReorder1()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -160,7 +160,7 @@ using System.Diagnostics;
         [Fact]
         public void UsingInsertDelete1()
         {
-            string src1 = @"
+            var src1 = @"
 namespace N
 {
     using System.Collections;
@@ -170,7 +170,7 @@ namespace M
 {
 }
 ";
-            string src2 = @"
+            var src2 = @"
 namespace N
 {
 }
@@ -190,13 +190,13 @@ namespace M
         [Fact]
         public void UsingInsertDelete2()
         {
-            string src1 = @"
+            var src1 = @"
 namespace N
 {
     using System.Collections;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Collections;
 
 namespace N
@@ -368,6 +368,66 @@ namespace N
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Ref_Update1()
+        {
+            var src1 = "public struct C { }";
+            var src2 = "public ref struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public struct C { }]@0 -> [public ref struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public ref struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Ref_Update2()
+        {
+            var src1 = "public ref struct C { }";
+            var src2 = "public struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public ref struct C { }]@0 -> [public struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Readonly_Update1()
+        {
+            var src1 = "public struct C { }";
+            var src2 = "public readonly struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public struct C { }]@0 -> [public readonly struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Readonly_Update2()
+        {
+            var src1 = "public readonly struct C { }";
+            var src2 = "public struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public readonly struct C { }]@0 -> [public struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -679,55 +739,53 @@ public interface I
         [Fact]
         public void RefStructInsert()
         {
-            string src1 = "";
-            string src2 = "ref struct X { }";
+            var src1 = "";
+            var src2 = "ref struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RefStruct, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
         public void ReadOnlyStructInsert()
         {
-            string src1 = "";
-            string src2 = "readonly struct X { }";
+            var src1 = "";
+            var src2 = "readonly struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [readonly struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyStruct, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
         public void RefStructUpdate()
         {
-            string src1 = "struct X { }";
-            string src2 = "ref struct X { }";
+            var src1 = "struct X { }";
+            var src2 = "ref struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
         public void ReadOnlyStructUpdate()
         {
-            string src1 = "struct X { }";
-            string src2 = "readonly struct X { }";
+            var src1 = "struct X { }";
+            var src2 = "readonly struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [readonly struct X { }]@0");
@@ -783,7 +841,7 @@ public class SubClass : BaseClass, IConflict
 }
 ";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Insert [public class SubClass : BaseClass, IConflict
@@ -800,6 +858,94 @@ public class SubClass : BaseClass, IConflict
             // Here we add a class implementing an interface and a method inside it with explicit interface specifier.
             // We want to be sure that adding the method will not tirgger a rude edit as it happens if adding a single method with explicit interface specifier.
             edits.VerifyRudeDiagnostics();
+        }
+
+        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact]
+        public void Interface_AddMembersWithImplementation()
+        {
+            var src1 = @"
+using System;
+interface I
+{
+}
+";
+            var src2 = @"
+using System;
+interface I
+{
+    static int StaticField = 10;
+
+    static void StaticMethod() { }
+    void VirtualMethod1() { }
+    virtual void VirtualMethod2() { }
+    abstract void AbstractMethod();
+    sealed void NonVirtualMethod() { }
+
+    public static int operator +(I a, I b) => 1;
+
+    static int StaticProperty1 { get => 1; set { } }
+    static int StaticProperty2 => 1;
+    virtual int VirtualProperty1 { get => 1; set { } }
+    virtual int VirtualProperty2 { get => 1; }
+    int VirtualProperty3 { get => 1; set { } }
+    int VirtualProperty4 { get => 1; }
+    abstract int AbstractProperty1 { get; set; }
+    abstract int AbstractProperty2 { get; }
+    sealed int NonVirtualProperty => 1;
+
+    int this[byte virtualIndexer] => 1;
+    int this[sbyte virtualIndexer] { get => 1; }
+    virtual int this[ushort virtualIndexer] { get => 1; set {} }
+    virtual int this[short virtualIndexer] { get => 1; set {} }
+    abstract int this[uint abstractIndexer] { get; set; }
+    abstract int this[int abstractIndexer] { get; }
+    sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
+    sealed int this[long nonVirtualIndexer] { get => 1; set {} }
+    
+    static event Action StaticEvent;
+    static event Action StaticEvent2 { add { } remove { } }
+
+    event Action VirtualEvent { add { } remove { } }
+    abstract event Action AbstractEvent;
+    sealed event Action NonVirtualEvent { add { } remove { } }
+
+    interface J { }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "void VirtualMethod1()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual void VirtualMethod2()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract void AbstractMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(I a, I b)", FeaturesResources.operator_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty4", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty1", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[byte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[sbyte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[ushort virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[short virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[uint abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[int abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "event Action VirtualEvent", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract event Action AbstractEvent", CSharpFeaturesResources.event_field),
+                // TODO: The following errors are reported due to https://github.com/dotnet/roslyn/issues/37128.
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticField = 10", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static void StaticMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed void NonVirtualMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[ulong nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[long nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent", CSharpFeaturesResources.event_field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent2", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed event Action NonVirtualEvent", FeaturesResources.event_));
         }
 
         #endregion
@@ -1552,15 +1698,14 @@ public class SubClass : BaseClass, IConflict
             var src1 = "";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public delegate int D(in int b);]@0",
                 "Insert [(in int b)]@21",
                 "Insert [in int b]@22");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -1569,7 +1714,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D();";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@22");
@@ -1584,7 +1729,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D(int b);";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@22 -> [in int b]@22");
@@ -1599,14 +1744,13 @@ public class SubClass : BaseClass, IConflict
             var src1 = "";
             var src2 = "public delegate ref readonly int D();";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public delegate ref readonly int D();]@0",
                 "Insert [()]@34");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "public delegate ref readonly int D()", FeaturesResources.delegate_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -1615,7 +1759,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D();";
             var src2 = "public delegate ref readonly int D();";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [public delegate int D();]@0 -> [public delegate ref readonly int D();]@0");
@@ -1768,14 +1912,14 @@ class C
         [Fact]
         public void NestedClass_Insert_PInvoke()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Runtime.InteropServices;
 
 class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -1813,14 +1957,14 @@ class C
         [Fact]
         public void NestedClass_Insert_VirtualAbstract()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Runtime.InteropServices;
 
 class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -1945,12 +2089,111 @@ class C
 
         #endregion
 
+        #region Members
+
+        [Fact]
+        public void MemberUpdate_Modifier_ReadOnly_Remove()
+        {
+            var src1 = @"
+using System;
+
+struct S
+{
+    // methods
+    public readonly int M() => 1;
+
+    // properties
+    public readonly int P => 1;
+    public readonly int Q { get; }
+    public int R { readonly get; readonly set; }
+
+    // events
+    public readonly event Action E { add {} remove {} }
+    public event Action F { readonly add {} readonly remove {} }
+}";
+            var src2 = @"
+using System;
+struct S
+{
+    // methods
+    public int M() => 1;
+
+    // properties
+    public int P => 1;
+    public int Q { get; }
+    public int R { get; set; }
+
+    // events
+    public event Action E { add {} remove {} }
+    public event Action F { add {} remove {} }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int M()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int P", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int Q", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "get", CSharpFeaturesResources.property_getter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "set", CSharpFeaturesResources.property_setter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "add", FeaturesResources.event_accessor),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "remove", FeaturesResources.event_accessor));
+        }
+
+        [Fact]
+        public void MemberUpdate_Modifier_ReadOnly_Add()
+        {
+            var src1 = @"
+using System;
+
+struct S
+{
+    // methods
+    public int M() => 1;
+
+    // properties
+    public int P => 1;
+    public int Q { get; }
+    public int R { get; set; }
+
+    // events
+    public event Action E { add {} remove {} }
+    public event Action F { add {} remove {} }
+}";
+            var src2 = @"
+using System;
+
+struct S
+{
+    // methods
+    public readonly int M() => 1;
+
+    // properties
+    public readonly int P => 1;
+    public readonly int Q { get; }
+    public int R { readonly get; readonly set; }
+
+    // events
+    public readonly event Action E { add {} remove {} }
+    public event Action F { readonly add {} readonly remove {} }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int M()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int P", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int Q", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly get", CSharpFeaturesResources.property_getter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly set", CSharpFeaturesResources.property_setter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly add", FeaturesResources.event_accessor),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly remove", FeaturesResources.event_accessor));
+        }
+
+        #endregion
+
         #region Methods
 
         [Fact]
         public void Method_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -1961,7 +2204,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -1996,14 +2239,14 @@ class C
         [Fact]
         public void MethodWithExpressionBody_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static int Main(string[] args) => F(1);
     static int F(int a) => 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int Main(string[] args) => F(2);
@@ -2056,7 +2299,7 @@ class C
         [Fact]
         public void MethodWithLambda_Update()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -2068,7 +2311,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -2092,7 +2335,7 @@ class C
         [Fact]
         public void MethodUpdate_LocalVariableDeclaration()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2102,7 +2345,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2128,7 +2371,7 @@ class C
         [Fact]
         public void Method_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     void goo() { }
@@ -2139,7 +2382,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2160,7 +2403,7 @@ class C
         [Fact]
         public void MethodWithExpressionBody_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int goo() => 1;
@@ -2171,7 +2414,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2192,7 +2435,7 @@ class C
         [Fact]
         public void MethodDelete_WithParameters()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     void goo(int a) { }
@@ -2203,7 +2446,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2226,7 +2469,7 @@ class C
         [Fact]
         public void MethodDelete_WithAttribute()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     [Obsolete]
@@ -2238,7 +2481,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2264,7 +2507,7 @@ class C
         [Fact]
         public void MethodDelete_PInvoke()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2279,7 +2522,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2308,7 +2551,7 @@ class C
         [Fact]
         public void PrivateMethodInsert()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2316,7 +2559,7 @@ class C
         Console.ReadLine();
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     void goo() { }
@@ -2340,7 +2583,7 @@ class C
         [Fact]
         public void PrivateMethodInsert_WithParameters()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -2350,7 +2593,7 @@ class C
         Console.ReadLine();
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -2379,7 +2622,7 @@ class C
         [Fact]
         public void PrivateMethodInsert_WithAttribute()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2387,7 +2630,7 @@ class C
         Console.ReadLine();
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     [Obsolete]
@@ -2415,11 +2658,11 @@ class C
         [Fact]
         public void MethodInsert_Virtual()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public virtual void F() {}
@@ -2434,11 +2677,11 @@ class C
         [Fact]
         public void MethodInsert_Abstract()
         {
-            string src1 = @"
+            var src1 = @"
 abstract class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 abstract class C
 {
     public abstract void F();
@@ -2453,11 +2696,11 @@ abstract class C
         [Fact]
         public void MethodInsert_Override()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public override void F() { }
@@ -2473,7 +2716,7 @@ class C
         [Fact]
         public void PrivateMethodInsert_PInvoke1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2484,7 +2727,7 @@ class C
         Console.ReadLine();
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2545,7 +2788,7 @@ class C
         [Fact]
         public void MethodUpdate_AddParameter()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -2553,7 +2796,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2573,7 +2816,7 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameter()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2581,7 +2824,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] b)
@@ -2599,9 +2842,64 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_RenameMethodName()
+        public void MethodUpdate_UpdateParameterToNullable()
         {
             string src1 = @"
+class C
+{
+    static void M(string s)
+    {
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void M(string? s)
+    {
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [string s]@32 -> [string? s]@32");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "string? s", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateParameterToNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void M(string? s)
+    {
+        
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void M(string s)
+    {
+        
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [string? s]@32 -> [string s]@32");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
+        }
+
+
+        [Fact]
+        public void MethodUpdate_RenameMethodName()
+        {
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2609,7 +2907,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void EntryPoint(string[] args)
@@ -2636,7 +2934,7 @@ class C
         [Fact]
         public void MethodUpdate_ReorderParameter()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(int a, char c)
@@ -2644,7 +2942,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(char c, int a)
@@ -2664,12 +2962,12 @@ class C
         [Fact]
         public void MethodUpdate_DeleteParameter()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main() { }
@@ -2684,9 +2982,9 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_RemoveAsyncModifier()
+        public void MethodUpdate_Modifier_Async_Remove()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public async Task<int> WaitAsync()
@@ -2695,7 +2993,7 @@ class Test
         return 1;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public Task<int> WaitAsync()
@@ -2711,9 +3009,9 @@ class Test
         }
 
         [Fact]
-        public void MethodUpdate_AddAsyncModifier()
+        public void MethodUpdate_Modifier_Async_Add()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public Task<int> WaitAsync()
@@ -2721,7 +3019,7 @@ class Test
         return 1;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public async Task<int> WaitAsync()
@@ -2739,7 +3037,7 @@ class Test
         [Fact]
         public void MethodUpdate_AsyncMethod0()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public async Task<int> WaitAsync()
@@ -2748,7 +3046,7 @@ class Test
         return 1;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public async Task<int> WaitAsync()
@@ -2766,7 +3064,7 @@ class Test
         [Fact]
         public void MethodUpdate_AsyncMethod1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -2781,7 +3079,7 @@ class Test
         return ""Done"";
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -2815,7 +3113,7 @@ class Test
         [Fact]
         public void MethodUpdate_DeleteParameterModifierThis()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args) 
@@ -2831,7 +3129,7 @@ public static class Extensions
         return Int32.Parse(s);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args) 
@@ -2859,7 +3157,7 @@ public static class Extensions
         [Fact]
         public void MethodUpdate_DeleteParameterModifiersRefAndOut()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args) 
@@ -2878,7 +3176,7 @@ class C
         b = 45;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args) 
@@ -2911,7 +3209,7 @@ class C
         [Fact]
         public void MethodUpdate_AddAttribute()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -2919,7 +3217,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete]
@@ -2939,7 +3237,7 @@ class Test
         [Fact]
         public void MethodUpdate_AddAttribute2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete]
@@ -2948,7 +3246,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete, Serializable]
@@ -2969,7 +3267,7 @@ class Test
         [Fact]
         public void MethodUpdate_AddAttribute3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete]
@@ -2978,7 +3276,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete]
@@ -3000,7 +3298,7 @@ class Test
         [Fact]
         public void MethodUpdate_AddAttribute4()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -3008,7 +3306,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete, Serializable]
@@ -3031,7 +3329,7 @@ class Test
         [Fact]
         public void MethodUpdate_UpdateAttribute()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete]
@@ -3040,7 +3338,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete("""")]
@@ -3061,7 +3359,7 @@ class Test
         [Fact]
         public void MethodUpdate_DeleteAttribute()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete]
@@ -3070,7 +3368,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -3091,7 +3389,7 @@ class Test
         [Fact]
         public void MethodUpdate_DeleteAttribute2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete, Serializable]
@@ -3100,7 +3398,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete]
@@ -3121,7 +3419,7 @@ class Test
         [Fact]
         public void MethodUpdate_DeleteAttribute3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     [Obsolete]
@@ -3131,7 +3429,7 @@ class Test
         System.Console.Write(5);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     [Obsolete]
@@ -3152,13 +3450,13 @@ class Test
         [Fact]
         public void MethodUpdate_ExplicitlyImplemented1()
         {
-            string src1 = @"
+            var src1 = @"
 class C : I, J
 {
     void I.Goo() { Console.WriteLine(2); }
     void J.Goo() { Console.WriteLine(1); }
 }";
-            string src2 = @"
+            var src2 = @"
 class C : I, J
 {
     void I.Goo() { Console.WriteLine(1); }
@@ -3176,13 +3474,13 @@ class C : I, J
         [Fact]
         public void MethodUpdate_ExplicitlyImplemented2()
         {
-            string src1 = @"
+            var src1 = @"
 class C : I, J
 {
     void I.Goo() { Console.WriteLine(1); }
     void J.Goo() { Console.WriteLine(2); }
 }";
-            string src2 = @"
+            var src2 = @"
 class C : I, J
 {
     void Goo() { Console.WriteLine(1); }
@@ -3201,7 +3499,7 @@ class C : I, J
         [Fact]
         public void MethodUpdate_UpdateStackAlloc()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args) 
@@ -3213,7 +3511,7 @@ class C
             }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args) 
@@ -3226,7 +3524,7 @@ class C
             }
     }
 }";
-            string expectedEdit = @"Update [static void Main(string[] args) 
+            var expectedEdit = @"Update [static void Main(string[] args) 
     { 
             int i = 10;
             unsafe
@@ -3382,7 +3680,7 @@ class C
         [Fact]
         public void MethodUpdate_LabeledStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -3395,7 +3693,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -3442,15 +3740,14 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [int M(in int b) => throw null;]@13",
                 "Insert [(in int b)]@18",
                 "Insert [in int b]@19");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3459,7 +3756,7 @@ class C
             var src1 = "class Test { int M() => throw null; }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@19");
@@ -3474,7 +3771,7 @@ class C
             var src1 = "class Test { int M(int b) => throw null; }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@19 -> [in int b]@19");
@@ -3489,14 +3786,13 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int M() => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int M() => throw null;]@13",
                 "Insert [()]@31");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3505,7 +3801,7 @@ class C
             var src1 = "class Test { int M() => throw null; }";
             var src2 = "class Test { ref readonly int M() => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
@@ -3566,7 +3862,7 @@ public class SubClass : BaseClass, IConflict
 }
 ";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [string IConflict.Get() => String.Empty;]@325",
@@ -3583,12 +3879,12 @@ public class SubClass : BaseClass, IConflict
         [Fact]
         public void OperatorInsert()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static implicit operator bool (C c) 
@@ -3611,7 +3907,7 @@ class C
         [Fact]
         public void OperatorDelete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static implicit operator bool (C c) 
@@ -3625,7 +3921,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 }";
@@ -3639,7 +3935,7 @@ class C
         [Fact]
         public void OperatorUpdate()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static implicit operator bool (C c) 
@@ -3653,7 +3949,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static implicit operator bool (C c) 
@@ -3678,14 +3974,14 @@ class C
         [Fact]
         public void OperatorWithExpressionBody_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static implicit operator bool (C c) => false;
     public static C operator +(C c, C d) => c;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static implicit operator bool (C c) => true;
@@ -3735,14 +4031,14 @@ class C
         [Fact]
         public void OperatorReorder1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static implicit operator bool (C c) { return false; }
     public static implicit operator int (C c) { return 1; }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static implicit operator int (C c) { return 1; }
@@ -3759,14 +4055,14 @@ class C
         [Fact]
         public void OperatorReorder2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static C operator +(C c, C d) { return c; }
     public static C operator -(C c, C d) { return d; }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static C operator -(C c, C d) { return d; }
@@ -3786,7 +4082,7 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public static bool operator !(in Test b) => throw null;]@13",
@@ -3803,7 +4099,7 @@ class C
             var src1 = "class Test { public static bool operator !(Test b) => throw null; }";
             var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [Test b]@43 -> [in Test b]@43");
@@ -3819,12 +4115,12 @@ class C
         [Fact]
         public void ConstructorInitializer_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a) : base(a) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a) : base(a + 1) { }
@@ -3840,12 +4136,12 @@ class C
         [Fact]
         public void ConstructorInitializer_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
     public C(int a) : base(a) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
     public C(int a) { }
@@ -3862,12 +4158,12 @@ class C<T>
         [Fact]
         public void ConstructorInitializer_Update3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a) : base(a) { }
@@ -3883,12 +4179,12 @@ class C
         [Fact]
         public void ConstructorInitializer_Update4()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
     public C(int a) : base(a) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
     public C(int a) : base(a + 1) { }
@@ -3906,7 +4202,7 @@ class C<T>
         [Fact]
         public void ConstructorUpdate_AddParameter()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a) { }
@@ -3916,7 +4212,7 @@ class C
         C c = new C(5);        
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a, int b) { }
@@ -3939,7 +4235,7 @@ class C
         [Fact]
         public void DestructorDelete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -3957,7 +4253,7 @@ class B
         Console.WriteLine(""B's destructor"");
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -3989,7 +4285,7 @@ class B
         [Fact]
         public void DestructorDelete_InsertConstructor()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -4007,7 +4303,7 @@ class B
         Console.WriteLine(""B's destructor"");
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -4316,6 +4612,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4338,6 +4635,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4360,6 +4658,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4382,6 +4681,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4402,6 +4702,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4424,6 +4725,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4446,6 +4748,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4467,7 +4770,6 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4490,6 +4792,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4510,6 +4813,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4520,7 +4824,7 @@ class B
         [Fact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 partial class C
@@ -4540,7 +4844,7 @@ partial class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 partial class C
@@ -4571,7 +4875,7 @@ partial class C
         [Fact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer_Trivia1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 partial class C
@@ -4588,7 +4892,7 @@ partial class C
     public C() { F(<N:0.2>c => c + 1</N:0.2>); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 partial class C
@@ -4616,7 +4920,7 @@ partial class C
         [Fact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer_ExplicitInterfaceImpl1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 public interface I { int B { get; } }
@@ -4640,7 +4944,7 @@ partial class C : I, J
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 public interface I { int B { get; } }
@@ -4675,7 +4979,7 @@ partial class C : I, J
         [Fact]
         public void InstanceCtor_Partial_Insert_Parameterless_LambdaInInitializer1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 partial class C
@@ -4690,7 +4994,7 @@ partial class C
     int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 partial class C
@@ -4721,7 +5025,7 @@ partial class C
         [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
         public void InstanceCtor_Partial_Insert_WithParameters_LambdaInInitializer1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 partial class C
@@ -4736,7 +5040,7 @@ partial class C
     int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 partial class C
@@ -4788,13 +5092,13 @@ partial class C
         [Fact(Skip = "https://github.com/dotnet/roslyn/pull/18940")]
         public void ParameterlessConstructor_SemanticError_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     D() {}
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 }
@@ -4807,10 +5111,10 @@ class C
         [Fact(Skip = "https://github.com/dotnet/roslyn/pull/18940")]
         public void ParameterlessConstructor_SemanticError_Delete_OutsideOfClass1()
         {
-            string src1 = @"
+            var src1 = @"
 C() {}
 ";
-            string src2 = @"
+            var src2 = @"
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics();
@@ -4819,7 +5123,7 @@ C() {}
         [Fact]
         public void Constructor_SemanticError_Partial()
         {
-            string src1 = @"
+            var src1 = @"
 partial class C
 {
     partial void C(int x);
@@ -4833,7 +5137,7 @@ partial class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 partial class C
 {
     partial void C(int x);
@@ -4858,7 +5162,7 @@ partial class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Constructor_BlockBodyToExpressionBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class C
 {
     private int _value;
@@ -4866,7 +5170,7 @@ public class C
     public C(int value) { _value = value; }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class C
 {
     private int _value;
@@ -4889,7 +5193,7 @@ public class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void ConstructorWithInitializer_BlockBodyToExpressionBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class B { B(int value) {} }
 public class C : B
 {
@@ -4897,7 +5201,7 @@ public class C : B
     public C(int value) : base(value) { _value = value; }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class B { B(int value) {} }
 public class C : B
 {
@@ -4920,7 +5224,7 @@ public class C : B
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Constructor_ExpressionBodyToBlockBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class C
 {
     private int _value;
@@ -4928,7 +5232,7 @@ public class C
     public C(int value) => _value = value;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class C
 {
     private int _value;
@@ -4951,7 +5255,7 @@ public class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void ConstructorWithInitializer_ExpressionBodyToBlockBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class B { B(int value) {} }
 public class C : B
 {
@@ -4959,7 +5263,7 @@ public class C : B
     public C(int value) : base(value) => _value = value;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class B { B(int value) {} }
 public class C : B
 {
@@ -4982,13 +5286,13 @@ public class C : B
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Destructor_BlockBodyToExpressionBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class C
 {
     ~C() { Console.WriteLine(0); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class C
 {
     ~C() => Console.WriteLine(0);
@@ -5009,13 +5313,13 @@ public class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Destructor_ExpressionBodyToBlockBody()
         {
-            string src1 = @"
+            var src1 = @"
 public class C
 {
     ~C() => Console.WriteLine(0);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 public class C
 {
     ~C() { Console.WriteLine(0); }
@@ -5039,15 +5343,14 @@ public class C
             var src1 = "class Test { }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [Test(in int b) => throw null;]@13",
                 "Insert [(in int b)]@17",
                 "Insert [in int b]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -5056,7 +5359,7 @@ public class C
             var src1 = "class Test { Test() => throw null; }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@18");
@@ -5071,7 +5374,7 @@ public class C
             var src1 = "class Test { Test(int b) => throw null; }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@18 -> [in int b]@18");
@@ -5774,7 +6077,7 @@ public class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5785,7 +6088,7 @@ class C
     int B = F(<N:0.1>b => b + 1</N:0.1>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -5807,7 +6110,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithoutLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5818,7 +6121,7 @@ class C
     int B = F(<N:0.0>b => b + 1</N:0.0>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -5840,7 +6143,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5853,7 +6156,7 @@ class C
     public C() {}
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -5877,7 +6180,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithoutLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5890,7 +6193,7 @@ class C
     public C() {}
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -5914,7 +6217,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializers_EditInitializerWithLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5928,7 +6231,7 @@ class C
     public C(bool b) {}
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -5957,7 +6260,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -5971,7 +6274,7 @@ class C
     public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6000,7 +6303,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda_Trivia1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6014,7 +6317,7 @@ class C
     public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6043,7 +6346,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6057,7 +6360,7 @@ class C
     public C(bool b) { F(d => d + 1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6085,7 +6388,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6099,7 +6402,7 @@ class C
     public C(bool b) { F(d => d + 1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6127,7 +6430,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6141,7 +6444,7 @@ class C
     public C(bool b) { Console.WriteLine(1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6169,7 +6472,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_EditConstructorNotIncludingInitializers()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6183,7 +6486,7 @@ class C
     public C(bool b) : this(1) { Console.WriteLine(1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6211,7 +6514,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_RemoveCtorInitializer1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6225,7 +6528,7 @@ class C
     public C(bool b) : this(1) { Console.WriteLine(1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6253,7 +6556,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_AddCtorInitializer1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6267,7 +6570,7 @@ class C
     public C(bool b) { Console.WriteLine(1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6294,7 +6597,7 @@ class C
         [Fact]
         public void FieldInitializerUpdate_Lambdas_UpdateBaseCtorInitializerWithLambdas1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class B
@@ -6316,7 +6619,7 @@ class C : B
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class B
@@ -6352,7 +6655,7 @@ class C : B
         [Fact]
         public void FieldInitializerUpdate_ActiveStatements1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6364,7 +6667,7 @@ class C
     public C(bool b) { Console.WriteLine(1); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6392,7 +6695,7 @@ class C
         [Fact]
         public void PropertyWithInitializer_SemanticError_Partial()
         {
-            string src1 = @"
+            var src1 = @"
 partial class C
 {
     partial int P => 1;
@@ -6403,7 +6706,7 @@ partial class C
     partial int P => 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 partial class C
 {
     partial int P => 1;
@@ -6455,6 +6758,20 @@ partial class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", CSharpFeaturesResources.event_field));
+        }
+
+        [Fact]
+        public void EventFieldUpdate_VariableDeclarator()
+        {
+            var src1 = "class C { event Action a; }";
+            var src2 = "class C { event Action a = () => { }; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a]@23 -> [a = () => { }]@23");
+
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6687,7 +7004,7 @@ class C
         [Fact]
         public void FieldInsert_WithInitializersAndLambdas1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6702,7 +7019,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6733,7 +7050,7 @@ class C
         [Fact]
         public void FieldInsert_ParameterlessConstructorInsert_WithInitializersAndLambdas1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6743,7 +7060,7 @@ class C
     int A = F(<N:0.0>a => a + 1</N:0.0>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6774,7 +7091,7 @@ class C
         [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
         public void FieldInsert_ConstructorInsert_WithInitializersAndLambdas1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6784,7 +7101,7 @@ class C
     int A = F(<N:0.0>a => a + 1</N:0.0>);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6819,7 +7136,7 @@ class C
         [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
         public void FieldInsert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class C
@@ -6829,7 +7146,7 @@ class C
     int A = F(null);
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class C
@@ -6917,6 +7234,20 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "int? left", FeaturesResources.field));
+        }
+
+        [Fact]
+        public void FieldTypeUpdateNonNullable()
+        {
+            var src1 = "class C { int? left; }";
+            var src2 = "class C { int left; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [int? left]@10 -> [int left]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "int left", FeaturesResources.field));
         }
 
         [Fact]
@@ -7220,14 +7551,14 @@ class C
         [Fact]
         public void PropertyInsert_PInvoke()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Runtime.InteropServices;
 
 class C
 {
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -7476,14 +7807,13 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int M() { get; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int M() { get; }]@13",
                 "Insert [()]@31");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7492,7 +7822,7 @@ class C
             var src1 = "class Test { int M() { get; } }";
             var src2 = "class Test { ref readonly int M() { get; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int M() { get; }]@13 -> [ref readonly int M() { get; }]@13");
@@ -7859,7 +8189,7 @@ class C
         [Fact]
         public void Indexer_AddGetAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -7877,7 +8207,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -7906,7 +8236,7 @@ class SampleCollection<T>
         [Fact]
         public void Indexer_AddSetAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -7924,7 +8254,7 @@ class SampleCollection<T>
         get { return arr[i]; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -7954,7 +8284,7 @@ class SampleCollection<T>
         [Fact]
         public void Indexer_DeleteGetAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -7973,7 +8303,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -8002,7 +8332,7 @@ class SampleCollection<T>
         [Fact]
         public void Indexer_DeleteSetAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -8021,7 +8351,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -8106,15 +8436,14 @@ class SampleCollection<T>
             var src1 = "class Test { }";
             var src2 = "class Test { int this[in int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [int this[in int i] => throw null;]@13",
                 "Insert [[in int i]]@21",
                 "Insert [in int i]@22");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -8123,7 +8452,7 @@ class SampleCollection<T>
             var src1 = "class Test { int this[int i] => throw null; }";
             var src2 = "class Test { int this[in int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int i]@22 -> [in int i]@22");
@@ -8138,15 +8467,14 @@ class SampleCollection<T>
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int this[int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int this[int i] => throw null;]@13",
                 "Insert [[int i]]@34",
                 "Insert [int i]@35");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int this[int i]", FeaturesResources.indexer_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -8155,7 +8483,7 @@ class SampleCollection<T>
             var src1 = "class Test { int this[int i] => throw null; }";
             var src2 = "class Test { ref readonly int this[int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int this[int i] => throw null;]@13 -> [ref readonly int this[int i] => throw null;]@13");
@@ -8242,14 +8570,14 @@ class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Event_ExpressionBodyToBlockBody()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 public class C
 {
     event Action E { add => F(); remove => F(); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 public class C
 {
@@ -8269,14 +8597,14 @@ public class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Event_BlockBodyToExpressionBody()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 public class C
 {
    event Action E { add { F(); } remove { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 public class C
 {

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // Formatter uses FindToken on the position, which returns token to left, if there is nothing to the right and returns token to the right
             // if there exists one. If the shape is "{|}", we're including '}' in the formatting range. Avoid doing that to improve verbatim typing
             // in the following special scenarios.  
-            int adjustedEndPosition = token.Span.End;
+            var adjustedEndPosition = token.Span.End;
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 (token.Parent.IsInitializerForArrayOrCollectionCreationExpression() ||
                     token.Parent is AnonymousObjectCreationExpressionSyntax))

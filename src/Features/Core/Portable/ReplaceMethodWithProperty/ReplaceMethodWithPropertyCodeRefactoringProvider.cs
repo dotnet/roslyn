@@ -29,25 +29,14 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<IReplaceMethodWithPropertyService>();
             if (service == null)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var methodDeclaration = service.GetMethodDeclaration(token);
+            var methodDeclaration = await service.GetMethodDeclarationAsync(context).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return;
@@ -74,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
-                c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+                c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName));
 
             // If this method starts with 'Get' see if there's an associated 'Set' method we could 
@@ -86,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                        c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                        c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"));
                 }
             }

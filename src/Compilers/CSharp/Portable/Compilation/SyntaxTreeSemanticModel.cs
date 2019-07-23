@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (; expression != null && expression.Parent != null; expression = expression.Parent as TypeSyntax)
             {
                 var parent = expression.Parent;
-                if (parent is BaseTypeSyntax && parent.Parent != null && parent.Parent.Kind() == SyntaxKind.BaseList && ((BaseTypeSyntax)parent).Type == expression)
+                if (parent is BaseTypeSyntax baseType && parent.Parent != null && parent.Parent.Kind() == SyntaxKind.BaseList && baseType.Type == expression)
                 {
                     // we have a winner
                     var decl = (BaseTypeDeclarationSyntax)parent.Parent.Parent;
@@ -716,6 +716,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             speculativeModel = null;
             return false;
+        }
+
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            // If the given position is in a member that we can get a semantic model for, we want to defer to that implementation
+            // of GetSpeculativelyBoundExpression so it can take nullability into account.
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                position = CheckAndAdjustPosition(position);
+                var model = GetMemberModel(position);
+                if (model is object)
+                {
+                    return model.GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols);
+                }
+            }
+
+            return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
         }
 
         private MemberSemanticModel GetMemberModel(int position)

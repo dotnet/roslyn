@@ -470,6 +470,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Build + live analysis (NuGet package).
+        /// </summary>
+        internal static string Build_plus_live_analysis_NuGet_package {
+            get {
+                return ResourceManager.GetString("Build_plus_live_analysis_NuGet_package", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to built-in types.
         /// </summary>
         internal static string built_in_types {
@@ -1342,6 +1351,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues.
+        /// </summary>
+        internal static string Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues {
+            get {
+                return ResourceManager.GetString("Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnosti" +
+                        "cs_and_fixes_for_common_API_design_security_performance_and_reliability_issues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing &apos;{0}&apos;.
         /// </summary>
         internal static string Installing_0 {
@@ -1457,6 +1476,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Live_analysis {
             get {
                 return ResourceManager.GetString("Live_analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live analysis (VSIX extension).
+        /// </summary>
+        internal static string Live_analysis_VSIX_extension {
+            get {
+                return ResourceManager.GetString("Live_analysis_VSIX_extension", resourceCulture);
             }
         }
         
@@ -1719,6 +1747,258 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Naming_Style_Title_colon {
             get {
                 return ResourceManager.GetString("Naming_Style_Title_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to class.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Class {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegate.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Delegate {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Delegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to enum.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Enum {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Event {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to field.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Field {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to interface.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Interface {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Local {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_LocalFunction {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_LocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to method.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Method {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Namespace {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to parameter.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Parameter {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to property.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Property {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to struct.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_Struct {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type parameter.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_TypeParameter {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_TypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Class.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Class {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Delegate {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Delegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enum.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Enum {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Event {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Field {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Interface {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Local {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Method {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Module {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Module", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Namespace {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Parameter {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Property {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Structure.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_Structure {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_Structure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Parameter.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_TypeParameter {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_TypeParameter", resourceCulture);
             }
         }
         
@@ -2960,16 +3240,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
             get {
                 return ResourceManager.GetString("To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragrap" +
                         "h_follows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues.
-        /// </summary>
-        internal static string Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues {
-            get {
-                return ResourceManager.GetString("Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_f" +
-                        "ixes_for_common_API_design_naming_performance_and_reliability_issues", resourceCulture);
             }
         }
         

@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Filter out method group in conversion.
                 DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
-                BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
+                BoundExpression boundExpression = originalBinder.BindToNaturalType(
+                    originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup), diagnostics);
                 Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
             }
             Debug.Assert(_lazyExpressionAndDiagnostics != null);

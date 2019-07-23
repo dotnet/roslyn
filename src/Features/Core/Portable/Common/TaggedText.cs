@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                return SymbolKey.ToString(symbol);
+                return SymbolKey.CreateString(symbol);
             }
 
             static string GetNavigationHint(ISymbol symbol)

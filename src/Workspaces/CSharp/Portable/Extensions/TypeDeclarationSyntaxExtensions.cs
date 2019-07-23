@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var end = destination.Members.First().SpanStart;
                 indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
 
-                for (int i = 0; i < members.Count - 1; i++)
+                for (var i = 0; i < members.Count - 1; i++)
                 {
                     var member1 = members[i];
                     var member2 = members[i + 1];
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             Contract.ThrowIfNull(typeNode);
 
-            IEnumerable<BaseTypeSyntax> baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
+            var baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
 
             var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
             if (isPartialType)
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // Bug 539673: If there are no members, take any trivia that
                 // belongs to the end brace and attach it to the opening brace.
-                int index = -1;
+                var index = -1;
                 var leadingTrivia = closeBrace.LeadingTrivia;
-                for (int i = leadingTrivia.Count - 1; i >= 0; i--)
+                for (var i = leadingTrivia.Count - 1; i >= 0; i--)
                 {
                     if (!leadingTrivia[i].IsWhitespaceOrEndOfLine())
                     {

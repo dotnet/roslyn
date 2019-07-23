@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static SourceText WithReplaceFirst(SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
-            int length = oldText.Length;
+            var offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
+            var length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
             return SourceText.From(newFullText);

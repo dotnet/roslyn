@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
-            public sealed override string EquivalenceKey => this.Title;
+            public sealed override string EquivalenceKey => Title;
 
             /// <summary>
             /// The <see cref="Document"/> we started the add-import analysis in.

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = loweredReceiver.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
-            if (hasImplicitReceiver && !_factory.TopLevelMethod.IsStatic)
+            if (hasImplicitReceiver && _factory.TopLevelMethod.RequiresInstanceReceiver)
             {
                 binderFlags |= CSharpBinderFlags.InvokeSimpleName;
             }

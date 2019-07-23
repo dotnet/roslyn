@@ -10,12 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
-        /// <summary>
-        /// Bound nodes with fields that aren't declared in BoundNodes.xml should use `SkipShallowClone="true"` and override <see cref="ShallowClone"/>.
-        /// Note that ShallowClone is not fully implemented (it throws for some nodes at the moment).
-        /// </summary>
-        protected abstract BoundExpression ShallowClone();
-
         internal BoundExpression WithSuppression(bool suppress = true)
         {
             if (this.IsSuppressed == suppress)
@@ -26,9 +20,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There is no scenario where suppression goes away
             Debug.Assert(suppress || !this.IsSuppressed);
 
-            var result = ShallowClone();
+            var result = (BoundExpression)MemberwiseClone();
             result.IsSuppressed = suppress;
             return result;
+        }
+
+        internal BoundExpression WithWasConverted()
+        {
+#if DEBUG
+            // We track the WasConverted flag for locals and parameters only, as many other
+            // kinds of bound nodes have special behavior that prevents this from working for them.
+            // Also we want to minimize the GC pressure, even in Debug, and we have excellent
+            // test coverage for locals and parameters.
+            if ((Kind != BoundKind.Local && Kind != BoundKind.Parameter) || this.WasConverted)
+                return this;
+
+            var result = (BoundExpression)MemberwiseClone();
+            result.WasConverted = true;
+            return result;
+#else
+            return this;
+#endif
+        }
+
+        internal new BoundExpression WithHasErrors()
+        {
+            return (BoundExpression)base.WithHasErrors();
+        }
+
+        internal bool NeedsToBeConverted()
+        {
+            switch (Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.UnconvertedSwitchExpression:
+#if DEBUG
+                case BoundKind.Local when !WasConverted:
+                case BoundKind.Parameter when !WasConverted:
+#endif
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public virtual ConstantValue ConstantValue
@@ -430,6 +463,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool SuppressVirtualCalls
         {
             get { return this.IsBaseConversion; }
+        }
+
+        public BoundConversion UpdateOperand(BoundExpression operand)
+        {
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.Type);
         }
 
         /// <summary>

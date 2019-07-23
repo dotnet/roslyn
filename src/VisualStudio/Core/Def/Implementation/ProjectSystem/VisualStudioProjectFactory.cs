@@ -41,6 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
+            // HACK: since we're on the UI thread, ensure we initialize our options provider which depends on a UI-affinitized experimentation service
+            _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
+
             var id = ProjectId.CreateNewId(projectSystemName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
 
@@ -52,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.ProjectGuid, projectSystemName);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
             {

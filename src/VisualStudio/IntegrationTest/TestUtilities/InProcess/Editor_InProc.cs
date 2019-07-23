@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -100,8 +101,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var asyncCompletionService = (AsyncCompletionService)GetComponentModelService<IAsyncCompletionService>();
             return ExecuteOnActiveView(textView =>
             {
+                var featureServiceFactory = GetComponentModelService<IFeatureServiceFactory>();
                 var subjectBuffer = GetBufferContainingCaret(textView);
-                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(textView, subjectBuffer))
+                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer))
                 {
                     return GetComponentModelService<VisualStudioWorkspace>().Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
                 }
@@ -718,7 +720,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return view.GetBufferContainingCaret();
+            var caretBuffer = view.GetBufferContainingCaret();
+            if (caretBuffer is null)
+            {
+                throw new InvalidOperationException($"Unable to find the buffer containing the caret. Ensure the Editor is activated berfore calling.");
+            }
+
+            return caretBuffer;
         }
 
         public string[] GetOutliningSpans()

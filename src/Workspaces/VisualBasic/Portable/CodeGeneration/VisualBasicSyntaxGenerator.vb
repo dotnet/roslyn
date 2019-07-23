@@ -372,6 +372,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
         End Function
 
+        Friend Overrides Function SupportsThrowExpression() As Boolean
+            Return False
+        End Function
+
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
             Return namespaceOrTypeSymbol.GenerateTypeSyntax()
         End Function
@@ -1654,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf existingAttributes.Count > 0 Then
                 Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
             Else
-                Dim lists = Me.GetAttributeLists(declaration)
+                Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
         End Function
@@ -1747,7 +1751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+        Friend Shared Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.Kind
                 Case SyntaxKind.CompilationUnit
                     Return SyntaxFactory.List(DirectCast(node, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists))

@@ -5174,7 +5174,7 @@ class C
                 }
             }
 
-            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentsNullableAnnotations
+            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations
             {
                 get
                 {
@@ -5233,6 +5233,11 @@ class C
             }
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
+            {
+                throw new NotImplementedException();
+            }
+
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
             {
                 throw new NotImplementedException();
             }

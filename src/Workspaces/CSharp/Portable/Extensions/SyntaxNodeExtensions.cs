@@ -490,13 +490,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var childList = self.ChildNodesAndTokens();
 
-            int left = 0;
-            int right = childList.Count - 1;
+            var left = 0;
+            var right = childList.Count - 1;
 
             while (left <= right)
             {
-                int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList[middle];
+                var middle = left + ((right - left) / 2);
+                var node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)

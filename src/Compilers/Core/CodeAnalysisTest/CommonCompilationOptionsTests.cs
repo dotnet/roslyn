@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "MetadataImportOptions",
                 "MetadataReferenceResolver",
                 "ModuleName",
+                "NullableContextOptions",
                 "OptimizationLevel",
                 "OutputKind",
                 "Platform",

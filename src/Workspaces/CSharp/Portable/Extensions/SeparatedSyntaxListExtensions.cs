@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var nodes = new List<T>(separatedList.Count);
             var separators = new List<SyntaxToken>(separatedList.SeparatorCount);
 
-            for (int i = 0; i < separatedList.Count; i++)
+            for (var i = 0; i < separatedList.Count; i++)
             {
                 nodes.Add(separatedList[i]);
 
