@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     public partial class AssignOutParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new AssignOutParametersCodeFixProvider());
+            => (null, new AssignOutParametersAboveReturnCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForSimpleReturn()
@@ -458,6 +458,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestFixAll1_MultipleMethods()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            {|FixAllInDocument:return 'a';|}
+        }
+        else
+        {
+            return 'a';
+        }
+    }
+    char N(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            return 'a';
+        }
+        else
+        {
+            return 'a';
+        }
+    }
+}",
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+    }
+    char N(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -474,6 +538,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 @"class C
 {
     char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestFixAll2_MultipleMethods()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+            {|FixAllInDocument:return 'a';|}
+        else
+            return 'a';
+    }
+    char N(bool b, out int i, out int j)
+    {
+        if (b)
+            return 'a';
+        else
+            return 'a';
+    }
+}",
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+    }
+    char N(bool b, out int i, out int j)
     {
         if (b)
         {
@@ -514,6 +634,74 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 @"class C
 {
     char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            j = 0;
+            i = 0;
+            return 'a';
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestFixAll3_MultipleMethods()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            {|FixAllInDocument:return 'a';|}
+        }
+        else
+        {
+            j = 0;
+            return 'a';
+        }
+    }
+    char N(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            return 'a';
+        }
+        else
+        {
+            j = 0;
+            return 'a';
+        }
+    }
+}",
+@"class C
+{
+    char M(bool b, out int i, out int j)
+    {
+        if (b)
+        {
+            i = 0;
+            j = 0;
+            return 'a';
+        }
+        else
+        {
+            j = 0;
+            i = 0;
+            return 'a';
+        }
+    }
+    char N(bool b, out int i, out int j)
     {
         if (b)
         {

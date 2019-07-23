@@ -241,6 +241,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters (at start).
+        /// </summary>
+        internal static string Assign_out_parameters_at_start {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters_at_start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to attribute target.
         /// </summary>
         internal static string attribute_target {

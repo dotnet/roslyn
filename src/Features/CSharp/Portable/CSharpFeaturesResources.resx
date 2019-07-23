@@ -638,4 +638,8 @@
     <value>Assign 'out' parameters</value>
     <comment>out"} "out" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>
