@@ -4716,7 +4716,219 @@ class Test
         }
 
         [Fact]
-        public void Using_Expression_InLambdaBody1()
+        public void UsingStatement_Update_NonLeaf1()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingStatement_Update_NonLeaf2()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (Disposable a = new Disposable(1), b = Disposable(2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (Disposable a = new Disposable(1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingStatement_Update_NonLeaf_Lambda()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(() => 1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(() => 2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_NonLeaf1()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(1);
+
+            using Disposable b = new Disposable(2), c = new Disposable(3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(1);
+
+            using Disposable b = new Disposable(20), c = new Disposable(3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_NonLeaf_Lambda()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(() => 1);
+
+            {
+                using var x = new Disposable(1);
+            }
+
+            using Disposable b = new Disposable(() => 2), c = new Disposable(() => 3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(() => 10);
+
+            {
+                using var x = new Disposable(2);
+            }
+
+            Console.WriteLine(1);
+
+            using Disposable b = new Disposable(() => 20), c = new Disposable(() => 30);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingStatement_Expression_InLambdaBody1()
         {
             var src1 = @"
 class Test
@@ -4777,7 +4989,7 @@ class Test
         }
 
         [Fact]
-        public void Using_Expression_Update_Lambda1()
+        public void UsingStatement_Expression_Update_Lambda1()
         {
             var src1 = @"
 class C
@@ -4810,7 +5022,7 @@ class C
         }
 
         [Fact]
-        public void Using_Expression_Update_Lambda2()
+        public void UsingStatement_Expression_Update_Lambda2()
         {
             var src1 = @"
 class C

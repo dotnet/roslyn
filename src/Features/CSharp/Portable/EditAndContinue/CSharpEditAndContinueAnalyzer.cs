@@ -767,6 +767,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.Block:
                     Debug.Assert(statementPart != 0);
+
+                    // closing brace of a using statement or a block that contains using local declarations:
+                    if (statementPart == 2)
+                    {
+                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement))
+                        {
+                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement) &&
+                                AreEquivalentActiveStatements((UsingStatementSyntax)oldStatement.Parent, (UsingStatementSyntax)newStatement.Parent);
+                        }
+
+                        return HasEquivalentUsingDeclarations((BlockSyntax)oldStatement, (BlockSyntax)newStatement);
+                    }
+
                     return true;
 
                 case SyntaxKind.ConstructorDeclaration:
@@ -806,6 +819,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // fixed and for statements don't need special handling since the active statement is a variable declaration
                 default:
                     return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement);
+            }
+        }
+
+        private static bool HasEquivalentUsingDeclarations(BlockSyntax oldBlock, BlockSyntax newBlock)
+        {
+            var oldUsingDeclarations = oldBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default).GetEnumerator();
+            var newUsingDeclarations = newBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default).GetEnumerator();
+
+            while (true)
+            {
+                bool oldMoveNext = oldUsingDeclarations.MoveNext();
+                bool newMoveNext = newUsingDeclarations.MoveNext();
+                if (oldMoveNext != newMoveNext)
+                {
+                    return false;
+                }
+
+                if (!oldMoveNext)
+                {
+                    return true;
+                }
+
+                if (!AreEquivalentIgnoringLambdaBodies(oldUsingDeclarations.Current, newUsingDeclarations.Current))
+                {
+                    return false;
+                }
             }
         }
 

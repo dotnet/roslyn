@@ -5254,45 +5254,83 @@ class Program
         #region UsingStatement
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void UsingStatement()
+        public void UsingStatement_EmbeddedStatement()
         {
             var source = @"
 public class DisposableClass : System.IDisposable
 {
-    private readonly string name;
-
-    public DisposableClass(string name) 
-    {
-        this.name = name;
-        System.Console.WriteLine(""Creating "" + name);
-    }
-
-    public void Dispose()
-    {
-        System.Console.WriteLine(""Disposing "" + name);
-    }
+    public DisposableClass(int a) { }
+    public void Dispose() { }
 }
 
 class C
 {
     static void Main()
     {
-        using (DisposableClass a = new DisposableClass(""A""), b = new DisposableClass(""B""))
+        using (DisposableClass a = new DisposableClass(1), b = new DisposableClass(2))
             System.Console.WriteLine(""First"");
-
-        using (DisposableClass c = new DisposableClass(""C""), d = new DisposableClass(""D""))
-        {
-            System.Console.WriteLine(""Second"");
-        }
-
-        using (null)
-        {
-
-        }
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+ {
+   // Code size       53 (0x35)
+   .maxstack  1
+   .locals init (DisposableClass V_0, //a
+                 DisposableClass V_1) //b
+   // sequence point: {
+   IL_0000:  nop
+   // sequence point: DisposableClass a = new DisposableClass(1)
+   IL_0001:  ldc.i4.1
+   IL_0002:  newobj     ""DisposableClass..ctor(int)""
+   IL_0007:  stloc.0
+   .try
+   {
+     // sequence point: b = new DisposableClass(2)
+     IL_0008:  ldc.i4.2
+     IL_0009:  newobj     ""DisposableClass..ctor(int)""
+     IL_000e:  stloc.1
+     .try
+     {
+       // sequence point: System.Console.WriteLine(""First"");
+       IL_000f:  ldstr      ""First""
+       IL_0014:  call       ""void System.Console.WriteLine(string)""
+       IL_0019:  nop
+       IL_001a:  leave.s    IL_0027
+     }
+     finally
+     {
+       // sequence point: <hidden>
+       IL_001c:  ldloc.1
+       IL_001d:  brfalse.s  IL_0026
+       IL_001f:  ldloc.1
+       IL_0020:  callvirt   ""void System.IDisposable.Dispose()""
+       IL_0025:  nop
+       // sequence point: <hidden>
+       IL_0026:  endfinally
+     }
+     // sequence point: <hidden>
+     IL_0027:  leave.s    IL_0034
+   }
+   finally
+   {
+     // sequence point: <hidden>
+     IL_0029:  ldloc.0
+     IL_002a:  brfalse.s  IL_0033
+     IL_002c:  ldloc.0
+     IL_002d:  callvirt   ""void System.IDisposable.Dispose()""
+     IL_0032:  nop
+     // sequence point: <hidden>
+     IL_0033:  endfinally
+   }
+   // sequence point: }
+   IL_0034:  ret
+ }
+");
+
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -5301,46 +5339,151 @@ class C
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
-        <forward declaringType=""DisposableClass"" methodName="".ctor"" parameterNames=""name"" />
+        <forward declaringType=""DisposableClass"" methodName="".ctor"" parameterNames=""a"" />
         <encLocalSlotMap>
           <slot kind=""0"" offset=""34"" />
-          <slot kind=""0"" offset=""64"" />
-          <slot kind=""0"" offset=""176"" />
-          <slot kind=""0"" offset=""206"" />
+          <slot kind=""0"" offset=""62"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""22"" startColumn=""16"" endLine=""22"" endColumn=""60"" document=""1"" />
-        <entry offset=""0xc"" startLine=""22"" startColumn=""62"" endLine=""22"" endColumn=""90"" document=""1"" />
-        <entry offset=""0x17"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x24"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x31"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3c"" startLine=""25"" startColumn=""16"" endLine=""25"" endColumn=""60"" document=""1"" />
-        <entry offset=""0x47"" startLine=""25"" startColumn=""62"" endLine=""25"" endColumn=""90"" document=""1"" />
-        <entry offset=""0x52"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x53"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""48"" document=""1"" />
-        <entry offset=""0x5e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x61"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x78"" hidden=""true"" document=""1"" />
-        <entry offset=""0x79"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x8"" startLine=""12"" startColumn=""60"" endLine=""12"" endColumn=""86"" document=""1"" />
+        <entry offset=""0xf"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x26"" hidden=""true"" document=""1"" />
+        <entry offset=""0x27"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x34"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x7c"">
-        <scope startOffset=""0x1"" endOffset=""0x3c"">
-          <local name=""a"" il_index=""0"" il_start=""0x1"" il_end=""0x3c"" attributes=""0"" />
-          <local name=""b"" il_index=""1"" il_start=""0x1"" il_end=""0x3c"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x35"">
+        <scope startOffset=""0x1"" endOffset=""0x34"">
+          <local name=""a"" il_index=""0"" il_start=""0x1"" il_end=""0x34"" attributes=""0"" />
+          <local name=""b"" il_index=""1"" il_start=""0x1"" il_end=""0x34"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x3c"" endOffset=""0x79"">
-          <local name=""c"" il_index=""2"" il_start=""0x3c"" il_end=""0x79"" attributes=""0"" />
-          <local name=""d"" il_index=""3"" il_start=""0x3c"" il_end=""0x79"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void UsingStatement_Block()
+        {
+            var source = @"
+public class DisposableClass : System.IDisposable
+{
+    public DisposableClass(int a) { }
+    public void Dispose() { }
+}
+
+class C
+{
+    static void Main()
+    {
+        using (DisposableClass c = new DisposableClass(3), d = new DisposableClass(4))
+        {
+            System.Console.WriteLine(""Second"");
+        }
+    }
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+{
+  // Code size       55 (0x37)
+  .maxstack  1
+  .locals init (DisposableClass V_0, //c
+                DisposableClass V_1) //d
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: DisposableClass c = new DisposableClass(3)
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""DisposableClass..ctor(int)""
+  IL_0007:  stloc.0
+  .try
+  {
+    // sequence point: d = new DisposableClass(4)
+    IL_0008:  ldc.i4.4
+    IL_0009:  newobj     ""DisposableClass..ctor(int)""
+    IL_000e:  stloc.1
+    .try
+    {
+      // sequence point: {
+      IL_000f:  nop
+      // sequence point: System.Console.WriteLine(""Second"");
+      IL_0010:  ldstr      ""Second""
+      IL_0015:  call       ""void System.Console.WriteLine(string)""
+      IL_001a:  nop
+      // sequence point: }
+      IL_001b:  nop
+      IL_001c:  leave.s    IL_0029
+    }
+    finally
+    {
+      // sequence point: <hidden>
+      IL_001e:  ldloc.1
+      IL_001f:  brfalse.s  IL_0028
+      IL_0021:  ldloc.1
+      IL_0022:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0027:  nop
+      // sequence point: <hidden>
+      IL_0028:  endfinally
+    }
+    // sequence point: <hidden>
+    IL_0029:  leave.s    IL_0036
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_002b:  ldloc.0
+    IL_002c:  brfalse.s  IL_0035
+    IL_002e:  ldloc.0
+    IL_002f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0034:  nop
+    // sequence point: <hidden>
+    IL_0035:  endfinally
+  }
+  // sequence point: }
+  IL_0036:  ret
+}
+"
+);
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""DisposableClass"" methodName="".ctor"" parameterNames=""a"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""34"" />
+          <slot kind=""0"" offset=""62"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x8"" startLine=""12"" startColumn=""60"" endLine=""12"" endColumn=""86"" document=""1"" />
+        <entry offset=""0xf"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x10"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x37"">
+        <scope startOffset=""0x1"" endOffset=""0x36"">
+          <local name=""c"" il_index=""0"" il_start=""0x1"" il_end=""0x36"" attributes=""0"" />
+          <local name=""d"" il_index=""1"" il_start=""0x1"" il_end=""0x36"" attributes=""0"" />
         </scope>
       </scope>
     </method>
