@@ -454,6 +454,27 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        internal IBlockOperation CreateNullCheckedIOperationBody(
+BoundBlock body,
+ImmutableArray<ConditionalOperation> prependedNullChecks,
+Operation creatingObject)
+        {
+            if (prependedNullChecks.IsDefaultOrEmpty)
+            {
+                return (IBlockOperation)this.Create(body);
+            }
+
+            var constructed = this.CreateFromArray<BoundStatement, IOperation>(body.Statements).InsertRange(0, prependedNullChecks);
+            return new BlockOperation(
+                constructed,
+                body.Locals.CastArray<ILocalSymbol>(),
+                creatingObject.OwningSemanticModel,
+                creatingObject.Syntax,
+                creatingObject.Type,
+                creatingObject.ConstantValue,
+                isImplicit: true);
+        }
+
         internal class Helper
         {
             internal static bool IsPostfixIncrementOrDecrement(CSharp.UnaryOperatorKind operatorKind)
@@ -568,28 +589,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return BinaryOperatorKind.None;
-            }
-
-            internal static IBlockOperation CreateNullCheckedIOperationBody(
-                CSharpOperationFactory factory,
-                BoundBlock body,
-                ImmutableArray<ConditionalOperation> prependedNullChecks,
-                Operation creatingObject)
-            {
-                if (prependedNullChecks.IsDefaultOrEmpty)
-                {
-                    return (IBlockOperation)factory.Create(body);
-                }
-
-                var constructed = factory.CreateFromArray<BoundStatement, IOperation>(body.Statements).InsertRange(0, prependedNullChecks);
-                return new BlockOperation(
-                    constructed,
-                    body.Locals.CastArray<ILocalSymbol>(),
-                    creatingObject.OwningSemanticModel,
-                    creatingObject.Syntax,
-                    creatingObject.Type,
-                    creatingObject.ConstantValue,
-                    isImplicit: true);
             }
         }
     }

@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateBody()
         {
-            return CSharpOperationFactory.Helper.CreateNullCheckedIOperationBody(_operationFactory, _body as BoundBlock, _prependedNullChecks, this);
+            return _operationFactory.CreateNullCheckedIOperationBody(_body as BoundBlock, _prependedNullChecks, this);
         }
     }
 
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateBody()
         {
-            return CSharpOperationFactory.Helper.CreateNullCheckedIOperationBody(_operationFactory, _localFunctionStatement.Body, _prependedNullChecks, this);
+            return _operationFactory.CreateNullCheckedIOperationBody(_localFunctionStatement.Body, _prependedNullChecks, this);
         }
 
         protected override IBlockOperation CreateIgnoredBody()
