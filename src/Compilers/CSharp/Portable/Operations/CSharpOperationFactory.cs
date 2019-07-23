@@ -1416,12 +1416,12 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            bool blockInMember = _semanticModel.Root.Parent?.DescendantNodes().Contains(syntax) == true;
+            var member = (_semanticModel as MemberSemanticModel)?.MemberSymbol;
 
             ImmutableArray<ConditionalOperation> prependedNullChecks = ImmutableArray<ConditionalOperation>.Empty;
-            if (_semanticModel is MemberSemanticModel memberModel && blockInMember && !(memberModel.MemberSymbol is FieldSymbol))
+            if (!(member is null || member is FieldSymbol))
             {
-                var parameters = memberModel.MemberSymbol is ParameterSymbol parameterSymbol ? ImmutableArray.Create(parameterSymbol) : memberModel.MemberSymbol.GetParameters();
+                var parameters = member is ParameterSymbol parameterSymbol ? ImmutableArray.Create(parameterSymbol) : member.GetParameters();
                 prependedNullChecks = GenerateNullChecksForParameters(parameters, syntax);
             }
 
