@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
 {
     internal class CodeStyleAnalyzers
     {
-        public static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers()
+        public static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[]
             {
