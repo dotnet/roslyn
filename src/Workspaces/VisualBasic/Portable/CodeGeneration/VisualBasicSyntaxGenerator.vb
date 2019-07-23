@@ -372,6 +372,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
         End Function
 
+        Friend Overrides Function SupportsThrowExpression() As Boolean
+            Return False
+        End Function
+
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
             Return namespaceOrTypeSymbol.GenerateTypeSyntax()
         End Function

@@ -3248,6 +3248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.ThrowExpression((ExpressionSyntax)expression);
         }
 
+        internal override bool SupportsThrowExpression() => true;
+
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
         {
             if (falseStatements == null)
