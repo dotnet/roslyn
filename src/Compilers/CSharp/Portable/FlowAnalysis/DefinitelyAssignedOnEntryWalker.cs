@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable disable
+#if DEBUG
+#define REFERENCE_STATE
+#endif
 
 using System.Collections.Generic;
 
@@ -68,7 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnterRegion();
         }
 
+#if REFERENCE_STATE
         private void ProcessState(LocalState state1, LocalState state2opt)
+#else
+        private void ProcessState(LocalState state1, LocalState? state2opt)
+#endif
         {
             foreach (var slot in state1.Assigned.TrueBits())
             {
