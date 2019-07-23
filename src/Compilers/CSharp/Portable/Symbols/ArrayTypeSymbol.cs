@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
         {
-            get => ElementTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+            get => ElementTypeWithAnnotations.ToPublicAnnotation();
         }
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
