@@ -1419,16 +1419,19 @@ namespace Microsoft.CodeAnalysis.Operations
             Symbol member = (_semanticModel as MemberSemanticModel)?.MemberSymbol;
 
             ImmutableArray<ConditionalOperation> prependedNullChecks = ImmutableArray<ConditionalOperation>.Empty;
-            if (!(member is null || member is FieldSymbol))
+            ImmutableArray<ParameterSymbol> parameters = member switch
             {
-                ImmutableArray<ParameterSymbol> parameters = member switch
-                {
-                    ParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
-                    _ => member.GetParameters()
-                };
+                var x when
+                    x is null ||
+                    x is FieldSymbol            => ImmutableArray<ParameterSymbol>.Empty,
+                ParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
+                _                               => member.GetParameters()
+            };
+
+            if (!parameters.IsDefaultOrEmpty)
+            {
                 prependedNullChecks = GenerateNullChecksForParameters(parameters, syntax);
             }
-
             return new CSharpLazyBlockOperation(this, boundBlock, locals, prependedNullChecks, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
