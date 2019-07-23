@@ -6,8 +6,13 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -37,6 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         // TODO: remove this project language to extension map with the switch to LSP
         private readonly ImmutableDictionary<string, string[]> _projectLanguageToExtensionMap;
         private readonly SVsServiceProvider _serviceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         public Workspace Workspace => _remoteLanguageServiceWorkspace;
 
@@ -47,11 +53,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         [ImportingConstructor]
         public RemoteLanguageServiceWorkspaceHost(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
                                                   RemoteProjectInfoProvider remoteProjectInfoProvider,
-                                                  SVsServiceProvider serviceProvider)
+                                                  SVsServiceProvider serviceProvider,
+                                                  IThreadingContext threadingContext)
         {
             _remoteLanguageServiceWorkspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
             _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _threadingContext = Requires.NotNull(threadingContext, nameof(threadingContext));
 
             var builder = ImmutableDictionary.CreateBuilder<string, string[]>(StringComparer.OrdinalIgnoreCase);
             builder.Add("TypeScript", new string[] { ".js", ".jsx", ".ts", ".tsx" });
@@ -62,6 +70,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
             await _remoteLanguageServiceWorkspace.SetSession(collaborationSession).ConfigureAwait(false);
+
+            await InitOptionsAsync(cancellationToken).ConfigureAwait(false);
             _remoteLanguageServiceWorkspace.Init();
 
             // Kick off loading the projects in the background.
@@ -109,6 +119,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             {
                 await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Initialize the options.  This must be done on the UI thread because
+        /// multiple <see cref="IOptionPersister"/> are required to be initialized on the UI thread.
+        /// Typically this is done by <see cref="RoslynPackage"/> but this is not to guaranteed
+        /// to procede liveshare initialization.
+        /// TODO - https://github.com/dotnet/roslyn/issues/37377
+        /// </summary>
+        private async Task InitOptionsAsync(CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            componentModel.GetExtensions<IOptionPersister>();
         }
 
         /// <summary>
