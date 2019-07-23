@@ -614,11 +614,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to VB Language Server Client.
+        '''  Looks up a localized string similar to VisualBasic Language Server Client.
         '''</summary>
-        Friend Shared ReadOnly Property VB_language_server_client() As String
+        Friend Shared ReadOnly Property VisualBasic_language_server_client() As String
             Get
-                Return ResourceManager.GetString("VB_language_server_client", resourceCulture)
+                Return ResourceManager.GetString("VisualBasic_language_server_client", resourceCulture)
             End Get
         End Property
     End Class

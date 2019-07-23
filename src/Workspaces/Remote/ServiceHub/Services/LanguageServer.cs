@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // for now, we use whatever solution we have currently. in future, we will add an ability to sync VS's current solution
                     // on demand from OOP side
+                    // https://github.com/dotnet/roslyn/issues/37424
                     await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, query, searchId, cancellationToken).ConfigureAwait(false);
                     return new VSBeginSymbolParams();
                 }
@@ -125,11 +126,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     s_supportedKinds,
                     cancellationToken).ConfigureAwait(false);
 
-                var lspResults = await Convert(results, cancellationToken).ConfigureAwait(false);
+                var convertedResults = await Convert(results, cancellationToken).ConfigureAwait(false);
 
                 await InvokeAsync(
                     VSSymbolMethods.WorkspacePublishSymbolName,
-                    new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = lspResults } },
+                    new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -141,19 +142,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
             for (var i = 0; i < results.Length; i++)
             {
-                var text = await results[i].NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var result = results[i];
+                var text = await result.NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 symbols[i] = new VSSymbolInformation()
                 {
-                    Name = results[i].Name,
-                    ContainerName = results[i].AdditionalInformation,
-                    Kind = ProtocolConversions.NavigateToKindToSymbolKind(results[i].Kind),
+                    Name = result.Name,
+                    ContainerName = result.AdditionalInformation,
+                    Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                     Location = new LSP.Location()
                     {
-                        Uri = new Uri(results[i].NavigableItem.Document.FilePath),
-                        Range = ProtocolConversions.TextSpanToRange(results[i].NavigableItem.SourceSpan, text)
+                        Uri = result.NavigableItem.Document.GetURI(),
+                        Range = ProtocolConversions.TextSpanToRange(result.NavigableItem.SourceSpan, text)
                     },
-                    Icon = new VisualStudio.Text.Adornments.ImageElement(results[i].NavigableItem.Glyph.GetImageId())
+                    Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
                 };
             }
 

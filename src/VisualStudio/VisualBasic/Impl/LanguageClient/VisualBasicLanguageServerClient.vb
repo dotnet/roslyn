@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return BasicVSResources.VB_language_server_client
+                Return BasicVSResources.VisualBasic_language_server_client
             End Get
         End Property
     End Class
