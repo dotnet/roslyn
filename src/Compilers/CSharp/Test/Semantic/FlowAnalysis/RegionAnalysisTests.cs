@@ -5964,7 +5964,7 @@ class C
             Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
         }
 
-        [Fact]
+        [Fact, WorkItem(37421, "https://github.com/dotnet/roslyn/issues/37421")]
         public void LocalFuncCapture8()
         {
             var analysis = CompileAndAnalyzeDataFlowStatements(@"
@@ -5994,7 +5994,7 @@ class C
             Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [Fact]
+        [Fact, WorkItem(37421, "https://github.com/dotnet/roslyn/issues/37421")]
         public void LocalFuncCapture9()
         {
             var analysis = CompileAndAnalyzeDataFlowStatements(@"
