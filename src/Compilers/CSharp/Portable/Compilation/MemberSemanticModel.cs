@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
-        private readonly ConcurrentDictionary<LocalSymbol, LocalSymbol> _analyzedVariableTypesOpt;
+        private ConcurrentDictionary<LocalSymbol, LocalSymbol> _analyzedVariableTypesOpt;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
         /// <summary>
         /// Only used when this is a speculative semantic model.
@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
-
-            if (Compilation.NullableSemanticAnalysisEnabled)
-            {
-                _analyzedVariableTypesOpt = new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
-            }
         }
 
         public override CSharpCompilation Compilation
@@ -666,6 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalSymbol adjustedLocal;
                         if (Compilation.NullableSemanticAnalysisEnabled)
                         {
+                            _analyzedVariableTypesOpt ??= new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
                             if (!_analyzedVariableTypesOpt.TryGetValue(local, out adjustedLocal))
                             {
                                 var types = GetSnapshotManager().GetVariableTypesForPosition(declarationSyntax.SpanStart);

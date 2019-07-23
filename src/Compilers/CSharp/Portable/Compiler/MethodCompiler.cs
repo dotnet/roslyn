@@ -1049,22 +1049,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (body != null)
                     {
-                        MethodBodySemanticModel.InitialState forSemanticModelToUseInLambda = forSemanticModel;
-
                         lazySemanticModel = new Lazy<SemanticModel>(() =>
                         {
                             var syntax = body.Syntax;
                             var semanticModel = (SyntaxTreeSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
 
-                            if (forSemanticModelToUseInLambda.Syntax is { } semanticModelSyntax)
+                            if (forSemanticModel.Syntax is { } semanticModelSyntax)
                             {
                                 semanticModel.GetOrAddModel(semanticModelSyntax,
                                                             (rootSyntax) =>
                                                             {
-                                                                Debug.Assert(rootSyntax == forSemanticModelToUseInLambda.Syntax);
+                                                                Debug.Assert(rootSyntax == forSemanticModel.Syntax);
                                                                 return MethodBodySemanticModel.Create(semanticModel,
                                                                                                       methodSymbol,
-                                                                                                      forSemanticModelToUseInLambda);
+                                                                                                      forSemanticModel);
                                                             });
                             }
 
