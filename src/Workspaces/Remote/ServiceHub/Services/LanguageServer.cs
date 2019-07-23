@@ -115,7 +115,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SearchAsync(Solution solution, string query, int searchId, CancellationToken cancellationToken)
         {
-            foreach (var project in solution.Projects.Where(p => p.Language == _languageName))
+            var tasks = solution.Projects.Where(p => p.Language == _languageName).Select(p => SearchProjectAsync(p, cancellationToken)).ToArray();
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            return;
+
+            async Task SearchProjectAsync(Project project, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
