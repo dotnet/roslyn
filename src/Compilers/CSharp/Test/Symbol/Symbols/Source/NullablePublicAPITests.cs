@@ -892,6 +892,57 @@ public interface IB<T, U, V>
             AssertEx.Equal(expectedAnnotations, actualAnnotations);
         }
 
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void Locals()
+        {
+            var source =
+@"#pragma warning disable 168
+class C
+{
+#nullable enable
+    static void M<T, U, V>()
+        where U : class
+        where V : struct
+    {
+        T x1;
+        U x2;
+        U? x3;
+        V x4;
+        V? x5;
+#nullable disable
+        T x6;
+        U x7;
+        U? x8;
+        V x9;
+        V? x10;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,10): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //         U? x8;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 10));
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var variables = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            var actualAnnotations = variables.Select(v => ((ILocalSymbol)model.GetDeclaredSymbol(v)).NullableAnnotation).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
+        }
+
         private static void VerifyAcrossCompilations<T>(string source,
                                                  DiagnosticDescription[] nullableEnabledErrors,
                                                  DiagnosticDescription[] nullableDisabledErrors,
