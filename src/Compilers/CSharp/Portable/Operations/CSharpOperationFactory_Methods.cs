@@ -455,9 +455,9 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         internal IBlockOperation CreateNullCheckedIOperationBody(
-BoundBlock body,
-ImmutableArray<ConditionalOperation> prependedNullChecks,
-Operation creatingObject)
+            BoundBlock body,
+            ImmutableArray<ConditionalOperation> prependedNullChecks,
+            Operation creatingObject)
         {
             if (prependedNullChecks.IsDefaultOrEmpty)
             {
