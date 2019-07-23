@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
 {
     internal class CodeStyleAnalyzers
     {
-        public static ImmutableArray<DiagnosticAnalyzer> GetAnalyzersAsync()
+        public static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers()
         {
             return new DiagnosticAnalyzer[]
             {
