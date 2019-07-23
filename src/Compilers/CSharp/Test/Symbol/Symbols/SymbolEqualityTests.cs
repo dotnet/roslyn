@@ -553,6 +553,163 @@ public class A
                 );
         }
 
+        [Fact]
+        public void SemanticModel_Property_Equality()
+        {
+            var source =
+@"
+#nullable enable
+public class A<T>
+{
+    public static A<T> Property => throw null!;
+}
+public class B
+{
+    public A<string> field1 = new A<string>();
+    public A<string?> field2 = new A<string?>();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
+
+            VerifyEquality(type1, type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var property1 = (IPropertySymbol)type1.GetMembers()[0];
+            var property2 = (IPropertySymbol)type2.GetMembers()[0];
+
+            VerifyEquality(property1, property2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var prop1Type = property1.Type;
+            var prop2Type = property2.Type;
+
+            VerifyEquality(prop1Type, prop2Type,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+        }
+
+        [Fact]
+        public void SemanticModel_Field_Equality()
+        {
+            var source =
+@"
+#nullable enable
+public class A<T>
+{
+    public static A<T> field = null!;
+}
+public class B
+{
+    public A<string> field1 = new A<string>();
+    public A<string?> field2 = new A<string?>();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.ClassDeclaration).DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.ClassDeclaration).DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
+
+            VerifyEquality(type1, type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var field1 = (IFieldSymbol)type1.GetMembers()[0];
+            var field2 = (IFieldSymbol)type2.GetMembers()[0];
+
+            VerifyEquality(field1, field2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var prop1Type = field1.Type;
+            var prop2Type = field2.Type;
+
+            VerifyEquality(prop1Type, prop2Type,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+        }
+
+        [Fact]
+        public void SemanticModel_Event_Equality()
+        {
+            var source =
+@"
+#nullable enable
+public class A<T>
+{
+    public static event System.EventHandler<T> MyEvent;
+
+    public static void Invoke() => MyEvent(default, default!);
+}
+public class B
+{
+    public A<string> field1 = new A<string>();
+    public A<string?> field2 = new A<string?>();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
+
+            VerifyEquality(type1, type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var event1 = (IEventSymbol)type1.GetMembers()[2];
+            var event2 = (IEventSymbol)type2.GetMembers()[2];
+
+            VerifyEquality(event1, event2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            var prop1Type = event1.Type;
+            var prop2Type = event2.Type;
+
+            VerifyEquality(prop1Type, prop2Type,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+        }
 
         private void VerifyEquality(ISymbol type1, ISymbol type2, bool expectedDefault, bool expectedIncludeNullability)
         {
