@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 {
-    public partial class AssignOutParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AssignOutParametersAboveReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new AssignOutParametersAboveReturnCodeFixProvider());

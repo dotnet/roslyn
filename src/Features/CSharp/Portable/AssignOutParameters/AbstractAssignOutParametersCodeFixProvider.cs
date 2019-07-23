@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected abstract void AssignOutParameters(
             SyntaxEditor editor, SyntaxNode container,
-            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>.ValueSet values);
+            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values);
 
         //private void AssignOutParameters(
         //    SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)
@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         //    statements.Free();
         //}
 
-        protected static ImmutableArray<StatementSyntax> GenerateAssignmentStatements(
+        protected static ImmutableArray<SyntaxNode> GenerateAssignmentStatements(
             SyntaxGenerator generator, ImmutableArray<IParameterSymbol> unassignedParameters)
         {
-            var result = ArrayBuilder<StatementSyntax>.GetInstance();
+            var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
             foreach (var parameter in unassignedParameters)
             {
-                result.Add((StatementSyntax)generator.ExpressionStatement(generator.AssignmentStatement(
+                result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(parameter.Name),
                     ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
             }

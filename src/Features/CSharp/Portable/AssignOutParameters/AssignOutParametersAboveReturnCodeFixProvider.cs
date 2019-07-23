@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         }
 
         protected override void AssignOutParameters(
-            SyntaxEditor editor,
-            SyntaxNode container,
-            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>.ValueSet values)
+            SyntaxEditor editor, SyntaxNode container,
+            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values)
         {
             foreach (var (exprOrStatement, unassignedParameters) in values)
             {
@@ -35,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         }
 
         private static void AddAssignmentStatements(
-            SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<StatementSyntax> statements)
+            SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<SyntaxNode> statements)
         {
             var generator = editor.Generator;
 
             var parent = exprOrStatement.Parent;
             if (parent.IsEmbeddedStatementOwner())
             {
-                statements = statements.Add((StatementSyntax)exprOrStatement);
+                statements = statements.Add(exprOrStatement);
                 ReplaceWithBlock(editor, exprOrStatement, statements);
             }
             else if (parent is BlockSyntax || parent is SwitchSectionSyntax)
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
             else if (parent is ArrowExpressionClauseSyntax)
             {
-                statements = statements.Add((StatementSyntax)generator.ReturnStatement(exprOrStatement));
+                statements = statements.Add(generator.ReturnStatement(exprOrStatement));
                 editor.ReplaceNode(
                     parent.Parent,
                     generator.WithStatements(parent.Parent, statements));
@@ -59,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             else
             {
                 Debug.Assert(parent is LambdaExpressionSyntax);
-                statements = statements.Add((StatementSyntax)generator.ReturnStatement(exprOrStatement));
+                statements = statements.Add(generator.ReturnStatement(exprOrStatement));
                 ReplaceWithBlock(editor, exprOrStatement, statements);
             }
         }
 
         private static void ReplaceWithBlock(
-            SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<StatementSyntax> statements)
+            SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<SyntaxNode> statements)
         {
             editor.ReplaceNode(
                 exprOrStatement,
