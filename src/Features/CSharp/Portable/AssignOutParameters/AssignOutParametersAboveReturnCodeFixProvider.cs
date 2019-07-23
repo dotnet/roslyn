@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected override void AssignOutParameters(
             SyntaxEditor editor, SyntaxNode container,
-            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values)
+            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values,
+            CancellationToken cancellationToken)
         {
             foreach (var (exprOrStatement, unassignedParameters) in values)
             {

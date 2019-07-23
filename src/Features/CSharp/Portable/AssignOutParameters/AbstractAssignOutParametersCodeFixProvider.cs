@@ -37,16 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             if (container != null)
             {
                 TryRegisterFix(context, document, container, location);
-
-                if (location is StatementSyntax statement)
-                {
-                    var containerStatements = CSharpSyntaxGenerator.Instance.GetStatements(container);
-                    if (containerStatements?.Count > 0 &&
-                        statement != containerStatements[0])
-                    {
-
-                    }
-                }
             }
         }
 
@@ -136,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             return result;
         }
 
-        protected override async Task FixAllAsync(
+        protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -145,26 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
             foreach (var container in unassignedParameters.Keys.OrderByDescending(n => n.Span.Start))
             {
-                AssignOutParameters(editor, container, (MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>.ValueSet)unassignedParameters[(SyntaxNode)container]);
+                AssignOutParameters(
+                    editor, container, unassignedParameters[container], cancellationToken);
             }
         }
 
         protected abstract void AssignOutParameters(
             SyntaxEditor editor, SyntaxNode container,
-            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values);
-
-        //private void AssignOutParameters(
-        //    SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)
-        //{
-        //    var generator = editor.Generator;
-        //    var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-
-        //    GenerateAssignmentStatements(unassignedParameters, generator, statements);
-
-        //    AddAssignmentStatements(editor, exprOrStatement, statements);
-
-        //    statements.Free();
-        //}
+            MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)>.ValueSet values,
+            CancellationToken cancellationToken);
 
         protected static ImmutableArray<SyntaxNode> GenerateAssignmentStatements(
             SyntaxGenerator generator, ImmutableArray<IParameterSymbol> unassignedParameters)
@@ -180,19 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
             return result.ToImmutableAndFree();
         }
-
-        // protected abstract void AddAssignmentStatements(SyntaxEditor editor, SyntaxNode exprOrStatement, ArrayBuilder<SyntaxNode> statements);
-
-        //private static void ReplaceWithBlock(
-        //    SyntaxEditor editor, SyntaxNode exprOrStatement, ArrayBuilder<SyntaxNode> statements)
-        //{
-        //    editor.ReplaceNode(
-        //        exprOrStatement,
-        //        editor.Generator.ScopeBlock(statements));
-        //    editor.ReplaceNode(
-        //        exprOrStatement.Parent,
-        //        (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
-        //}
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction
         {
