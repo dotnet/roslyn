@@ -420,6 +420,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestForOutParamInSinglePath()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    char M(bool b, out int i)
+    {
+        if (b)
+            i = 1;
+        else
+            SomeMethod(out i);
+
+        [|return 'a';|]
+    }
+
+    void SomeMethod(out int i) => i = 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScriptAsync(
