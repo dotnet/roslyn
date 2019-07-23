@@ -19,6 +19,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public class SymbolEqualityTests : CSharpTestBase
     {
         [Fact]
+        public void SynthesizedIntrinsicOperatorSymbol()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        string s1 = """";
+        s1 = s1 + s1;
+        string? s2 = null;
+        s2 = s2 + s2;
+    }
+}
+";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var invocations = root.DescendantNodes().OfType<BinaryExpressionSyntax>().ToList();
+
+            var nonNullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
+            var nullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
+
+            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus);
+            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus);
+
+            Assert.Equal(nonNullPlus, nullPlus);
+            Assert.Equal<object>(nonNullPlus, nullPlus);
+        }
+
+        [Fact]
         public void ReducedExtensionMethodSymbol()
         {
             var src = @"
