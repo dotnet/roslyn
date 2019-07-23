@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
             For Each slot In state1.Assigned.TrueBits()
                 If slot < variableBySlot.Length AndAlso
-                    state2opt?.IsAssigned(slot) <> False Then
+                    (state2opt Is Nothing OrElse state2opt.IsAssigned(slot)) Then
 
                     Dim symbol = variableBySlot(slot).Symbol
                     If symbol IsNot Nothing AndAlso
