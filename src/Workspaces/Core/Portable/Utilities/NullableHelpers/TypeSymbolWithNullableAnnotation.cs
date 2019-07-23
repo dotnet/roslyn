@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object obj)
             {
-                return this.Equals(obj as ISymbol);
+                return this.Equals(obj as ISymbol, SymbolEqualityComparer.Default);
             }
 
             public override int GetHashCode()
