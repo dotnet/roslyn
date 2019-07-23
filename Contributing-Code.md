@@ -26,11 +26,7 @@ You must sign a [Contributor License Agreement (CLA)](http://cla.dotnetfoundatio
 
 ### Getting started coding in Visual Studio
 
-1. After you've cloned the roslyn repro, run `Restore.cmd`. This restores all required NuGet packages. (Normally VS does this as part of a build, but the auto-restore feature has been disabled for Roslyn).
-2. Load the Roslyn.sln solution into VS and build. (Other solutions can be used, but depend upon this main solution having been built).
-3. To run individual tests, you can use Test Explorer.
-4. To test your changes live within the VS IDE itself, use Roslyn.sln and the project `VisualStudio\VisualStudioSetup`: when you do F5 on this project, it launches an isolated instance ("hive") of VS which runs upon your modified version of Roslyn for IDE. (Or, you can install `Binaries\Debug\Roslyn.VisualStudio.Setup.vsix` on its own, no other files required). (TODO: explain how to get it to work for Ctrl+Shift+B as well...)
-5. To run all tests, run `cibuild.cmd`. This restores, builds, and runs all tests. (It won't tell you which ones failed until after it's completely finished, though).
+See our getting started guide [here](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md).
 
 
 ### Creating New Issues
