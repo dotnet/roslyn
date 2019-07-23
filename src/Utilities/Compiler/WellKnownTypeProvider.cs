@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IDisposable = GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             Monitor = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
             Task = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
             SerializationInfo = GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             GenericIEquatable = GetTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
@@ -57,6 +58,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
         /// </summary>
         public INamedTypeSymbol Task { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task{TResult}"/>
+        /// </summary>
+        public INamedTypeSymbol GenericTask { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>

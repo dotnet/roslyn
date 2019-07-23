@@ -1,14 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
+
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
         private static readonly TaintedDataAnalysisDomain TaintedDataAnalysisDomainInstance = new TaintedDataAnalysisDomain(CoreTaintedDataAnalysisDataDomain.Instance);
@@ -45,7 +51,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
+            ValueContentAnalysisResult valueContentAnalysisResult = null;
+            CopyAnalysisResult copyAnalysisResult = null;
+            PointsToAnalysisResult pointsToAnalysisResult = null;
+            if (taintedSourceInfos.RequiresValueContentAnalysis || taintedSanitizerInfos.RequiresValueContentAnalysis || taintedSinkInfos.RequiresValueContentAnalysis)
+            {
+                valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
+                        cfg,
+                        containingMethod,
+                        wellKnownTypeProvider,
+                        interproceduralAnalysisConfig,
+                        out copyAnalysisResult,
+                        out pointsToAnalysisResult,
+                        pessimisticAnalysis: true,
+                        performCopyAnalysis: false);
+                if (valueContentAnalysisResult == null)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                 cfg,
                 containingMethod,
                 wellKnownTypeProvider,
@@ -53,9 +80,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisPredicateOpt: null,
                 pessimisticAnalysis: true,
                 performCopyAnalysis: false);
-            if (pointsToAnalysisResult == null)
-            {
-                return null;
+                if (pointsToAnalysisResult == null)
+                {
+                    return null;
+                }
             }
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
@@ -65,7 +93,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 containingMethod,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
+                copyAnalysisResultOpt: copyAnalysisResult,
                 pointsToAnalysisResult: pointsToAnalysisResult,
+                valueContentAnalysisResult: valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,
