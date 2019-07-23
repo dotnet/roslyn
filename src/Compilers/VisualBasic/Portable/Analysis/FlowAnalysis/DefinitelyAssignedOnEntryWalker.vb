@@ -52,14 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ProcessState(state1 As LocalState, state2opt As LocalState?)
 #End If
             For Each slot In state1.Assigned.TrueBits()
-                If slot < variableBySlot.Length AndAlso
-                    (state2opt Is Nothing OrElse state2opt.IsAssigned(slot)) Then
+                If slot < variableBySlot.Length Then
+#If REFERENCE_STATE Then
+                    If state2opt Is Nothing OrElse state2opt.IsAssigned(slot) Then
+#Else
+                    If state2opt Is Nothing OrElse state2opt.Value.IsAssigned(slot) Then
+#End If
+                        Dim symbol = variableBySlot(slot).Symbol
+                        If symbol IsNot Nothing AndAlso
+                           symbol.Kind <> SymbolKind.Field Then
 
-                    Dim symbol = variableBySlot(slot).Symbol
-                    If symbol IsNot Nothing AndAlso
-                       symbol.Kind <> SymbolKind.Field Then
-
-                        _definitelyAssignedOnEntry.Add(symbol)
+                            _definitelyAssignedOnEntry.Add(symbol)
+                        End If
                     End If
                 End If
             Next
