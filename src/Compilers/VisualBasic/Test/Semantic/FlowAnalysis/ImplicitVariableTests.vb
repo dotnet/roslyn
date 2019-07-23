@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 |]
             ]]>,
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
             readInside:={"x"})
         End Sub
 
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 |]
             ]]>,
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
             readInside:={"x"})
         End Sub
 
@@ -38,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             capturedInside:={"x"},
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
             readInside:={"x"},
             writtenInside:={"f", "x"})
         End Sub
@@ -53,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             ]]>,
             alwaysAssigned:={"x"},
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
             readInside:={"x"},
             writtenInside:={"x"},
             writtenOutside:={"x"})
@@ -67,6 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
               [|x = 1|]
             ]]>,
             alwaysAssigned:={"x"},
+            definitelyAssignedOnEntry:={"x"},
             readOutside:={"x"},
             writtenInside:={"x"},
             writtenOutside:={"x"})
@@ -80,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 Optional captured() As String = Nothing,
                 Optional dataFlowsIn() As String = Nothing,
                 Optional dataFlowsOut() As String = Nothing,
+                Optional definitelyAssignedOnEntry() As String = Nothing,
                 Optional readInside() As String = Nothing,
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
@@ -92,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                                    captured,
                                    dataFlowsIn,
                                    dataFlowsOut,
+                                   definitelyAssignedOnEntry,
                                    readInside,
                                    readOutside,
                                    variablesDeclared,
