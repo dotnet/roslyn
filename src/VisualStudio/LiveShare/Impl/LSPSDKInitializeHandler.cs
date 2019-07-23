@@ -3,7 +3,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var result = new LSP.InitializeResult
             {
-                Capabilities = new ServerCapabilities_v40()
+                Capabilities = new LSP.ServerCapabilities()
             };
 
             return Task.FromResult(result);

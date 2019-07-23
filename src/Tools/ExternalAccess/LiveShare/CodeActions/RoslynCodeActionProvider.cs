@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
-using LiveShareCodeAction = Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol.CodeAction;
+using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
@@ -62,22 +62,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 
             foreach (var command in commands)
             {
-                if (command is LSP.Command lspCommand)
+                LSP.Command lspCommand = null;
+                try
+                {
+                    lspCommand = ((JObject)command).ToObject<LSP.Command>();
+                }
+                catch (Exception) { }
+                if (lspCommand != null)
                 {
                     // The command can either wrap a Command or a CodeAction.
                     // If a Command, leave it unchanged; we want to dispatch it to the host to execute.
                     // If a CodeAction, unwrap the CodeAction so the guest can run it locally.
                     var commandArguments = lspCommand.Arguments.Single();
 
+                    LSP.CodeAction lspCodeAction = null;
+                    try
+                    {
+                        lspCodeAction = ((JObject)commandArguments).ToObject<LSP.CodeAction>();
+                    }
+                    catch (Exception) { }
                     // Unfortunately, older liveshare hosts use liveshare custom code actions instead of the LSP code action.
                     // So determine which one to pass on.
-                    if (commandArguments is LSP.CodeAction lspCodeAction)
+                    if (lspCodeAction != null)
                     {
                         context.RegisterRefactoring(new RoslynRemoteCodeAction(document, lspCodeAction.Command, lspCodeAction.Edit, lspCodeAction.Title, lspClient));
-                    }
-                    else if (commandArguments is LiveShareCodeAction liveshareCodeAction)
-                    {
-                        context.RegisterRefactoring(new RoslynRemoteCodeAction(document, liveshareCodeAction.Command, liveshareCodeAction.Edit, liveshareCodeAction.Title, lspClient));
                     }
                     else
                     {

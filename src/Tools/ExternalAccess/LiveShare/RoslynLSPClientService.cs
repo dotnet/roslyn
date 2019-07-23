@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                 new string[] { StringConstants.TypeScriptLanguageName },
                 new LanguageServerClientMetadata(
                     true,
-                    JToken.FromObject(new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentSymbolProvider = true,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                 new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
                 new LanguageServerClientMetadata(
                     true,
-                    JToken.FromObject(new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
