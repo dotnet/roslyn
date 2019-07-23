@@ -1495,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             new ArgumentOperation(
                                 paramNameLiteral,
                                 ArgumentKind.Explicit,
-                                parameter: argumentNullExceptionMethodSymbol?.Parameters[0],
+                                parameter: argumentNullExceptionMethodSymbol.Parameters[0],
                                 inConversionOpt: null,
                                 outConversionOpt: null,
                                 _semanticModel,
