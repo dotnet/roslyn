@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
         public static AnalyzerOptions GetWorkspaceAnalyzerOptions(Project project)
             => new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
 
-        public static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        public static ImmutableArray<(DiagnosticAnalyzer Analyzer, CodeFixProvider Fixer)> GetAnalyzersAndFixers()
         {
-            return new DiagnosticAnalyzer[]
+            return new (DiagnosticAnalyzer, CodeFixProvider)[]
             {
                 // .NET code style settings
 
@@ -75,72 +76,73 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
                 // - dotnet_style_qualification_for_property
                 // - dotnet_style_qualification_for_method
                 // - dotnet_style_qualification_for_event
-                new CSharpQualifyMemberAccessDiagnosticAnalyzer(),
-                new VisualBasicQualifyMemberAccessDiagnosticAnalyzer(),
+                (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider()),
+                (new VisualBasicQualifyMemberAccessDiagnosticAnalyzer(), new VisualBasicQualifyMemberAccessCodeFixProvider()),
 
                 // Language keywords instead of framework type names for type references
                 // - dotnet_style_predefined_type_for_locals_parameters_members
                 // - dotnet_style_predefined_type_for_member_access
-                new CSharpPreferFrameworkTypeDiagnosticAnalyzer(),
-                new VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(),
+                (new CSharpPreferFrameworkTypeDiagnosticAnalyzer(), new PreferFrameworkTypeCodeFixProvider()),
+                (new VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(), new PreferFrameworkTypeCodeFixProvider()),
 
                 // Modifier preferences
                 // - dotnet_style_require_accessibility_modifiers
-                new CSharpAddAccessibilityModifiersDiagnosticAnalyzer(),
-                new VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer(),
+                (new CSharpAddAccessibilityModifiersDiagnosticAnalyzer(), new CSharpAddAccessibilityModifiersCodeFixProvider()),
+                (new VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer(), new VisualBasicAddAccessibilityModifiersCodeFixProvider()),
                 // - csharp_preferred_modifier_order
-                new CSharpOrderModifiersDiagnosticAnalyzer(),
+                (new CSharpOrderModifiersDiagnosticAnalyzer(), new CSharpOrderModifiersCodeFixProvider()),
                 // - visual_basic_preferred_modifier_order
-                new VisualBasicOrderModifiersDiagnosticAnalyzer(),
+                (new VisualBasicOrderModifiersDiagnosticAnalyzer(), new VisualBasicOrderModifiersCodeFixProvider()),
                 // - dotnet_style_readonly_field
-                new MakeFieldReadonlyDiagnosticAnalyzer(),
+                (new MakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider()),
+                (new MakeFieldReadonlyDiagnosticAnalyzer(), new VisualBasicMakeFieldReadonlyCodeFixProvider()),
 
                 // Parentheses preferences
                 // - dotnet_style_parentheses_in_arithmetic_binary_operators
                 // - dotnet_style_parentheses_in_other_binary_operators
                 // - dotnet_style_parentheses_in_other_operators
                 // - dotnet_style_parentheses_in_relational_binary_operators
-                new CSharpAddRequiredParenthesesDiagnosticAnalyzer(),
-                new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(),
-                new VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(),
-                new VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(),
+                (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider()),
+                (new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider()),
+                (new VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider()),
+                (new VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider()),
 
                 // Expression-level preferences
                 // - dotnet_style_object_initializer
-                new CSharpUseObjectInitializerDiagnosticAnalyzer(),
-                new VisualBasicUseObjectInitializerDiagnosticAnalyzer(),
+                (new CSharpUseObjectInitializerDiagnosticAnalyzer(), new CSharpUseObjectInitializerCodeFixProvider()),
+                (new VisualBasicUseObjectInitializerDiagnosticAnalyzer(), new VisualBasicUseObjectInitializerCodeFixProvider()),
                 // - dotnet_style_collection_initializer
-                new CSharpUseCollectionInitializerDiagnosticAnalyzer(),
-                new VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
+                (new CSharpUseCollectionInitializerDiagnosticAnalyzer(), new CSharpUseCollectionInitializerCodeFixProvider()),
+                (new VisualBasicUseCollectionInitializerDiagnosticAnalyzer(), new VisualBasicUseCollectionInitializerCodeFixProvider()),
                 // - dotnet_style_explicit_tuple_names
-                new UseExplicitTupleNameDiagnosticAnalyzer(),
+                (new UseExplicitTupleNameDiagnosticAnalyzer(), new UseExplicitTupleNameCodeFixProvider()),
                 // - dotnet_style_prefer_inferred_tuple_names
                 // - dotnet_style_prefer_inferred_anonymous_type_member_names
-                new CSharpUseInferredMemberNameDiagnosticAnalyzer(),
-                new VisualBasicUseInferredMemberNameDiagnosticAnalyzer(),
+                (new CSharpUseInferredMemberNameDiagnosticAnalyzer(), new CSharpUseInferredMemberNameCodeFixProvider()),
+                (new VisualBasicUseInferredMemberNameDiagnosticAnalyzer(), new VisualBasicUseInferredMemberNameCodeFixProvider()),
                 // - dotnet_style_prefer_auto_properties
-                new CSharpUseAutoPropertyAnalyzer(),
-                new VisualBasicUseAutoPropertyAnalyzer(),
+                (new CSharpUseAutoPropertyAnalyzer(), new CSharpUseAutoPropertyCodeFixProvider()),
+                (new VisualBasicUseAutoPropertyAnalyzer(), new VisualBasicUseAutoPropertyCodeFixProvider()),
                 // - dotnet_style_prefer_is_null_check_over_reference_equality_method
-                new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(),
-                new VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(),
+                (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider()),
+                (new VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider()),
                 // - dotnet_style_prefer_conditional_expression_over_assignment
-                new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
-                new VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
+                (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(), new CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider()),
+                (new VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer(), new VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider()),
                 // - dotnet_style_prefer_conditional_expression_over_return
-                new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
-                new VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer(),
+                (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(), new CSharpUseConditionalExpressionForReturnCodeRefactoringProvider()),
+                (new VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer(), new VisualBasicUseConditionalExpressionForReturnCodeRefactoringProvider()),
                 // - dotnet_style_prefer_compound_assignment
-                new CSharpUseCompoundAssignmentDiagnosticAnalyzer(),
-                new VisualBasicUseCompoundAssignmentDiagnosticAnalyzer(),
+                (new CSharpUseCompoundAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundAssignmentCodeFixProvider()),
+                (new VisualBasicUseCompoundAssignmentDiagnosticAnalyzer(), new VisualBasicUseCompoundAssignmentCodeFixProvider()),
 
                 // "Null" checking preferences
                 // - dotnet_style_coalesce_expression
-                new CSharpUseCoalesceExpressionDiagnosticAnalyzer(),
-                new VisualBasicUseCoalesceExpressionDiagnosticAnalyzer(),
+                (new CSharpUseCoalesceExpressionDiagnosticAnalyzer(), new UseCoalesceExpressionCodeFixProvider()),
+                (new VisualBasicUseCoalesceExpressionDiagnosticAnalyzer(), new UseCoalesceExpressionCodeFixProvider()),
                 // - dotnet_style_null_propagation
-                new CSharpUseNullPropagationDiagnosticAnalyzer(),
-                new VisualBasicUseNullPropagationDiagnosticAnalyzer(),
+                (new CSharpUseNullPropagationDiagnosticAnalyzer(), new CSharpUseNullPropagationCodeFixProvider()),
+                (new VisualBasicUseNullPropagationDiagnosticAnalyzer(), new VisualBasicUseNullPropagationCodeFixProvider()),
 
                 // C# code style settings
 
@@ -148,8 +150,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
                 // - csharp_style_var_for_built_in_types
                 // - csharp_style_var_when_type_is_apparent
                 // - csharp_style_var_elsewhere
-                new CSharpUseExplicitTypeDiagnosticAnalyzer(),
-                new CSharpUseImplicitTypeDiagnosticAnalyzer(),
+                (new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider()),
+                (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider()),
 
                 // Expression-bodied members
                 // - csharp_style_expression_bodied_methods
@@ -160,183 +162,52 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
                 // - csharp_style_expression_bodied_accessors
                 // - csharp_style_expression_bodied_lambdas
                 // - csharp_style_expression_bodied_local_functions
-                new UseExpressionBodyDiagnosticAnalyzer(),
+                (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider()),
 
                 // Pattern matching
                 // - csharp_style_pattern_matching_over_is_with_cast_check
-                new CSharpIsAndCastCheckDiagnosticAnalyzer(),
+                (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider()),
                 // - csharp_style_pattern_matching_over_as_with_null_check
-                new CSharpAsAndNullCheckDiagnosticAnalyzer(),
+                (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider()),
                 // - csharp_style_prefer_switch_expression
-                new ConvertSwitchStatementToExpressionDiagnosticAnalyzer(),
+                (new ConvertSwitchStatementToExpressionDiagnosticAnalyzer(), new ConvertSwitchStatementToExpressionCodeFixProvider()),
 
-                // Inlined variable declarationsC:\Users\jorobich\Source\repos\roslyn\src\Features\VisualBasic\Portable\SignatureHelp\
+                // Inlined variable declarations
                 // - csharp_style_inlined_variable_declaration
-                new CSharpInlineDeclarationDiagnosticAnalyzer(),
+                (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider()),
 
                 // Expression-level preferences
                 // - csharp_prefer_simple_default_expression
-                new CSharpUseDefaultLiteralDiagnosticAnalyzer(),
+                (new CSharpUseDefaultLiteralDiagnosticAnalyzer(), new CSharpUseDefaultLiteralCodeFixProvider()),
                 // - csharp_style_deconstructed_variable_declaration
-                new CSharpUseDeconstructionDiagnosticAnalyzer(),
+                (new CSharpUseDeconstructionDiagnosticAnalyzer(), new CSharpUseDeconstructionCodeFixProvider()),
                 // - csharp_style_pattern_local_over_anonymous_function
-                new CSharpUseLocalFunctionDiagnosticAnalyzer(),
+                (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider()),
                 // - csharp_style_prefer_index_operator
-                new CSharpUseIndexOperatorDiagnosticAnalyzer(),
+                (new CSharpUseIndexOperatorDiagnosticAnalyzer(), new CSharpUseIndexOperatorCodeFixProvider()),
                 // - csharp_style_prefer_range_operator
-                new CSharpUseRangeOperatorDiagnosticAnalyzer(),
+                (new CSharpUseRangeOperatorDiagnosticAnalyzer(), new CSharpUseRangeOperatorCodeFixProvider()),
                 // - csharp_prefer_static_local_function
-                new MakeLocalFunctionStaticDiagnosticAnalyzer(),
+                (new MakeLocalFunctionStaticDiagnosticAnalyzer(), new MakeLocalFunctionStaticCodeFixProvider()),
                 // - csharp_prefer_simple_using_statement
-                new UseSimpleUsingStatementDiagnosticAnalyzer(),
+                (new UseSimpleUsingStatementDiagnosticAnalyzer(), new UseSimpleUsingStatementCodeFixProvider()),
 
                 // "Null" checking preferences
                 // - csharp_style_throw_expression
-                new CSharpUseThrowExpressionDiagnosticAnalyzer(),
+                (new CSharpUseThrowExpressionDiagnosticAnalyzer(), new UseThrowExpressionCodeFixProvider()),
                 // - csharp_style_conditional_delegate_call
-                new InvokeDelegateWithConditionalAccessAnalyzer(),
+                (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider()),
 
                 // Code block preferences
                 // - csharp_prefer_braces
-                new CSharpAddBracesDiagnosticAnalyzer(),
-
+                (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider()),
             }.ToImmutableArray();
         }
+
+        public static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+            => GetAnalyzersAndFixers().Select(analyzerAndFixer => analyzerAndFixer.Analyzer).ToImmutableArray();
 
         public static ImmutableArray<CodeFixProvider> GetCodeFixProviders()
-        {
-            return new CodeFixProvider[]
-            {
-                // .NET code style settings
-
-                // "This." and "Me." qualifiers
-                // - dotnet_style_qualification_for_field
-                // - dotnet_style_qualification_for_property
-                // - dotnet_style_qualification_for_method
-                // - dotnet_style_qualification_for_event
-                new CSharpQualifyMemberAccessCodeFixProvider(),
-                new VisualBasicQualifyMemberAccessCodeFixProvider(),
-
-                // Language keywords instead of framework type names for type references
-                // - dotnet_style_predefined_type_for_locals_parameters_members
-                // - dotnet_style_predefined_type_for_member_access
-                new PreferFrameworkTypeCodeFixProvider(),
-
-                // Modifier preferences
-                // - dotnet_style_require_accessibility_modifiers
-                new CSharpAddAccessibilityModifiersCodeFixProvider(),
-                new VisualBasicAddAccessibilityModifiersCodeFixProvider(),
-                // - csharp_preferred_modifier_order
-                new CSharpOrderModifiersCodeFixProvider(),
-                // - visual_basic_preferred_modifier_order
-                new VisualBasicOrderModifiersCodeFixProvider(),
-                // - dotnet_style_readonly_field
-                new CSharpMakeFieldReadonlyCodeFixProvider(),
-                new VisualBasicMakeFieldReadonlyCodeFixProvider(),
-
-                // Parentheses preferences
-                // - dotnet_style_parentheses_in_arithmetic_binary_operators
-                // - dotnet_style_parentheses_in_other_binary_operators
-                // - dotnet_style_parentheses_in_other_operators
-                // - dotnet_style_parentheses_in_relational_binary_operators
-                new AddRequiredParenthesesCodeFixProvider(),
-                new CSharpRemoveUnnecessaryParenthesesCodeFixProvider(),
-                new VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider(),
-
-                // Expression-level preferences
-                // - dotnet_style_object_initializer
-                new CSharpUseObjectInitializerCodeFixProvider(),
-                new VisualBasicUseObjectInitializerCodeFixProvider(),
-                // - dotnet_style_collection_initializer
-                new CSharpUseCollectionInitializerCodeFixProvider(),
-                new VisualBasicUseCollectionInitializerCodeFixProvider(),
-                // - dotnet_style_explicit_tuple_names
-                new UseExplicitTupleNameCodeFixProvider(),
-                // - dotnet_style_prefer_inferred_tuple_names
-                // - dotnet_style_prefer_inferred_anonymous_type_member_names
-                new CSharpUseInferredMemberNameCodeFixProvider(),
-                new VisualBasicUseInferredMemberNameCodeFixProvider(),
-                // - dotnet_style_prefer_auto_properties
-                new CSharpUseAutoPropertyCodeFixProvider(),
-                new VisualBasicUseAutoPropertyCodeFixProvider(),
-                // - dotnet_style_prefer_is_null_check_over_reference_equality_method
-                new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider(),
-                new VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider(),
-                // - dotnet_style_prefer_conditional_expression_over_assignment
-                new CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider(),
-                new VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider(),
-                // - dotnet_style_prefer_conditional_expression_over_return
-                new CSharpUseConditionalExpressionForReturnCodeRefactoringProvider(),
-                new VisualBasicUseConditionalExpressionForReturnCodeRefactoringProvider(),
-                // - dotnet_style_prefer_compound_assignment
-                new CSharpUseCompoundAssignmentCodeFixProvider(),
-                new VisualBasicUseCompoundAssignmentCodeFixProvider(),
-
-                // "Null" checking preferences
-                // - dotnet_style_coalesce_expression
-                new UseCoalesceExpressionCodeFixProvider(),
-                // - dotnet_style_null_propagation
-                new CSharpUseNullPropagationCodeFixProvider(),
-                new VisualBasicUseNullPropagationCodeFixProvider(),
-
-                // C# code style settings
-
-                // Implicit and explicit types
-                // - csharp_style_var_for_built_in_types
-                // - csharp_style_var_when_type_is_apparent
-                // - csharp_style_var_elsewhere
-                new UseExplicitTypeCodeFixProvider(),
-                new UseImplicitTypeCodeFixProvider(),
-
-                // Expression-bodied members
-                // - csharp_style_expression_bodied_methods
-                // - csharp_style_expression_bodied_constructors
-                // - csharp_style_expression_bodied_operators
-                // - csharp_style_expression_bodied_properties
-                // - csharp_style_expression_bodied_indexers
-                // - csharp_style_expression_bodied_accessors
-                // - csharp_style_expression_bodied_lambdas
-                // - csharp_style_expression_bodied_local_functions
-                new UseExpressionBodyCodeFixProvider(),
-
-                // Pattern matching
-                // - csharp_style_pattern_matching_over_is_with_cast_check
-                new CSharpIsAndCastCheckCodeFixProvider(),
-                // - csharp_style_pattern_matching_over_as_with_null_check
-                new CSharpAsAndNullCheckCodeFixProvider(),
-                // - csharp_style_prefer_switch_expression
-                new ConvertSwitchStatementToExpressionCodeFixProvider(),
-
-                // Inlined variable declarationsC:\Users\jorobich\Source\repos\roslyn\src\Features\VisualBasic\Portable\SignatureHelp\
-                // - csharp_style_inlined_variable_declaration
-                new CSharpInlineDeclarationCodeFixProvider(),
-
-                // Expression-level preferences
-                // - csharp_prefer_simple_default_expression
-                new CSharpUseDefaultLiteralCodeFixProvider(),
-                // - csharp_style_deconstructed_variable_declaration
-                new CSharpUseDeconstructionCodeFixProvider(),
-                // - csharp_style_pattern_local_over_anonymous_function
-                new CSharpUseLocalFunctionCodeFixProvider(),
-                // - csharp_style_prefer_index_operator
-                new CSharpUseIndexOperatorCodeFixProvider(),
-                // - csharp_style_prefer_range_operator
-                new CSharpUseRangeOperatorCodeFixProvider(),
-                // - csharp_prefer_static_local_function
-                new MakeLocalFunctionStaticCodeFixProvider(),
-                // - csharp_prefer_simple_using_statement
-                new UseSimpleUsingStatementCodeFixProvider(),
-
-                // "Null" checking preferences
-                // - csharp_style_throw_expression
-                new UseThrowExpressionCodeFixProvider(),
-                // - csharp_style_conditional_delegate_call
-                new InvokeDelegateWithConditionalAccessCodeFixProvider(),
-
-                // Code block preferences
-                // - csharp_prefer_braces
-                new CSharpAddBracesCodeFixProvider(),
-            }.ToImmutableArray();
-        }
+            => GetAnalyzersAndFixers().Select(analyzerAndFixer => analyzerAndFixer.Fixer).ToImmutableArray();
     }
 }
