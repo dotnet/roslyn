@@ -1204,7 +1204,6 @@ foreach (var (a, b) in e1) { }
                 "Move [foreach ((var x, var y) in e2) { }]@39 -> @4");
         }
 
-
         #endregion
 
         #region For Statement

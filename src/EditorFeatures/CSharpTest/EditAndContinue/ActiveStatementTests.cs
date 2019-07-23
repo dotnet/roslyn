@@ -183,15 +183,14 @@ class C : System.IDisposable
 
     static void Main(string[] args)
     {
-        using (C x) <AS:0>{</AS:0>}
+        using (<AS:0>C x = new C()</AS:0>) {}
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "using (C x)", CSharpFeaturesResources.using_statement));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion
@@ -4556,10 +4555,10 @@ class Test
 
         #endregion
 
-        #region Using Statement
+        #region Using Statement and Local Declaration
 
         [Fact]
-        public void Using_Update_Leaf1()
+        public void UsingStatement_Expression_Update_Leaf()
         {
             var src1 = @"
 class Test
@@ -4603,12 +4602,121 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // Using with an expression generates code that stores the value of the expression in a compiler-generated temp.
+            // This temp is not initialized when using is added around an active statement so the disposal is a no-op.
+            // The user might expect that the object the field points to is disposed at the end of the using block, but it isn't.
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", CSharpFeaturesResources.using_statement));
         }
 
         [Fact]
-        public void Using_InLambdaBody1()
+        public void UsingStatement_Declaration_Update_Leaf()
+        {
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable())
+        {
+            using (var b = new Disposable())
+            {
+                <AS:0>System.Console.Write();</AS:0>
+            }
+        }
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable())
+        {
+            using (var c = new Disposable())
+            {
+                using (var b = new Disposable())
+                {
+                    <AS:0>System.Console.Write();</AS:0>
+                }
+            }
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using with a declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_Leaf1()
+        {
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable(), b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable(), c = new Disposable(), b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using local declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_Leaf2()
+        {
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable();
+        using var b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable();
+        using var c = new Disposable();
+        using var b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using local declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Using_Expression_InLambdaBody1()
         {
             var src1 = @"
 class Test
@@ -4669,7 +4777,7 @@ class Test
         }
 
         [Fact]
-        public void Using_Update_Lambda1()
+        public void Using_Expression_Update_Lambda1()
         {
             var src1 = @"
 class C
@@ -4702,7 +4810,7 @@ class C
         }
 
         [Fact]
-        public void Using_Update_Lambda2()
+        public void Using_Expression_Update_Lambda2()
         {
             var src1 = @"
 class C

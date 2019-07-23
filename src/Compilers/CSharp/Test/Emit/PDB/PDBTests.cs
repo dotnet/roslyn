@@ -5740,6 +5740,336 @@ class C
 
         #endregion
 
+        #region Using Declaration
+
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void UsingDeclaration_BodyBlockScope()
+        {
+            var source = @"
+using System;
+using System.IO;
+class C
+{
+    static void Main()
+    {
+        using MemoryStream m = new MemoryStream(), n = new MemoryStream();
+        Console.WriteLine(1);
+    }
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/37417
+            // Duplicate sequence point at `}`
+
+            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //m
+                System.IO.MemoryStream V_1) //n
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: MemoryStream m = new MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: n = new MemoryStream()
+    IL_0007:  newobj     ""System.IO.MemoryStream..ctor()""
+    IL_000c:  stloc.1
+    .try
+    {
+      // sequence point: Console.WriteLine(1);
+      IL_000d:  ldc.i4.1
+      IL_000e:  call       ""void System.Console.WriteLine(int)""
+      IL_0013:  nop
+      // sequence point: }
+      IL_0014:  leave.s    IL_002c
+    }
+    finally
+    {
+      // sequence point: <hidden>
+      IL_0016:  ldloc.1
+      IL_0017:  brfalse.s  IL_0020
+      IL_0019:  ldloc.1
+      IL_001a:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_001f:  nop
+      // sequence point: <hidden>
+      IL_0020:  endfinally
+    }
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0021:  ldloc.0
+    IL_0022:  brfalse.s  IL_002b
+    IL_0024:  ldloc.0
+    IL_0025:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002a:  nop
+    // sequence point: <hidden>
+    IL_002b:  endfinally
+  }
+  // sequence point: }
+  IL_002c:  ret
+}
+");
+
+            c.VerifyPdb("C.Main", @"
+ <symbols>
+   <files>
+     <file id=""1"" name="""" language=""C#"" />
+   </files>
+   <methods>
+     <method containingType=""C"" name=""Main"">
+       <customDebugInfo>
+         <using>
+           <namespace usingCount=""2"" />
+         </using>
+         <encLocalSlotMap>
+           <slot kind=""0"" offset=""30"" />
+           <slot kind=""0"" offset=""54"" />
+         </encLocalSlotMap>
+       </customDebugInfo>
+       <sequencePoints>
+         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+         <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""50"" document=""1"" />
+         <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
+         <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
+         <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+         <entry offset=""0x16"" hidden=""true"" document=""1"" />
+         <entry offset=""0x20"" hidden=""true"" document=""1"" />
+         <entry offset=""0x21"" hidden=""true"" document=""1"" />
+         <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+         <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+       </sequencePoints>
+       <scope startOffset=""0x0"" endOffset=""0x2d"">
+         <namespace name=""System"" />
+         <namespace name=""System.IO"" />
+         <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+         <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+       </scope>
+     </method>
+   </methods>
+ </symbols>");
+        }
+
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void UsingDeclaration_BodyBlockScopeWithReturn()
+        {
+            var source = @"
+using System;
+using System.IO;
+class C
+{
+    static int Main()
+    {
+        using MemoryStream m = new MemoryStream();
+        Console.WriteLine(1);
+        return 1;
+    }
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/37417
+            // Duplicate sequence point at `}`
+
+            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //m
+                int V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: MemoryStream m = new MemoryStream();
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: Console.WriteLine(1);
+    IL_0007:  ldc.i4.1
+    IL_0008:  call       ""void System.Console.WriteLine(int)""
+    IL_000d:  nop
+    // sequence point: return 1;
+    IL_000e:  ldc.i4.1
+    IL_000f:  stloc.1
+    IL_0010:  leave.s    IL_001d
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0012:  ldloc.0
+    IL_0013:  brfalse.s  IL_001c
+    IL_0015:  ldloc.0
+    IL_0016:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001b:  nop
+    // sequence point: <hidden>
+    IL_001c:  endfinally
+  }
+  // sequence point: }
+  IL_001d:  ldloc.1
+  IL_001e:  ret
+}
+");
+
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""30"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xe"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1f"">
+        <namespace name=""System"" />
+        <namespace name=""System.IO"" />
+        <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x1f"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void UsingDeclaration_IfBodyScope()
+        {
+            var source = @"
+using System;
+using System.IO;
+class C
+{
+    public static bool G() => true;
+
+    static void Main()
+    {
+        if (G()) 
+        {
+            using var m = new MemoryStream();
+            Console.WriteLine(1);
+        }
+        Console.WriteLine(2);
+    }
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/37417
+            // In this case the sequence point `}` is not emitted on the leave instruction,
+            // but to a nop instruction following the disposal.
+
+            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (bool V_0,
+                System.IO.MemoryStream V_1) //m
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: if (G())
+  IL_0001:  call       ""bool C.G()""
+  IL_0006:  stloc.0
+  // sequence point: <hidden>
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0026
+  // sequence point: {
+  IL_000a:  nop
+  // sequence point: var m = new MemoryStream();
+  IL_000b:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0010:  stloc.1
+  .try
+  {
+    // sequence point: Console.WriteLine(1);
+    IL_0011:  ldc.i4.1
+    IL_0012:  call       ""void System.Console.WriteLine(int)""
+    IL_0017:  nop
+    IL_0018:  leave.s    IL_0025
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001a:  ldloc.1
+    IL_001b:  brfalse.s  IL_0024
+    IL_001d:  ldloc.1
+    IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0023:  nop
+    // sequence point: <hidden>
+    IL_0024:  endfinally
+  }
+  // sequence point: }
+  IL_0025:  nop
+  // sequence point: Console.WriteLine(2);
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  nop
+  // sequence point: }
+  IL_002d:  ret
+}
+");
+
+            c.VerifyPdb("C.Main", @"
+ <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" />
+        <encLocalSlotMap>
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""0"" offset=""55"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" startLine=""12"" startColumn=""19"" endLine=""12"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x11"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x1a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2e"">
+        <scope startOffset=""0xa"" endOffset=""0x26"">
+          <local name=""m"" il_index=""1"" il_start=""0xa"" il_end=""0x26"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+ </symbols>");
+        }
+
+        #endregion
+
         // LockStatement tested in CodeGenLock
 
         #region Anonymous Type

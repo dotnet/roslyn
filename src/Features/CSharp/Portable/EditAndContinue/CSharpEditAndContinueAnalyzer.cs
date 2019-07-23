@@ -2910,6 +2910,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Exception Handling Rude Edits
 
+        /// <summary>
+        /// Return nodes that represent exception handlers encompassing the given active statement node.
+        /// </summary>
         protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf)
         {
             var result = new List<SyntaxNode>();
@@ -2998,6 +3001,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// An active statement (leaf or not) inside a "finally" makes the whole try/catch/finally block read-only.
         /// An active statement (non leaf)    inside a "try" makes the catch/finally block read-only.
         /// </summary>
+        /// <remarks>
+        /// Exception handling regions are only needed to be tracked if they contain user code.
+        /// <see cref="UsingStatementSyntax"/> and using <see cref="LocalDeclarationStatementSyntax"/> generate finally blocks,
+        /// but they do not contain non-hidden sequence points.
+        /// </remarks>
+        /// <param name="node">An exception handling ancestor of an active statement node.</param>
+        /// <param name="coversAllChildren">
+        /// True if all child nodes of the <paramref name="node"/> are contained in the exception region represented by the <paramref name="node"/>.
+        /// </param>
         protected override TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren)
         {
             TryStatementSyntax tryStatement;
@@ -3138,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newLocalDeclaration.AwaitKeyword.Span,
                     newLocalDeclaration,
                     new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
-                
+
                 return;
             }
 
@@ -3329,23 +3341,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // 
             // Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements<LockStatementSyntax>(diagnostics, match, new[] { (int)SyntaxKind.LockStatement }, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements<LockStatementSyntax>(diagnostics, match, n => n.IsKind(SyntaxKind.LockStatement), oldActiveStatement, newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
                 areSimilar: null);
 
-            ReportUnmatchedStatements<FixedStatementSyntax>(diagnostics, match, new[] { (int)SyntaxKind.FixedStatement }, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements<FixedStatementSyntax>(diagnostics, match, n => n.IsKind(SyntaxKind.FixedStatement), oldActiveStatement, newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
                 areSimilar: (n1, n2) => DeclareSameIdentifiers(n1.Declaration.Variables, n2.Declaration.Variables));
 
-            ReportUnmatchedStatements<UsingStatementSyntax>(diagnostics, match, new[] { (int)SyntaxKind.UsingStatement }, oldActiveStatement, newActiveStatement,
+            // Using statements with declaration do not introduce compiler generated temporary.
+            ReportUnmatchedStatements<UsingStatementSyntax>(
+                diagnostics,
+                match,
+                n => n.IsKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)n).Declaration is null,
+                oldActiveStatement,
+                newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
-                areSimilar: (using1, using2) =>
-                {
-                    return using1.Declaration != null && using2.Declaration != null &&
-                        DeclareSameIdentifiers(using1.Declaration.Variables, using2.Declaration.Variables);
-                });
+                areSimilar: null);
 
-            ReportUnmatchedStatements<CommonForEachStatementSyntax>(diagnostics, match, new[] { (int)SyntaxKind.ForEachStatement, (int)SyntaxKind.ForEachVariableStatement }, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements<CommonForEachStatementSyntax>(
+                diagnostics,
+                match,
+                n => n.IsKind(SyntaxKind.ForEachStatement) || n.IsKind(SyntaxKind.ForEachVariableStatement),
+                oldActiveStatement,
+                newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
                 areSimilar: AreSimilarActiveStatements);
         }
