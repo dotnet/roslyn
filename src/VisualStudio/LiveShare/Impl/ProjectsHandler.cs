@@ -28,12 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 foreach (var sourceFile in project.Documents)
                 {
                     var uri = new Uri(sourceFile.FilePath);
+#pragma warning disable 0612
                     if (!requestContext.ProtocolConverter.IsContainedInRootFolders(uri))
+#pragma warning restore 0612
                     {
                         externalUris.Add(uri);
                     }
                 }
+#pragma warning disable 0612
                 await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArrayAndFree()).ConfigureAwait(false);
+#pragma warning restore 0612
 
                 var lspProject = new CustomProtocol.Project
                 {
