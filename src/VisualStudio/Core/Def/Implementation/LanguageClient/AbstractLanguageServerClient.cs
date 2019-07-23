@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,12 +10,19 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.CodeAnalysis.Host;
+using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract class AbstractLanguageServerClient : ILanguageClient
     {
         private readonly Workspace _workspace;
+        private readonly LanguageServerClientEventListener _eventListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
+
         private readonly string _clientName;
         private readonly string _languageServerName;
 
@@ -49,9 +55,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public event AsyncEventHandler<EventArgs> StopAsync;
 #pragma warning restore CS0067 // event never used
 
-        public AbstractLanguageServerClient(Workspace workspace, string languageServerName, string clientName)
+        public AbstractLanguageServerClient(
+            Workspace workspace,
+            LanguageServerClientEventListener eventListener,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            string languageServerName,
+            string clientName)
         {
             _workspace = workspace;
+            _eventListener = eventListener;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+
             _clientName = clientName;
             _languageServerName = languageServerName;
         }
@@ -62,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (client == null)
             {
                 // there is no OOP. either user turned it off, or process got killed.
+                return null;
             }
 
             var hostGroup = new HostGroup(client.ClientId);
@@ -82,23 +97,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// Signals that the extension has been loaded.  The server can be started immediately, or wait for user action to start.  
         /// To start the server, invoke the <see cref="StartAsync"/> event;
         /// </summary>
-        public async Task OnLoadedAsync()
+        public Task OnLoadedAsync()
         {
-            EnusreRemoteHost();
+            var token = _asyncListener.BeginAsyncOperation("OnLoadedAsync");
 
-            // wait until remote host is available before let platform know that they can activate our LSP
-            var client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
-            if (client == null)
+            // set up event stream so that we start LSP server once Roslyn is loaded
+            _eventListener.WorkspaceStarted.ContinueWith(async _ =>
             {
-                // there is no OOP. either user turned it off, or process got killed.
-                // don't ask platform to start LSP
-                return;
-            }
+                // we need to call it on UI thread due to option service.
+                EnsureRemoteHost();
 
-            // let platform know that they can start us
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+                // wait until remote host is available before let platform know that they can activate our LSP
+                var client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+                if (client == null)
+                {
+                    // there is no OOP. either user turned it off, or process got killed.
+                    // don't ask platform to start LSP
+                    return;
+                }
 
-            void EnusreRemoteHost()
+                // let platform know that they can start us
+                await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            }, TaskScheduler.Default).CompletesAsyncOperation(token);
+
+            return Task.CompletedTask;
+
+            void EnsureRemoteHost()
             {
                 // this might get called before solution is fully loaded and before file is opened. 
                 // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
@@ -121,6 +145,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task OnServerInitializeFailedAsync(Exception e)
         {
             return Task.CompletedTask;
+        }
+    }
+
+    // unfortunately, we can't implement this on LanguageServerClient since this uses MEF v2 and
+    // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
+    [Export]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+    internal class LanguageServerClientEventListener : IEventListener<object>
+    {
+        private readonly TaskCompletionSource<object> _taskCompletionSource;
+
+        public Task WorkspaceStarted => _taskCompletionSource.Task;
+
+        public LanguageServerClientEventListener()
+        {
+            _taskCompletionSource = new TaskCompletionSource<object>();
+        }
+
+        public void StartListening(Workspace workspace, object serviceOpt)
+        {
+            // mark that roslyn solution is added
+            _taskCompletionSource.SetResult(null);
         }
     }
 }

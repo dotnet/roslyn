@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Remote
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.LanguageServer.Client
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.Utilities
@@ -22,8 +22,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(workspace As VisualStudioWorkspace)
+        Public Sub New(workspace As VisualStudioWorkspace,
+                       eventListener As LanguageServerClientEventListener,
+                       listenerProvider As IAsynchronousOperationListenerProvider)
             MyBase.New(workspace,
+                       eventListener,
+                       listenerProvider,
                        WellKnownServiceHubServices.VisualBasicLanguageServer,
                        "ManagedLanguage.IDE.VisualBasicLanguageServer")
         End Sub

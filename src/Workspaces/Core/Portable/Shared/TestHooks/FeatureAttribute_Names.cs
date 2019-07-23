@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Snippets = nameof(Snippets);
         public const string SolutionCrawler = nameof(SolutionCrawler);
         public const string TodoCommentList = nameof(TodoCommentList);
+        public const string VSSearch = nameof(VSSearch);
         public const string Workspace = nameof(Workspace);
     }
 }

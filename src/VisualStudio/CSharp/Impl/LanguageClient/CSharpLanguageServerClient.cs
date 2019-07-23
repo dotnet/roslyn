@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -22,10 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLanguageServerClient(VisualStudioWorkspace workspace)
+        public CSharpLanguageServerClient(
+            VisualStudioWorkspace workspace,
+            LanguageServerClientEventListener eventListener,
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(workspace,
-                   WellKnownServiceHubServices.CSharpLanguageServer,
-                   "ManagedLanguage.IDE.CSharpLanguageServer")
+                eventListener,
+                listenerProvider,
+                WellKnownServiceHubServices.CSharpLanguageServer,
+                "ManagedLanguage.IDE.CSharpLanguageServer")
         {
         }
 
