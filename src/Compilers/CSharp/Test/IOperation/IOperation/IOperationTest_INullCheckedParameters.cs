@@ -2541,8 +2541,8 @@ class Program
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
-                    // (7,37): error cs0656: missing compiler required member 'system.argumentnullexception..ctor'
-                    //         func<string, string> func = x! => x;
+                    // (7,37): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    //         Func<string, string> func = x! => x;
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 37));
             var tree = comp.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
