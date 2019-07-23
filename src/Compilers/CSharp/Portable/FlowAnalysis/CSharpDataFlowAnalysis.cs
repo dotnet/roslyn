@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var result = !Succeeded
                         ? ImmutableArray<ISymbol>.Empty
-                        : Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, out _succeeded));
+                        : Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion));
                     ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnEntry, result);
                 }
 

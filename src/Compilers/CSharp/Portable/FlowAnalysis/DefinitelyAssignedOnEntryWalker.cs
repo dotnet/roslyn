@@ -28,14 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static HashSet<Symbol> Analyze(
-            CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, out bool? succeeded)
+            CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
         {
             var walker = new DefinitelyAssignedOnEntryWalker(compilation, member, node, firstInRegion, lastInRegion);
             try
             {
                 bool badRegion = false;
                 var result = walker.Analyze(ref badRegion);
-                succeeded = !badRegion;
                 return badRegion ? new HashSet<Symbol>() : result;
             }
             finally
