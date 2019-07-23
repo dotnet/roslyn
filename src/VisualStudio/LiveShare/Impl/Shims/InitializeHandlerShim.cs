@@ -9,12 +9,47 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]
     internal class InitializeHandlerShim : AbstractLiveShareHandlerShim<InitializeParams, InitializeResult>
     {
-        [ImportingConstructor]
-        public InitializeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public InitializeHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.InitializeName)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynInitializeHandlerShim : InitializeHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynInitializeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.InitializeName)]
+    internal class CSharpInitializeHandlerShim : InitializeHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpInitializeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.InitializeName)]
+    internal class VisualBasicInitializeHandlerShim : InitializeHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicInitializeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.InitializeName)]
+    internal class TypeScriptInitializeHandlerShim : InitializeHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptInitializeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }

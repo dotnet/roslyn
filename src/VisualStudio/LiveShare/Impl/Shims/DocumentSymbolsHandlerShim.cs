@@ -13,11 +13,9 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandlerShim : AbstractLiveShareHandlerShim<DocumentSymbolParams, SymbolInformation[]>
     {
-        [ImportingConstructor]
-        public DocumentSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public DocumentSymbolsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.TextDocumentDocumentSymbolName)
         {
         }
@@ -36,6 +34,43 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
             return response?.Select(obj => (SymbolInformation)obj).ToArray();
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentDocumentSymbolName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynDocumentSymbolsHandlerShim : DocumentSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynDocumentSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentDocumentSymbolName)]
+    internal class CSharpDocumentSymbolsHandlerShim : DocumentSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpDocumentSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentDocumentSymbolName)]
+    internal class VisualBasicDocumentSymbolsHandlerShim : DocumentSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicDocumentSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
+    internal class TypeScriptDocumentSymbolsHandlerShim : DocumentSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptDocumentSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
         }
     }
 }
