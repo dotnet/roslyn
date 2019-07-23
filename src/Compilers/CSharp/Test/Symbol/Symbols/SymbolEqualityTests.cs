@@ -12,11 +12,139 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class SymbolEqualityTests : CSharpTestBase
     {
+        [Fact]
+        public void ReducedExtensionMethodSymbol()
+        {
+            var src = @"
+public static class Extensions
+{
+    public static void StringExt(this object o)
+    { }
+}
+class C
+{
+    void M1()
+    {
+        string s = """";
+        s.StringExt();
+    }
+    void M2()
+    {
+        string? s = null;
+        s.StringExt();
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void Extensions.StringExt(object o)'.
+                //         s.StringExt();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("o", "void Extensions.StringExt(object o)").WithLocation(17, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+
+            var nonNullStringExt = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
+            Assert.NotNull(nonNullStringExt);
+
+            var nullStringExt = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
+            Assert.NotNull(nullStringExt);
+
+            Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt);
+            Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt);
+
+            Assert.Equal(nonNullStringExt, nullStringExt);
+            Assert.Equal<object>(nonNullStringExt, nullStringExt);
+
+            // IMethodSymbol does not have a Reduce method that takes annotations, so
+            // there's no way to make a reduced method symbol with annotations in the
+            // public API
+        }
+
+        [Fact]
+        public void LocalFunctionSymbol()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        void local<T>(T t) { };
+        string s1 = """";
+        string? s2 = null;
+        local(s1);
+        local(s2);
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+
+            var nonNullM = model.GetSymbolInfo(invocations[0]).Symbol;
+            var nullM = model.GetSymbolInfo(invocations[1]).Symbol;
+
+            Assert.IsType<ConstructedMethodSymbol>(nonNullM);
+            Assert.IsType<ConstructedMethodSymbol>(nullM);
+
+            var nonNullOriginal = nonNullM.OriginalDefinition;
+            var nullOriginal = nullM.OriginalDefinition;
+
+            Assert.IsType<LocalFunctionSymbol>(nonNullOriginal);
+            Assert.IsType<LocalFunctionSymbol>(nullOriginal);
+
+            Assert.Equal(nonNullOriginal, nullOriginal);
+            Assert.Equal<object>(nonNullOriginal, nullOriginal);
+        }
+
+        [Fact]
+        public void SubstitutedMethodSymbol()
+        {
+            var src = @"
+class C<T>
+{
+    public static void M<U>(T t, U u) {}
+} 
+class B
+{
+    void M()
+    {
+        C<string>.M<string>("""", """");
+        C<string?>.M<string?>(null, null);
+    }
+}
+";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+
+            var nonNullM = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
+            var nullM = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
+
+            var nonNullSubstituted = nonNullM.ContainingType.GetMembers("M").Single();
+            var nullSubstituted = nullM.ContainingType.GetMembers("M").Single();
+
+            Assert.IsType<SubstitutedMethodSymbol>(nonNullSubstituted);
+            Assert.IsType<SubstitutedMethodSymbol>(nullSubstituted);
+
+            Assert.Equal(nonNullSubstituted, nullSubstituted);
+            Assert.Equal<object>(nonNullSubstituted, nullSubstituted);
+        }
+
         [Fact]
         public void Internal_Symbol_Equality()
         {
