@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
 {
     internal class RoslynRemoteDiagnosticsService : IRemoteDiagnosticsService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynRemoteDiagnosticsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynRemoteDiagnosticsService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
