@@ -86,9 +86,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property DefinitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
             Get
                 If _definitelyAssignedOnEntry.IsDefault Then
-                    _succeeded = Not _context.Failed
-                    Dim result = If(Not _succeeded, ImmutableArray(Of ISymbol).Empty, ImmutableArray(Of ISymbol).Empty)
-                    ImmutableInterlocked.InterlockedCompareExchange(_definitelyAssignedOnEntry, result, Nothing)
+                    Dim discarded = DataFlowsIn
+                    Dim result = If(Me._context.Failed,
+                        ImmutableArray(Of ISymbol).Empty,
+                        Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
+                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, result)
                 End If
 
                 Return _definitelyAssignedOnEntry
