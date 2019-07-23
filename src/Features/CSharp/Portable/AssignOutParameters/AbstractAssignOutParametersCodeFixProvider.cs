@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -36,7 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             var (container, location) = GetContainer(root, context.Span);
             if (container != null)
             {
-                TryRegisterFix(context, document, container, location);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var dataFlow = semanticModel.AnalyzeDataFlow(location);
+                if (dataFlow.Succeeded)
+                {
+                    TryRegisterFix(context, document, container, location);
+                }
             }
         }
 
