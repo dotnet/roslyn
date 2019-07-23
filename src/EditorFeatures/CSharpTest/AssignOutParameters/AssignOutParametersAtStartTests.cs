@@ -10,6 +10,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 {
+    /// <summary>
+    /// Note: many of these tests will validate that there is no fix offered here. That's because
+    /// for many of them, that fix is offered by the <see cref="AssignOutParametersAboveReturnCodeFixProvider"/>
+    /// instead. These tests have been marked as such.
+    /// </summary>
     public partial class AssignOutParametersAtStartTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -18,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForSimpleReturn()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -101,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestWhenNotAssignedThroughAllPaths2()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -138,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -151,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple_AssignedInReturn1()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -164,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple_AssignedInReturn2()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -258,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForExpressionBodyMember()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -268,6 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLambdaExpressionBody()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -282,8 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMissingForLocalFunctionExpressionBody()
         {
-            // Note desirable.  Happens because error is not reported on expr-body
-            // like for lambdas.
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -298,6 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLambdaBlockBody()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -315,6 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLocalFunctionBlockBody()
         {
+            // Handled by other fixer
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
