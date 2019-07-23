@@ -80,6 +80,11 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices.RegisterService(name, serviceCreator);
         }
 
+        public Task<Stream> RequestServiceAsync(string serviceName)
+        {
+            return _inprocServices.RequestServiceAsync(serviceName);
+        }
+
         public override string ClientId { get; }
 
         public override async Task<Connection> TryCreateConnectionAsync(

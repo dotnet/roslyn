@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public void Shutdown(CancellationToken cancellationToken)
         {
             // our language server shutdown when VS shutdown
+            // we have this so that we don't get log file every time VS shutdown
+        }
+
+        [JsonRpcMethod(Methods.ExitName)]
+        public void Exit()
+        {
+            // our language server exit when VS shutdown
+            // we have this so that we don't get log file every time VS shutdown
         }
 
         [JsonRpcMethod(VSSymbolMethods.WorkspaceBeginSymbolName)]
