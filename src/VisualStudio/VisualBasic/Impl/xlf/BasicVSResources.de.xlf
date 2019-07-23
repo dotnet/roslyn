@@ -277,9 +277,9 @@
         <target state="translated">VB-Codierungskonvention</target>
         <note />
       </trans-unit>
-      <trans-unit id="VisualBasic_language_server_client">
-        <source>VisualBasic Language Server Client</source>
-        <target state="new">VisualBasic Language Server Client</target>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="new">Visual Basic Language Server Client</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
