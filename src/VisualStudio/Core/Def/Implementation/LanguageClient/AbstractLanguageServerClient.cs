@@ -104,7 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // set up event stream so that we start LSP server once Roslyn is loaded
             _eventListener.WorkspaceStarted.ContinueWith(async _ =>
             {
-                // we need to call it on UI thread due to option service.
                 EnsureRemoteHost();
 
                 // wait until remote host is available before let platform know that they can activate our LSP
