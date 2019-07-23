@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
             => Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
 
-        public override bool Equals(object obj)
-            => obj is SynthesizedNamespaceSymbol other && Equals(other);
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            => obj is SynthesizedNamespaceSymbol other && Equals(other, compareKind);
 
-        public bool Equals(SynthesizedNamespaceSymbol other)
+        public bool Equals(SynthesizedNamespaceSymbol other, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, other))
             {

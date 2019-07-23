@@ -309,13 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ReferenceEquals(this, t2);
         }
 
-        public sealed override bool Equals(object obj)
-        {
-            var t2 = obj as TypeSymbol;
-            if ((object)t2 == null) return false;
-            return this.Equals(t2, SymbolEqualityComparer.Default.CompareKind);
-        }
-
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             var t2 = other as TypeSymbol;
@@ -2020,6 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return left.Equals(right, comparison, isValueTypeOverrideOpt);
         }
 
+#pragma warning disable CS0660
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)
             => throw ExceptionUtilities.Unreachable;

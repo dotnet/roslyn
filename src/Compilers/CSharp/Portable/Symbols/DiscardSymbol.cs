@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
 
-        public override bool Equals(object obj) => obj is DiscardSymbol other && this.Type.Equals(other.Type);
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind) => obj is DiscardSymbol other && this.Type.Equals(other.Type, compareKind);
         public override int GetHashCode() => this.Type.GetHashCode();
     }
 }
