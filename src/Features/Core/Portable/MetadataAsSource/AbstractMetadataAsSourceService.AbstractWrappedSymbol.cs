@@ -117,6 +117,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 return Equals((object)other);
             }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
+                return equalityComparer.Equals(this, other);
+            }
         }
     }
 }

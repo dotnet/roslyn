@@ -593,15 +593,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)left != (object)right && !right.Equals(left);
         }
 
-        // By default, we do reference equality. This can be overridden.
-        public override bool Equals(object obj)
+        public sealed override bool Equals(object obj)
         {
-            return (object)this == obj;
+            return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        public bool Equals(ISymbol other)
+        bool IEquatable<ISymbol>.Equals(ISymbol other)
         {
-            return this.Equals((object)other);
+            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
+        }
+
+        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        {
+            return equalityComparer.Equals(this, other);
+        }
+
+        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        {
+            return this.Equals(other as Symbol, compareKind);
+        }
+
+        // By default we don't consider the compareKind, and do reference equality. This can be overridden.
+        public virtual bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return (object)this == other;
         }
 
         // By default, we do reference equality. This can be overridden.
