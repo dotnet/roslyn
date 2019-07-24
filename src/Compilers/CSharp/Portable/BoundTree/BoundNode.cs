@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TopLevelFlowStateMaybeNull = 1 << 3,
             TopLevelNotAnnotated = 1 << 4,
             TopLevelAnnotated = 1 << 5,
-            TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
-            TopLevelAnnotationMask = TopLevelDisabled,
+            TopLevelNone = TopLevelAnnotated | TopLevelNotAnnotated,
+            TopLevelAnnotationMask = TopLevelNone,
 
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
                     CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
-                    CodeAnalysis.NullableAnnotation.None => BoundNodeAttributes.TopLevelDisabled,
+                    CodeAnalysis.NullableAnnotation.None => BoundNodeAttributes.TopLevelNone,
                     var a => throw ExceptionUtilities.UnexpectedValue(a),
                 };
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
                     BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
-                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.None,
+                    BoundNodeAttributes.TopLevelNone => CodeAnalysis.NullableAnnotation.None,
                     var mask => throw ExceptionUtilities.UnexpectedValue(mask)
                 };
 

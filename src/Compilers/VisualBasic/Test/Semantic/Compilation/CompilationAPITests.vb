@@ -1526,7 +1526,6 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation)
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing).ElementNullableAnnotation)
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation)
-            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation)
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation)
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation)
         End Sub
