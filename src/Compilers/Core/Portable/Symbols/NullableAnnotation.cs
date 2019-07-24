@@ -13,13 +13,7 @@ namespace Microsoft.CodeAnalysis
         /// The expression has not been analyzed, or the syntax is
         /// not an expression (such as a statement).
         /// </summary>
-        NotApplicable = 0,
-        /// <summary>
-        /// The expression comes from a library not updated to C# 8
-        /// or nullable was disabled for the definition, and has no
-        /// nullability information. Analysis is disabled.
-        /// </summary>
-        Disabled,
+        None = 0,
         /// <summary>
         /// The expression is not annotated (does not have a ?).
         /// </summary>

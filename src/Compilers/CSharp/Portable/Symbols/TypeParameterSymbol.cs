@@ -683,10 +683,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
             ReferenceTypeConstraintIsNullable switch
             {
-                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.None,
                 false => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 true => CodeAnalysis.NullableAnnotation.Annotated,
-                null => CodeAnalysis.NullableAnnotation.Disabled,
+                null => CodeAnalysis.NullableAnnotation.None,
             };
 #pragma warning restore IDE0055 // Fix formatting
 

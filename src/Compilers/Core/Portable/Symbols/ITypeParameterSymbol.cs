@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If <see cref="HasReferenceTypeConstraint"/> is true, returns the top-level nullability of the
         /// <c>class</c> constraint that was specified for the type parameter. If there was no <c>class</c>
-        /// constraint, this returns <see cref="NullableAnnotation.NotApplicable"/>.
+        /// constraint, this returns <see cref="NullableAnnotation.None"/>.
         /// </summary>
         NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
 

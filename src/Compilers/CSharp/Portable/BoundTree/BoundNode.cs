@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Top level nullability for the node. This should not be used by flow analysis.
         /// </summary>
-        [DebuggerHidden]
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         protected NullabilityInfo TopLevelNullability
         {
             get
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
                     CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
-                    CodeAnalysis.NullableAnnotation.Disabled => BoundNodeAttributes.TopLevelDisabled,
+                    CodeAnalysis.NullableAnnotation.None => BoundNodeAttributes.TopLevelDisabled,
                     var a => throw ExceptionUtilities.UnexpectedValue(a),
                 };
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
                     BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
-                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Disabled,
+                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.None,
                     var mask => throw ExceptionUtilities.UnexpectedValue(mask)
                 };
 
