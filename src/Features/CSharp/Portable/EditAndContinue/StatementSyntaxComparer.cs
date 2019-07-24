@@ -1021,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return true;
         }
 
-        // doesn't include variables declared in declaration expressions
+        // Doesn't include variables declared in declaration expressions
+        // Consider including them (https://github.com/dotnet/roslyn/issues/37460).
         private static void GetLocalNames(BlockSyntax block, ref List<SyntaxToken> result)
         {
             foreach (var child in block.ChildNodes())
@@ -1033,7 +1034,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        // doesn't include variables declared in declaration expressions
+        // Doesn't include variables declared in declaration expressions
+        // Consider including them (https://github.com/dotnet/roslyn/issues/37460).
         private static void GetLocalNames(VariableDeclarationSyntax localDeclaration, ref List<SyntaxToken> result)
         {
             foreach (var local in localDeclaration.Variables)
