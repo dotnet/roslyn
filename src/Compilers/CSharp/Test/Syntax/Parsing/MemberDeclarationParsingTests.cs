@@ -466,17 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 UsingDeclaration("async Task<SomeNamespace.SomeType Method();", options: options,
-                    // (1,1): error CS1073: Unexpected token '('
+                    // (1,35): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
-                    // (1,35): error CS1003: Syntax error, ',' expected
-                    // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 35),
-                    // (1,41): error CS1003: Syntax error, '>' expected
-                    // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 41)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(">", "").WithLocation(1, 35)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.AsyncKeyword);
                     N(SyntaxKind.GenericName);
@@ -497,14 +491,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.IdentifierToken, "SomeType");
                                 }
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
                             M(SyntaxKind.GreaterThanToken);
                         }
                     }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -517,17 +513,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 UsingDeclaration("public Task<SomeNamespace.SomeType Method();", options: options,
-                    // (1,1): error CS1073: Unexpected token '('
+                    // (1,36): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
-                    // (1,36): error CS1003: Syntax error, ',' expected
-                    // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 36),
-                    // (1,42): error CS1003: Syntax error, '>' expected
-                    // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 42)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(">", "").WithLocation(1, 36)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.GenericName);
@@ -548,14 +538,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.IdentifierToken, "SomeType");
                                 }
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
                             M(SyntaxKind.GreaterThanToken);
                         }
                     }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
