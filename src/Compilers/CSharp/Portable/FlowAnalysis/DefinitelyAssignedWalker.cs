@@ -5,19 +5,21 @@
 #define REFERENCE_STATE
 #endif
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// A region analysis walker that computes the set of variables that are definitely assigned
-    /// when a region is entered.
+    /// when a region is entered or exited.
     /// </summary>
-    internal class DefinitelyAssignedOnEntryWalker : AbstractRegionDataFlowPass
+    internal class DefinitelyAssignedWalker : AbstractRegionDataFlowPass
     {
         private readonly HashSet<Symbol> _definitelyAssignedOnEntry = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _definitelyAssignedOnExit = new HashSet<Symbol>();
 
-        private DefinitelyAssignedOnEntryWalker(
+        private DefinitelyAssignedWalker(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -27,15 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal static HashSet<Symbol> Analyze(
+        internal static (HashSet<Symbol> entry, HashSet<Symbol> exit) Analyze(
             CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
         {
-            var walker = new DefinitelyAssignedOnEntryWalker(compilation, member, node, firstInRegion, lastInRegion);
+            var walker = new DefinitelyAssignedWalker(compilation, member, node, firstInRegion, lastInRegion);
             try
             {
                 bool badRegion = false;
-                var result = walker.Analyze(ref badRegion);
-                return badRegion ? new HashSet<Symbol>() : result;
+                walker.Analyze(ref badRegion, diagnostics: null);
+                return badRegion
+                    ? (new HashSet<Symbol>(), new HashSet<Symbol>())
+                    : (walker._definitelyAssignedOnEntry, walker._definitelyAssignedOnExit);
             }
             finally
             {
@@ -43,37 +47,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private HashSet<Symbol> Analyze(ref bool badRegion)
+        protected override void EnterRegion()
         {
-            base.Analyze(ref badRegion, null);
-            return _definitelyAssignedOnEntry;
+            ProcessRegion(_definitelyAssignedOnEntry);
+            base.EnterRegion();
         }
 
-        protected override void EnterRegion()
+        protected override void LeaveRegion()
+        {
+            ProcessRegion(_definitelyAssignedOnExit);
+            base.LeaveRegion();
+        }
+
+        private void ProcessRegion(HashSet<Symbol> definitelyAssigned)
         {
             // this can happen multiple times as flow analysis is multi-pass.  Always 
             // take the latest data and use that to determine our result.
-            _definitelyAssignedOnEntry.Clear();
+            definitelyAssigned.Clear();
 
             if (this.IsConditionalState)
             {
                 // We're in a state where there are different flow paths (i.e. when-true and when-false).
                 // In that case, a variable is only definitely assigned if it's definitely assigned through
                 // both paths.
-                this.ProcessState(this.StateWhenTrue, this.StateWhenFalse);
+                this.ProcessState(definitelyAssigned, this.StateWhenTrue, this.StateWhenFalse);
             }
             else
             {
-                this.ProcessState(this.State, state2opt: null);
+                this.ProcessState(definitelyAssigned, this.State, state2opt: null);
             }
-
-            base.EnterRegion();
         }
 
 #if REFERENCE_STATE
-        private void ProcessState(LocalState state1, LocalState state2opt)
+        private void ProcessState(HashSet<Symbol> definitelyAssigned, LocalState state1, LocalState state2opt)
 #else
-        private void ProcessState(LocalState state1, LocalState? state2opt)
+        private void ProcessState(HashSet<Symbol> definitelyAssigned, LocalState state1, LocalState? state2opt)
 #endif
         {
             foreach (var slot in state1.Assigned.TrueBits())
@@ -83,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableBySlot[slot].Symbol is { } symbol &&
                     symbol.Kind != SymbolKind.Field)
                 {
-                    _definitelyAssignedOnEntry.Add(symbol);
+                    definitelyAssigned.Add(symbol);
                 }
             }
         }

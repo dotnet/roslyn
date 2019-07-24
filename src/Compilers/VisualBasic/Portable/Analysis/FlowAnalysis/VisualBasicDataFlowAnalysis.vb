@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _unassignedVariables As HashSet(Of Symbol)
         Private _dataFlowsIn As ImmutableArray(Of ISymbol)
         Private _definitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
+        Private _definitelyAssignedOnExit As ImmutableArray(Of ISymbol)
         Private _dataFlowsOut As ImmutableArray(Of ISymbol)
         Private _alwaysAssigned As ImmutableArray(Of ISymbol)
         Private _readInside As ImmutableArray(Of ISymbol)
@@ -86,14 +87,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property DefinitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
             Get
                 If _definitelyAssignedOnEntry.IsDefault Then
+                    Dim entry = ImmutableArray(Of ISymbol).Empty
+                    Dim ex = ImmutableArray(Of ISymbol).Empty
+
                     Dim discarded = DataFlowsIn
-                    Dim result = If(Me._context.Failed,
-                        ImmutableArray(Of ISymbol).Empty,
-                        Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
-                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, result)
+                    If Not Me._context.Failed Then
+                        Dim tuple = DefinitelyAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
+                        entry = Normalize(tuple.entry)
+                        ex = Normalize(tuple.ex)
+                    End If
+
+                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, entry)
+                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnExit, ex)
                 End If
 
                 Return _definitelyAssignedOnEntry
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property DefinitelyAssignedOnExit As ImmutableArray(Of ISymbol)
+            Get
+                Dim unused = DefinitelyAssignedOnEntry
+                Return _definitelyAssignedOnExit
             End Get
         End Property
 

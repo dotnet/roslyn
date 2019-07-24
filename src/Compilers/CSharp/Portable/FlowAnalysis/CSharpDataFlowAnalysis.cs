@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _dataFlowsIn;
         private ImmutableArray<ISymbol> _dataFlowsOut;
         private ImmutableArray<ISymbol> _definitelyAssignedOnEntry;
+        private ImmutableArray<ISymbol> _definitelyAssignedOnExit;
         private ImmutableArray<ISymbol> _alwaysAssigned;
         private ImmutableArray<ISymbol> _readInside;
         private ImmutableArray<ISymbol> _writtenInside;
@@ -102,11 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of local variables which are definitely assigned a value when a region
-        /// is entered.
-        /// 
-        /// The set of variables that are definitely assigned a value when a region is exited is
-        /// the union of <see cref="DefinitelyAssignedOnEntry"/> and <see cref="AlwaysAssigned"/>.
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// entered.
         /// </summary>
         public override ImmutableArray<ISymbol> DefinitelyAssignedOnEntry
         {
@@ -114,13 +112,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_definitelyAssignedOnEntry.IsDefault)
                 {
-                    var result = !Succeeded
-                        ? ImmutableArray<ISymbol>.Empty
-                        : Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion));
-                    ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnEntry, result);
+                    var entryResult = ImmutableArray<ISymbol>.Empty;
+                    var exitResult = ImmutableArray<ISymbol>.Empty;
+                    if (Succeeded)
+                    {
+                        var (entry, exit) = DefinitelyAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion);
+                        entryResult = Normalize(entry);
+                        exitResult = Normalize(exit);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnEntry, entryResult);
+                    ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnExit, exitResult);
                 }
 
                 return _definitelyAssignedOnEntry;
+            }
+        }
+
+        /// <summary>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// exited.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DefinitelyAssignedOnExit
+        {
+            get
+            {
+                _ = DefinitelyAssignedOnEntry;
+                return _definitelyAssignedOnExit;
             }
         }
 

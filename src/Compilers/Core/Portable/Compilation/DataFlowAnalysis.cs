@@ -37,12 +37,16 @@ namespace Microsoft.CodeAnalysis
         /// The set of local variables which are definitely assigned a value when a region
         /// is entered.
         /// </para>
-        /// <para>
-        /// The set of variables that are definitely assigned a value when a region is exited is
-        /// the union of <see cref="DefinitelyAssignedOnEntry"/> and <see cref="AlwaysAssigned"/>.
-        /// </para>
         /// </summary>
         public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnEntry { get; }
+
+        /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region
+        /// is exited.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnExit { get; }
 
         /// <summary>
         /// The set of local variables for which a value is always assigned inside
