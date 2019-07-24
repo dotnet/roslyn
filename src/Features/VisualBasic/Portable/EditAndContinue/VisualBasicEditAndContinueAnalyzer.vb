@@ -362,10 +362,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function FindStatementAndPartner(declarationBody As SyntaxNode,
-                                                             position As Integer,
+                                                             span As TextSpan,
                                                              partnerDeclarationBodyOpt As SyntaxNode,
                                                              <Out> ByRef partnerOpt As SyntaxNode,
                                                              <Out> ByRef statementPart As Integer) As SyntaxNode
+            Dim position = span.Start
+
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda:=False)
             Debug.Assert(partnerDeclarationBodyOpt Is Nothing OrElse partnerDeclarationBodyOpt.RawKind = declarationBody.RawKind)
 
@@ -446,6 +448,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 node = declarationBody.FindToken(position).Parent
                 partnerOpt = Nothing
             End If
+
+            ' In some cases active statements may start at the same position.
+            ' Consider a nested lambda: 
+            '   Function(a) [|[|Function(b)|] a + b|]
+            ' There are 2 active statements, one spanning the the body of the outer lambda and 
+            ' the other on the nested lambda's header.
+            ' Find the parent whose span starts at the same position but it's lenght is at least as long as the active span's length.
+            While node.Span.Length < span.Length AndAlso node.Parent.SpanStart = position
+                node = node.Parent
+                partnerOpt = partnerOpt?.Parent
+            End While
 
             Debug.Assert(node IsNot Nothing)
 
@@ -735,11 +748,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span)
         End Function
 
-        Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, span)
+        Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
@@ -1148,6 +1161,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TryGetDiagnosticSpanImpl(node.Kind, node, editKind)
         End Function
 
+        Protected Overrides Function GetBodyDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
+            Return GetDiagnosticSpan(node, editKind)
+        End Function
+
         ' internal for testing; kind is passed explicitly for testing as well
         Friend Shared Function TryGetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan?
             Select Case kind
@@ -1208,7 +1225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.DeclareSubStatement,
                      SyntaxKind.DeclareFunctionStatement,
                      SyntaxKind.DelegateSubStatement,
-                    SyntaxKind.DelegateFunctionStatement
+                     SyntaxKind.DelegateFunctionStatement
                     Return GetDiagnosticSpan(DirectCast(node, MethodBaseSyntax))
 
                 Case SyntaxKind.PropertyBlock
@@ -1368,7 +1385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return DirectCast(node, JoinConditionSyntax).EqualsKeyword.Span
 
                 Case Else
-                    Return Nothing
+                    Return node.Span
             End Select
         End Function
 
@@ -1494,6 +1511,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Return result
+        End Function
+
+        Protected Overrides Function GetBodyDisplayName(node As SyntaxNode, Optional editKind As EditKind = EditKind.Update) As String
+            Return GetDisplayName(node, editKind)
         End Function
 
         Private Shared Function TryGetDisplayNameImpl(node As SyntaxNode, editKind As EditKind) As String
@@ -1662,7 +1683,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression
+                     SyntaxKind.SingleLineSubLambdaExpression,
+                     SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubLambdaHeader
                     Return VBFeaturesResources.Lambda
 
                 Case SyntaxKind.WhereClause
@@ -2593,6 +2616,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+                ' Ignore async keyword when matching modifiers.
+                ' async checks are done in ComputeBodyMatch.
+
                 Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
                 Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
 
@@ -2602,11 +2628,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newAsyncIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex)
-                End If
-
-                ' 'async' keyword is allowed to add, but not to remove
-                If oldAsyncIndex >= 0 AndAlso newAsyncIndex < 0 Then
-                    Return False
                 End If
 
                 Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)

@@ -117,18 +117,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract SyntaxNode GetEncompassingAncestorImpl(SyntaxNode bodyOrMatchRoot);
 
         /// <summary>
-        /// Finds a statement at given position and a declaration body.
+        /// Finds a statement at given span and a declaration body.
         /// Also returns the corresponding partner statement in <paramref name="partnerDeclarationBodyOpt"/>, if specified.
         /// </summary>
         /// <remarks>
-        /// The declaration body node may not contain the <paramref name="position"/>. 
+        /// The declaration body node may not contain the <paramref name="span"/>. 
         /// This happens when an active statement associated with the member is outside of its body (e.g. C# constructor).
         /// If the position doesn't correspond to any statement uses the start of the <paramref name="declarationBody"/>.
         /// </remarks>
-        protected abstract SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, int position, SyntaxNode partnerDeclarationBodyOpt, out SyntaxNode partnerOpt, out int statementPart);
+        protected abstract SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode partnerDeclarationBodyOpt, out SyntaxNode partnerOpt, out int statementPart);
 
-        private SyntaxNode FindStatement(SyntaxNode declarationBody, int position, out int statementPart)
-            => FindStatementAndPartner(declarationBody, position, null, out _, out statementPart);
+        private SyntaxNode FindStatement(SyntaxNode declarationBody, TextSpan span, out int statementPart)
+            => FindStatementAndPartner(declarationBody, span, null, out _, out statementPart);
 
         /// <summary>
         /// Maps <paramref name="leftNode"/> descendant of <paramref name="leftRoot"/> to corresponding descendant node
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns>
         /// True if the node has an active span associated with it, false otherwise.
         /// </returns>
-        protected abstract bool TryGetActiveSpan(SyntaxNode node, int statementPart, out TextSpan span);
+        protected abstract bool TryGetActiveSpan(SyntaxNode node, int statementPart, int minLength, out TextSpan span);
 
         /// <summary>
         /// Yields potential active statements around the specified active statement
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind)
           => TryGetDiagnosticSpan(node, editKind) ?? node.Span;
 
-        private TextSpan GetAncestorDiagnosticSpan(SyntaxNode node, EditKind editKind)
+        protected virtual TextSpan GetBodyDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
             var initialNode = node;
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns the display name of an ancestor node that contains the specified node and has a display name.
         /// </summary>
-        internal string GetAncestorDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
+        protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
             var initialNode = node;
             while (true)
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // It is not an error to move the statement - we just ignore it.
                     if (isTracked && trackedSpan.Length != 0 && newMember.Span.Contains(trackedSpan))
                     {
-                        var trackedStatement = FindStatement(newBody, trackedSpan.Start, out var trackedStatementPart);
+                        var trackedStatement = FindStatement(newBody, trackedSpan, out var trackedStatementPart);
                         Contract.ThrowIfNull(trackedStatement);
 
                         // Adjust for active statements that cover more than the old member span.
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (newStatement == null)
                     {
                         Contract.ThrowIfFalse(statementPart == -1);
-                        FindStatementAndPartner(oldBody, oldStatementSpan.Start, newBody, out newStatement, out statementPart);
+                        FindStatementAndPartner(oldBody, oldStatementSpan, newBody, out newStatement, out statementPart);
                         Contract.ThrowIfNull(newStatement);
                     }
 
@@ -1010,19 +1010,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             for (var i = 0; i < activeNodes.Length; i++)
             {
                 var ordinal = start + i;
-                var oldStatementStart = oldText.Lines.GetTextSpanSafe(oldActiveStatements[ordinal].Span).Start;
+                var oldStatementSpan = oldText.Lines.GetTextSpanSafe(oldActiveStatements[ordinal].Span);
 
-                var oldStatementSyntax = FindStatement(oldBody, oldStatementStart, out var statementPart);
+                var oldStatementSyntax = FindStatement(oldBody, oldStatementSpan, out var statementPart);
                 Contract.ThrowIfNull(oldStatementSyntax);
 
                 var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldStatementSyntax);
 
                 if (oldEnclosingLambdaBody != null)
                 {
-                    if (lazyActiveOrMatchedLambdas == null)
-                    {
-                        lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
-                    }
+                    lazyActiveOrMatchedLambdas ??= new Dictionary<SyntaxNode, LambdaInfo>();
 
                     if (!lazyActiveOrMatchedLambdas.TryGetValue(oldEnclosingLambdaBody, out var lambda))
                     {
@@ -1046,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // It is not an error to move the statement - we just ignore it.
                     if (trackedSpan.Length != 0 && edit.NewNode.Span.Contains(trackedSpan))
                     {
-                        var newStatementSyntax = FindStatement(newBody, trackedSpan.Start, out var part);
+                        var newStatementSyntax = FindStatement(newBody, trackedSpan, out var part);
                         Contract.ThrowIfNull(newStatementSyntax);
 
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, newStatementSyntax);
@@ -1245,15 +1242,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (TryGetLambdaBodies(oldNode, out var oldLambdaBody1, out var oldLambdaBody2))
                     {
-                        if (lambdaBodyMatches == null)
-                        {
-                            lambdaBodyMatches = ArrayBuilder<Match<SyntaxNode>>.GetInstance();
-                        }
-
-                        if (lazyActiveOrMatchedLambdas == null)
-                        {
-                            lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
-                        }
+                        lambdaBodyMatches ??= ArrayBuilder<Match<SyntaxNode>>.GetInstance();
+                        lazyActiveOrMatchedLambdas ??= new Dictionary<SyntaxNode, LambdaInfo>();
 
                         var newLambdaBody1 = TryGetPartnerLambdaBody(oldLambdaBody1, newNode);
                         if (newLambdaBody1 != null)
@@ -1438,18 +1428,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
-                        GetAncestorDiagnosticSpan(newBody, EditKind.Update)));
+                        GetBodyDiagnosticSpan(newBody, EditKind.Update)));
                 }
             }
 
-            // report removing async as rude; iterator to non-iterator transition is only possible via removing yeild, which is already reported above:
-            if ((oldStateMachineKinds & StateMachineKinds.Async) != 0 && (newStateMachineKinds & StateMachineKinds.Async) == 0)
+            // report removing async as rude:
+            if (lazyRudeEdits == null)
             {
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.ChangingFromAsynchronousToSynchronous,
-                    GetAncestorDiagnosticSpan(newBody, EditKind.Update),
-                    newBody,
-                    new[] { GetAncestorDisplayName(newBody) }));
+                if ((oldStateMachineKinds & StateMachineKinds.Async) != 0 && (newStateMachineKinds & StateMachineKinds.Async) == 0)
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ChangingFromAsynchronousToSynchronous,
+                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                        newBody,
+                        new[] { GetBodyDisplayName(newBody) }));
+                }
+
+                // VB supports iterator lambdas/methods without yields
+                if ((oldStateMachineKinds & StateMachineKinds.Iterator) != 0 && (newStateMachineKinds & StateMachineKinds.Iterator) == 0)
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ModifiersUpdate,
+                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                        newBody,
+                        new[] { GetBodyDisplayName(newBody) }));
+                }
             }
 
             return match;
@@ -1607,24 +1610,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private TextSpan FindClosestActiveSpan(SyntaxNode statement, int statementPart)
         {
-            if (TryGetActiveSpan(statement, statementPart, out var span))
+            if (TryGetActiveSpan(statement, statementPart, minLength: statement.Span.Length, out var span))
             {
                 return span;
             }
 
             // The node doesn't have sequence points.
             // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
-            foreach (var nodeAndPart in EnumerateNearStatements(statement))
+            foreach (var (node, part) in EnumerateNearStatements(statement))
             {
-                var node = nodeAndPart.Key;
-                var part = nodeAndPart.Value;
-
                 if (part == -1)
                 {
                     return node.Span;
                 }
 
-                if (TryGetActiveSpan(node, part, out span))
+                if (TryGetActiveSpan(node, part, minLength: 0, out span))
                 {
                     return span;
                 }
@@ -3858,7 +3858,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.UpdatingStateMachineMethodMissingAttribute,
-                    GetAncestorDiagnosticSpan(updatedInfo.NewBody, EditKind.Update),
+                    GetBodyDiagnosticSpan(updatedInfo.NewBody, EditKind.Update),
                     updatedInfo.NewBody,
                     new[] { stateMachineAttributeQualifiedName }));
             }

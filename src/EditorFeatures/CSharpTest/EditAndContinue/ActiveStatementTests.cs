@@ -9274,7 +9274,7 @@ class C
             var src2 = @"
 class C
 {
-    static async void F()
+    static void F()
     {
         var f = new Action(async () => { <AS:0>Console.WriteLine(1);</AS:0> });
     }
@@ -9285,6 +9285,34 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "()"));
+        }
+
+        [Fact]
+        public void LambdaToAsyncLambda_WithActiveStatement_NoAwait_Nested()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<int, Func<int, int>>(a => <AS:0>b => 1</AS:0>);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<int, Func<int, int>>(async a => <AS:0>b => 1</AS:0>);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "a"));
         }
 
         [Fact]

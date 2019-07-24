@@ -247,8 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return bodyOrMatchRoot;
         }
 
-        protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, int position, SyntaxNode partnerDeclarationBodyOpt, out SyntaxNode partnerOpt, out int statementPart)
+        protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode partnerDeclarationBodyOpt, out SyntaxNode partnerOpt, out int statementPart)
         {
+            int position = span.Start;
+
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda: false);
 
             if (position < declarationBody.SpanStart)
@@ -629,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
         }
 
-        protected override bool TryGetActiveSpan(SyntaxNode node, int statementPart, out TextSpan span)
+        protected override bool TryGetActiveSpan(SyntaxNode node, int statementPart, int minLength, out TextSpan span)
         {
             switch (node.Kind())
             {
