@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(37459, "https://github.com/dotnet/roslyn/pull/37459")]
         public void StaticLocalFunctionCaptureConstants()
         {
             var src = @"
