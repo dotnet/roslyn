@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, PointsToAnalysisContext analysisContext)
-            => Create(creation, analysisContext.InterproceduralAnalysisDataOpt?.CallStack, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationType: locationType);
+            => CreateAllocationLocation(creation, locationType, analysisContext.InterproceduralAnalysisDataOpt?.CallStack);
+        internal static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, ImmutableStack<IOperation> callStackOpt)
+            => Create(creation, callStackOpt, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationType: locationType);
         public static AbstractLocation CreateAnalysisEntityDefaultLocation(AnalysisEntity analysisEntity)
             => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, captureIdOpt: null, locationType: analysisEntity.Type);
         public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation> creationCallStackOpt)
@@ -167,15 +169,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 SyntaxNode TryGetSyntaxNodeToReportDiagnosticCore(IOperation operation)
                 {
                     var pointsToValue = pointsToAnalysisResultOpt[operation];
-                    foreach (var location in pointsToValue.Locations)
-                    {
-                        if (location == this)
-                        {
-                            return operation.Syntax;
-                        }
-                    }
+                    return TryGetSyntaxNodeToReportDiagnosticForPointsValue(pointsToValue, operation);
 
-                    return null;
+                    SyntaxNode TryGetSyntaxNodeToReportDiagnosticForPointsValue(PointsToAbstractValue pointsToValue, IOperation operation)
+                    {
+                        foreach (var location in pointsToValue.Locations)
+                        {
+                            if (location == this)
+                            {
+                                return operation.Syntax;
+                            }
+                        }
+
+                        if (pointsToAnalysisResultOpt.TaskWrappedValuesMapOpt != null &&
+                            pointsToAnalysisResultOpt.TaskWrappedValuesMapOpt.TryGetValue(pointsToValue, out var wrappedValue))
+                        {
+                            return TryGetSyntaxNodeToReportDiagnosticForPointsValue(wrappedValue, operation);
+                        }
+
+                        return null;
+                    }
                 }
             }
         }

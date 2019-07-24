@@ -339,15 +339,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.ProcessReturnValue(returnValue);
 
-                // Escape the return value in following cases:
-                //  1. We are not analyzing an invoked method during interprocedural analysis.
-                //  2. We are analyzing an async method, where returned value is wrapped in a task.
+                // Escape the return value if we are not analyzing an invoked method during interprocedural analysis.
                 if (returnValue != null &&
-                    (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null ||
-                     OwningSymbol is IMethodSymbol method && method.IsAsync))
+                    DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                 {
                     HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue, _escapedReturnValueLocationsBuilder);
                 }
+            }
+
+            private protected override PointsToAbstractValue GetAbstractValueForImplicitWrappingTaskCreation(IOperation returnValueOperation, PointsToAbstractValue returnValue, PointsToAbstractValue implicitTaskPointsToValue)
+            {
+                return implicitTaskPointsToValue;
             }
 
             #region Predicate analysis
@@ -582,6 +584,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Debug.Assert(escapedInstance != null);
 
                 PointsToAbstractValue escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                if (escapedInstancePointsToValue.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
+                {
+                    foreach (var capturedOperation in escapedInstancePointsToValue.LValueCapturedOperations)
+                    {
+                        HandleEscapingOperation(escapingOperation, capturedOperation, builder);
+                    }
+
+                    return;
+                }
+
                 AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
                 HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
@@ -634,6 +646,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     var pointsToValueOfEscapedChild = GetAbstractValue(childEntity);
                     HandleEscapingLocations(pointsToValueOfEscapedChild, builder);
+                }
+
+                if (TryGetTaskWrappedValue(pointsToValueOfEscapedInstance, out var wrappedValue))
+                {
+                    HandleEscapingLocations(key, escapedLocationsBuilder, wrappedValue);
                 }
             }
 
@@ -706,21 +723,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;
-            }
-
-            public override PointsToAbstractValue VisitAwait(IAwaitOperation operation, object argument)
-            {
-                _ = base.VisitAwait(operation, argument);
-
-                if (ShouldBeTracked(operation.Type))
-                {
-                    AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
-                    return PointsToAbstractValue.Create(location, mayBeNull: true);
-                }
-                else
-                {
-                    return PointsToAbstractValue.NoLocation;
-                }
             }
 
             public override PointsToAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
@@ -873,12 +875,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     // FxCop compat: The object added to a collection is considered escaped.
                     var lastArgument = visitedArguments[visitedArguments.Length - 1];
                     HandleEscapingOperation(originalOperation, lastArgument.Value);
-                }
-                else if (visitedArguments.Length == 1 &&
-                    method.IsTaskFromResultMethod(WellKnownTypeProvider.Task))
-                {
-                    // Object wrapped within a task is considered escaped.
-                    HandleEscapingOperation(originalOperation, visitedArguments[0].Value);
                 }
 
                 var value = VisitInvocationCommon(originalOperation, visitedInstance);

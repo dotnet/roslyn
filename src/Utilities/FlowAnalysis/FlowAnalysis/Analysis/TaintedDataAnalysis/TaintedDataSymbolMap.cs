@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -43,6 +44,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         concreteInfosBuilder[namedTypeSymbol] = info;
                     }
+
+                    if (info.RequiresValueContentAnalysis)
+                    {
+                        RequiresValueContentAnalysis = true;
+                    }
                 }
             }
 
@@ -64,6 +70,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that this mapping is empty, i.e. there are no types referenced by the compilation represented by the <see cref="WellKnownTypeProvider"/>.
         /// </summary>
         public bool IsEmpty { get { return this.ConcreteInfos.IsEmpty && this.InterfaceInfos.IsEmpty; } }
+
+        /// <summary>
+        /// Indicates that any <see cref="ITaintedDataInfo"/> in this <see cref="TaintedDataSymbolMap&lt;TInfo&gt;"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        public bool RequiresValueContentAnalysis { get; }
 
         /// <summary>
         /// Gets an enumeration of infos for the given type.
