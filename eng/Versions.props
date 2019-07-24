@@ -109,7 +109,7 @@
     <MicrosoftVisualStudioLanguageServerProtocolVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
-    <MicrosoftVisualStudioLanguageServerClientVersion>16.3.25-develop-g6ca6456f</MicrosoftVisualStudioLanguageServerClientVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesVersion>1.0.181</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
