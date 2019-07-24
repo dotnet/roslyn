@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
-                this.ContainingAssembly == other.ContainingAssembly;
+                this.ContainingAssembly.Equals(other.ContainingAssembly, compareKind);
         }
 
         public override int GetHashCode()
