@@ -2614,10 +2614,16 @@ public class C { public static FrameworkName Goo() { return null; }}";
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, type.TypeArgumentNullableAnnotations);
 
             Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Throws<ArgumentException>(() => genericType.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));
 
             type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated));
             Assert.Equal("Pair<System.Object?, System.String!>", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations);
+
+            // Type arguments from VB.
+            comp = CreateVisualBasicCompilation("");
+            typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments, default));
         }
 
         [Fact]
@@ -2641,10 +2647,16 @@ public class C { public static FrameworkName Goo() { return null; }}";
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, type.TypeArgumentNullableAnnotations);
 
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Throws<ArgumentException>(() => genericMethod.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));
 
             type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated));
             Assert.Equal("void Program.M<System.Object?, System.String!>()", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations);
+
+            // Type arguments from VB.
+            comp = CreateVisualBasicCompilation("");
+            typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
         }
 
         #region Script return values

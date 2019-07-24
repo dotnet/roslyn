@@ -1737,10 +1737,16 @@ End Class"
             AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
 
             Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
 
             type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
             Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
             AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, Nothing))
         End Sub
 
         <Fact()>
@@ -1763,10 +1769,16 @@ End Class"
             AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
 
             Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
 
             type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
             Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
             AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, Nothing))
         End Sub
 
         <Fact()>
