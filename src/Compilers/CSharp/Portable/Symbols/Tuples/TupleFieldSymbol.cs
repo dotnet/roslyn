@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(object obj)
+        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // and in named tuples there could be fields that differ only by name
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(_containingTuple, other._containingTuple, TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(_containingTuple, other._containingTuple, compareKind);
         }
     }
 

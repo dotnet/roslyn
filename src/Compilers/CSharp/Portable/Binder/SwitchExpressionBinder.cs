@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = PooledHashSet<TypeSymbol>.GetInstance();
+            var seenTypes = SpecializedCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {

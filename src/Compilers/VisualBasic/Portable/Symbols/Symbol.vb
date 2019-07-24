@@ -761,8 +761,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
-        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+        Private Overloads Function IEquatable_Equals(other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+            Return Me.[Equals](other, SymbolEqualityComparer.Default.CompareKind)
+        End Function
+
+        Private Overloads Function ISymbol_Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+            Return equalityComparer.Equals(Me, other)
+        End Function
+
+        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+            Return Me.Equals(TryCast(other, Symbol), compareKind)
+        End Function
+
+        ' By default we don't consider the compareKind. This can be overridden.
+        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
