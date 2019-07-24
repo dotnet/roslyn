@@ -618,12 +618,12 @@ try {
   }
   catch
   {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
-      throw $_
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    throw $_
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
-      BuildSolution
+    BuildSolution
   }
 
   if ($ci -and $build -and $msbuildEngine -eq "vs") {
@@ -638,8 +638,8 @@ try {
   }
   catch
   {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
-      throw $_
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    throw $_
   }
 
   if ($launch) {
