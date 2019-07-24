@@ -37,6 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.EnterRegion()
         End Sub
 
+        Protected Overrides Sub LeaveRegion()
+            ProcessRegion(_definitelyAssignedOnExit)
+            MyBase.LeaveRegion()
+        End Sub
+
         Private Sub ProcessRegion(definitelyAssigned As HashSet(Of Symbol))
             ' this can happen multiple times as flow analysis Is multi-pass.  Always 
             ' take the latest data And use that to determine our result.

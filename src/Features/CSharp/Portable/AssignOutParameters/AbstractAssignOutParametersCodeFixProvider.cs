@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 foreach (var exprOrStatement in distinctExprsOrStatements)
                 {
                     var dataFlow = semanticModel.AnalyzeDataFlow(exprOrStatement);
-                    var definitelAssignedOnExit = dataFlow.DefinitelyAssignedOnEntry.AddRange(dataFlow.AlwaysAssigned);
+                    var unassignedParameters = outParameters.WhereAsArray(
+                        p => !dataFlow.DefinitelyAssignedOnExit.Contains(p));
 
-                    var unassignedParameters = outParameters.WhereAsArray(p => !definitelAssignedOnExit.Contains(p));
                     if (unassignedParameters.Length > 0)
                     {
                         result.Add(container, (exprOrStatement, unassignedParameters));

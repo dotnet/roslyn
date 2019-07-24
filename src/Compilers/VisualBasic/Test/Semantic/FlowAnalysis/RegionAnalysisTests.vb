@@ -83,6 +83,7 @@ End Class
             Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, s", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, s", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -186,6 +187,7 @@ End Module
             Assert.Equal("o3", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, o3", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, o3, col1", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(529967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
@@ -206,6 +208,7 @@ End Module
             Assert.True(analysis.Succeeded)
             Assert.Equal("o3", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("args, o3", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, o3", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(544602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
@@ -455,6 +458,7 @@ End Module
             Assert.Equal("arg1, arg2", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, lambda, arg, arg1", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, lambda, arg, arg1", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("arg1, arg2", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("arg, arg1", GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.VariablesDeclared))
@@ -486,6 +490,7 @@ End Module
             Assert.Equal("arg2", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("arg2", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.VariablesDeclared))
@@ -529,6 +534,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
@@ -572,6 +578,7 @@ End Class
             Assert.Equal("j, l", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("i, k", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, i, j, k, l", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
@@ -721,6 +728,7 @@ End Enum
             Assert.Equal("c, d, e, f", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("a, b, c, d, e, f", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.VariablesDeclared))
@@ -1088,6 +1096,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
@@ -1149,6 +1158,7 @@ End Class
             Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.WrittenInside))
@@ -1284,6 +1294,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, x", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1307,6 +1318,7 @@ End Module
             Dim dataFlowAnalysis = analysis.Item2
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1329,6 +1341,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, x", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1353,6 +1366,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal("args, b", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, b", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1376,6 +1390,7 @@ End Module
             Assert.Equal("x, x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("x, x", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, x", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1400,6 +1415,7 @@ End Module
             Assert.Equal("x, x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("x, x", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal("args, b", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, b", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1426,6 +1442,7 @@ End Class  </file>
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
@@ -1455,6 +1472,7 @@ End Module
             Assert.Equal("Goo", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Goo", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
@@ -1479,6 +1497,7 @@ end class</file>
       </compilation>)
             Assert.Equal("b, x, y, z", GetSymbolNamesJoined(analysis.VariablesDeclared))
             Assert.Equal("Me, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, y, z", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1509,6 +1528,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1540,6 +1560,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("x, y, z", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1625,6 +1646,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1650,6 +1672,7 @@ End Module
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1674,6 +1697,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1698,6 +1722,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut)) '' else clause is unreachable
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1723,6 +1748,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("b, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1747,6 +1773,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))  ''  else clause is unreachable
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("z", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1772,6 +1799,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("z", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("b, z", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("z", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1796,6 +1824,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1821,6 +1850,7 @@ End Module
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("b, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
@@ -1843,6 +1873,7 @@ end class</file>
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("Me, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, x, z", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("x, z", GetSymbolNamesJoined(analysis.AlwaysAssigned))
         End Sub
 
@@ -1867,6 +1898,7 @@ end class</file>
       </compilation>)
             Assert.Equal("a, b, x, y, z, c", GetSymbolNamesJoined(analysis.VariablesDeclared))
             Assert.Equal("Me, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, y, z", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1892,6 +1924,7 @@ end class</file>
       </compilation>)
             Assert.Equal("y", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("Me, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -1926,6 +1959,7 @@ End Module
             Assert.Equal("o", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, o", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, o", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("o", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal("o", GetSymbolNamesJoined(analysis.WrittenInside))
@@ -1965,6 +1999,7 @@ End Class
             Assert.Equal("o, oo", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, o, oo", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, o, oo", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("o, oo", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal("o", GetSymbolNamesJoined(analysis.WrittenInside))
@@ -2003,6 +2038,7 @@ End Module
             Assert.Equal("o", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("args, o", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, o, oo", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("o", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal("oo", GetSymbolNamesJoined(analysis.WrittenInside))
@@ -2029,6 +2065,7 @@ end class</file>
             Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("j", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, i", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, i, j", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
             Assert.Equal("i, j", GetSymbolNamesJoined(analysis.ReadInside))
             Assert.Equal("i, j", GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal("j", GetSymbolNamesJoined(analysis.WrittenInside))
@@ -2052,6 +2089,7 @@ end class</file>
       </compilation>)
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("Me, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a, y, b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2093,6 +2131,7 @@ end class
       </compilation>)
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("args, x, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, x, y, z", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2115,6 +2154,7 @@ end class</file>
       </compilation>)
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, x, a", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2135,6 +2175,7 @@ end class</file>
       </compilation>)
             Assert.Equal("s, i", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, args, s, i, b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2157,6 +2198,7 @@ end module</file>
       </compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("builder", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("builder", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2183,6 +2225,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2219,6 +2262,7 @@ End Class
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, b, i", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, b, i", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("b", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2247,6 +2291,7 @@ end class</file>
       </compilation>)
             Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, b", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2270,6 +2315,7 @@ End Class
       </compilation>)
             Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, i", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, i", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2289,6 +2335,7 @@ end class</file>
       </compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, args, i, s", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(543492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
@@ -2312,6 +2359,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.WrittenOutside))
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <WorkItem(543492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
@@ -2339,6 +2387,7 @@ End Class
             Assert.Equal("Me, f", GetSymbolNamesJoined(analysis.WrittenOutside))
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.DataFlowsIn))
             Assert.Equal("Me, f", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, f", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2361,6 +2410,7 @@ end class</file>
 </compilation>)
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsOut))
             Assert.Equal("Me, x, a, tmp", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a, y, tmp", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2389,6 +2439,7 @@ end class</file>
       </compilation>)
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("Me, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2426,6 +2477,7 @@ end module</file>
       </compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.WrittenInside))
             Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2446,6 +2498,7 @@ end module</file>
       </compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.WrittenInside))
             Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2466,6 +2519,7 @@ end module</file>
       </compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2502,6 +2556,7 @@ end class</file>
       </compilation>)
             Assert.Equal("a", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("Me, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2532,6 +2587,7 @@ end class</file>
             Assert.Equal("x, a, e, g", GetSymbolNamesJoined(analysis.ReadOutside))
             Assert.Equal("Me, x, a, b, c, g, h, i", GetSymbolNamesJoined(analysis.WrittenOutside))
             Assert.Equal("Me, x, a, b, c", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a, b, c, d, e, f", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2563,6 +2619,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, a", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, a", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("a", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2584,6 +2641,7 @@ End Class
                 dataFlowsIn:={"x"},
                 dataFlowsOut:={},
                 definitelyAssignedOnEntry:={"x"},
+                definitelyAssignedOnExit:={"x"},
                 readInside:={"x"},
                 readOutside:={},
                 variablesDeclared:={},
@@ -2604,6 +2662,7 @@ End Class
                 dataFlowsIn:={},
                 dataFlowsOut:={"x"},
                 definitelyAssignedOnEntry:={"x"},
+                definitelyAssignedOnExit:={"x"},
                 readInside:={},
                 readOutside:={"x"},
                 variablesDeclared:={},
@@ -2624,6 +2683,7 @@ End Class
                 dataFlowsIn:={},
                 dataFlowsOut:={"x"},
                 definitelyAssignedOnEntry:={},
+                definitelyAssignedOnExit:={"x"},
                 readInside:={},
                 readOutside:={"x"},
                 variablesDeclared:={},
@@ -2645,6 +2705,7 @@ End Class
                 dataFlowsIn:={"z"},
                 dataFlowsOut:={"x"},
                 definitelyAssignedOnEntry:={},
+                definitelyAssignedOnExit:={"x", "y"},
                 readInside:={"z"},
                 readOutside:={"x", "z"},
                 variablesDeclared:={},
@@ -2670,6 +2731,7 @@ end class
       </compilation>, s_customIL)
             Assert.Equal("a, c", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("Me, x, ext", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, ext, a, c", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2688,6 +2750,7 @@ end class
       </compilation>, s_customIL)
             Assert.Equal("a, c", GetSymbolNamesJoined(analysis.AlwaysAssigned))
             Assert.Equal("Me, x, ext", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, ext, a, c", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
         <Fact()>
@@ -2716,6 +2779,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2750,6 +2814,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("y, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2781,6 +2846,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2805,6 +2871,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2831,6 +2898,7 @@ end class
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -2854,6 +2922,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -2876,6 +2945,7 @@ end class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -2897,6 +2967,7 @@ end class
             Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, z, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -2918,6 +2989,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -2940,6 +3012,7 @@ end class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -2971,7 +3044,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3010,6 +3083,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3046,6 +3120,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3082,6 +3157,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3107,6 +3183,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3132,6 +3209,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut)) 'C# flows out because this is an assignment expression.  In VB this is an equality test.
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside)) 'C# this is an assignment. In VB, this is a comparison so no assignment.
@@ -3170,6 +3248,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3201,6 +3280,7 @@ end class
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3232,6 +3312,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3257,6 +3338,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3282,6 +3364,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3322,6 +3405,7 @@ End Module
             Assert.Equal("ary, local01, local02", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("ary, local01, local02", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("ary, local01, local02, slocal", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ary, local01, local02, flocal, slocal", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("local01, local02, flocal, ex, slocal", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3354,6 +3438,7 @@ end class
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3389,6 +3474,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside)) ' Sees Me beng read
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3427,6 +3513,7 @@ class C
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside)) ' Sees Me being read
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3461,6 +3548,7 @@ End Class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, args, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, args, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3500,6 +3588,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("v", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("v", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("v", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("v", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3557,6 +3646,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnExit))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.WrittenInside))
@@ -3590,6 +3680,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnExit))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.WrittenInside))
@@ -3634,6 +3725,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.DataFlowsOut))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.DefinitelyAssignedOnExit))
             Assert.Equal("Me", GetSymbolNamesJoined(dataResults1.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataResults1.WrittenInside))
@@ -3854,6 +3946,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, t", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3894,6 +3987,7 @@ End Class
             Assert.Equal("Me, t", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, t", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, t", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -3956,6 +4050,7 @@ end class
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("b, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("b, ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
@@ -3980,6 +4075,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4002,6 +4098,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4024,6 +4121,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4047,6 +4145,7 @@ End Class
             Assert.Equal("xx", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, xx", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, xx", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, xx", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4070,6 +4169,7 @@ End Class
             Assert.Equal("xx", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, xx", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, xx", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("xx", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4092,6 +4192,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4119,6 +4220,7 @@ End Class
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("Me, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -4148,6 +4250,7 @@ End Class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -4177,6 +4280,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4204,6 +4308,7 @@ End Class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4231,6 +4336,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4258,6 +4364,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4283,6 +4390,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4308,6 +4416,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4335,6 +4444,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4362,6 +4472,7 @@ End Class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4389,6 +4500,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4416,6 +4528,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, ext, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
@@ -4505,6 +4618,7 @@ End Class
             Assert.Equal("p, v", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut))
             Assert.Equal("Me, p, v", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, p, v", GetSymbolNamesJoined(dataFlowAnalysis.DefinitelyAssignedOnExit))
             Assert.Equal("p, v", GetSymbolNamesJoined(dataFlowAnalysis.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
             Assert.Equal("v", GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside))
@@ -4538,6 +4652,7 @@ End Enum
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("Me, args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
@@ -5417,6 +5532,7 @@ End Module
             Assert.Equal("local, constLocal", GetSymbolNamesJoined(analysisResult.DataFlowsIn))
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysisResult.DataFlowsOut))
             Assert.Equal("local, constLocal, f", GetSymbolNamesJoined(analysisResult.DefinitelyAssignedOnEntry))
+            Assert.Equal("local, constLocal, f", GetSymbolNamesJoined(analysisResult.DefinitelyAssignedOnExit))
             Assert.Equal("local, constLocal, p", GetSymbolNamesJoined(analysisResult.ReadInside))
             ' WHY
             Assert.Equal("p", GetSymbolNamesJoined(analysisResult.WrittenInside))
@@ -5454,6 +5570,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysisResult.CapturedOutside))
             Assert.Equal("mp, constLocal", GetSymbolNamesJoined(analysisResult.DataFlowsIn))
             Assert.Equal("Me, mp, local, constLocal, lf", GetSymbolNamesJoined(analysisResult.DefinitelyAssignedOnEntry))
+            Assert.Equal("Me, mp, local, constLocal, lf", GetSymbolNamesJoined(analysisResult.DefinitelyAssignedOnExit))
             Assert.Equal("local", GetSymbolNamesJoined(analysisResult.DataFlowsOut))
             Assert.Equal("mp, constLocal", GetSymbolNamesJoined(analysisResult.ReadInside))
             Assert.Equal("local", GetSymbolNamesJoined(analysisResult.WrittenInside))
@@ -6741,6 +6858,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty((dataFlowResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -6791,6 +6909,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty((dataFlowResults.DataFlowsOut))
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -6836,6 +6955,7 @@ End Module
             Assert.Equal("args, x, bb", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args, x, bb, ret", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, x, bb, ret", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("args, x, bb, y", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowResults.WrittenInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
@@ -6885,6 +7005,7 @@ End Module
             Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("f", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("f", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("p, local, x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.WrittenInside))
             Assert.Equal("local, f", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
@@ -6929,6 +7050,7 @@ End Module
             Assert.Equal("i, s", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i, s", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -7185,6 +7307,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -7220,6 +7343,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -7257,6 +7381,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
@@ -7294,6 +7419,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args, k", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args, k", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
@@ -7327,6 +7453,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
@@ -7360,6 +7487,7 @@ End Module
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnEntry))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowResults.DefinitelyAssignedOnExit))
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Equal("i, q", GetSymbolNamesJoined(dataFlowResults.WrittenInside))
             Assert.Empty(dataFlowResults.ReadOutside)
@@ -9841,6 +9969,7 @@ End Module
                 Optional dataFlowsIn() As String = Nothing,
                 Optional dataFlowsOut() As String = Nothing,
                 Optional definitelyAssignedOnEntry() As String = Nothing,
+                Optional definitelyAssignedOnExit() As String = Nothing,
                 Optional readInside() As String = Nothing,
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
@@ -9854,6 +9983,7 @@ End Module
                                    dataFlowsIn,
                                    dataFlowsOut,
                                    definitelyAssignedOnEntry,
+                                   definitelyAssignedOnExit,
                                    readInside,
                                    readOutside,
                                    variablesDeclared,
