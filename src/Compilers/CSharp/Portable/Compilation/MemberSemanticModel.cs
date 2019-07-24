@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
+            _analyzedVariableTypesOpt = new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
         }
 
         public override CSharpCompilation Compilation
@@ -661,7 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalSymbol adjustedLocal;
                         if (Compilation.NullableSemanticAnalysisEnabled)
                         {
-                            _analyzedVariableTypesOpt ??= new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
                             if (!_analyzedVariableTypesOpt.TryGetValue(local, out adjustedLocal))
                             {
                                 var types = GetSnapshotManager().GetVariableTypesForPosition(declarationSyntax.SpanStart);

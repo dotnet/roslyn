@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (snapshotIndex < 0)
                 {
-                    // BinarySearch returns the next higher position. Always take the one most close but behind the requested position
+                    // BinarySearch returns the next higher position. Always take the one closest but behind the requested position
                     snapshotIndex = (~snapshotIndex) - 1;
 
                     // If there was none in the snapshots before the target position, just take index 0

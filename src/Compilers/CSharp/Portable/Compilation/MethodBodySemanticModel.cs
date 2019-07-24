@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
 #nullable enable
         /// <summary>
-        /// Initial state for a MethodBodySemanticModel. Shared between here and the <see cref="MethodCompiler"/>.
+        /// Initial state for a MethodBodySemanticModel. Shared between here and the <see cref="MethodCompiler"/>. Used to make a <see cref="MethodBodySemanticModel"/>
+        /// with the required syntax and optional precalculated starting state for the model.
         /// </summary>
         internal readonly struct InitialState
         {

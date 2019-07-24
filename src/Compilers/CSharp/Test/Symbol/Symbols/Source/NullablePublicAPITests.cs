@@ -1928,6 +1928,46 @@ class C
         }
 
         [Fact]
+        public void GetDeclaredSymbol_OutVariable_WithTypeInference()
+        {
+            var source = @"
+#pragma warning disable CS8600
+class C
+{
+    void Out<T>(T o1, out T o2) => throw null!;
+    void M(object o1, object? o2)
+    {
+        Out(o1, out var o3);
+        Out(o2, out var o4);
+        o1 = null;
+        Out(o1, out var o5);
+        _ = o2 ?? throw null!;
+        Out(o2, out var o6);
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+
+
+            void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
+                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+            }
+        }
+
+        [Fact]
         public void GetDeclaredSymbol_Switch()
         {
             var source = @"

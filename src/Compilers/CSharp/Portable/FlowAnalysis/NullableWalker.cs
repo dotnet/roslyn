@@ -509,8 +509,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
-            Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
-            walker.Free();
+            try
+            {
+                Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            }
+            finally
+            {
+                walker.Free();
+            }
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
@@ -610,8 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     updatedMethodSymbolMapOpt,
                                                     snapshotBuilderOpt);
 
-            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
-            walker.Free();
+            try
+            {
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            }
+            finally
+            {
+                walker.Free();
+            }
         }
 
         private static void Analyze(
