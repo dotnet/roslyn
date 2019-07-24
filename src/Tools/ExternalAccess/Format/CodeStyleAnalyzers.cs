@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
@@ -36,8 +35,6 @@ using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 using Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Options;
@@ -222,11 +219,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
                 (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider()),
             }.ToImmutableArray();
         }
-
-        public static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            => GetAnalyzersAndFixers().Select(analyzerAndFixer => analyzerAndFixer.Analyzer).ToImmutableArray();
-
-        public static ImmutableArray<CodeFixProvider> GetCodeFixProviders()
-            => GetAnalyzersAndFixers().Select(analyzerAndFixer => analyzerAndFixer.Fixer).ToImmutableArray();
     }
 }
