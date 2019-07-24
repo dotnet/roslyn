@@ -824,28 +824,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool HasEquivalentUsingDeclarations(BlockSyntax oldBlock, BlockSyntax newBlock)
         {
-            var oldUsingDeclarations = oldBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default).GetEnumerator();
-            var newUsingDeclarations = newBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default).GetEnumerator();
+            var oldUsingDeclarations = oldBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default);
+            var newUsingDeclarations = newBlock.Statements.Where(s => s is LocalDeclarationStatementSyntax l && l.UsingKeyword != default);
 
-            while (true)
-            {
-                bool oldMoveNext = oldUsingDeclarations.MoveNext();
-                bool newMoveNext = newUsingDeclarations.MoveNext();
-                if (oldMoveNext != newMoveNext)
-                {
-                    return false;
-                }
-
-                if (!oldMoveNext)
-                {
-                    return true;
-                }
-
-                if (!AreEquivalentIgnoringLambdaBodies(oldUsingDeclarations.Current, newUsingDeclarations.Current))
-                {
-                    return false;
-                }
-            }
+            return oldUsingDeclarations.SequenceEqual(newUsingDeclarations, AreEquivalentIgnoringLambdaBodies);
         }
 
         private static bool AreEquivalentActiveStatements(IfStatementSyntax oldNode, IfStatementSyntax newNode)
@@ -868,8 +850,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool AreEquivalentActiveStatements(SwitchStatementSyntax oldNode, SwitchStatementSyntax newNode)
         {
-            // only check the expression, edits in the body are allowed:
-            return AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
+            // only check the expression, edits in the body are allowed, unless the switch expression contains patterns:
+            if (!AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression))
+            {
+                return false;
+            }
+
+            // Check that switch statement decision tree has not changed.
+            var hasDecitionTree = oldNode.Sections.Any(s => s.Labels.Any(l => l is CasePatternSwitchLabelSyntax));
+            return !hasDecitionTree || AreEquivalentSwitchStatementDecisionTrees(oldNode, newNode);
         }
 
         private static bool AreEquivalentActiveStatements(LockStatementSyntax oldNode, LockStatementSyntax newNode)
@@ -1752,8 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.ref_local_or_expression;
 
                 case SyntaxKind.SwitchStatement:
-                case SyntaxKind.DeclarationPattern:
-                    return CSharpFeaturesResources.v7_switch;
+                    return CSharpFeaturesResources.switch_statement;
 
                 case SyntaxKind.LocalDeclarationStatement:
                     if (((LocalDeclarationStatementSyntax)node).UsingKeyword.IsKind(SyntaxKind.UsingKeyword))
@@ -1789,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Top-Level Syntactic Rude Edits
 
-        private struct EditClassifier
+        private readonly struct EditClassifier
         {
             private readonly CSharpEditAndContinueAnalyzer _analyzer;
             private readonly List<RudeEditDiagnostic> _diagnostics;
@@ -3011,7 +2999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 if (edit.Kind != EditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
                 {
-                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
+                    AddAroundActiveStatementRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
                 }
             }
         }
@@ -3306,8 +3294,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isNonLeaf)
         {
+            ReportRudeEditsForSwitchWhenClauses(diagnostics, oldActiveStatement, newActiveStatement);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
+        }
+
+        /// <summary>
+        /// Reports rude edits when an active statement is a when clause in a switch statement and any of the switch cases or the switch value changed.
+        /// This is necessary since the switch emits long-lived synthesized variables to store results of pattern evaluations.
+        /// These synthesized variables are mapped to the slots of the new methods via ordinals. The mapping preserves the values of these variables as long as 
+        /// exactly the same variables are emitted for the new switch as they were for the old one and their order didn't change either.
+        /// This is guaranteed if none of the case clauses have changed.
+        /// </summary>
+        private void ReportRudeEditsForSwitchWhenClauses(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+        {
+            if (!oldActiveStatement.IsKind(SyntaxKind.WhenClause))
+            {
+                return;
+            }
+
+            // switch expression does not have sequence points (active statements):
+            if (!(oldActiveStatement.Parent.Parent.Parent is SwitchStatementSyntax oldSwitch))
+            {
+                return;
+            }
+
+            // switch statement does not match switch expression, so it must be part of a switch statement as well.
+            var newSwitch = (SwitchStatementSyntax)newActiveStatement.Parent.Parent.Parent;
+
+            // when clauses can only match other when clauses:
+            Debug.Assert(newActiveStatement.IsKind(SyntaxKind.WhenClause));
+
+            if (!AreEquivalentIgnoringLambdaBodies(oldSwitch.Expression, newSwitch.Expression))
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, newSwitch);
+            }
+
+            if (!AreEquivalentSwitchStatementDecisionTrees(oldSwitch, newSwitch))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.UpdateAroundActiveStatement,
+                    GetDiagnosticSpan(newSwitch, EditKind.Update),
+                    newSwitch,
+                    new[] { CSharpFeaturesResources.switch_statement_case_clause }));
+            }
+        }
+
+        private static bool AreEquivalentSwitchStatementDecisionTrees(SwitchStatementSyntax oldSwitch, SwitchStatementSyntax newSwitch)
+            => oldSwitch.Sections.SequenceEqual(newSwitch.Sections, AreSwitchSectionsEquivalent);
+
+        private static bool AreSwitchSectionsEquivalent(SwitchSectionSyntax oldSection, SwitchSectionSyntax newSection)
+            => oldSection.Labels.SequenceEqual(newSection.Labels, AreLabelsEquivalent);
+
+        private static bool AreLabelsEquivalent(SwitchLabelSyntax oldLabel, SwitchLabelSyntax newLabel)
+        {
+            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel) && newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel))
+            {
+                var oldCasePatternLabel = (CasePatternSwitchLabelSyntax)oldLabel;
+                var newCasePatternLabel = (CasePatternSwitchLabelSyntax)newLabel;
+
+                // ignore the actual when expressions:
+                return SyntaxFactory.AreEquivalent(oldCasePatternLabel.Pattern, newCasePatternLabel.Pattern) &&
+                       (oldCasePatternLabel.WhenClause != null) == (newCasePatternLabel.WhenClause != null);
+            }
+            else
+            {
+                return SyntaxFactory.AreEquivalent(oldLabel, newLabel);
+            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3342,7 +3395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (isRude)
             {
-                AddRudeDiagnostic(diagnostics, oldCheckedStatement, newCheckedStatement, newActiveStatement.Span);
+                AddAroundActiveStatementRudeDiagnostic(diagnostics, oldCheckedStatement, newCheckedStatement, newActiveStatement.Span);
             }
         }
 

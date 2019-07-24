@@ -504,8 +504,8 @@
   <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
-  <data name="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</value>
+  <data name="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Updating a '{0}' around an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>

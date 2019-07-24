@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.InsertAroundActiveStatement,               FeaturesResources.Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.DeleteAroundActiveStatement,               FeaturesResources.Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.DeleteActiveStatement,                     FeaturesResources.An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session) },
-            { GetDescriptorPair(RudeEditKind.UpdateAroundActiveStatement,               FeaturesResources.Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.UpdateAroundActiveStatement,               FeaturesResources.Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.UpdateExceptionHandlerOfActiveTry,         FeaturesResources.Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.UpdateTryOrCatchWithActiveFinally,         FeaturesResources.Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.UpdateCatchHandlerAroundActiveStatement,   FeaturesResources.Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },

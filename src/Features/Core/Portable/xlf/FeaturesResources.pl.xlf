@@ -487,6 +487,11 @@
         <target state="translated">Odpakuj listę parametrów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
         <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
@@ -1245,11 +1250,6 @@
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
         <target state="translated">Aktywna instrukcja została usunięta ze swojej oryginalnej metody. Musisz cofnąć zmiany, aby kontynuować, lub uruchomić ponownie sesję debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizacja instrukcji „{0}” w pobliżu aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">

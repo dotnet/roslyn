@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Rude Edits around Active Statement 
 
-        protected void AddRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, TextSpan newActiveStatementSpan)
+        protected void AddAroundActiveStatementRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, TextSpan newActiveStatementSpan)
         {
             if (oldNode == null)
             {

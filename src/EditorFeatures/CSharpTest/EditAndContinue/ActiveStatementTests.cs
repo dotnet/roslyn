@@ -5459,6 +5459,526 @@ class C
 
         #endregion
 
+        #region Switch When Clauses, Patterns
+
+        [Fact]
+        public void SwitchWhenClause_PatternUpdate1()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+                
+            case byte a when G5(a):
+                return 10;
+                
+            case double b when G2(b):
+                return 20;
+                
+            case C { X: 2 } when G4(9):
+                return 30;
+                
+            case C { X: 2, Y: C { X: 1 } } c1 when G3(c1):
+                return 40;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+                
+            case byte a when G5(a):
+                return 10;
+                
+            case double b when G2(b):
+                return 20;
+                
+            case C { X: 2 } when G4(9):
+                return 30;
+                
+            case C { X: 2, Y: C { X: 2 } } c1 when G3(c1):
+                return 40;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_PatternInsert()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_PatternDelete()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenDelete()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1:
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenAdd()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1:
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenUpdate()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1 * 2):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void SwitchWhenClause_UpdateGoverningExpression()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F(1))
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F(2))
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F(2))", CSharpFeaturesResources.switch_statement));
+        }
+
+        [Fact]
+        public void Switch_PropertyPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public int X { get => <AS:0>1</AS:0>; }
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C { X: 1 }:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public int X { get => <AS:0>1</AS:0>; }
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C { X: 2 }:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (obj)"));
+        }
+
+        [Fact]
+        public void Switch_PositionalPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C ( x: 1 ):
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C ( x: 2 ):
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (obj)"));
+        }
+
+        [Fact]
+        public void Switch_VarPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case var (x, y):
+                return 1;
+
+			case 2:
+                return 2;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case var (x, y):
+                return 1;
+
+			case 3:
+                return 2;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (G())"));
+        }
+
+        [Fact]
+        public void Switch_DiscardPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case bool _:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case int _:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (G())"));
+        }
+
+        [Fact]
+        public void Switch_NoPatterns_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case 1:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case 2:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Try
 
         [Fact]

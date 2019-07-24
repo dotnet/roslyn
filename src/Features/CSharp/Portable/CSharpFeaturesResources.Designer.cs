@@ -1268,6 +1268,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to switch statement.
+        /// </summary>
+        internal static string switch_statement {
+            get {
+                return ResourceManager.GetString("switch_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to switch statement case clause.
+        /// </summary>
+        internal static string switch_statement_case_clause {
+            get {
+                return ResourceManager.GetString("switch_statement_case_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
         /// </summary>
         internal static string The_name_0_does_not_exist_in_the_current_context {
@@ -1509,15 +1527,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string using_statement {
             get {
                 return ResourceManager.GetString("using_statement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
-        /// </summary>
-        internal static string v7_switch {
-            get {
-                return ResourceManager.GetString("v7_switch", resourceCulture);
             }
         }
         

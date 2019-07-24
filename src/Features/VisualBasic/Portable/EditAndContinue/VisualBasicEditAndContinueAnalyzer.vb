@@ -2927,7 +2927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Debug.Assert(edit.Kind <> EditKind.Update OrElse edit.OldNode.RawKind = edit.NewNode.RawKind)
 
                 If edit.Kind <> EditKind.Update OrElse Not AreExceptionHandlingPartsEquivalent(edit.OldNode, edit.NewNode) Then
-                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
+                    AddAroundActiveStatementRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
                 End If
             Next
         End Sub
@@ -3122,7 +3122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
             If onErrorOrResumeStatement IsNot Nothing Then
-                AddRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
+                AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement)

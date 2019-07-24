@@ -4021,12 +4021,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+        internal static string Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_" +
-                        "from_continuing", resourceCulture);
+                return ResourceManager.GetString("Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_conti" +
+                        "nuing", resourceCulture);
             }
         }
         
