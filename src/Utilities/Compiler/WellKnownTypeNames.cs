@@ -133,6 +133,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
         public const string SystemCollectionsIEnumerator = "System.Collections.IEnumerator";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";
+        public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemCollectionsIList = "System.Collections.IList";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
