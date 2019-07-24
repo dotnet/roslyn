@@ -301,6 +301,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 return this.Equals((object)other);
             }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
+                return equalityComparer.Equals(this, other);
+            }
         }
     }
 }

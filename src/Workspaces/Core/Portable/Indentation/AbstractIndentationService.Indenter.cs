@@ -17,25 +17,28 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentationService<TSyntaxRoot>
     {
-        internal abstract class AbstractIndenter
+        protected struct Indenter
         {
+            private readonly AbstractIndentationService<TSyntaxRoot> _service;
+
             public readonly OptionSet OptionSet;
             public readonly TextLine LineToBeIndented;
-            protected readonly int TabSize;
-            protected readonly CancellationToken CancellationToken;
+            public readonly CancellationToken CancellationToken;
 
-            protected readonly SyntacticDocument Document;
-            protected readonly TSyntaxRoot Root;
-            protected SyntaxTree Tree => Document.SyntaxTree;
-            protected readonly IEnumerable<AbstractFormattingRule> Rules;
-            protected readonly BottomUpBaseIndentationFinder Finder;
+            public readonly SyntacticDocument Document;
+            public readonly TSyntaxRoot Root;
+            public SyntaxTree Tree => Document.SyntaxTree;
+            public readonly IEnumerable<AbstractFormattingRule> Rules;
+            public readonly BottomUpBaseIndentationFinder Finder;
 
             private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
             private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly int _tabSize;
 
-            public AbstractIndenter(
+            public Indenter(
+                AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
@@ -44,32 +47,21 @@ namespace Microsoft.CodeAnalysis.Indentation
             {
                 Document = document;
 
+                this._service = service;
                 this._syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 this.OptionSet = optionSet;
                 this.Root = (TSyntaxRoot)document.Root;
                 this.LineToBeIndented = lineToBeIndented;
-                this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
+                this._tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
                 this.CancellationToken = cancellationToken;
 
                 this.Rules = rules;
                 this.Finder = new BottomUpBaseIndentationFinder(
                     new ChainedFormattingRules(this.Rules, OptionSet),
-                    this.TabSize,
+                    this._tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null);
             }
-
-            /// <summary>
-            /// Returns <see langword="true"/> if the language specific <see
-            /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentatation.  If
-            /// so, it will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the
-            /// resultant <paramref name="token"/> provided by this method.
-            /// </summary>
-            protected abstract bool ShouldUseTokenIndenter(out SyntaxToken token);
-            protected abstract ISmartTokenFormatter CreateSmartTokenFormatter();
-
-            protected abstract IndentationResult GetDesiredIndentationWorker(
-                SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
 
             public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
@@ -115,18 +107,18 @@ namespace Microsoft.CodeAnalysis.Indentation
                 var token = Root.FindToken(lastNonWhitespacePosition);
                 Debug.Assert(token.RawKind != 0, "FindToken should always return a valid token");
 
-                return GetDesiredIndentationWorker(
-                    token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
+                return _service.GetDesiredIndentationWorker(
+                    this, token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
             }
 
             public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
             {
-                if (ShouldUseTokenIndenter(out var token))
+                if (_service.ShouldUseTokenIndenter(this, out var token))
                 {
                     // var root = document.GetSyntaxRootSynchronously(cancellationToken);
                     var sourceText = Tree.GetText(CancellationToken);
 
-                    var formatter = CreateSmartTokenFormatter();
+                    var formatter = _service.CreateSmartTokenFormatter(this);
                     var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
                                            .WaitAndGetResult(CancellationToken);
 
@@ -149,19 +141,19 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return false;
             }
 
-            protected IndentationResult IndentFromStartOfLine(int addedSpaces)
+            public IndentationResult IndentFromStartOfLine(int addedSpaces)
                 => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
 
-            protected IndentationResult GetIndentationOfToken(SyntaxToken token)
+            public IndentationResult GetIndentationOfToken(SyntaxToken token)
                 => GetIndentationOfToken(token, addedSpaces: 0);
 
-            protected IndentationResult GetIndentationOfToken(SyntaxToken token, int addedSpaces)
+            public IndentationResult GetIndentationOfToken(SyntaxToken token, int addedSpaces)
                 => GetIndentationOfPosition(token.SpanStart, addedSpaces);
 
-            protected IndentationResult GetIndentationOfLine(TextLine lineToMatch)
+            public IndentationResult GetIndentationOfLine(TextLine lineToMatch)
                 => GetIndentationOfLine(lineToMatch, addedSpaces: 0);
 
-            protected IndentationResult GetIndentationOfLine(TextLine lineToMatch, int addedSpaces)
+            public IndentationResult GetIndentationOfLine(TextLine lineToMatch, int addedSpaces)
             {
                 var firstNonWhitespace = lineToMatch.GetFirstNonWhitespacePosition();
                 firstNonWhitespace ??= lineToMatch.End;
@@ -169,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return GetIndentationOfPosition(firstNonWhitespace.Value, addedSpaces);
             }
 
-            protected IndentationResult GetIndentationOfPosition(int position, int addedSpaces)
+            private IndentationResult GetIndentationOfPosition(int position, int addedSpaces)
             {
                 if (this.Tree.OverlapsHiddenPosition(GetNormalizedSpan(position), CancellationToken))
                 {
@@ -194,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return TextSpan.FromBounds(position, LineToBeIndented.Start);
             }
 
-            protected TextLine? GetPreviousNonBlankOrPreprocessorLine()
+            private TextLine? GetPreviousNonBlankOrPreprocessorLine()
             {
                 if (LineToBeIndented.LineNumber <= 0)
                 {
@@ -246,10 +238,10 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return null;
             }
 
-            protected int GetCurrentPositionNotBelongToEndOfFileToken(int position)
+            public int GetCurrentPositionNotBelongToEndOfFileToken(int position)
                 => Math.Min(Root.EndOfFileToken.FullSpan.Start, position);
 
-            protected bool HasPreprocessorCharacter(TextLine currentLine)
+            private bool HasPreprocessorCharacter(TextLine currentLine)
             {
                 var text = currentLine.ToString();
                 Debug.Assert(!string.IsNullOrWhiteSpace(text));

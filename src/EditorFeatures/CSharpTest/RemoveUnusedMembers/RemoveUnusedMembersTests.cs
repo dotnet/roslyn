@@ -2349,5 +2349,17 @@ public class MyClass
 }", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
     expected: Diagnostic("IDE0052"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")]
+        public async Task UsedPrivateExtensionMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"public static class B
+{
+    public static void PublicExtensionMethod(this string s) => s.PrivateExtensionMethod();
+    private static void [|PrivateExtensionMethod|](this string s) { }
+}");
+        }
     }
 }

@@ -51,5 +51,34 @@ end class"
             Await TestMissingAsync(Of ParameterSyntax)(testText)
         End Function
 
+        <Fact>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        Public Async Function TestForBlockByHeaderExtraction() As Task
+            Dim testText = "
+Imports System
+
+class CC
+    sub Test(array as string())
+        {|result:[|For i = 0 to array.Length - 1|]
+            Console.WriteLine(array(i))
+        next|}
+    end sub
+end class"
+            Await TestAsync(Of ForBlockSyntax)(testText)
+        End Function
+
+        Public Async Function TestForeachBlockByHeaderExtraction() As Task
+            Dim testText = "
+Imports System
+
+class CC
+    sub Test(array as string())
+        {|[|result:For Each Rename:v In array|]
+            Console.WriteLine(v)
+        next|}
+    end sub
+end class"
+            Await TestAsync(Of ForEachBlockSyntax)(testText)
+        End Function
     End Class
 End Namespace

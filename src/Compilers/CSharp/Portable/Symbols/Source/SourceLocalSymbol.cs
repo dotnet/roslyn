@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbol = obj as SourceLocalSymbol;
             return (object)symbol != null
                 && symbol._identifierToken.Equals(_identifierToken)
-                && Equals(symbol._containingSymbol, _containingSymbol);
+                && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()

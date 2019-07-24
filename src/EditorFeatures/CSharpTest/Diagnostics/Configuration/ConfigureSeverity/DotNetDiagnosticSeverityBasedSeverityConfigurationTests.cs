@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+                        new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider(performExperimentCheck: false));
         }
 
         public class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests

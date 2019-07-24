@@ -1625,9 +1625,13 @@ namespace CSharpSyntaxGenerator
             {
                 var node = nodes[i];
                 this.WriteRedFactory(node);
-                this.WriteRedFactoryWithNoAutoCreatableTokens(node);
-                this.WriteRedMinimalFactory(node);
-                this.WriteRedMinimalFactory(node, withStringNames: true);
+                bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Compare(node.SkipConvenienceFactories, "true", true) == 0;
+                if (!skipConvenienceFactories)
+                {
+                    this.WriteRedFactoryWithNoAutoCreatableTokens(node);
+                    this.WriteRedMinimalFactory(node);
+                    this.WriteRedMinimalFactory(node, withStringNames: true);
+                }
                 this.WriteKindConverters(node);
             }
 

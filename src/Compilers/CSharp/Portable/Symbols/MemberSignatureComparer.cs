@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
                     var explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
 
-                    if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, EqualityComparer<Symbol>.Default))
+                    if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, SymbolEqualityComparer.ConsiderEverything))
                     {
                         return false;
                     }

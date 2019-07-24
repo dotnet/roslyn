@@ -411,12 +411,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPropertyPatternClause(SyntaxNode node);
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
-        bool IsOnTypeHeader(SyntaxNode root, int position);
-        bool IsInHeader(SyntaxNode node, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader);
-        bool IsInPropertyDeclarationHeader(SyntaxNode node);
-        bool IsInParameterHeader(SyntaxNode node);
-        bool IsInMethodHeader(SyntaxNode node);
-        bool IsInLocalFunctionHeader(SyntaxNode node);
+        bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration);
+
+        bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration);
+        bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter);
+        bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method);
+        bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
+        bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
+        bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
+        bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct
