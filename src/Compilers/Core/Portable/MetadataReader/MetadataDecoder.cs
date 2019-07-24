@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis
             if (cache != null && !isNoPiaLocalType)
             {
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
-                Debug.Assert(result1.Equals(result));
+                Debug.Assert(result1.Equals(result, SymbolEqualityComparer.ConsiderEverything));
             }
 
             return result;
@@ -2411,7 +2411,7 @@ tryAgain:
                 {
                     return false;
                 }
-                if (!param2.Type.Equals(param1.Type))
+                if (!param2.Type.Equals(param1.Type, SymbolEqualityComparer.ConsiderEverything))
                 {
                     return false;
                 }
