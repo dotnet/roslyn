@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         {
         }
 
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

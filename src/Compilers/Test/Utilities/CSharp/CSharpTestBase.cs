@@ -149,24 +149,35 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string AssertsTrueAttributeDefinition = @"
+        protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsTrueAttribute : Attribute
+    public class DoesNotReturnIfAttribute : Attribute
     {
-        public AssertsTrueAttribute () { }
+        public DoesNotReturnIfAttribute (bool condition) { }
     }
 }
 ";
 
-        protected const string AssertsFalseAttributeDefinition = @"
+        protected const string DoesNotReturnAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class DoesNotReturnAttribute : Attribute
     {
-        public AssertsFalseAttribute () { }
+        public DoesNotReturnAttribute () { }
+    }
+}
+";
+
+        protected const string NotNullIfNotNulltAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) { }
     }
 }
 ";
@@ -1841,6 +1852,9 @@ namespace System.Runtime.CompilerServices
 
             return comp;
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

@@ -14,15 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 {
+    // Disabled due to: https://github.com/dotnet/roslyn/issues/5835 & https://github.com/dotnet/roslyn/pull/6642
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SimplifyLambda)]
     internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -35,9 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor(n =>
-                n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
-            if (lambda == null || !lambda.Span.IntersectsWith(textSpan.Start))
+            var lambda = await context.TryGetSelectedNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
+            if (lambda == null)
             {
                 return;
             }

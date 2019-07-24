@@ -879,8 +879,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxUtilities.IsMethod(declaration)
         End Function
 
-        Friend Overrides Function TryGetContainingTypeDeclaration(memberDeclaration As SyntaxNode) As SyntaxNode
-            Return memberDeclaration.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)()
+        Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.InterfaceBlock)
+        End Function
+
+        Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
+            Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)()
         End Function
 
         Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
@@ -1049,6 +1053,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Overrides Function IsNestedFunction(node As SyntaxNode) As Boolean
             Return TypeOf node Is LambdaExpressionSyntax
+        End Function
+
+        Friend Overrides Function IsLocalFunction(node As SyntaxNode) As Boolean
+            Return False
         End Function
 
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean

@@ -956,6 +956,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 !HasThisConstructorInitializer(methodSymbol);
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
+                    if (diagsForCurrentMethod.HasAnyErrors() && body != null)
+                    {
+                        body = (BoundBlock)body.WithHasErrors();
+                    }
 
                     if (body != null && methodSymbol.MethodKind == MethodKind.Constructor)
                     {
@@ -1651,15 +1655,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    BoundNode methodBodyForSemanticModel = methodBody;
                     if (bodyBinder.Compilation.NullableSemanticAnalysisEnabled)
                     {
                         // Currently, we're passing an empty DiagnosticBag here because the flow analysis pass later will
                         // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
                         // once.
                         // https://github.com/dotnet/roslyn/issues/35041
-                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: true, out snapshotManager);
+                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: true, out snapshotManager);
                     }
-                    forSemanticModel = (syntaxNode, methodBody, bodyBinder, snapshotManager);
+                    forSemanticModel = (syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager);
 
                     switch (methodBody.Kind)
                     {

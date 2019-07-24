@@ -122,6 +122,11 @@
         <target state="translated">'{0}' est implémenté explicitement plusieurs fois.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
@@ -544,12 +549,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -753,6 +760,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">supprimable(s)</target>
@@ -871,6 +883,11 @@
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">fonctions locales statiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1784,13 +1801,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">Le {0} '{1}' non Nullable n'est pas initialisé.</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">Le {0} '{1}' non Nullable n'est pas initialisé.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">Le champ non Nullable n'est pas initialisé.</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Le champ non Nullable n'est pas initialisé.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5812,12 +5829,12 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
+        <source>Expected 'disable' or 'restore'</source>
         <target state="needs-review-translation">Disable, restore, enable ou safeonly attendu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
         <target state="needs-review-translation">Disable, restore, enable ou safeonly attendu après un avertissement #pragma</target>
         <note />
       </trans-unit>
@@ -9682,11 +9699,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
         <target state="translated">Les interfaces ne peuvent pas contenir d'opérateurs de conversion, d'égalité ou d'inégalité</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">implémentation d'interface par défaut</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

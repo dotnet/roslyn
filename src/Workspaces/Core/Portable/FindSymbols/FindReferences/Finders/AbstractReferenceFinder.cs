@@ -744,10 +744,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
-            if (symbol is TSymbol && CanFind((TSymbol)symbol))
+            if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId.WithSymbol((TSymbol)symbol),
+                    symbolAndProjectId.WithSymbol(typedSymbol),
                     solution, projects, options, cancellationToken);
             }
 

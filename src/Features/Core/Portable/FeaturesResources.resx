@@ -396,6 +396,12 @@
   <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
+  </data>
   <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
   </data>
@@ -1307,15 +1313,6 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
-  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using ref structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly references will prevent the debug session from continuing.</value>
-  </data>
   <data name="local_function" xml:space="preserve">
     <value>local function</value>
   </data>
@@ -1595,6 +1592,15 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unwrap_call_chain" xml:space="preserve">
+    <value>Unwrap call chain</value>
+  </data>
+  <data name="Wrap_call_chain" xml:space="preserve">
+    <value>Wrap call chain</value>
+  </data>
+  <data name="Wrap_long_call_chain" xml:space="preserve">
+    <value>Wrap long call chain</value>
+  </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
   </data>
@@ -1668,5 +1674,14 @@ This version used in: {2}</value>
   </data>
   <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
     <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="Wrap_and_align_call_chain" xml:space="preserve">
+    <value>Wrap and align call chain</value>
+  </data>
+  <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
+    <value>Wrap and align long call chain</value>
+  </data>
+  <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
+    <value>Warning: Semantics may change when converting statement.</value>
   </data>
 </root>

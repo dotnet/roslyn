@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, span, cancellationToken) = context;
             if (span.Length > 0)
             {
                 return;

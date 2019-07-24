@@ -687,6 +687,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((SourceAttributeData)attribute).GetAttributeArgumentSyntax(parameterIndex, attributeSyntax);
         }
 
+        internal static string DecodeNotNullIfNotNullAttribute(this CSharpAttributeData attribute)
+        {
+            var arguments = attribute.CommonConstructorArguments;
+            return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_String, out string value) ? value : null;
+        }
+
         internal static Location GetAttributeArgumentSyntaxLocation(this AttributeData attribute, int parameterIndex, AttributeSyntax attributeSyntaxOpt)
         {
             if (attributeSyntaxOpt == null)

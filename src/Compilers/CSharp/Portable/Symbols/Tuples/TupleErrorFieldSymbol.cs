@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TupleErrorFieldSymbol);
+            return Equals(obj as TupleErrorFieldSymbol, compareKind);
         }
 
-        public bool Equals(TupleErrorFieldSymbol other)
+        public bool Equals(TupleErrorFieldSymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
         }
     }
 }

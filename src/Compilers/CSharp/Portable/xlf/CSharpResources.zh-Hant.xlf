@@ -122,6 +122,11 @@
         <target state="translated">'{0}' 已明確實作多次。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
@@ -544,12 +549,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -752,6 +759,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">可處置</target>
@@ -870,6 +882,11 @@
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">靜態區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1783,13 +1800,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">不可為 Null 的型別 {0} '{1}' 未初始化。</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">不可為 Null 的型別 {0} '{1}' 未初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">不可為 Null 的型別欄位未初始化。</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">不可為 Null 的型別欄位未初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5811,12 +5828,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
+        <source>Expected 'disable' or 'restore'</source>
         <target state="needs-review-translation">必須是 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
         <target state="needs-review-translation">#pragma warning 後面必須有 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
@@ -9681,11 +9698,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
         <target state="translated">介面不可包含轉換、等號比較或不等比較運算子</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">預設介面實作</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

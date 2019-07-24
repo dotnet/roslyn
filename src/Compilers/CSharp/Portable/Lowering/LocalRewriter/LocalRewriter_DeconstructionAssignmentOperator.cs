@@ -108,8 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
         /// be evaluated out of order).
         /// </summary>
-        private BoundExpression ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
-            BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
+        private BoundExpression ApplyDeconstructionConversion(
+            ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
+            BoundExpression right,
+            Conversion conversion,
+            ArrayBuilder<LocalSymbol> temps,
+            DeconstructionSideEffects effects,
             bool isUsed, bool inInit)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rightPart = rightParts[i];
                     if (inInit)
                     {
-                        rightPart = EvaluateSideEffectingArgumentToTemp(VisitExpression(rightPart), effects.init, temps);
+                        rightPart = EvaluateSideEffectingArgumentToTemp(rightPart, effects.init, temps);
                     }
                     BoundExpression leftTarget = leftTargets[i].Single;
 
@@ -155,8 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementLocations: default, elementNames: default,
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
-                return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
-                    arguments: builder.ToImmutableAndFree(), type: tupleType);
+                return new BoundConvertedTupleLiteral(
+                    right.Syntax, sourceTuple: null, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {
@@ -174,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!IsTupleExpression(right.Kind));
 
-                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(VisitExpression(right),
+                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(right,
                     inInit ? effects.init : effects.deconstructions, temps);
 
                 inInit = false;
@@ -296,20 +300,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        private BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+        /// <summary>
+        /// Evaluate side effects into a temp, if any.  Return the expression to give the value later.
+        /// </summary>
+        /// <param name="arg">The argument to evaluate early.</param>
+        /// <param name="effects">A store of the argument into a temp, if necessary, is added here.</param>
+        /// <param name="temps">Any generated temps are added here.</param>
+        /// <returns>An expression evaluating the argument later (e.g. reading the temp), including a possible deferred user-defined conversion.</returns>
+        private BoundExpression EvaluateSideEffectingArgumentToTemp(
+            BoundExpression arg,
+            ArrayBuilder<BoundExpression> effects,
             ArrayBuilder<LocalSymbol> temps)
         {
-            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
+            var loweredArg = VisitExpression(arg);
+            if (CanChangeValueBetweenReads(loweredArg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
             {
                 BoundAssignmentOperator store;
-                var temp = _factory.StoreToTemp(arg, out store);
+                var temp = _factory.StoreToTemp(loweredArg, out store);
                 temps.Add(temp.LocalSymbol);
                 effects.Add(store);
                 return temp;
             }
             else
             {
-                return arg;
+                return loweredArg;
             }
         }
 
@@ -331,12 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.TupleLiteral:
+                    case BoundKind.ConvertedTupleLiteral:
                         var tuple = (BoundTupleExpression)variable;
                         assignmentTargets.Add(new Binder.DeconstructionVariable(GetAssignmentTargetsAndSideEffects(tuple, temps, effects), tuple.Syntax));
                         break;
-
-                    case BoundKind.ConvertedTupleLiteral:
-                        throw ExceptionUtilities.UnexpectedValue(variable.Kind);
 
                     default:
                         var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());

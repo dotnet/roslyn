@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -4917,10 +4918,11 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(37097, "https://github.com/dotnet/roslyn/issues/37097")]
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
@@ -6351,7 +6353,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableParameterThatIsMaybeNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6368,7 +6370,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableParameterThatIsNotNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6386,7 +6388,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableFieldThatIsMaybeNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6405,7 +6407,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableFieldThatIsNotNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6425,7 +6427,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullablePropertyThatIsMaybeNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6444,7 +6446,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullablePropertyThatIsNotNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 class X
@@ -6464,7 +6466,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableRangeVariableThatIsMaybeNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 using System.Collections.Generic;
@@ -6488,7 +6490,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableRangeVariableThatIsNotNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 using System.Collections.Generic;
@@ -6512,7 +6514,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableLocalThatIsMaybeNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 using System.Collections.Generic;
@@ -6532,7 +6534,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableLocalThatIsNotNull()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8WithNullableAnalysis,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable enable
 
 using System.Collections.Generic;
@@ -6572,7 +6574,8 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableNotShownWithoutFeatureFlag()
         {
-            await TestWithOptionsAsync(TestOptions.Regular8,
+            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "false");
+            await TestWithOptionsAsync(options,
 @"#nullable enable
 
 using System.Collections.Generic;

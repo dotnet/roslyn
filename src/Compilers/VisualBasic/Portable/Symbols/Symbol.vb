@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend MustInherit Class Symbol
-        Implements ISymbol, IFormattable
+        Implements ISymbol, ISymbolInternal, IFormattable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -187,6 +188,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
+            End Get
+        End Property
+
+        ReadOnly Property ISymbolInternal_DeclaringCompilation As Compilation Implements ISymbolInternal.DeclaringCompilation
+            Get
+                Return DeclaringCompilation
             End Get
         End Property
 
@@ -754,8 +761,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
-        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+        Private Overloads Function IEquatable_Equals(other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+            Return Me.[Equals](other, SymbolEqualityComparer.Default.CompareKind)
+        End Function
+
+        Private Overloads Function ISymbol_Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+            Return equalityComparer.Equals(Me, other)
+        End Function
+
+        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+            Return Me.Equals(TryCast(other, Symbol), compareKind)
+        End Function
+
+        ' By default we don't consider the compareKind. This can be overridden.
+        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.

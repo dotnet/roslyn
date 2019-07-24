@@ -397,6 +397,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface method will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
         /// </summary>
         internal static string Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing {
@@ -3937,6 +3955,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap call chain.
+        /// </summary>
+        internal static string Unwrap_call_chain {
+            get {
+                return ResourceManager.GetString("Unwrap_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unwrap expression.
         /// </summary>
         internal static string Unwrap_expression {
@@ -4534,33 +4561,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Using_readonly_references_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using readonly structs will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Using_readonly_structs_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Using_readonly_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using ref structs will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
         /// </summary>
         internal static string using_statement_can_be_simplified {
@@ -4643,6 +4643,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Semantics may change when converting statement..
+        /// </summary>
+        internal static string Warning_colon_semantics_may_change_when_converting_statement {
+            get {
+                return ResourceManager.GetString("Warning_colon_semantics_may_change_when_converting_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
         /// </summary>
         internal static string Warning_Method_overrides_symbol_from_metadata {
@@ -4652,11 +4661,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap and align call chain.
+        /// </summary>
+        internal static string Wrap_and_align_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap and align expression.
         /// </summary>
         internal static string Wrap_and_align_expression {
             get {
                 return ResourceManager.GetString("Wrap_and_align_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap and align long call chain.
+        /// </summary>
+        internal static string Wrap_and_align_long_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_long_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap call chain.
+        /// </summary>
+        internal static string Wrap_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_call_chain", resourceCulture);
             }
         }
         
@@ -4693,6 +4729,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_argument_list {
             get {
                 return ResourceManager.GetString("Wrap_long_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long call chain.
+        /// </summary>
+        internal static string Wrap_long_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_long_call_chain", resourceCulture);
             }
         }
         

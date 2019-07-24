@@ -29,8 +29,6 @@
   <PropertyGroup>
     <_DependentAssemblyVersionsFile>$(VisualStudioBuildPackagesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
     <_OptimizedDependenciesDir>$(ArtifactsTmpDir)OptimizedDependencies\</_OptimizedDependenciesDir>
-    <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
-    <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
   </PropertyGroup>
 
   <!-- 
@@ -48,7 +46,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
-    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" OptimizeAssemblies="lib/netstandard1.3/Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -144,7 +142,7 @@
     -->
     <ItemGroup>
       <ExpectedDependency>
-        <_EffectiveOptimizeAssemblies Condition="'$(ApplyPartialNgenOptimization)' == 'true'">%(ExpectedDependency.OptimizeAssemblies)</_EffectiveOptimizeAssemblies>
+        <_EffectiveOptimizeAssemblies Condition="'$(EnableNgenOptimization)' == 'true' and '$(ApplyNgenOptimization)' != ''">%(ExpectedDependency.OptimizeAssemblies)</_EffectiveOptimizeAssemblies>
       </ExpectedDependency>
       
       <_OptimizeAssembliesSplit Include="%(ExpectedDependency._EffectiveOptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" />
@@ -223,6 +221,11 @@
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 
+    <PropertyGroup>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
+    </PropertyGroup>
+    
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// This will cause the bound node cache to be populated if nullable semantic analysis is enabled.
         /// </remarks>
-        protected NullableWalker.SnapshotManager GetSnapshotManager()
+        protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
         {
             EnsureRootBoundForNullabilityIfNecessary();
             Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetSpeculativeBinder(position, expression, bindingOption);
             if (binder != null)
             {
-                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, position);
+                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, GetSnapshotManager(), position);
                 return true;
             }
 
@@ -1457,7 +1457,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
                 }
 
-                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root)) ||
+                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
+                                                  // Supporting attributes is tracked by
+                                                  // https://github.com/dotnet/roslyn/issues/36066
+                                                  this is AttributeSemanticModel)) ||
                              (manager is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null));
                 if (manager is object)
                 {

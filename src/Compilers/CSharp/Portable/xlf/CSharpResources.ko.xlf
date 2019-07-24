@@ -122,6 +122,11 @@
         <target state="translated">'{0}'은(는) 두 번 이상 명시적으로 구현됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
@@ -544,12 +549,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -752,6 +759,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">삭제 가능</target>
@@ -870,6 +882,11 @@
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">정적 로컬 함수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1783,13 +1800,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">nullable이 아닌 {0} '{1}'이(가) 초기화되지 않았습니다.</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">nullable이 아닌 {0} '{1}'이(가) 초기화되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">nullable이 아닌 필드가 초기화되지 않았습니다.</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">nullable이 아닌 필드가 초기화되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5811,12 +5828,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
+        <source>Expected 'disable' or 'restore'</source>
         <target state="needs-review-translation">disable, restore, enable 또는 safeonly가 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
         <target state="needs-review-translation">#pragma warning 뒤에 disable, restore, enable 또는 safeonly가 필요합니다.</target>
         <note />
       </trans-unit>
@@ -9681,11 +9698,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
         <target state="translated">인터페이스에는 변환, 같음 또는 같지 않음 연산자가 포함될 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">기본 인터페이스 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

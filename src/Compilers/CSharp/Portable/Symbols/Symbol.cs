@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable
+    internal abstract partial class Symbol : ISymbol, ISymbolInternal, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -190,6 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
             }
         }
+
+        Compilation ISymbolInternal.DeclaringCompilation
+            => DeclaringCompilation;
 
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple
@@ -589,15 +593,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)left != (object)right && !right.Equals(left);
         }
 
-        // By default, we do reference equality. This can be overridden.
-        public override bool Equals(object obj)
+        public sealed override bool Equals(object obj)
         {
-            return (object)this == obj;
+            return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        public bool Equals(ISymbol other)
+        bool IEquatable<ISymbol>.Equals(ISymbol other)
         {
-            return this.Equals((object)other);
+            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
+        }
+
+        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        {
+            return equalityComparer.Equals(this, other);
+        }
+
+        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        {
+            return this.Equals(other as Symbol, compareKind);
+        }
+
+        // By default we don't consider the compareKind, and do reference equality. This can be overridden.
+        public virtual bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return (object)this == other;
         }
 
         // By default, we do reference equality. This can be overridden.

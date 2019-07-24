@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var typeArguments = symbol.IsUnboundGenericType
                     ? Enumerable.Repeat((TypeSyntax)SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
-                    : symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n).GenerateTypeSyntax());
+                    : symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n).GenerateTypeSyntax());
 
                 return SyntaxFactory.GenericName(
                     symbol.Name.ToIdentifierToken(),
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 foreach (var element in symbol.TupleElements)
                 {
                     var name = element.IsImplicitlyDeclared ? default : SyntaxFactory.Identifier(element.Name);
-                    list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
+                    list = list.Add(SyntaxFactory.TupleElement(element.GetTypeWithAnnotatedNullability().GenerateTypeSyntax(), name));
                 }
 
                 return AddInformationTo(SyntaxFactory.TupleType(list), symbol);

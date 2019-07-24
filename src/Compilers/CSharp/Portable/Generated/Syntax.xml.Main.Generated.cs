@@ -8190,18 +8190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
 
-    /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
-    public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression, SyntaxList<SwitchSectionSyntax> sections)
-    {
-      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), expression, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), sections, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-    }
-
-    /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
-    public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression)
-    {
-      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), expression, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default(SyntaxList<SwitchSectionSyntax>), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-    }
-
     /// <summary>Creates a new SwitchSectionSyntax instance.</summary>
     public static SwitchSectionSyntax SwitchSection(SyntaxList<SwitchLabelSyntax> labels, SyntaxList<StatementSyntax> statements)
     {
@@ -11240,7 +11228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
-        case SyntaxKind.EnableKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
