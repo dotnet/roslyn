@@ -231,6 +231,11 @@ namespace Test.Utilities
             Verify(source, LanguageNames.CSharp, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions, parseOptions, expected);
         }
 
+        protected void VerifyCSharpAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
+        {
+            VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.CSharp, expected);
+        }
+
         protected void VerifyBasic(string source, params DiagnosticResult[] expected)
         {
             Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, ReferenceFlags.None, compilationOptions: null, parseOptions: null, expected: expected);
@@ -287,6 +292,11 @@ namespace Test.Utilities
             Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions, parseOptions, expected);
         }
 
+        protected void VerifyBasicAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
+        {
+            VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.VisualBasic, expected);
+        }
+
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, additionalFiles: additionalFiles);
@@ -303,6 +313,19 @@ namespace Test.Utilities
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, parseOptions, validationMode, referenceFlags: referenceFlags, allowUnsafeCode: allowUnsafeCode);
             diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+        }
+
+        private void VerifyAcrossTwoAssemblies(string dependencySource, string source, string language, params DiagnosticResult[] expected)
+        {
+            Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
+
+            var dependencyProject = CreateProject(new[] { dependencySource }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            var project =
+                CreateProject(new[] { source }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: dependencyProject.Solution)
+                    .AddProjectReference(new ProjectReference(dependencyProject.Id));
+
+            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
+            GetSortedDiagnostics(analyzer, project.Documents.ToArray()).Verify(analyzer, GetDefaultPath(language), expected);
         }
 
         protected static string GetDefaultPath(string language) =>
