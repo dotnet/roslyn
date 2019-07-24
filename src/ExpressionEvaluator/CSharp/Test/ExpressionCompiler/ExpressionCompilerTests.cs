@@ -6424,16 +6424,7 @@ class C
 
                 testData = new CompilationTestData();
                 context.CompileExpression("default", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);
-                Assert.Null(error);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  .locals init (int V_0) //a
-  IL_0000:  ldnull
-  IL_0001:  ret
-}");
-                Assert.Equal(SpecialType.System_Object, testData.GetMethodData("<>x.<>m0").Method.ReturnType.SpecialType);
+                Assert.Equal(error, "error CS8716: No target type was found for the default literal.");
 
                 testData = new CompilationTestData();
                 context.CompileExpression("null", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);

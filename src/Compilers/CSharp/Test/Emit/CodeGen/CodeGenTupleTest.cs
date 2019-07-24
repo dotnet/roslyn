@@ -7293,7 +7293,7 @@ class C
         // this works
         Test(()=>(()=>(short)1, 1));
 
-        // this does not
+        // this works
         Test(()=>(()=>(byte)1, 1));
 
         // this does not
@@ -7303,9 +7303,6 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
-                //         Test(()=>(()=>(byte)1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9),
                 // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(26, 9)
