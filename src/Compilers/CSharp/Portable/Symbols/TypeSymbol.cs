@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0660
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -2013,7 +2015,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return left.Equals(right, comparison, isValueTypeOverrideOpt);
         }
 
-#pragma warning disable CS0660
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)
             => throw ExceptionUtilities.Unreachable;
