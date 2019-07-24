@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -49,10 +49,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
         internal ImmutableArray<(IOption, OptionStorageLocation, MethodInfo)> GetOptionsWithStorageFromTypes(params Type[] formattingOptionTypes)
         {
             var optionType = typeof(IOption);
-            return formattingOptionTypes
+
+            var optionsFromProperties = formattingOptionTypes
                 .SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty))
                 .Where(p => optionType.IsAssignableFrom(p.PropertyType))
-                .Select(p => (IOption)p.GetValue(null))
+                .Select(p => (IOption)p.GetValue(null));
+
+            var optionsFromFields = formattingOptionTypes
+                .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Static))
+                .Where(f => optionType.IsAssignableFrom(f.FieldType))
+                .Select(f => (IOption)f.GetValue(null));
+
+            return optionsFromProperties.Concat(optionsFromFields)
                 .Select(GetOptionWithStorage)
                 .Where(ows => ows.Item2 != null)
                 .ToImmutableArray();
