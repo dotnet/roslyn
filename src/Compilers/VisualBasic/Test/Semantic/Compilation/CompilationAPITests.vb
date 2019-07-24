@@ -1721,7 +1721,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
-        Public Sub ConstructWithNullability()
+        Public Sub ConstructTypeWithNullability()
             Dim source =
 "Class Pair(Of T, U)
 End Class"
@@ -1740,6 +1740,32 @@ End Class"
 
             type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
             Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+        End Sub
+
+        <Fact()>
+        <WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")>
+        Public Sub ConstructMethodWithNullability()
+            Dim source =
+"Class Program
+    Shared Sub M(Of T, U)
+    End Sub
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericMethod = DirectCast(comp.GetMember("Program.M"), IMethodSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericMethod.Construct(typeArguments, Nothing)
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+
+            type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
             AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
         End Sub
 
