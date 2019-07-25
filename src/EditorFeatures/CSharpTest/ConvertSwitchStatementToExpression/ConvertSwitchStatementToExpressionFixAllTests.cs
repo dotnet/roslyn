@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     public partial class ConvertSwitchStatementToExpressionTests
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37444"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_01()
         {
             await TestInCSharp8(
