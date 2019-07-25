@@ -1422,6 +1422,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
+        {
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
+            foreach (var typeArg in typeArguments)
+            {
+                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                builder.Add(TypeWithAnnotations.Create(type));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            if (typeArguments.IsDefault)
+            {
+                throw new ArgumentException(nameof(typeArguments));
+            }
+
+            int n = typeArguments.Length;
+            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
+            {
+                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
+                builder.Add(TypeWithAnnotations.Create(type, annotation));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
             return ToString();

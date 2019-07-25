@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -225,6 +224,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the method.</param>
         IMethodSymbol Construct(params ITypeSymbol[] typeArguments);
+
+        /// <summary>
+        /// Returns a constructed method given its type arguments and type argument nullable annotations.
+        /// </summary>
+        IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations);
 
         /// <summary>
         /// If this is a partial method implementation part, returns the corresponding
