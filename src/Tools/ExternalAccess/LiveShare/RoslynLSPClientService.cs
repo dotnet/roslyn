@@ -5,9 +5,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                 new string[] { StringConstants.TypeScriptLanguageName },
                 new LanguageServerClientMetadata(
                     true,
-                    new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentSymbolProvider = true,
@@ -72,13 +73,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         CompletionProvider = null,
                         HoverProvider = false,
                         TextDocumentSync = null,
-                    }));
+                    })));
 
             languageServerGuestService.RegisterClientMetadata(
                 new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
                 new LanguageServerClientMetadata(
                     true,
-                    new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         WorkspaceSymbolProvider = false,
                         HoverProvider = false,
                         TextDocumentSync = null,
-                    }));
+                    })));
 
             var lifeTimeService = new RoslynLSPClientLifeTimeService();
             lifeTimeService.Disposed += (s, e) =>

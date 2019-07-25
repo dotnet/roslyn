@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return identity.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             return Equals(obj as MissingAssemblySymbol);
         }

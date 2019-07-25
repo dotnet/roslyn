@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, TypeCompareKind.ConsiderEverything2, isValueTypeOverrideOpt))
+            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }
@@ -1582,10 +1582,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentNullableAnnotations
-        {
-            get => this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.NullableAnnotation.ToPublicAnnotation());
-        }
+        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentNullableAnnotations =>
+            this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.ToPublicAnnotation());
 
         ImmutableArray<CustomModifier> INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal)
         {
@@ -1623,37 +1621,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] typeArguments)
         {
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
-            foreach (var typeArg in typeArguments)
-            {
-                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                builder.Add(TypeWithAnnotations.Create(type));
-            }
-            return Construct(builder.ToImmutableAndFree(), unbound: false);
+            return Construct(ConstructTypeArguments(typeArguments), unbound: false);
         }
 
         INamedTypeSymbol INamedTypeSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         {
-            if (typeArguments.IsDefault)
-            {
-                throw new ArgumentException(nameof(typeArguments));
-            }
-
-            int n = typeArguments.Length;
-            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
-            {
-                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
-            }
-
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
-                builder.Add(TypeWithAnnotations.Create(type, annotation));
-            }
-
-            return Construct(builder.ToImmutableAndFree(), unbound: false);
+            return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations), unbound: false);
         }
 
         INamedTypeSymbol INamedTypeSymbol.ConstructUnboundGenericType()

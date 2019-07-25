@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using TPL = System.Threading.Tasks;
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
+            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition.ToLSRequest(), textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
             if (locations == null)
             {

@@ -37,6 +37,7 @@ namespace Roslyn.Utilities
         public const string ValueElementName = "value";
 
         public const string CrefAttributeName = "cref";
+        public const string HrefAttributeName = "href";
         public const string FileAttributeName = "file";
         public const string InstanceAttributeName = "instance";
         public const string LangwordAttributeName = "langword";

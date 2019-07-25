@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
+using CustomMethods = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CustomMethods;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
@@ -16,23 +16,23 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.LoadName)]
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, CustomMethods.LoadName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
     internal class RoslynLoadHandler : LoadHandler
     {
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.LoadName)]
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, CustomMethods.LoadName)]
     internal class CSharpLoadHandler : LoadHandler
     {
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.LoadName)]
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, CustomMethods.LoadName)]
     internal class VisualBasicLoadHandler : LoadHandler
     {
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.LoadName)]
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, CustomMethods.LoadName)]
     internal class TypeScriptLoadHandler : LoadHandler
     {
     }

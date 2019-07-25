@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
+using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
                 Range = ProtocolConversions.TextSpanToRange(textSpan, text)
             };
 
-            var request = new LspRequest<ClassificationParams, ClassificationSpan[]>(RoslynMethods.ClassificationsName);
+            var request = new LS.LspRequest<ClassificationParams, ClassificationSpan[]>(RoslynMethods.ClassificationsName);
             var classificationSpans = await lspClient.RequestAsync(request, classificationParams, cancellationToken).ConfigureAwait(false);
             if (classificationSpans == null)
             {
