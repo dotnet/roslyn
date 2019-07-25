@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 do
                 {
                     oldTypeArg = newTypeArg;
-                    newTypeArg = this.TypeMap.SubstituteType(typeArg);
+                    newTypeArg = this.TypeMap.SubstituteType(oldTypeArg);
 
                     // When type substitution does not change the type, it is expected to return the very same object.
                     // Therefore the loop is terminated when that type (as an object) does not change.
