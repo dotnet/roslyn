@@ -13,14 +13,12 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentCodeActionName)]
     internal class CodeActionsHandlerShim : AbstractLiveShareHandlerShim<CodeActionParams, object[]>
     {
         public const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string ProviderName = "Roslyn";
 
-        [ImportingConstructor]
-        public CodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public CodeActionsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.TextDocumentCodeActionName)
         {
         }
@@ -57,6 +55,43 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
 
             return commands.ToArrayAndFree();
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentCodeActionName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynCodeActionsHandlerShim : CodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentCodeActionName)]
+    internal class CSharpCodeActionsHandlerShim : CodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentCodeActionName)]
+    internal class VisualBasicCodeActionsHandlerShim : CodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCodeActionName)]
+    internal class TypeScriptCodeActionsHandlerShim : CodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
         }
     }
 }

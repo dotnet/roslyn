@@ -19,13 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// <summary>
     /// Run code actions handler.  Called when lightbulb invoked.
     /// </summary>
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.WorkspaceExecuteCommandName)]
     internal class RunCodeActionsHandlerShim : AbstractLiveShareHandlerShim<LSP.ExecuteCommandParams, object>
     {
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
-        public RunCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
+        public RunCodeActionsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
             : base(requestHandlers, LSP.Methods.WorkspaceExecuteCommandName)
         {
             _threadingContext = threadingContext;
@@ -63,6 +61,43 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 // enable command executuion, which wouldn't solve their problem.
                 return true;
             }
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.WorkspaceExecuteCommandName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynRunCodeActionsHandlerShim : RunCodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynRunCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, LSP.Methods.WorkspaceExecuteCommandName)]
+    internal class CSharpRunCodeActionsHandlerShim : RunCodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpRunCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, LSP.Methods.WorkspaceExecuteCommandName)]
+    internal class VisualBasicRunCodeActionsHandlerShim : RunCodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicRunCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, LSP.Methods.WorkspaceExecuteCommandName)]
+    internal class TypeScriptRunCodeActionsHandlerShim : RunCodeActionsHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptRunCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
         }
     }
 }

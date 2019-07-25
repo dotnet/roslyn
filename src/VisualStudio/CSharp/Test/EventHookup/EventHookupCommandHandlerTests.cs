@@ -28,7 +28,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -52,7 +52,7 @@ class D
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("Local_MyEvent;");
+            testState.AssertShowing("Local_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -81,7 +81,7 @@ class E
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("Cfield_MyEvent;");
+            testState.AssertShowing("Cfield_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -138,7 +138,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent1;");
+            testState.AssertShowing("C_MyEvent1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -162,7 +162,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent1;");
+            testState.AssertShowing("C_MyEvent1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -182,7 +182,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent1;");
+            testState.AssertShowing("C_MyEvent1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -202,7 +202,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -220,11 +220,11 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendTypeChar(' ');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -242,7 +242,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendTypeChar('d');
             await testState.WaitForAsynchronousOperationsAsync();
@@ -264,7 +264,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
@@ -286,15 +286,15 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendTypeChar(' ');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendLeftKey();
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendLeftKey();
             await testState.WaitForAsynchronousOperationsAsync();
@@ -317,11 +317,11 @@ class C
 
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendTypeChar(' ');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent;");
+            testState.AssertShowing("C_MyEvent");
 
             testState.SendBackspace();
             await testState.WaitForAsynchronousOperationsAsync();
@@ -718,7 +718,7 @@ public partial class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent1;");
+            testState.AssertShowing("C_MyEvent1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -740,7 +740,7 @@ class Program : Base
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("Console_CancelKeyPress1;");
+            testState.AssertShowing("Console_CancelKeyPress1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -759,7 +759,7 @@ class C
             using var testState = EventHookupTestState.CreateTestState(markup);
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
-            testState.AssertShowing("C_MyEvent1;");
+            testState.AssertShowing("C_MyEvent1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]

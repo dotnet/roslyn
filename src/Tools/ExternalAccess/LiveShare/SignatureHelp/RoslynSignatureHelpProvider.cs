@@ -17,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     class RoslynSignatureHelpProvider : ISignatureHelpProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynSignatureHelpProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynSignatureHelpProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }

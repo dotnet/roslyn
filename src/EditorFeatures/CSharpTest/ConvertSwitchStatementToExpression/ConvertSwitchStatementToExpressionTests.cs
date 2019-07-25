@@ -661,5 +661,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
             Assert.Equal(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId, diag.Id);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(36995, "https://github.com/dotnet/roslyn/issues/36995")]
+        public async Task TestAddParenthesesAroundBinaryExpression()
+        {
+            await TestInCSharp8(
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 123;
+        [||]switch (i % 10)
+        {
+            case 1:
+                j = 4;
+                break;
+            case 2:
+                j = 5;
+                break;
+        }
+        throw null;
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 123;
+        j = (i % 10) switch
+        {
+            1 => 4,
+            2 => 5,
+            _ => throw null,
+        };
+    }
+}");
+        }
     }
 }

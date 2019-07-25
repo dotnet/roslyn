@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -87,7 +86,8 @@ class C
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentNullableAnnotations.Single());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
         public void FieldDeclarations()
         {
             var source = @"
@@ -143,11 +143,12 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Disabled,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
         public void PropertyDeclarations()
         {
             var source = @"
@@ -204,11 +205,12 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Disabled,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
         public void MethodReturnDeclarations()
         {
             var source = @"
@@ -272,12 +274,12 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
-
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
         public void ParameterDeclarations()
         {
             var source = @"
@@ -355,7 +357,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Annotated);
         }
@@ -375,52 +377,56 @@ public class C
     public static void M3() {}
     public void M4() {}
 }
-public static class CExt
+public static class Ext
 {
 #nullable enable
     public static void M5(this C c) {}
     public static void M6(this C? c) {}
+    public static void M7(this int i) {}
+    public static void M8(this int? i) {}
 
 #nullable disable
-    public static void M7(this C c) {}
-    public static void M8(this C? c) {}
+    public static void M9(this C c) {}
+    public static void M10(this C? c) {}
+    public static void M11(this int i) {}
+    public static void M12(this int? i) {}
 }
 ";
 
             var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
-                // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public static void M8(this C? c) {}
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 33));
+                // (22,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public static void M10(this C? c) {}
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(22, 34));
             verifyCompilation(comp1);
 
             var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
             comp2.VerifyDiagnostics(
-                // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public static void M8(this C? c) {}
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 33));
+                // (22,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public static void M10(this C? c) {}
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(22, 34));
             verifyCompilation(comp2);
 
             var comp3 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp3.VerifyDiagnostics(
-                // (4,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable enable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(4, 2),
-                // (8,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
-                // (14,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable enable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(14, 2),
-                // (16,33): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (16,33): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static void M6(this C? c) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(16, 33),
-                // (18,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (20,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(18, 2),
-                // (20,33): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static void M8(this C? c) {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(20, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(20, 2),
+                // (22,34): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public static void M10(this C? c) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(22, 34));
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
@@ -441,22 +447,28 @@ public static class CExt
             {
                 var c = compilation.GetTypeByMetadataName("C");
                 var members = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
+                assertNullability(members,
+                    PublicNullableAnnotation.NotApplicable,
+                    PublicNullableAnnotation.NotAnnotated,
+                    PublicNullableAnnotation.NotApplicable,
+                    PublicNullableAnnotation.NotAnnotated);
 
-                assertNullability(PublicNullableAnnotation.NotApplicable, 0);
-                assertNullability(PublicNullableAnnotation.NotAnnotated, 1);
-                assertNullability(PublicNullableAnnotation.NotApplicable, 2);
-                assertNullability(PublicNullableAnnotation.NotAnnotated, 3);
+                var e = compilation.GetTypeByMetadataName("Ext");
+                members = e.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).Select(m => m.ReduceExtensionMethod(m.Parameters[0].Type)).ToArray();
+                assertNullability(members,
+                    PublicNullableAnnotation.NotAnnotated,
+                    PublicNullableAnnotation.Annotated,
+                    PublicNullableAnnotation.NotAnnotated,
+                    PublicNullableAnnotation.Annotated,
+                    PublicNullableAnnotation.Disabled,
+                    PublicNullableAnnotation.Annotated,
+                    PublicNullableAnnotation.NotAnnotated,
+                    PublicNullableAnnotation.Annotated);
 
-                var cExt = compilation.GetTypeByMetadataName("CExt");
-                members = cExt.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).Select(m => m.ReduceExtensionMethod(c)).ToArray();
-                assertNullability(PublicNullableAnnotation.NotAnnotated, 0);
-                assertNullability(PublicNullableAnnotation.Annotated, 1);
-                assertNullability(PublicNullableAnnotation.Disabled, 2);
-                assertNullability(PublicNullableAnnotation.Annotated, 3);
-
-                void assertNullability(PublicNullableAnnotation nullability, int index)
+                static void assertNullability(IMethodSymbol[] methods, params PublicNullableAnnotation[] expectedAnnotations)
                 {
-                    Assert.Equal(nullability, members[index].ReceiverNullableAnnotation);
+                    var actualAnnotations = methods.Select(m => m.ReceiverNullableAnnotation);
+                    AssertEx.Equal(expectedAnnotations, actualAnnotations);
                 }
             }
         }
@@ -534,7 +546,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Disabled,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
         }
 
@@ -592,6 +604,345 @@ public class C
                 PublicNullableAnnotation.Annotated);
         }
 
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void ArrayElements()
+        {
+            var source =
+@"public interface I
+{
+#nullable enable
+    object[] F1();
+    object?[] F2();
+    int[] F3();
+    int?[] F4();
+#nullable disable
+    object[] F5();
+    object?[] F6();
+    int[] F7();
+    int?[] F8();
+}";
+            VerifyAcrossCompilations(
+                source,
+                new[]
+                {
+                    // (10,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                    //     object?[] F6();
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 11)
+                },
+                new[]
+                {
+                    // (3,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable enable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(3, 2),
+                    // (5,11): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     object?[] F2();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(5, 11),
+                    // (8,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable disable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
+                    // (10,11): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     object?[] F6();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 11)
+                },
+                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method => ((IArrayTypeSymbol)method.ReturnType).ElementNullableAnnotation,
+                testMetadata: true,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated);
+        }
+
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void TypeParameters()
+        {
+            var source =
+@"#nullable enable
+public interface I<T, U, V>
+    where U : class
+    where V : struct
+{
+    T F1();
+    U F2();
+    U? F3();
+    V F4();
+    V? F5();
+#nullable disable
+    T F6();
+    U F7();
+    U? F8();
+    V F9();
+    V? F10();
+}";
+            VerifyAcrossCompilations(
+                source,
+                new[]
+                {
+                    // (14,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                    //     U? F8();
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 6)
+                },
+                new[]
+                {
+                    // (1,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable enable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(1, 2),
+                    // (8,6): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     U? F3();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(8, 6),
+                    // (11,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable disable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(11, 2),
+                    // (14,6): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     U? F8();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 6)
+                },
+                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method => method.ReturnNullableAnnotation,
+                testMetadata: true,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated);
+        }
+
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void Constraints()
+        {
+            var source =
+@"public class A<T>
+{
+    public class B<U> where U : T { }
+}
+public interface I
+{
+#nullable enable
+    A<string> F1();
+    A<string?> F2();
+    A<int> F3();
+    A<int?> F4();
+#nullable disable
+    A<string> F5();
+    A<string?> F6();
+    A<int> F7();
+    A<int?> F8();
+}";
+            VerifyAcrossCompilations(
+                source,
+                new[]
+                {
+                    // (14,13): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                    //     A<object?> F6();
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 13)
+                },
+                new[]
+                {
+                    // (7,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable enable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(7, 2),
+                    // (9,13): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     A<string?> F2();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 13),
+                    // (12,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable disable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(12, 2),
+                    // (14,13): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     A<string?> F6();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 13)
+                },
+                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method => ((INamedTypeSymbol)((INamedTypeSymbol)method.ReturnType).GetMembers("B").Single()).TypeParameters.Single().ConstraintNullableAnnotations.Single(),
+                testMetadata: true,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated);
+        }
+
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void TypeArguments_01()
+        {
+            var source =
+@"public interface IA<T>
+{
+}
+#nullable enable
+public interface IB<T, U, V>
+    where U : class
+    where V : struct
+{
+    IA<T> F1();
+    IA<U> F2();
+    IA<U?> F3();
+    IA<V> F4();
+    IA<V?> F5();
+#nullable disable
+    IA<T> F6();
+    IA<U> F7();
+    IA<U?> F8();
+    IA<V> F9();
+    IA<V?> F10();
+}";
+            VerifyAcrossCompilations(
+                source,
+                new[]
+                {
+                    // (17,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                    //     IA<U?> F8();
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 9)
+                },
+                new[]
+                {
+                    // (4,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable enable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(4, 2),
+                    // (11,9): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     IA<U?> F3();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(11, 9),
+                    // (14,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // #nullable disable
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(14, 2),
+                    // (17,9): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     IA<U?> F8();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 9)
+                },
+                comp => ((NamedTypeSymbol)comp.GetMember("IB")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method => ((INamedTypeSymbol)method.ReturnType).TypeArgumentNullableAnnotations.Single(),
+                testMetadata: true,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated);
+        }
+
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void TypeArguments_02()
+        {
+            var source =
+@"class C
+{
+    static void F<T>()
+    {
+    }
+#nullable enable
+    static void M<T, U, V>()
+        where U : class
+        where V : struct
+    {
+        F<T>();
+        F<U>();
+        F<U?>();
+        F<V>();
+        F<V?>();
+#nullable disable
+        F<T>();
+        F<U>();
+        F<U?>();
+        F<V>();
+        F<V?>();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (19,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //         F<U?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 12));
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var invocations = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var actualAnnotations = invocations.Select(inv => ((IMethodSymbol)model.GetSymbolInfo(inv).Symbol).TypeArgumentNullableAnnotations.Single()).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
+        }
+
+        [Fact]
+        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        public void Locals()
+        {
+            var source =
+@"#pragma warning disable 168
+class C
+{
+#nullable enable
+    static void M<T, U, V>()
+        where U : class
+        where V : struct
+    {
+        T x1;
+        U x2;
+        U? x3;
+        V x4;
+        V? x5;
+#nullable disable
+        T x6;
+        U x7;
+        U? x8;
+        V x9;
+        V? x10;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,10): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //         U? x8;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 10));
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var variables = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            var actualAnnotations = variables.Select(v => ((ILocalSymbol)model.GetDeclaredSymbol(v)).NullableAnnotation).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
+        }
+
         private static void VerifyAcrossCompilations<T>(string source,
                                                  DiagnosticDescription[] nullableEnabledErrors,
                                                  DiagnosticDescription[] nullableDisabledErrors,
@@ -600,7 +951,6 @@ public class C
                                                  bool testMetadata,
                                                  params PublicNullableAnnotation[] expectedNullabilities)
         {
-
             var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp1);
