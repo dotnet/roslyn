@@ -230,7 +230,7 @@ class Class
     {
         Method(goo);
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -260,7 +260,7 @@ class Class
     {
         Method(goo);
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3959,7 +3959,7 @@ class Program
     {
     }
 }",
-index: LocalIndex, parseOptions: TestOptions.Regular8WithNullableAnalysis);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3993,7 +3993,7 @@ class Program
     {
     }
 }",
-index: LocalIndex, parseOptions: TestOptions.Regular8WithNullableAnalysis);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]

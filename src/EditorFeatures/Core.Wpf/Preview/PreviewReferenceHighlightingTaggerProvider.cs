@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
-        public PreviewReferenceHighlightingTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey, ReferenceHighlightTag.Instance)
+        public PreviewReferenceHighlightingTaggerProvider()
+            : base(PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey, ReferenceHighlightTag.Instance)
         {
         }
     }
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
-        public PreviewWrittenReferenceHighlightingTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey, WrittenReferenceHighlightTag.Instance)
+        public PreviewWrittenReferenceHighlightingTaggerProvider()
+            : base(PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey, WrittenReferenceHighlightTag.Instance)
         {
         }
     }
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
-        public PreviewDefinitionHighlightingTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
+        public PreviewDefinitionHighlightingTaggerProvider()
+            : base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
         {
         }
     }

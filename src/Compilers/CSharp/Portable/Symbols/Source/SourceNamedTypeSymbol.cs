@@ -920,6 +920,10 @@ next:;
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            {
+                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1368,25 +1372,6 @@ next:;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(defaultMemberNameConstant)));
-            }
-
-            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
-            if ((object)baseType != null)
-            {
-                if (baseType.ContainsDynamic())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
-                }
-
-                if (baseType.ContainsTupleNames())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
-                }
-
-                if (baseType.NeedsNullableAttribute())
-                {
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
-                }
             }
         }
 

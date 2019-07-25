@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, Func<SyntaxToken, SyntaxNode> findParentNode, Solution solution, CancellationToken cancellationToken)
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
-            findParentNode = findParentNode ?? (t => t.Parent);
+            findParentNode ??= (t => t.Parent);
             (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model)
                 => nodeMatch(findParentNode(token), model);
 
@@ -744,10 +744,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
-            if (symbol is TSymbol && CanFind((TSymbol)symbol))
+            if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId.WithSymbol((TSymbol)symbol),
+                    symbolAndProjectId.WithSymbol(typedSymbol),
                     solution, projects, options, cancellationToken);
             }
 

@@ -20,12 +20,24 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
-    // https://github.com/dotnet/roslyn/issues/36330 tracks uncommenting the below attributes.
-    //[ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    //[ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
+
+        private readonly bool _performExperimentCheck;
+
+        public ConfigureCodeStyleOptionCodeFixProvider()
+            : this(performExperimentCheck: true)
+        {
+        }
+
+        // Internal for test purpose.
+        internal ConfigureCodeStyleOptionCodeFixProvider(bool performExperimentCheck)
+        {
+            _performExperimentCheck = performExperimentCheck;
+        }
 
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
@@ -48,13 +60,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics, _performExperimentCheck, cancellationToken));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics, _performExperimentCheck, cancellationToken));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, bool performExperimentCheck, CancellationToken cancellationToken)
         {
+            // Bail out if NativeEditorConfigSupport experiment is not enabled.
+            if (performExperimentCheck &&
+                !EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
+            {
+                return ImmutableArray<CodeFix>.Empty;
+            }
+
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {

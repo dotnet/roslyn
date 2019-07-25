@@ -319,12 +319,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateLeftOperand()
         {
-            return _operationFactory.Create(_tupleBinaryOperator.ConvertedLeft);
+            return _operationFactory.Create(_tupleBinaryOperator.Left);
         }
 
         protected override IOperation CreateRightOperand()
         {
-            return _operationFactory.Create(_tupleBinaryOperator.ConvertedRight);
+            return _operationFactory.Create(_tupleBinaryOperator.Right);
         }
     }
 

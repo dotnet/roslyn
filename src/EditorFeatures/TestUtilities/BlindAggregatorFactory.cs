@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static unsafe void SetInnerObject(IntPtr wrapperUnknown, IntPtr innerUnknown, IntPtr managedObjectGCHandlePtr)
         {
-            BlindAggregator* pWrapper = (BlindAggregator*)wrapperUnknown;
+            var pWrapper = (BlindAggregator*)wrapperUnknown;
             pWrapper->SetInnerObject(innerUnknown, managedObjectGCHandlePtr);
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public static unsafe BlindAggregator* CreateInstance()
             {
-                BlindAggregator* pResult = (BlindAggregator*)Marshal.AllocCoTaskMem(sizeof(BlindAggregator));
+                var pResult = (BlindAggregator*)Marshal.AllocCoTaskMem(sizeof(BlindAggregator));
                 if (pResult != null)
                 {
                     pResult->Construct();
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             private static unsafe uint Release(BlindAggregator* pThis)
             {
-                uint result = unchecked((uint)Interlocked.Decrement(ref pThis->_refCount));
+                var result = unchecked((uint)Interlocked.Decrement(ref pThis->_refCount));
                 if (result == 0u)
                 {
                     pThis->FinalRelease();

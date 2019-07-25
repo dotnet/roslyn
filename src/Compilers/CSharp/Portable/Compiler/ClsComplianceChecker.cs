@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnostics = diagnostics;
             _cancellationToken = cancellationToken;
 
-            _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
+            _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>(SymbolEqualityComparer.ConsiderEverything);
 
             if (ConcurrentAnalysis)
             {

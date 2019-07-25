@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         cancellationToken.ThrowIfCancellationRequested();
                         if (!IsBuiltIn(namedType))
                         {
-                            namespaceScope = namespaceScope ?? this.GetInnermostNamespaceScope(annotatedNode);
+                            namespaceScope ??= this.GetInnermostNamespaceScope(annotatedNode);
                             var referencedDefinitions = namespaceScopeToReferencedDefinitions.GetOrAdd(
                                 namespaceScope, createSet);
                             referencedDefinitions.Add(namedType);

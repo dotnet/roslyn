@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
                 // Then, prefer a declaration from the same file.
                 declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == locationOpt.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
-                fallbackDeclaration = fallbackDeclaration ?? declaration;
+                fallbackDeclaration ??= declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {
                     return (declaration, availableIndices);

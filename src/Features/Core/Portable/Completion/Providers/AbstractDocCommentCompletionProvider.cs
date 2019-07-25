@@ -213,14 +213,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
                 items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
-                var property = symbol as IPropertySymbol;
-                if (property != null && !existingTopLevelTags.Contains(ValueElementName))
+                if (symbol is IPropertySymbol && !existingTopLevelTags.Contains(ValueElementName))
                 {
                     items.Add(GetItem(ValueElementName));
                 }
 
-                var method = symbol as IMethodSymbol;
-                var returns = method != null && !method.ReturnsVoid;
+                var returns = symbol is IMethodSymbol method && !method.ReturnsVoid;
                 if (returns && !existingTopLevelTags.Contains(ReturnsElementName))
                 {
                     items.Add(GetItem(ReturnsElementName));
@@ -273,10 +271,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
         {
-            bool includesCommitCharacter = true;
+            var includesCommitCharacter = true;
 
-            string beforeCaretText, afterCaretText;
-            if (commitChar == ' ' && XmlDocCommentCompletionItem.TryGetInsertionTextOnSpace(item, out beforeCaretText, out afterCaretText))
+            if (commitChar == ' ' &&
+                XmlDocCommentCompletionItem.TryGetInsertionTextOnSpace(item, out var beforeCaretText, out var afterCaretText))
             {
                 includesCommitCharacter = false;
             }

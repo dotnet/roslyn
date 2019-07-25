@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                                   SymbolDisplayParameterOptions.IncludeName |
                                   SymbolDisplayParameterOptions.IncludeDefaultValue |
                                   SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                                      SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
+                                      SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         [ImportingConstructor]
         public CSharpNavigationBarItemService()
@@ -173,15 +175,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         }
 
         private static ISymbol GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            switch (node)
+            => node switch
             {
-                case BaseTypeDeclarationSyntax t: return semanticModel.GetDeclaredSymbol(t, cancellationToken);
-                case DelegateDeclarationSyntax d: return semanticModel.GetDeclaredSymbol(d, cancellationToken);
-            }
-
-            return null;
-        }
+                BaseTypeDeclarationSyntax t => semanticModel.GetDeclaredSymbol(t, cancellationToken),
+                DelegateDeclarationSyntax d => semanticModel.GetDeclaredSymbol(d, cancellationToken),
+                _ => null,
+            };
 
         private static bool IsAccessor(ISymbol member)
         {
@@ -254,8 +253,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
             var declaringNode = reference.GetSyntax();
 
-            int spanStart = declaringNode.SpanStart;
-            int spanEnd = declaringNode.Span.End;
+            var spanStart = declaringNode.SpanStart;
+            var spanEnd = declaringNode.Span.End;
 
             var fieldDeclaration = declaringNode.GetAncestor<FieldDeclarationSyntax>();
             if (fieldDeclaration != null)

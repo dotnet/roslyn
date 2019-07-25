@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"))))
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"))))
 
             AssertEqualAdornments(expected, container)
         End Sub
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"))),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This is the base class."))))
 
@@ -136,13 +136,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "Method"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "Method", navigationAction:=Sub() Return, "void MyClass.Method(int x)"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
-                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "x"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "x", navigationAction:=Sub() Return, "int x"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "Override summary."))))
@@ -196,9 +196,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.parameter),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "x"))),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "x", navigationAction:=Sub() Return, "int x"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "A parameter."))))
 

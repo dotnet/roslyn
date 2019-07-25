@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+                        new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider(performExperimentCheck: false));
         }
 
         public class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests
@@ -164,19 +164,7 @@ dotnet_diagnostic.XYZ0001.severity = none
     </Project>
 </Workspace>";
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-class Program1 { }
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_diagnostic.XYZ0001.severity = none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                await TestMissingInRegularAndScriptAsync(input);
             }
 
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]

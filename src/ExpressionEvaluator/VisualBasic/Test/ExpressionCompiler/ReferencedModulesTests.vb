@@ -955,8 +955,8 @@ End Class"
                 _objectType = New NamespaceTypeDefinitionNoBase(objectType)
             End Sub
 
-            Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
-                For Each t In MyBase.GetTopLevelTypesCore(context)
+            Public Overrides Iterator Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
+                For Each t In MyBase.GetTopLevelSourceTypeDefinitions(context)
                     Yield If(t Is _objectType.UnderlyingType, _objectType, t)
                 Next
             End Function

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -77,6 +76,44 @@ namespace Microsoft.CodeAnalysis
             {
                 return typeSymbol;
             }
+        }
+
+        public static ITypeSymbol GetConvertedTypeWithFlowNullability(this TypeInfo typeInfo)
+            => typeInfo.ConvertedType?.WithNullability(typeInfo.Nullability.FlowState);
+
+        public static ITypeSymbol GetConvertedTypeWithAnnotatedNullability(this TypeInfo typeInfo)
+            => typeInfo.ConvertedType?.WithNullability(typeInfo.Nullability.Annotation);
+
+        public static ITypeSymbol GetTypeWithFlowNullability(this TypeInfo typeInfo)
+            => typeInfo.Type?.WithNullability(typeInfo.Nullability.FlowState);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this TypeInfo typeInfo)
+            => typeInfo.Type?.WithNullability(typeInfo.Nullability.Annotation);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this IFieldSymbol fieldSymbol)
+            => fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this IParameterSymbol parameterSymbol)
+            => parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
+
+        public static ITypeSymbol GetElementTypeWithAnnotatedNullability(this IArrayTypeSymbol arrayTypeSymbol)
+            => arrayTypeSymbol.ElementType.WithNullability(arrayTypeSymbol.ElementNullableAnnotation);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this IPropertySymbol propertySymbol)
+            => propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+
+        public static ITypeSymbol GetReturnTypeWithAnnotatedNullability(this IMethodSymbol methodSymbol)
+            => methodSymbol.ReturnType.WithNullability(methodSymbol.ReturnNullableAnnotation);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this IEventSymbol eventSymbol)
+            => eventSymbol.Type.WithNullability(eventSymbol.NullableAnnotation);
+
+        public static ITypeSymbol GetTypeWithAnnotatedNullability(this ILocalSymbol localSymbol)
+            => localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+
+        public static INamedTypeSymbol ConstructWithNullability(this INamedTypeSymbol typeSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return typeSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
         }
     }
 }

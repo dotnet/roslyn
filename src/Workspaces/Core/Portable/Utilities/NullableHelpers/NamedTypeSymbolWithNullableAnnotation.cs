@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             public IEnumerable<string> MemberNames => WrappedSymbol.MemberNames;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => WrappedSymbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => WrappedSymbol.TypeArguments;
-            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => WrappedSymbol.TypeArgumentsNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => WrappedSymbol.TypeArgumentNullableAnnotations;
             public IMethodSymbol DelegateInvokeMethod => WrappedSymbol.DelegateInvokeMethod;
             public INamedTypeSymbol EnumUnderlyingType => WrappedSymbol.EnumUnderlyingType;
             public INamedTypeSymbol ConstructedFrom => WrappedSymbol.ConstructedFrom;
@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
             {
                 return WrappedSymbol.Construct(typeArguments).WithNullability(Nullability);
+            }
+
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                return WrappedSymbol.Construct(typeArguments, typeArgumentNullableAnnotations).WithNullability(Nullability);
             }
 
             public INamedTypeSymbol ConstructUnboundGenericType()

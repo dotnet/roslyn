@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos)
             : base(namespaceNames)
         {
-            this.TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
+            TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
         }
 
         protected override string RQKeyword
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public RQUnconstructedTypeInfo(string typeName, int typeVariableCount)
         {
-            this.TypeName = typeName;
-            this.TypeVariableCount = typeVariableCount;
+            TypeName = typeName;
+            TypeVariableCount = typeVariableCount;
         }
     }
 }

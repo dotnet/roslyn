@@ -80,15 +80,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     symbol = updatedContainingType.GetTypeMembers(symbol.Name, symbol.Arity).First(m => m.TypeKind == symbol.TypeKind);
                 }
 
-                var typeArgumentsWithNullability = symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n));
+                var typeArgumentsWithNullability = symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
                 var substitutedArguments = typeArgumentsWithNullability.Select(t => t.Accept(this));
                 if (typeArgumentsWithNullability.SequenceEqual(substitutedArguments))
                 {
                     return symbol;
                 }
 
-                // TODO: pass nullability to the substituted arguments once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.Select(t => t.WithoutNullability()).ToArray()).WithNullability(symbol.GetNullability());
+                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullability(symbol.GetNullability());
             }
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)

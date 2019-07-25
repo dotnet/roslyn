@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
             _title = title;
         }
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;

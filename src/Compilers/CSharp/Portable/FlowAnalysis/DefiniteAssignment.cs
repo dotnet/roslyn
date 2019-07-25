@@ -110,18 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
-        protected override void Free()
-        {
-            _usedVariables.Free();
-            _usedLocalFunctions.Free();
-            _writtenVariables.Free();
-            _capturedVariables.Free();
-            _capturedInside.Free();
-            _capturedOutside.Free();
-            _unsafeAddressTakenVariables.Free();
-
-            base.Free();
-        }
+        /// <summary>
+        /// Check that every rvalue has been converted in the definite assignment pass only (not later passes deriving from it).
+        /// </summary>
+        private readonly bool _shouldCheckConverted;
 
         internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
@@ -142,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
             this.topLevelMethod = member as MethodSymbol;
+            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
 
         internal DefiniteAssignmentPass(
@@ -161,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
+            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
 
         /// <summary>
@@ -181,7 +175,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = null;
             this.currentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
+            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
+
+        protected override void Free()
+        {
+            _usedVariables.Free();
+            _usedLocalFunctions.Free();
+            _writtenVariables.Free();
+            _capturedVariables.Free();
+            _capturedInside.Free();
+            _capturedOutside.Free();
+            _unsafeAddressTakenVariables.Free();
+
+            base.Free();
+        }
+
+#if DEBUG
+        protected override void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
+        {
+            Debug.Assert(
+                !_shouldCheckConverted ||
+                isKnownToBeAnLvalue || node == null ||
+                !node.NeedsToBeConverted() ||
+                node.WasConverted ||
+                node.WasCompilerGenerated ||
+                methodMainNode.HasErrors, "expressions should have been converted");
+            base.VisitRvalue(node, isKnownToBeAnLvalue);
+        }
+#endif
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -341,11 +363,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool HasInitializer(FieldSymbol field)
+        protected static bool HasInitializer(Symbol field) => field switch
         {
-            return (field as SourceMemberFieldSymbol)?.HasInitializer == true ||
-                (field as SynthesizedBackingFieldSymbol)?.HasInitializer == true;
-        }
+            SourceMemberFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
+            _ => false
+        };
 
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
@@ -376,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
             }
@@ -417,53 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentSymbol))
+            if (currentSymbol is SourceMethodSymbol sourceMethod &&
+                Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
             {
                 NoteCaptured(variable);
             }
-        }
-
-        private static bool IsCaptured(Symbol variable, Symbol containingSymbol)
-        {
-            switch (variable.Kind)
-            {
-                case SymbolKind.Field:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
-                // Range variables are not captured, but their underlying parameters
-                // may be. If this is a range underlying parameter it will be a
-                // ParameterSymbol, not a RangeVariableSymbol.
-                case SymbolKind.RangeVariable:
-                    return false;
-
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst)
-                    {
-                        return false;
-                    }
-                    break;
-
-                case SymbolKind.Parameter:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
-            }
-
-            // Walk up the containing symbols until we find the target function, in which
-            // case the variable is not captured by the target function, or null, in which 
-            // case it is.
-            for (var currentFunction = variable.ContainingSymbol;
-                 (object)currentFunction != null;
-                 currentFunction = currentFunction.ContainingSymbol)
-            {
-                if (ReferenceEquals(currentFunction, containingSymbol))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -1160,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
-                            if (written) VisitRvalue(local);
+                            if (written) VisitRvalue(local, isKnownToBeAnLvalue: true);
                         }
                         else
                         {
@@ -1216,6 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
+        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
             new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
 
         private readonly IPrecedenceService _precedenceService;

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
                         GenerateModifiers(@event, destination, options),
                         SyntaxFactory.VariableDeclaration(
-                            @event.Type.GenerateTypeSyntax(),
+                            @event.Type.WithNullability(@event.NullableAnnotation).GenerateTypeSyntax(),
                             SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken()))))));
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(SyntaxFactory.EventDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
                 modifiers: GenerateModifiers(@event, destination, options),
-                type: @event.Type.GenerateTypeSyntax(),
+                type: @event.Type.WithNullability(@event.NullableAnnotation).GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: @event.Name.ToIdentifierToken(),
                 accessorList: GenerateAccessorList(@event, destination, options)));

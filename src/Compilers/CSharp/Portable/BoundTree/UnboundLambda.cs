@@ -69,14 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            result.InferredReturnType = InferredReturnType;
-            return result;
-        }
-
         public TypeWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Nullability (and conversions) are ignored.
@@ -124,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
                                        analyzedNullabilityMapOpt: null,
+                                       updatedMethodSymbolMapOpt: null,
                                        snapshotBuilderOpt: null,
                                        returnTypes);
                 diagnostics.Free();
@@ -493,30 +486,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block;
 
             var diagnostics = DiagnosticBag.GetInstance();
+            var compilation = Binder.Compilation;
 
-            // when binding for real (not for return inference), there is still
-            // a good chance that we could reuse a body of a lambda previously bound for 
-            // return type inference.
             var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
-            BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredReturnType.FromSingleType)
-            {
-                lambdaSymbol = returnInferenceLambda.Symbol;
-                var lambdaReturnType = lambdaSymbol.ReturnTypeWithAnnotations;
-                if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.Type &&
-                    lambdaReturnType.Equals(returnType, TypeCompareKind.ConsiderEverything) && lambdaSymbol.RefKind == refKind)
-                {
-                    lambdaBodyBinder = returnInferenceLambda.Binder;
-                    block = returnInferenceLambda.Body;
-                    diagnostics.AddRange(returnInferenceLambda.Diagnostics);
-
-                    goto haveLambdaBodyAndBinders;
-                }
-            }
+            // When binding for real (not for return inference), we cannot reuse a body of a lambda
+            // previously bound for return type inference because we have not converted the returned
+            // expression(s) to the return type.
 
             lambdaSymbol = new LambdaSymbol(
-                Binder.Compilation,
+                compilation,
                 Binder.ContainingMemberOrLambda,
                 _unboundLambda,
                 cacheKey.ParameterTypes,
@@ -528,32 +507,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
-                Binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
-                if (returnType.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(lambdaSymbol) &&
+                    returnType.NeedsNullableAttribute())
                 {
-                    Binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
-                    // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
+                    compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                    // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
                 }
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
-            // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, lambdaSymbol, lambdaParameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
 
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-haveLambdaBodyAndBinders:
-
-            bool reachableEndpoint = ControlFlowPass.Analyze(Binder.Compilation, lambdaSymbol, block, diagnostics);
+            bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)
             {
                 if (DelegateNeedsReturn(invokeMethod))
@@ -571,8 +549,8 @@ haveLambdaBodyAndBinders:
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !returnType.Type.IsNonGenericTaskType(Binder.Compilation) &&
-                    !returnType.Type.IsGenericTaskType(Binder.Compilation))
+                    !returnType.Type.IsNonGenericTaskType(compilation) &&
+                    !returnType.Type.IsGenericTaskType(compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);

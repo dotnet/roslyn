@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function
             var nearestLocalFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
-            return !(nearestLocalFunc is null) && IsCaptured(rootSymbol, nearestLocalFunc);
+            return !(nearestLocalFunc is null) && Symbol.IsCaptured(rootSymbol, nearestLocalFunc);
         }
 
         private LocalFuncUsages GetOrCreateLocalFuncUsages(LocalFunctionSymbol localFunc)

@@ -12,6 +12,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string Base;
 
+        [XmlAttribute]
+        public string SkipConvenienceFactories;
+
         [XmlElement]
         public Comment TypeComment;
 

@@ -28,15 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.Length > 0)
+            var (document, textSpan, cancellationToken) = context;
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(position).Parent;
             if (node == null)
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var document = context.Document;
 
-            bool succeeded = false;
+            var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(

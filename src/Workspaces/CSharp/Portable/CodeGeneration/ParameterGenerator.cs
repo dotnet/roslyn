@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())
                     .WithAttributeLists(GenerateAttributes(p, isExplicit, options))
                     .WithModifiers(GenerateModifiers(p, isFirstParam))
-                    .WithType(p.Type.GenerateTypeSyntax())
+                    .WithType(p.Type.WithNullability(p.NullableAnnotation).GenerateTypeSyntax())
                     .WithDefault(GenerateEqualsValueClause(p, isExplicit, seenOptional));
         }
 
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
-            SyntaxTokenList list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+            var list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
 
             if (isFirstParam &&
                 parameter.ContainingSymbol is IMethodSymbol methodSymbol &&

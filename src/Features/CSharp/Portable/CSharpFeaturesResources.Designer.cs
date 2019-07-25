@@ -70,6 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not null here..
+        /// </summary>
+        internal static string _0_is_not_null_here {
+            get {
+                return ResourceManager.GetString("_0_is_not_null_here", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; may be null here..
+        /// </summary>
+        internal static string _0_may_be_null_here {
+            get {
+                return ResourceManager.GetString("_0_may_be_null_here", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add accessibility modifiers.
         /// </summary>
         internal static string Add_accessibility_modifiers {

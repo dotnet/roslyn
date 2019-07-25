@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)symbol != null
                 && symbol._identifierNodeOrToken.Kind() != SyntaxKind.None
                 && symbol._identifierNodeOrToken.Equals(_identifierNodeOrToken)
-                && Equals(symbol._containingMethod, _containingMethod);
+                && symbol._containingMethod.Equals(_containingMethod, compareKind);
         }
 
         public override int GetHashCode()

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
-        public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root);
+        public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt);
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt, CancellationToken cancellationToken);
-        public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
+        public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
         public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 

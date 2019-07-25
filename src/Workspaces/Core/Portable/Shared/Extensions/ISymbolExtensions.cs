@@ -345,13 +345,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IMethodSymbol methodSymbol:
-                    return methodSymbol.ReturnType.WithNullability(methodSymbol.ReturnNullableAnnotation);
+                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
                 case IEventSymbol eventSymbol:
-                    return eventSymbol.Type.WithNullability(eventSymbol.NullableAnnotation);
+                    return eventSymbol.GetTypeWithAnnotatedNullability();
             }
 
             return null;
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             attributes = attributes.IsDefault ? symbol.GetAttributes() : attributes;
-            hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
+            hideModuleNameAttribute ??= compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
             ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol constructor)
         {
-            constructor = constructor ?? EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
+            constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
                 return false;
@@ -872,13 +872,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+                    return localSymbol.GetTypeWithAnnotatedNullability();
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
+                    return parameterSymbol.GetTypeWithAnnotatedNullability();
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }
@@ -1253,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            IMethodSymbol methodSymbol = symbol as IMethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;
 
             if (methodSymbol == null)

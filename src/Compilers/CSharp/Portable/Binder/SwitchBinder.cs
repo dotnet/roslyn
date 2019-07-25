@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // compute the constant value to place in the label symbol
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
-                        var boundLabelExpression = sectionBinder.BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
+                        var boundLabelExpression = sectionBinder.BindRValueWithoutTargetType(caseLabel.Value, tempDiagnosticBag);
                         boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
@@ -365,8 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 
-            var switchGoverningExpression = binder.BindValue(node, diagnostics, BindValueKind.RValue);
-
+            var switchGoverningExpression = binder.BindRValueWithoutTargetType(node, diagnostics);
             var switchGoverningType = switchGoverningExpression.Type;
 
             if ((object)switchGoverningType != null && !switchGoverningType.IsErrorType())

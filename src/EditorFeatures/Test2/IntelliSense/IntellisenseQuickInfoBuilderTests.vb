@@ -351,14 +351,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod(CancellationToken cancellationToken = default(CancellationToken))"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "["),
-                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken", navigationAction:=Sub() Return, "CancellationToken"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "cancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "cancellationToken", navigationAction:=Sub() Return, "CancellationToken cancellationToken = default(CancellationToken)"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "="),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Exceptions_colon)),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
-                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))
 
             AssertEqualAdornments(expected, container)
         End Sub
@@ -435,15 +435,114 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "text1"))),
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "text2")))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Sub InlineCodeElement()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// This method returns &lt;c&gt;true&lt;/c&gt;.
+                                /// &lt;/summary&gt;
+                                bool MyMethod() {
+                                    return MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "bool", navigationAction:=Sub() Return, "bool"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "bool MyClass.MyMethod()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Sub BlockLevelCodeElement()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// This method returns &lt;code&gt;true&lt;/code&gt;.
+                                /// &lt;/summary&gt;
+                                bool MyMethod() {
+                                    return MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "bool", navigationAction:=Sub() Return, "bool"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "bool MyClass.MyMethod()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont)),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
 
             AssertEqualAdornments(expected, container)
         End Sub
@@ -483,13 +582,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod(CancellationToken p)"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
-                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken", navigationAction:=Sub() Return, "CancellationToken"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p", navigationAction:=Sub() Return, "CancellationToken p"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "The parameter is"),
@@ -531,9 +630,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct", navigationAction:=Sub() Return, "MyStruct"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                        New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "readonly void MyStruct.MyMethod()"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
@@ -567,11 +666,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct", navigationAction:=Sub() Return, "MyStruct"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.PropertyName, "MyProperty"),
+                        New ClassifiedTextRun(ClassificationTypeNames.PropertyName, "MyProperty", navigationAction:=Sub() Return, "readonly int MyStruct.MyProperty"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "{"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
@@ -610,13 +709,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System", navigationAction:=Sub() Return, "System"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Action"),
+                        New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Action", navigationAction:=Sub() Return, "Action"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct", navigationAction:=Sub() Return, "MyStruct"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent"))))
+                        New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent", navigationAction:=Sub() Return, "readonly event Action MyStruct.MyEvent"))))
 
             AssertEqualAdornments(expected, container)
         End Sub
@@ -656,11 +755,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod<int>()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "<"),
-                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ">"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),

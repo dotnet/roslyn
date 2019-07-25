@@ -2775,8 +2775,9 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DisposeAnalysis)>
-        Public Async Function AwaitedButNotDisposed_Diagnostic() As Task
-            Await TestDiagnosticsAsync(
+        Public Async Function AwaitedButNotDisposed_NoDiagnostic() As Task
+            ' We are conservative when disposable object gets wrapped in a task and consider it as escaped.
+            Await TestDiagnosticMissingAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -2795,13 +2796,12 @@ Class C
         Dim c = Await M1_Task().ConfigureAwait(False)
     End Function
     |]
-End Class",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "Await M1_Task().ConfigureAwait(False)").WithLocation(16, 17))
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DisposeAnalysis)>
-        Public Async Function AwaitedButNotDisposed_TaskWrappingField_Diagnostic() As Task
-            Await TestDiagnosticsAsync(
+        Public Async Function AwaitedButNotDisposed_TaskWrappingField_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -2822,8 +2822,7 @@ Class C
         Dim c = Await M1_Task().ConfigureAwait(False)
     End Function
     |]
-End Class",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "Await M1_Task().ConfigureAwait(False)").WithLocation(18, 17))
+End Class")
         End Function
     End Class
 End Namespace

@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(AreNullableAnnotationsEnabled(questionToken), questionToken.GetLocation(), diagnostics);
                             }
                         }
-                        else if (isForOverride || IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
+                        else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))
                         {
                             constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
                         }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!isForOverride && !hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
+            if (!isForOverride && !hasTypeLikeConstraint && !AreNullableAnnotationsEnabled(typeParameterSyntax.Identifier))
             {
                 constraints |= TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
             }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax, bool isForOverride = false)
         {
-            return isForOverride || IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
+            return isForOverride || AreNullableAnnotationsEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
         }
 
         /// <summary>

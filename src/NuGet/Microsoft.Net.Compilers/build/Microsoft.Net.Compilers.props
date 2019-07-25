@@ -26,8 +26,6 @@
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.CopyRefAssembly"
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.DiscoverEditorConfigFiles"
-             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <PropertyGroup>
     <!-- By default don't use the compiler server in Visual Studio. -->

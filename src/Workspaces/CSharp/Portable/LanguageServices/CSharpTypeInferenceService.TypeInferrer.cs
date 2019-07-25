@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type.WithNullability(typeInfo.Nullability.FlowState));
+                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.GetTypeWithFlowNullability());
 
                         // If it bound to a method, try to get the Action/Func form of that method.
                         if (typeInferenceInfo.InferredType == null)
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parentTypes.Select(typeInfo => typeInfo.InferredType)
                                   .OfType<INamedTypeSymbol>()
                                   .Where(namedType => namedType.IsTupleType && index < namedType.TupleElements.Length)
-                                  .Select(tupleType => new TypeInferenceInfo(tupleType.TupleElements[index].Type.WithNullability(tupleType.TupleElements[index].NullableAnnotation)));
+                                  .Select(tupleType => new TypeInferenceInfo(tupleType.TupleElements[index].GetTypeWithAnnotatedNullability()));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(AttributeArgumentSyntax argument, SyntaxToken? previousToken = null, ArgumentSyntax argumentOpt = null)
@@ -618,7 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
 
-                var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/37310 is fixed
+                var typeArguments = method.ConstructedFrom.TypeParameters
+                    .Select(tp => (bestMap.GetValueOrDefault(tp) ?? tp).WithoutNullability()).ToArray();
                 return method.ConstructedFrom.Construct(typeArguments);
             }
 
@@ -714,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var matchingNameParameters = parameterizedSymbols.SelectMany(m => m)
                                                                      .Where(p => p.Name == name)
-                                                                     .Select(p => new TypeInferenceInfo(p.Type.WithNullability(p.NullableAnnotation), p.IsParams));
+                                                                     .Select(p => new TypeInferenceInfo(p.GetTypeWithAnnotatedNullability(), p.IsParams));
 
                     return matchingNameParameters;
                 }
@@ -728,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (index < parameterSet.Length)
                         {
                             var parameter = parameterSet[index];
-                            var info = new TypeInferenceInfo(parameter.Type.WithNullability(parameter.NullableAnnotation), parameter.IsParams);
+                            var info = new TypeInferenceInfo(parameter.GetTypeWithAnnotatedNullability(), parameter.IsParams);
                             allParameters.Add(info);
 
                             if (parameter.RefKind == refKind)
@@ -803,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var i = 0; i < arrayType.RankSpecifiers.Count; i++)
                 {
                     currentTypes = currentTypes.Select(t => t.InferredType).OfType<IArrayTypeSymbol>()
-                                               .SelectAsArray(a => new TypeInferenceInfo(a.ElementType.WithNullability(a.ElementNullableAnnotation)));
+                                               .SelectAsArray(a => new TypeInferenceInfo(a.GetElementTypeWithAnnotatedNullability()));
                 }
                 return currentTypes;
             }
@@ -1166,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
                     {
-                        return CreateResult(parameter.Type.WithNullability(parameter.NullableAnnotation));
+                        return CreateResult(parameter.GetTypeWithAnnotatedNullability());
                     }
                 }
 
@@ -1178,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
-                return CreateResult(typeInfo.Type.WithNullability(typeInfo.Nullability.Annotation));
+                return CreateResult(typeInfo.GetTypeWithAnnotatedNullability());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(ExpressionStatementSyntax expressionStatement, SyntaxToken? previousToken = null)
@@ -1217,8 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
 
-                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType.WithoutNullability())));
+                return variableTypes.Select(v => new TypeInferenceInfo(type.ConstructWithNullability(v.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1270,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var addMethodParameterTypes = addMethodSymbols
                         .Cast<IMethodSymbol>()
                         .Where(a => a.Parameters.Length == initializerExpression.Expressions.Count)
-                        .Select(a => new TypeInferenceInfo(a.Parameters.ElementAtOrDefault(parameterIndex)?.Type?.WithNullability(a.Parameters[parameterIndex].NullableAnnotation)))
+                        .Select(a => new TypeInferenceInfo(a.Parameters.ElementAtOrDefault(parameterIndex)?.GetTypeWithAnnotatedNullability()))
                         .Where(t => t.InferredType != null);
 
                     if (addMethodParameterTypes.Any())
@@ -1288,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var addMethodParameterTypes = addMethodSymbols
                             .Cast<IMethodSymbol>()
                             .Where(a => a.Parameters.Length == 1)
-                            .Select(a => new TypeInferenceInfo(a.Parameters[0].Type.WithNullability(a.Parameters[0].NullableAnnotation)));
+                            .Select(a => new TypeInferenceInfo(a.Parameters[0].GetTypeWithAnnotatedNullability()));
 
                         if (addMethodParameterTypes.Any())
                         {
@@ -1320,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // look at the siblings of this expression and use their type instead.
 
                     var arrayTypes = this.InferTypes((ExpressionSyntax)initializerExpression.Parent);
-                    var elementTypes = arrayTypes.OfType<IArrayTypeSymbol>().Select(a => new TypeInferenceInfo(a.ElementType.WithNullability(a.ElementNullableAnnotation))).Where(IsUsableTypeFunc);
+                    var elementTypes = arrayTypes.OfType<IArrayTypeSymbol>().Select(a => new TypeInferenceInfo(a.GetElementTypeWithAnnotatedNullability())).Where(IsUsableTypeFunc);
 
                     if (elementTypes.Any())
                     {
@@ -1343,22 +1344,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // = { Goo() }
                     var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
+                    var types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
                     {
-                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType.WithNullability(t.ElementNullableAnnotation)));
+                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.GetElementTypeWithAnnotatedNullability()));
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Goo() } 
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation).Select(t => t.InferredType);
+                    var types = GetTypes(arrayCreation).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
                     {
-                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType.WithNullability(t.ElementNullableAnnotation)));
+                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.GetElementTypeWithAnnotatedNullability()));
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
@@ -1367,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
-                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation).Select(t => t.InferredType);
+                    var types = GetTypes(objectCreation).Select(t => t.InferredType);
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
@@ -1381,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expressionOpt != null)
                     {
                         var addMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
-                        var addMethodParameterTypes = addMethodSymbols.Select(m => ((IMethodSymbol)m).Parameters[0]).Select(p => new TypeInferenceInfo(p.Type.WithNullability(p.NullableAnnotation)));
+                        var addMethodParameterTypes = addMethodSymbols.Select(m => ((IMethodSymbol)m).Parameters[0]).Select(p => new TypeInferenceInfo(p.GetTypeWithAnnotatedNullability()));
                         if (addMethodParameterTypes.Any())
                         {
                             return addMethodParameterTypes;
@@ -1389,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left).Select(t => t.InferredType);
+                    var types = GetTypes(assignExpression.Left).Select(t => t.InferredType);
 
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
@@ -1442,10 +1443,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (symbol)
                         {
                             case IFieldSymbol field:
-                                result.Add(new TypeInferenceInfo(field.Type.WithNullability(field.NullableAnnotation)));
+                                result.Add(new TypeInferenceInfo(field.GetTypeWithAnnotatedNullability()));
                                 break;
                             case IPropertySymbol property:
-                                result.Add(new TypeInferenceInfo(property.Type.WithNullability(property.NullableAnnotation)));
+                                result.Add(new TypeInferenceInfo(property.GetTypeWithAnnotatedNullability()));
                                 break;
                         }
                     }
@@ -1489,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (recursivePattern.Type != null)
                 {
                     var typeInfo = SemanticModel.GetTypeInfo(recursivePattern);
-                    return CreateResult(typeInfo.ConvertedType.WithNullability(typeInfo.ConvertedNullability.Annotation));
+                    return CreateResult(typeInfo.GetConvertedTypeWithAnnotatedNullability());
                 }
 
                 // If it's of the form (...) then infer that the type should be a 
@@ -1563,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
                         return SpecializedCollections.SingletonEnumerable(
-                            new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType.WithNullability(invoke.ReturnNullableAnnotation), isAsync)));
+                            new TypeInferenceInfo(UnwrapTaskLike(invoke.GetReturnTypeWithAnnotatedNullability(), isAsync)));
                     }
                 }
 
@@ -1585,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return types.Where(t => t.InferredType.IsAnonymousType())
                         .SelectMany(t => t.InferredType.GetValidAnonymousTypeProperties()
                             .Where(p => p.Name == memberDeclarator.NameEquals.Name.Identifier.ValueText)
-                            .Select(p => new TypeInferenceInfo(p.Type.WithNullability(p.NullableAnnotation))));
+                            .Select(p => new TypeInferenceInfo(p.GetTypeWithAnnotatedNullability())));
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1700,8 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         this.Compilation.ObjectType;
                                 }
 
-                                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                                return CreateResult(ienumerableType.Construct(typeArg.WithoutNullability()));
+                                return CreateResult(ienumerableType.ConstructWithNullability(typeArg));
                             }
                         }
                     }
@@ -1880,8 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateResult(task);
                 }
 
-                // TODO: pass along nullability to Construct when https://github.com/dotnet/roslyn/issues/36046 is fixed.
-                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType.WithoutNullability())));
+                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.ConstructWithNullability(t.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInYieldStatement(YieldStatementSyntax yieldStatement, SyntaxToken? previousToken = null)
@@ -1900,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
                 // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
                 return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0].WithNullability(namedType.TypeArgumentsNullableAnnotations[0])))
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0].WithNullability(namedType.TypeArgumentNullableAnnotations[0])))
                     : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
@@ -1914,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
                     {
                         var namedTypeSymbol = (INamedTypeSymbol)type;
-                        return namedTypeSymbol.TypeArguments[0].WithNullability(namedTypeSymbol.TypeArgumentsNullableAnnotations[0]);
+                        return namedTypeSymbol.TypeArguments[0].WithNullability(namedTypeSymbol.TypeArgumentNullableAnnotations[0]);
                     }
 
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
@@ -2121,8 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36047 is fixed
-                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames);
+                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames, elementNullableAnnotations: elementTypes.SelectAsArray(t => t.GetNullability()));
             }
 
             private bool TryGetTupleTypesAndNames(
@@ -2240,7 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var elementType = parameters.ElementAtOrDefault(0);
                     if (elementType != null)
                     {
-                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType.WithNullability(type.TypeArgumentsNullableAnnotations[0])));
+                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType.WithNullability(type.TypeArgumentNullableAnnotations[0])));
                     }
                 }
 

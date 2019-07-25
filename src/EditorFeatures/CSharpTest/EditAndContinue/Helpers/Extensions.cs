@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -59,7 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemanticDiagnostics(editScript, null, expectedDiagnostics);
+            VerifySemantics(
+                editScript,
+                expectedDiagnostics: expectedDiagnostics);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            TargetFramework[] targetFrameworks,
+            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+        {
+            VerifySemantics(
+                editScript,
+                targetFrameworks: targetFrameworks,
+                expectedDiagnostics: expectedDiagnostics);
         }
 
         internal static void VerifySemanticDiagnostics(
@@ -67,45 +81,45 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             DiagnosticDescription expectedDeclarationError,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemantics(editScript, ActiveStatementsDescription.Empty, null, expectedDeclarationError, expectedDiagnostics);
+            VerifySemantics(
+                editScript,
+                expectedDeclarationError: expectedDeclarationError,
+                expectedDiagnostics: expectedDiagnostics);
         }
 
         internal static void VerifySemantics(
             this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
-            SemanticEditDescription[] expectedSemanticEdits,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            SemanticEditDescription[] expectedSemanticEdits)
         {
-            VerifySemantics(editScript, activeStatements, expectedSemanticEdits, null, expectedDiagnostics);
-        }
-
-        internal static void VerifySemantics(
-            this EditScript<SyntaxNode> editScript,
-            ActiveStatementsDescription activeStatements,
-            SemanticEditDescription[] expectedSemanticEdits,
-            DiagnosticDescription expectedDeclarationError,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
-        {
-            VerifySemantics(editScript, activeStatements, null, null, expectedSemanticEdits, expectedDeclarationError, expectedDiagnostics);
-        }
-
-        internal static void VerifySemantics(
-            this EditScript<SyntaxNode> editScript,
-            ActiveStatementsDescription activeStatements,
-            IEnumerable<string> additionalOldSources,
-            IEnumerable<string> additionalNewSources,
-            SemanticEditDescription[] expectedSemanticEdits,
-            DiagnosticDescription expectedDeclarationError,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
-        {
-            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+            VerifySemantics(
                 editScript,
                 activeStatements,
-                additionalOldSources,
-                additionalNewSources,
-                expectedSemanticEdits,
-                expectedDeclarationError,
-                expectedDiagnostics);
+                expectedSemanticEdits: expectedSemanticEdits,
+                expectedDiagnostics: null);
+        }
+
+        internal static void VerifySemantics(
+            this EditScript<SyntaxNode> editScript,
+            ActiveStatementsDescription activeStatements = null,
+            TargetFramework[] targetFrameworks = null,
+            IEnumerable<string> additionalOldSources = null,
+            IEnumerable<string> additionalNewSources = null,
+            SemanticEditDescription[] expectedSemanticEdits = null,
+            DiagnosticDescription expectedDeclarationError = null,
+            RudeEditDiagnosticDescription[] expectedDiagnostics = null)
+        {
+            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp30 })
+            {
+                new CSharpEditAndContinueTestHelpers(targetFramework).VerifySemantics(
+                    editScript,
+                    activeStatements,
+                    additionalOldSources,
+                    additionalNewSources,
+                    expectedSemanticEdits,
+                    expectedDeclarationError,
+                    expectedDiagnostics);
+            }
         }
     }
 }

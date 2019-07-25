@@ -39,7 +39,7 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents
                     AttributeTargets.ReturnValue | // The return type is a nullable reference type, or has a nullable reference type as one of its constituents
                     AttributeTargets.Property | // The type of the property is a nullable reference type, or has a nullable reference type as one of its constituents
-                    AttributeTargets.Class , // Base type has a nullable reference type as one of its constituents
+                    AttributeTargets.Class, // Base type has a nullable reference type as one of its constituents
                    AllowMultiple = false)]
     public class NullableAttribute : Attribute
     {
@@ -50,6 +50,42 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+
+        protected const string NullableContextAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(
+        AttributeTargets.Module |
+        AttributeTargets.Class |
+        AttributeTargets.Delegate |
+        AttributeTargets.Interface |
+        AttributeTargets.Method |
+        AttributeTargets.Struct,
+        AllowMultiple = false,
+        Inherited = false)]
+    public sealed class NullableContextAttribute : Attribute
+    {
+        public readonly byte Flag;
+        public NullableContextAttribute(byte flag)
+        {
+            Flag = flag;
+        }
+    }
+}";
+
+        protected const string NullablePublicOnlyAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
+    public sealed class NullablePublicOnlyAttribute : Attribute
+    {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
+    }
+}";
 
         // Nullable flow analysis attributes are defined at
         // https://github.com/dotnet/coreclr/blob/4a1275434fff99206f2a28f5f0e87f124069eb7f/src/System.Private.CoreLib/shared/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
@@ -113,24 +149,35 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string AssertsTrueAttributeDefinition = @"
+        protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsTrueAttribute : Attribute
+    public class DoesNotReturnIfAttribute : Attribute
     {
-        public AssertsTrueAttribute () { }
+        public DoesNotReturnIfAttribute (bool condition) { }
     }
 }
 ";
 
-        protected const string AssertsFalseAttributeDefinition = @"
+        protected const string DoesNotReturnAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class DoesNotReturnAttribute : Attribute
     {
-        public AssertsFalseAttribute () { }
+        public DoesNotReturnAttribute () { }
+    }
+}
+";
+
+        protected const string NotNullIfNotNulltAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) { }
     }
 }
 ";
@@ -1805,6 +1852,9 @@ namespace System.Runtime.CompilerServices
 
             return comp;
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

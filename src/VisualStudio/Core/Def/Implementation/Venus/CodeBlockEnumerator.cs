@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             pceltFetched = Math.Min(celt, (uint)(_codeBlocks.Count - _currentElement));
 
             // Copy each element over
-            for (int i = 0; i < pceltFetched; i++)
+            for (var i = 0; i < pceltFetched; i++)
             {
                 rgelt[i] = _codeBlocks[_currentElement++];
             }
