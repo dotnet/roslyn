@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // because of the boxing requirement in order to call the method.
                     // therefore it seems like a small oversight to leave out the keyword for an explicit impl from metadata.
                     var hasAllReadOnlyAccessors = property.GetMethod?.IsReadOnly != false && property.SetMethod?.IsReadOnly != false;
-                    if (hasAllReadOnlyAccessors)
+                    if (hasAllReadOnlyAccessors && !property.ContainingType.IsReadOnly)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }

@@ -1734,6 +1734,42 @@ Public Structure S <IsReadOnlyAttribute>
 End Structure");
         }
 
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyMethod_InReadOnlyStruct()
+        {
+            var metadataSource = @"
+public readonly struct S
+{
+    public void M() {}
+}
+";
+            var symbolName = "S.M";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly struct S
+{{
+    public void [|M|]();
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+<IsReadOnlyAttribute>
+Public Structure S
+    Public Sub [|M|]()
+End Structure");
+        }
+
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestStructProperty_ReadOnly()
@@ -1825,6 +1861,41 @@ public struct S
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyStructProperty_ReadOnlyGet()
+        {
+            var metadataSource = @"
+public readonly struct S
+{
+    public readonly int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly struct S
+{{
+    public int [|P|] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+<IsReadOnlyAttribute>
 Public Structure S
     Public ReadOnly Property [|P|] As Integer
 End Structure");
@@ -2033,6 +2104,44 @@ public struct S
 
 Imports System
 
+Public Structure S
+    Public Event [|E|] As Action
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyStruct_ReadOnlyEvent()
+        {
+            var metadataSource = @"
+public readonly struct S
+{
+    public event System.Action E { add {} remove {} }
+}
+";
+            var symbolName = "S.E";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+public readonly struct S
+{{
+    public event Action [|E|];
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+Imports System.Runtime.CompilerServices
+
+<IsReadOnlyAttribute>
 Public Structure S
     Public Event [|E|] As Action
 End Structure");
