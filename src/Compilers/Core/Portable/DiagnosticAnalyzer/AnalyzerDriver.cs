@@ -1537,7 +1537,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (allAnalyzerActions, unsuppressedAnalyzers);
         }
 
-        public bool HasSymbolStartedActions => this.AnalyzerActions.SymbolStartActionsCount > 0;
+        public bool HasSymbolStartedActions(AnalysisScope analysisScope)
+        {
+            if (this.AnalyzerActions.SymbolStartActionsCount == 0)
+            {
+                return false;
+            }
+
+            // Perform simple checks for when we are executing all analyzers (batch compilation mode) OR
+            // executing just a single analyzer (IDE open file analysis).
+            if (analysisScope.Analyzers.Length == this.Analyzers.Length)
+            {
+                // We are executing all analyzers, so at least one analyzer in analysis scope must have a symbol start action.
+                return true;
+            }
+            else if (analysisScope.Analyzers.Length == 1)
+            {
+                // We are executing a single analyzer.
+                var analyzer = analysisScope.Analyzers[0];
+                foreach (var action in this.AnalyzerActions.SymbolStartActions)
+                {
+                    if (action.Analyzer == analyzer)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // Slow check when we are executing more than one analyzer, but it is still a strict subset of all analyzers.
+            var symbolStartAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+            try
+            {
+                foreach (var action in this.AnalyzerActions.SymbolStartActions)
+                {
+                    symbolStartAnalyzers.Add(action.Analyzer);
+                }
+
+                foreach (var analyzer in analysisScope.Analyzers)
+                {
+                    if (symbolStartAnalyzers.Contains(analyzer))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                symbolStartAnalyzers.Free();
+            }
+        }
 
         private async Task<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
