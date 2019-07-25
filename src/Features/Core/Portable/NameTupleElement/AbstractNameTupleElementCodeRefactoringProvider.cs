@@ -49,17 +49,6 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
             Func<SyntaxNode, bool> isTupleArgumentExpression = n => n.Parent != null && syntaxFacts.IsTupleExpression(n.Parent);
             var argument = await helperService.TryGetSelectedNodeAsync<TArgumentSyntax>(document, span, isTupleArgumentExpression, cancellationToken).ConfigureAwait(false);
-            if (argument == null)
-            {
-                // Enable refactoring even if we're deep in a argument expression 
-                // -> traverse upwards only until we encounter TTupleExpressionSyntax
-                // -> might be a few TupleExpressions deep -> want to limit ourselves to the closest one
-                argument = await helperService.TryGetDeepInNodeAsync<TArgumentSyntax>(
-                    document, span,
-                    predicate: isTupleArgumentExpression,
-                    traverseUntil: n => n is TTupleExpressionSyntax,
-                    cancellationToken).ConfigureAwait(false);
-            }
 
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {

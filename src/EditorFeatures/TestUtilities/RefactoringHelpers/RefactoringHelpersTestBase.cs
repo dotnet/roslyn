@@ -34,23 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             base.Dispose();
         }
 
-        protected async Task TestGetDeepInNodeAsync<TNode>(string text, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
-        {
-            text = GetSelectionAndResultSpans(text, out var selection, out var result);
-            var resultNode = await GetNodeForSelectionDeepIn<TNode>(text, selection, predicate, traverseUntil).ConfigureAwait(false);
-
-            Assert.NotNull(resultNode);
-            Assert.Equal(result, resultNode.Span);
-        }
-
-        protected async Task TestMissingGetDeepInNodeAsync<TNode>(string text, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
-        {
-            text = GetSelectionSpan(text, out var selection);
-            var resultNode = await GetNodeForSelectionDeepIn<TNode>(text, selection, predicate, traverseUntil).ConfigureAwait(false);
-
-            Assert.Null(resultNode);
-        }
-
         protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
 
         protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
@@ -109,15 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             var service = document.GetLanguageService<IRefactoringHelpersService>();
 
             var resultNode = await service.TryGetSelectedNodeAsync<TNode>(document, selection, predicate, CancellationToken.None).ConfigureAwait(false);
-            return resultNode;
-        }
-
-        private async Task<TNode> GetNodeForSelectionDeepIn<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
-        {
-            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
-            var service = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var resultNode = await service.TryGetDeepInNodeAsync<TNode>(document, selection, predicate, traverseUntil, CancellationToken.None).ConfigureAwait(false);
             return resultNode;
         }
     }
