@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,6 +8,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
+#nullable enable
+        /// <summary>
+        /// Initial state for a MethodBodySemanticModel. Shared between here and the <see cref="MethodCompiler"/>. Used to make a <see cref="MethodBodySemanticModel"/>
+        /// with the required syntax and optional precalculated starting state for the model.
+        /// </summary>
+        internal readonly struct InitialState
+        {
+            internal readonly CSharpSyntaxNode Syntax;
+            internal readonly BoundNode? Body;
+            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly NullableWalker.SnapshotManager? SnapshotManager;
+
+            internal InitialState(CSharpSyntaxNode syntax, BoundNode? bodyOpt = null, ExecutableCodeBinder? binder = null, NullableWalker.SnapshotManager? snapshotManager = null)
+            {
+                Syntax = syntax;
+                Body = bodyOpt;
+                Binder = binder;
+                SnapshotManager = snapshotManager;
+            }
+        }
+#nullable restore
+
         private MethodBodySemanticModel(
             Symbol owner,
             Binder rootBinder,
@@ -28,15 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder,
-                                                       CSharpSyntaxNode syntax, BoundNode boundNode = null, NullableWalker.SnapshotManager snapshotManager = null)
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, InitialState initialState)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, initialState.Binder, initialState.Syntax, containingSemanticModel);
 
-            if (boundNode != null)
+            if (initialState.Body != null)
             {
-                result.UnguardedAddBoundTreeForStandaloneSyntax(syntax, boundNode, snapshotManager);
+                result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager);
             }
 
             return result;

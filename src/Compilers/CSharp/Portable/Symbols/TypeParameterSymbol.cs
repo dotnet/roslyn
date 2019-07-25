@@ -556,7 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
         internal abstract bool? IsNotNullable { get; }
 
         public sealed override bool IsValueType
