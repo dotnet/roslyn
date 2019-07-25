@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
-        Inherits AbstractRefactoringHelpersService
+        Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax)
 
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)

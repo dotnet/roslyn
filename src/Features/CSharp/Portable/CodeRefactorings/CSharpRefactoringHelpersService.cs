@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
     [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
-    internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService
+    internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService<ExpressionSyntax, ArgumentSyntax>
     {
         protected override IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {

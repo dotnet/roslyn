@@ -33,15 +33,6 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
                 if (argument == null)
                 {
-                    // Enable refactoring even if we're deep in a argument expression 
-                    // -> traverse upwards only until we encounter TArgumentListSyntax
-                    // -> might be a few TArgumentListSyntax deep -> want to limit ourselves to the closest one
-
-                    argument = await context.TryGetDeepInNodeAsync<TSimpleArgumentSyntax>(predicate: Functions<SyntaxNode>.True, traverseUntil: node => node is TArgumentListSyntax).ConfigureAwait(false);
-                }
-
-                if (argument == null)
-                {
                     return;
                 }
 

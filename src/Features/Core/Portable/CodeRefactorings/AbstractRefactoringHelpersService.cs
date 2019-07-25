@@ -12,7 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax> : IRefactoringHelpersService
+        where TExpressionSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document,
@@ -121,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information. 
             // - Thirdly, if location isn't touching anything, we move the location to the token in whose trivia location is in.
             // more about that below.
+            // - Fourthly, if we're in an expression / argument we consider touching a parent expression whenever we're within it
+            // as long as it is on the first line of such expression (arbitrary heuristic).
 
             // get Token for current location
             var location = selectionTrimmed.Start;
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 var tokenPreLocation = (tokenOnLocation.Span.End == location)
                     ? tokenOnLocation
-                    : tokenOnLocation.GetPreviousToken();
+                    : tokenOnLocation.GetPreviousToken(includeZeroWidth: true);
 
                 tokenToLeft = (tokenPreLocation.Span.End == location)
                     ? tokenPreLocation
@@ -188,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             if (tokenToRightOrIn != default)
             {
-
                 var rightNode = tokenOnLocation.Parent;
                 do
                 {
@@ -225,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 while (true);
             }
 
-            if (tokenToLeft != default)
+            // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
+            while (tokenToLeft != default)
             {
                 var leftNode = tokenToLeft.Parent;
                 do
@@ -238,12 +242,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     }
 
                     leftNode = leftNode.Parent;
-                    if (leftNode == null || leftNode.GetLastToken().Span.End != location)
+                    if (leftNode == null || !(leftNode.GetLastToken().Span.End == location || leftNode.Span.End == location))
                     {
                         break;
                     }
                 }
                 while (true);
+
+                // as long as current tokenToLeft is empty -> its previous token is also tokenToLeft
+                tokenToLeft = tokenToLeft.Span.IsEmpty
+                    ? tokenToLeft.GetPreviousToken(includeZeroWidth: true)
+                    : default;
+
+            }
+
+            // If the wanted node is an expression syntax -> traverse upwards even if location is deep within a SyntaxNode
+            // ArgumentSyntax isn't an "expression" syntax but we want to treat it as such
+            if (typeof(TSyntaxNode).IsSubclassOf(typeof(TExpressionSyntax)) || typeof(TSyntaxNode) == typeof(TArgumentSyntax))
+            {
+                return await TryGetDeepInNodeAsync(document, location, predicate, cancellationToken).ConfigureAwait(false);
             }
 
             // nothing found -> return null
@@ -405,26 +422,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        public virtual async Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selectionRaw,
+        protected virtual async Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
+            Document document, int position,
             Func<TSyntaxNode, bool> predicate,
-            Func<SyntaxNode, bool> traverseUntil,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            // Traversing up from deep inside is applicable only for empty selections 
-            // If user selected something he wanted something very specific -> not arbitrary traversing up
-            if (!selectionRaw.IsEmpty)
-            {
-                return null;
-            }
 
             // If we're deep inside we don't have to deal with being on edges (that gets dealt by TryGetSelectedNodeAsync)
             // -> can simply FindToken -> proceed with its ancestors.
-            var location = selectionRaw.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = root.FindToken(location);
-            var expression = token.Parent?.FirstAncestorOrSelfUntil<TSyntaxNode>(predicate, traverseUntil);
+            var token = root.FindTokenOnRightOfPosition(position, true);
+
+
+            var expression = token.Parent?.FirstAncestorOrSelf<TSyntaxNode>(predicate);
 
             if (expression == null)
             {
@@ -434,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var argumentStartLine = sourceText.Lines.GetLineFromPosition(expression.Span.Start).LineNumber;
-            var caretLine = sourceText.Lines.GetLineFromPosition(location).LineNumber;
+            var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
 
             if (argumentStartLine != caretLine)
             {

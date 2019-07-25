@@ -265,6 +265,25 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, N(0, [||]{|result:|}, 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
         #endregion
 
         #region Selections
@@ -1394,7 +1413,7 @@ class C
 
         #endregion
 
-        #region Test TryGetDeepInNodeAsync
+        #region Test Deep in expression
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestDeepIn()
@@ -1411,7 +1430,7 @@ class C
     {
     }
 }";
-            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, Functions<ArgumentSyntax>.True, Functions<SyntaxNode>.False);
+            await TestAsync<ArgumentSyntax>(testText);
         }
 
         [Fact]
@@ -1431,12 +1450,12 @@ class C
     {
     }
 }";
-            await TestMissingGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: Functions<SyntaxNode>.False);
+            await TestMissingAsync<ArgumentSyntax>(testText);
         }
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestDeepInPredicate()
+        public async Task TestDeepInExpression()
         {
             var testText = @"
 class C
@@ -1451,46 +1470,9 @@ class C
         return a;
     }
 }";
-            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax, traverseUntil: Functions<SyntaxNode>.False);
+            await TestAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingTraverseUntil()
-        {
-            var testText = @"
-class C
-{
-    void M()
-    {
-        N(0, N(0, [||], 0)); 
-    }
-
-    int N(int a, int b, int c)
-    {
-    }
-}";
-            await TestMissingGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: n => n is ArgumentListSyntax);
-        }
-
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestTraverseUntilFirst()
-        {
-            var testText = @"
-class C
-{
-    void M()
-    {
-        N(0, N(0, {|result:0[||]+0|}, 0)); 
-    }
-
-    int N(int a, int b, int c)
-    {
-    }
-}";
-            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: n => n is ArgumentListSyntax);
-        }
         #endregion
     }
 }

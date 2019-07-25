@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Selection is zero-width and in whitespace that corresponds to a Token whose direct ancestor is of type of type <typeparamref name="TSyntaxNode"/>.
         /// - Selection is zero-width and in a header (defined by ISyntaxFacts helpers) of an node of type of type <typeparamref name="TSyntaxNode"/>.
         /// - Token whose direct parent of type <typeparamref name="TSyntaxNode"/> is selected.
+        /// - Wanted node is an expression / argument and curent empty selection is within such syntax node (arbitrarily deep) on its first line.
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>
@@ -36,12 +37,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<TSyntaxNode, bool> predicate, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
-
-        Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selectionRaw,
-            Func<TSyntaxNode, bool> predicate,
-            Func<SyntaxNode, bool> traverseUntil,
-            CancellationToken cancellationToken)
-            where TSyntaxNode : SyntaxNode;
     }
 }

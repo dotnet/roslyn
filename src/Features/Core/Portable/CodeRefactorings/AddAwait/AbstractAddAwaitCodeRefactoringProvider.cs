@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var awaitable = await context.TryGetSelectedNodeAsync<TInvocationExpressionSyntax>().ConfigureAwait(false);
-            if (awaitable == null)
-            {
-                // Enable add await refactoring even if caret is deep in an expression.
-                awaitable = await context.TryGetDeepInNodeAsync<TInvocationExpressionSyntax>().ConfigureAwait(false);
-            }
-
             if (awaitable == null || !IsValidAwaitableExpression(awaitable, model, syntaxFacts))
             {
                 return;

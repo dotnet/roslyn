@@ -35,17 +35,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             return helpers.TryGetSelectedNodeAsync<TSyntaxNode>(document, context.Span, context.CancellationToken);
         }
-
-        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context) where TSyntaxNode : SyntaxNode
-            => TryGetDeepInNodeAsync<TSyntaxNode>(context, Functions<TSyntaxNode>.True, Functions<SyntaxNode>.False);
-
-        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context, Func<TSyntaxNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil)
-            where TSyntaxNode : SyntaxNode
-        {
-            var document = context.Document;
-            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
-
-            return helpers.TryGetDeepInNodeAsync<TSyntaxNode>(document, context.Span, predicate, traverseUntil, context.CancellationToken);
-        }
     }
 }
