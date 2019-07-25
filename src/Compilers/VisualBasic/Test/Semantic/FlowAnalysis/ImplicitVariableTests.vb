@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},
             definitelyAssignedOnEntry:={},
-            definitelyAssignedOnExit:={},
+            definitelyAssignedOnExit:={"f", "x"},
             readInside:={"x"},
             writtenInside:={"f", "x"})
         End Sub
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             alwaysAssigned:={"x"},
             dataFlowsIn:={"x"},
             definitelyAssignedOnEntry:={},
-            definitelyAssignedOnExit:={},
+            definitelyAssignedOnExit:={"x"},
             readInside:={"x"},
             writtenInside:={"x"},
             writtenOutside:={"x"})
