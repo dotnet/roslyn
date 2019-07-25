@@ -16,13 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.cs" Link="Options\LegacyEditorConfigDocumentOptionsProvider.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" Link="Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
       ⚠ ONLY dotnet format ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
