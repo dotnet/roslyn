@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
     internal class CSharpLspNavigationBarItemService : RoslynNavigationBarItemService
     {
         [ImportingConstructor]
-        protected CSharpLspNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        protected CSharpLspNavigationBarItemService(CSharpLspClientServiceFactory csharpLspClientServiceFactory)
+            : base(csharpLspClientServiceFactory)
         {
         }
     }
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
     internal class VBLspNavigationBarItemService : RoslynNavigationBarItemService
     {
         [ImportingConstructor]
-        protected VBLspNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        protected VBLspNavigationBarItemService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory)
+            : base(vbLspClientServiceFactory)
         {
         }
     }
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
     internal class TypeScriptLspNavigationBarItemService : RoslynNavigationBarItemService
     {
         [ImportingConstructor]
-        protected TypeScriptLspNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        protected TypeScriptLspNavigationBarItemService(TypeScriptLspClientServiceFactory typeScriptLspClientServiceFactory)
+            : base(typeScriptLspClientServiceFactory)
         {
         }
     }
