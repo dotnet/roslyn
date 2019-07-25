@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -27,8 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
-            context.RegisterSyntaxTreeAction(c => AnalyzeSyntaxTree(c, codingConventionsManager));
+            context.RegisterSyntaxTreeAction(c =>
+            {
+                var codingConventionsManager = new AnalyzerConfigCodingConventionsManager(c.Tree, c.Options);
+                AnalyzeSyntaxTree(c, codingConventionsManager);
+            });
         }
 
         protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
