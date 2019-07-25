@@ -110,7 +110,7 @@
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLanguageServerClientVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerClientVersion>
-    <MicrosoftVisualStudioLiveShareLanguageServicesVersion>1.0.181</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
+    <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.1</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
@@ -186,7 +186,7 @@
     <SystemRuntimeCompilerServicesUnsafeVersion>4.5.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
-    <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
+    <SystemThreadingTasksDataflowVersion>4.9.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.3</SystemThreadingTasksExtensionsVersion>

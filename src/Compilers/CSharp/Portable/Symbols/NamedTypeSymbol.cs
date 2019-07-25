@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, TypeCompareKind.ConsiderEverything2, isValueTypeOverrideOpt))
+            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }

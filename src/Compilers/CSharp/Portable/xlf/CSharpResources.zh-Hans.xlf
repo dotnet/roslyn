@@ -584,12 +584,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public

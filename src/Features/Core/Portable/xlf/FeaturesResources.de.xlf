@@ -587,6 +587,11 @@
         <target state="translated">Warnung: Durch die Änderung des Namespaces kann der Code ungültig werden oder seine Bedeutung verändern.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
         <target state="new">Wrap and align call chain</target>

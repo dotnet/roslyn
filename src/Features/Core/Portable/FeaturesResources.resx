@@ -1696,4 +1696,7 @@ This version used in: {2}</value>
   <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
     <value>Wrap and align long call chain</value>
   </data>
+  <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
+    <value>Warning: Semantics may change when converting statement.</value>
+  </data>
 </root>

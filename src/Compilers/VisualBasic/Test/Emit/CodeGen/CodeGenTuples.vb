@@ -5663,7 +5663,7 @@ End Class
 
             Dim b = New StringBuilder()
             b.Append("(")
-            For i As Integer = 0 To 3000
+            For i As Integer = 0 To 2000
                 b.Append("1, ")
             Next
             b.Append("1)")

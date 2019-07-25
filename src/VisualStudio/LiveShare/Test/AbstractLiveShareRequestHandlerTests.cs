@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using RoslynHandlers = Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -28,6 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             public bool IsContainedInRootFolders(Uri uriToCheck)
             {
                 return true;
+            }
+
+            public bool IsKnownWorkspaceFile(Uri uriToCheck)
+            {
+                throw new NotImplementedException();
             }
 
             public Task RegisterExternalFilesAsync(Uri[] filePaths)
@@ -64,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
         protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request)
         {
-            var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), new ClientCapabilities());
+            var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), JObject.FromObject(new ClientCapabilities()));
             return await GetHandler<RequestType, ResponseType>(solution).HandleAsync(request, requestContext, CancellationToken.None);
         }
 

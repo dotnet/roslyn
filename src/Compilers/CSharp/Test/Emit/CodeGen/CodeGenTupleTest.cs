@@ -6384,8 +6384,8 @@ class C
             tuple2 = comp.CreateTupleTypeSymbol(
                 underlyingType,
                 elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
-            Assert.False(tuple1.Equals(tuple2));
-            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
 
             tuple2 = comp.CreateTupleTypeSymbol(
@@ -6453,8 +6453,8 @@ class C
             tuple2 = comp.CreateTupleTypeSymbol(
                 elementTypes,
                 elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
-            Assert.False(tuple1.Equals(tuple2));
-            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
 
             tuple2 = comp.CreateTupleTypeSymbol(
