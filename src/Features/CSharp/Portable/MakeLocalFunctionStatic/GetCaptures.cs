@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCaptures
 
 
 
-                    var newArgList = arg_List.AddArguments(x); //gives me an error that I can't add an entire list of x to AddParameters, so I made a foreach loop to iterate through it
+                    var newArgList = arg_List.WithArguments(arg_List.Arguments.AddRange(x));
+
                     var newInvocation = invocation.WithArgumentList(newArgList);
 
 
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCaptures
 
 
 
-            var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNodes(dict.Keys, (invocation, _) => dict[invocation]); //is the old node "invocation"?
+            var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNodes(dict.Keys, (invocation, _) => dict[invocation]);
             var newDocument = document.WithSyntaxRoot(newRoot);
 
 
