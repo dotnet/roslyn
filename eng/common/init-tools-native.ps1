@@ -98,7 +98,7 @@ try {
       }
 
       Write-Verbose "Installing $ToolName version $ToolVersion"
-      Write-Verbose "Executing '$InstallerPath $($LocalInstallerArguments.Keys.ForEach({"-$_ `"$($LocalInstallerArguments.$_)`""}) -join ' ')'"
+      Write-Verbose "Executing '$InstallerPath $LocalInstallerArguments'"
       & $InstallerPath @LocalInstallerArguments
       if ($LASTEXITCODE -Ne "0") {
         $errMsg = "$ToolName installation failed"
