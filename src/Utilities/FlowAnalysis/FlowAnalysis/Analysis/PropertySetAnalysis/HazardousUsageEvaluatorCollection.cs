@@ -30,8 +30,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             this.HazardousUsageEvaluators =
-                hazardousUsageEvaluators.ToImmutableDictionary<HazardousUsageEvaluator, (string InstanceTypeName, string MethodName, string ParameterName)>(
-                    h => (h.InstanceTypeName, h.MethodName, h.ParameterNameOfPropertySetObject));
+                hazardousUsageEvaluators.ToImmutableDictionary<HazardousUsageEvaluator, (HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName)>(
+                    h => (h.Kind, h.ContainingTypeName, h.MethodName, h.ParameterNameOfPropertySetObject));
         }
 
         public HazardousUsageEvaluatorCollection(params HazardousUsageEvaluator[] hazardousUsageEvaluators)
@@ -43,16 +43,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        private ImmutableDictionary<(string InstanceTypeName, string MethodName, string ParameterName), HazardousUsageEvaluator> HazardousUsageEvaluators { get; }
+        private ImmutableDictionary<(HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName), HazardousUsageEvaluator> HazardousUsageEvaluators { get; }
 
         internal bool TryGetHazardousUsageEvaluator(string trackedTypeMethodName, out HazardousUsageEvaluator hazardousUsageEvaluator)
         {
-            return this.HazardousUsageEvaluators.TryGetValue((null, trackedTypeMethodName, null), out hazardousUsageEvaluator);
+            return this.HazardousUsageEvaluators.TryGetValue(
+                (HazardousUsageEvaluatorKind.Invocation, null, trackedTypeMethodName, null),
+                out hazardousUsageEvaluator);
         }
 
         internal bool TryGetHazardousUsageEvaluator(string containingType, string methodName, string parameterName, out HazardousUsageEvaluator hazardousUsageEvaluator)
         {
-            return this.HazardousUsageEvaluators.TryGetValue((containingType, methodName, parameterName), out hazardousUsageEvaluator);
+            return this.HazardousUsageEvaluators.TryGetValue(
+                (HazardousUsageEvaluatorKind.Invocation, containingType, methodName, parameterName),
+                out hazardousUsageEvaluator);
+        }
+
+        internal bool TryGetReturnHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator)
+        {
+            return this.HazardousUsageEvaluators.TryGetValue(
+                (HazardousUsageEvaluatorKind.Return, null, null, null),
+                out hazardousUsageEvaluator);
+        }
+
+        internal bool TryGetInitializationHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator)
+        {
+            return this.HazardousUsageEvaluators.TryGetValue(
+                (HazardousUsageEvaluatorKind.Initialization, null, null, null),
+                out hazardousUsageEvaluator);
         }
 
         internal ImmutableDictionary<INamedTypeSymbol, string> GetTypeToNameMapping(WellKnownTypeProvider wellKnownTypeProvider)
@@ -60,10 +78,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PooledDictionary<INamedTypeSymbol, string> pooledDictionary = PooledDictionary<INamedTypeSymbol, string>.GetInstance();
             try
             {
-                foreach (KeyValuePair<(string InstanceTypeName, string MethodName, string ParameterName), HazardousUsageEvaluator> kvp
+                foreach (KeyValuePair<(HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName), HazardousUsageEvaluator> kvp
                     in this.HazardousUsageEvaluators)
                 {
-                    if (kvp.Key.InstanceTypeName == null)
+                    if (kvp.Key.InstanceTypeName == null || kvp.Key.Kind != HazardousUsageEvaluatorKind.Invocation)
                     {
                         continue;
                     }

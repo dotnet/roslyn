@@ -97,16 +97,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor PublicApiFilesMissing = new DiagnosticDescriptor(
-            id: DiagnosticIds.PublicApiFilesMissing,
-            title: PublicApiAnalyzerResources.PublicApiFilesMissingTitle,
-            messageFormat: PublicApiAnalyzerResources.PublicApiFilesMissingMessage,
-            category: "ApiDesign",
-            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
-            helpLinkUri: @"https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
-
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -143,7 +133,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
-                PublicApiFilesInvalid, PublicApiFilesMissing, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
+                PublicApiFilesInvalid, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
                 OverloadWithOptionalParametersShouldHaveMostParameters);
 
         public override void Initialize(AnalysisContext context)
@@ -162,11 +152,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData))
             {
-                compilationContext.RegisterCompilationEndAction(context =>
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(PublicApiFilesMissing, Location.None));
-                });
-
                 return;
             }
 
