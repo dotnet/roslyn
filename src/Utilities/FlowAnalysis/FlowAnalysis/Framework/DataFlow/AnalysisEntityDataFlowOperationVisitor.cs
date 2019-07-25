@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.IsParams);
 
-            foreach (var entity in allEntities.Where(e => e.Indices.Length > 0))
+            foreach (var entity in allEntities)
             {
                 if (entity.Indices.Length > 0 &&
                     entity.InstanceLocation.Equals(analysisEntity.InstanceLocation))

@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Analyzers
         }
 
 #pragma warning disable RS1025 // Configure generated code analysis
-#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
-#pragma warning restore RS1026 // Enable concurrent execution
 #pragma warning restore RS1025 // Configure generated code analysis
         {
+            context.EnableConcurrentExecution();
+
             if (_performAssemblyChecks)
             {
                 context.RegisterCompilationStartAction(AnalyzeAssemblyReferences);

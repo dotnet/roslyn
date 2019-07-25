@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
             var operationVisitor = new ValueContentDataFlowOperationVisitor(analysisContext);
             var nullAnalysis = new ValueContentAnalysis(operationVisitor);
-            return nullAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: false);
+            return nullAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         protected override ValueContentAnalysisResult ToResult(ValueContentAnalysisContext analysisContext, ValueContentAnalysisResult dataFlowAnalysisResult)

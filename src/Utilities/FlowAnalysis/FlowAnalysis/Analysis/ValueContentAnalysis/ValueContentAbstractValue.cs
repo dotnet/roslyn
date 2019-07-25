@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         internal static bool IsSupportedType(ITypeSymbol type, out ITypeSymbol valueTypeSymbol)
         {
-            if (type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String)
+            if (type.IsPrimitiveType())
             {
                 valueTypeSymbol = type;
                 return true;

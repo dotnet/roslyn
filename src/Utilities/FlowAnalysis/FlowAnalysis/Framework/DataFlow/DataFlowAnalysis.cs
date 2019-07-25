@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        private static readonly ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>> s_resultCache =
-            new ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>>();
+        private static readonly ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>> s_resultCache =
+            new ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>();
 
         protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             var analysisResultsMap = s_resultCache.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
-            return analysisResultsMap.GetOrAdd(OperationVisitor, _ => Run(analysisContext));
+            return analysisResultsMap.GetOrAdd(analysisContext, _ => Run(analysisContext));
         }
 
         private TAnalysisResult Run(TAnalysisContext analysisContext)
@@ -154,7 +154,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
                     resultBuilder.EntryBlockOutputData, normalPathsExitBlockData, exceptionPathsExitBlockDataOpt,
-                    mergedDataForUnhandledThrowOperationsOpt, OperationVisitor.AnalysisDataForUnhandledThrowOperations, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
+                    mergedDataForUnhandledThrowOperationsOpt, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
+                    OperationVisitor.TaskWrappedValuesMapOpt, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
                 return ToResult(analysisContext, dataflowAnalysisResult);
             }
             finally
@@ -676,41 +677,44 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Update catch input data.
                 if (branch.LeavingRegions.Length > 0)
                 {
-                    foreach (var tryAndCatchRegion in branch.LeavingRegions.Where(region => region.Kind == ControlFlowRegionKind.TryAndCatch))
+                    foreach (var region in branch.LeavingRegions)
                     {
                         // If we have any nested finally region inside this try-catch, then mark the catch region
                         // as a successor of that nested finally region.
                         // Otherwise, merge the current data directly into the catch region.
 
-                        var hasNestedFinally = false;
-                        if (branch.FinallyRegions.Length > 0)
+                        if (region.Kind == ControlFlowRegionKind.TryAndCatch)
                         {
-                            var catchRegion = TryGetReachableCatchRegionStartingHandler(tryAndCatchRegion, sourceBlock);
-                            if (catchRegion != null)
+                            var hasNestedFinally = false;
+                            if (branch.FinallyRegions.Length > 0)
                             {
-                                for (var i = branch.FinallyRegions.Length - 1; i >= 0; i--)
+                                var catchRegion = TryGetReachableCatchRegionStartingHandler(region, sourceBlock);
+                                if (catchRegion != null)
                                 {
-                                    ControlFlowRegion finallyRegion = branch.FinallyRegions[i];
-                                    if (finallyRegion.LastBlockOrdinal < catchRegion.FirstBlockOrdinal)
+                                    for (var i = branch.FinallyRegions.Length - 1; i >= 0; i--)
                                     {
-                                        var successor = new BranchWithInfo(destination: cfg.Blocks[catchRegion.FirstBlockOrdinal]);
-                                        AddFinallySuccessor(finallyRegion, successor);
-                                        hasNestedFinally = true;
-                                        break;
+                                        ControlFlowRegion finallyRegion = branch.FinallyRegions[i];
+                                        if (finallyRegion.LastBlockOrdinal < catchRegion.FirstBlockOrdinal)
+                                        {
+                                            var successor = new BranchWithInfo(destination: cfg.Blocks[catchRegion.FirstBlockOrdinal]);
+                                            AddFinallySuccessor(finallyRegion, successor);
+                                            hasNestedFinally = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (!hasNestedFinally)
-                        {
-                            // No nested finally regions inside this try-catch.
-                            // Merge the current data directly into the catch region.
-                            var catchRegion = MergeIntoCatchInputData(tryAndCatchRegion, branchData, sourceBlock);
-                            if (catchRegion != null)
+                            if (!hasNestedFinally)
                             {
-                                // We also need to enqueue the catch block into the worklist as there is no direct branch into catch.
-                                worklist.Add(catchRegion.FirstBlockOrdinal);
+                                // No nested finally regions inside this try-catch.
+                                // Merge the current data directly into the catch region.
+                                var catchRegion = MergeIntoCatchInputData(region, branchData, sourceBlock);
+                                if (catchRegion != null)
+                                {
+                                    // We also need to enqueue the catch block into the worklist as there is no direct branch into catch.
+                                    worklist.Add(catchRegion.FirstBlockOrdinal);
+                                }
                             }
                         }
                     }

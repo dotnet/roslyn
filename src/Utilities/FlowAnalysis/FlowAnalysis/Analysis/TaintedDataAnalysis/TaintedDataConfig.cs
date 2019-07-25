@@ -160,6 +160,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return this.GetFromMap<SinkInfo>(sinkKind, this.SinkSymbolMap);
         }
 
+        public bool HasTaintArraySource(SinkKind sinkKind)
+        {
+            return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
+        }
+
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, Dictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)
             where T : ITaintedDataInfo
         {
@@ -197,6 +202,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.ZipSlip:
                     return ZipSlipSources.SourceInfos;
 
+                case SinkKind.HardcodedEncryptionKey:
+                    return HardcodedEncryptionKeySources.SourceInfos;
+
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SourceInfo>.Empty;
@@ -227,6 +235,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Regex:
                 case SinkKind.Redirect:
                 case SinkKind.Xaml:
+                case SinkKind.HardcodedEncryptionKey:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
 
                 case SinkKind.ZipSlip:
@@ -278,6 +287,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.ZipSlip:
                     return ZipSlipSinks.SinkInfos;
+
+                case SinkKind.HardcodedEncryptionKey:
+                    return HardcodedEncryptionKeySinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
