@@ -441,53 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentSymbol))
+            if (currentSymbol is SourceMethodSymbol sourceMethod &&
+                Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
             {
                 NoteCaptured(variable);
             }
-        }
-
-        private static bool IsCaptured(Symbol variable, Symbol containingSymbol)
-        {
-            switch (variable.Kind)
-            {
-                case SymbolKind.Field:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
-                // Range variables are not captured, but their underlying parameters
-                // may be. If this is a range underlying parameter it will be a
-                // ParameterSymbol, not a RangeVariableSymbol.
-                case SymbolKind.RangeVariable:
-                    return false;
-
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst)
-                    {
-                        return false;
-                    }
-                    break;
-
-                case SymbolKind.Parameter:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
-            }
-
-            // Walk up the containing symbols until we find the target function, in which
-            // case the variable is not captured by the target function, or null, in which 
-            // case it is.
-            for (var currentFunction = variable.ContainingSymbol;
-                 (object)currentFunction != null;
-                 currentFunction = currentFunction.ContainingSymbol)
-            {
-                if (ReferenceEquals(currentFunction, containingSymbol))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
