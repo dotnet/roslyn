@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
 
         private UnassignedFieldsWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
-            : base(compilation, method, node, trackClassFields: true)
+            : base(compilation, method, node, trackClassFields: true, trackStaticMembers: method.MethodKind == MethodKind.StaticConstructor)
         {
             _diagnostics = diagnostics;
         }
 
         internal static void Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
-            Debug.Assert(method.MethodKind == MethodKind.Constructor);
+            Debug.Assert(method.IsConstructor());
 
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
@@ -66,18 +66,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportUninitializedNonNullableReferenceTypeFields()
         {
-            var thisParameter = MethodThisParameter;
-            int thisSlot = VariableSlot(thisParameter);
-            if (thisSlot == -1 || !State.Reachable)
+            Debug.Assert(_symbol.IsDefinition);
+
+            if (!State.Reachable)
             {
                 return;
             }
 
-            var thisType = thisParameter.Type;
-            Debug.Assert(thisType.IsDefinition);
+            var method = (MethodSymbol)_symbol;
+            bool isStatic = method.IsStatic;
 
-            foreach (var member in thisType.GetMembersUnordered())
+            int thisSlot = -1;
+
+            if (!isStatic)
             {
+                method.TryGetThisParameter(out var thisParameter);
+                thisSlot = VariableSlot(thisParameter);
+                if (thisSlot == -1)
+                {
+                    return;
+                }
+            }
+
+            var containingType = method.ContainingType;
+            foreach (var member in containingType.GetMembersUnordered())
+            {
+                if (member.IsStatic != isStatic)
+                {
+                    continue;
+                }
                 TypeWithAnnotations fieldType;
                 FieldSymbol field;
                 switch (member)
@@ -97,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         continue;
                 }
-                if (member.IsStatic || HasInitializer(member))
+                if (HasInitializer(member))
                 {
                     continue;
                 }
@@ -128,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             base.VisitEventAssignmentOperator(node);
-            if (node.IsAddition && node is { Event: { IsStatic: false, AssociatedField: { } field } })
+            if (node.IsAddition && node is { Event: { AssociatedField: { } field } }) 
             {
                 int slot = MakeMemberSlot(node.ReceiverOpt, field);
                 if (slot != -1)
