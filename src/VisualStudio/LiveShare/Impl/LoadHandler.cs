@@ -3,11 +3,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
+using CustomMethods = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CustomMethods;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.LoadName)]
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, CustomMethods.LoadName)]
     internal class LoadHandler : ILspRequestHandler, ILspRequestHandler<object, object>
     {
         public Task<object> HandleAsync(object request, RequestContext requestContext, CancellationToken cancellationToken)
