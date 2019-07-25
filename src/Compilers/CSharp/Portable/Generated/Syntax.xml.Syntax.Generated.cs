@@ -3626,7 +3626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
     internal override BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items) => AddArguments(items);
 
-    public new ArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
+    public new ArgumentListSyntax AddArguments(List<ArgumentSyntax> x, params ArgumentSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
