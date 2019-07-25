@@ -592,6 +592,11 @@
         <target state="new">Wrap and align call chain</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
         <target state="translated">Zawiń i wyrównaj wyrażenie</target>
