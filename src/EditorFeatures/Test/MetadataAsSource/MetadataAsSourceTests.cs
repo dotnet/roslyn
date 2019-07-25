@@ -1606,7 +1606,7 @@ End Class";
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task TestReadOnlyStruct()
+        public async Task TestReadOnlyStruct_ReadOnlyField()
         {
             var metadataSource = @"
 public readonly struct S
@@ -1632,6 +1632,36 @@ public readonly struct [|S|]
 Imports System.Runtime.CompilerServices
 
 <IsReadOnlyAttribute>
+Public Structure [|S|]
+    Public ReadOnly i As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStruct_ReadOnlyField()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int i;
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct [|S|]
+{{
+    public readonly int i;
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
 Public Structure [|S|]
     Public ReadOnly i As Integer
 End Structure");
