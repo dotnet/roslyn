@@ -62,6 +62,8 @@
       <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
+      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll" NgenPriority="1" />
+      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll" NgenPriority="1" />
       <DesktopCompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
       <DesktopCompilerArtifact Include="@(_NoNGen)" />
 
