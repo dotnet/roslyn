@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var path = "/node()[not(self::overloads)]";
                 for (var current = element; current != null; current = current.Parent)
                 {
-                    var currentName = current.Name;
+                    var currentName = current.Name.ToString();
                     if (ElementNameIs(current, "member") || ElementNameIs(current, "doc"))
                     {
                         // Allow <member> and <doc> to be used interchangeably
