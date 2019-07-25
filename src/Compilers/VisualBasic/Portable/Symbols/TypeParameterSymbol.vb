@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeParameterSymbol_ReferenceTypeConstraintNullableAnnotation As NullableAnnotation Implements ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeParameterSymbol_ConstraintNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements ITypeParameterSymbol.ConstraintNullableAnnotations
             Get
-                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
+                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 

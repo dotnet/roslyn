@@ -141,7 +141,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -203,7 +203,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -270,7 +270,7 @@ public class C
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -353,7 +353,7 @@ public class C
                 member => member.NullableAnnotation,
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
@@ -448,9 +448,9 @@ public static class Ext
                 var c = compilation.GetTypeByMetadataName("C");
                 var members = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
                 assertNullability(members,
-                    PublicNullableAnnotation.NotApplicable,
+                    PublicNullableAnnotation.None,
                     PublicNullableAnnotation.NotAnnotated,
-                    PublicNullableAnnotation.NotApplicable,
+                    PublicNullableAnnotation.None,
                     PublicNullableAnnotation.NotAnnotated);
 
                 var e = compilation.GetTypeByMetadataName("Ext");
@@ -460,7 +460,7 @@ public static class Ext
                     PublicNullableAnnotation.Annotated,
                     PublicNullableAnnotation.NotAnnotated,
                     PublicNullableAnnotation.Annotated,
-                    PublicNullableAnnotation.Disabled,
+                    PublicNullableAnnotation.None,
                     PublicNullableAnnotation.Annotated,
                     PublicNullableAnnotation.NotAnnotated,
                     PublicNullableAnnotation.Annotated);
@@ -536,7 +536,7 @@ public class C
                 method =>
                 {
                     Assert.Equal(method.ReturnNullableAnnotation, method.Parameters[0].NullableAnnotation);
-                    Assert.Equal(PublicNullableAnnotation.NotApplicable, method.ReceiverNullableAnnotation);
+                    Assert.Equal(PublicNullableAnnotation.None, method.ReceiverNullableAnnotation);
                     return method.ReturnNullableAnnotation;
                 },
                 testMetadata: false,
@@ -544,7 +544,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -600,7 +600,7 @@ public class C
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated);
         }
 
@@ -652,7 +652,7 @@ public class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -711,8 +711,8 @@ public interface I<T, U, V>
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -770,7 +770,7 @@ public interface I
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -832,8 +832,8 @@ public interface IB<T, U, V>
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated);
@@ -883,8 +883,8 @@ public interface IB<T, U, V>
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated
@@ -934,8 +934,8 @@ class C
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
-                PublicNullableAnnotation.Disabled,
-                PublicNullableAnnotation.Disabled,
+                PublicNullableAnnotation.None,
+                PublicNullableAnnotation.None,
                 PublicNullableAnnotation.Annotated,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated
