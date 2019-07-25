@@ -12,7 +12,6 @@ using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.CodeAnalysis.Host;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly LanguageServerClientEventListener _eventListener;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        private readonly string _clientName;
+        private readonly string _serviceHubClientName;
         private readonly string _languageServerName;
 
         /// <summary>
@@ -60,13 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             LanguageServerClientEventListener eventListener,
             IAsynchronousOperationListenerProvider listenerProvider,
             string languageServerName,
-            string clientName)
+            string serviceHubClientName)
         {
             _workspace = workspace;
             _eventListener = eventListener;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
 
-            _clientName = clientName;
+            _serviceHubClientName = serviceHubClientName;
             _languageServerName = languageServerName;
         }
 
@@ -80,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             var hostGroup = new HostGroup(client.ClientId);
-            var hubClient = new HubClient(_clientName);
+            var hubClient = new HubClient(_serviceHubClientName);
 
             var stream = await ServiceHubRemoteHostClient.Connections.RequestServiceAsync(
                 _workspace,
@@ -104,7 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // set up event stream so that we start LSP server once Roslyn is loaded
             _eventListener.WorkspaceStarted.ContinueWith(async _ =>
             {
-                EnsureRemoteHost();
+                // this might get called before solution is fully loaded and before file is opened. 
+                // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
+                // it is not running yet. multiple start is no-op
+                ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
 
                 // wait until remote host is available before let platform know that they can activate our LSP
                 var client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
@@ -120,14 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }, TaskScheduler.Default).CompletesAsyncOperation(token);
 
             return Task.CompletedTask;
-
-            void EnsureRemoteHost()
-            {
-                // this might get called before solution is fully loaded and before file is opened. 
-                // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
-                // it is not running yet. multiple start is no-op
-                ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-            }
         }
 
         /// <summary>

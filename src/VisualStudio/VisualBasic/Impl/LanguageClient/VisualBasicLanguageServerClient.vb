@@ -14,6 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
     ' currently, platform doesn't allow multiple content types
     ' to be associated with 1 ILanguageClient forcing us to
     ' create multiple ILanguageClients for each content type
+    ' https://devdiv.visualstudio.com/DevDiv/_workitems/edit/952373
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Export(GetType(ILanguageClient))>
     <ExportMetadata("Capabilities", "WorkspaceStreamingSymbolProvider")>
@@ -28,8 +29,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
             MyBase.New(workspace,
                        eventListener,
                        listenerProvider,
-                       WellKnownServiceHubServices.VisualBasicLanguageServer,
-                       "ManagedLanguage.IDE.VisualBasicLanguageServer")
+                       languageServerName:=WellKnownServiceHubServices.VisualBasicLanguageServer,
+                       serviceHubClientName:="ManagedLanguage.IDE.VisualBasicLanguageServer")
         End Sub
 
         Public Overrides ReadOnly Property Name As String

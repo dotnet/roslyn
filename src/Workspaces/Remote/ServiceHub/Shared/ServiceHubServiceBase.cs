@@ -84,7 +84,15 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     /// <summary>
-    /// Base type with helper methods. this is not tied to how Roslyn OOP works. just servicehub helpers.
+    /// Base type with servicehub helper methods. this is not tied to how Roslyn OOP works. 
+    /// 
+    /// any type that derived from this type is supposed to be an entry point for servicehub services.
+    /// name of the type should match one appears in GenerateServiceHubConfigurationFiles.targets 
+    /// and signature of either its constructor or static CreateAsync must follow the convension
+    /// ctor(Stream stream, IServiceProvider serviceProvider).
+    /// 
+    /// see servicehub detail from here
+    /// https://microsoft.sharepoint.com/teams/DD_VSIDE/_layouts/15/WopiFrame.aspx?sourcedoc={bd8fab44-c988-4f11-9866-bb12f906bb53}&action=edit&wd=target%28Extensibility%2FFrom%20ConEx%2FServiceHub.one%7Cbafb6e9b-5988-4995-8135-f152abd28a0d%2FOnboarding%20%28for%20partners%5C%29%7Ccc54c21c-2894-4f05-8ce4-9530bacdb9c8%2F%29&wdorigin=703
     /// </summary>
     internal abstract class ServiceBase : IDisposable
     {

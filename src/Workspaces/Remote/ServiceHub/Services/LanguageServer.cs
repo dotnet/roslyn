@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(VSSymbolMethods.WorkspaceBeginSymbolName)]
-        public Task<VSBeginSymbolParams> WorkspaceBeginSymbolAsync(string query, int searchId, CancellationToken cancellationToken)
+        public Task<VSBeginSymbolParams> BeginWorkspaceSymbolAsync(string query, int searchId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     s_supportedKinds,
                     cancellationToken).ConfigureAwait(false);
 
-                var convertedResults = await Convert(results, cancellationToken).ConfigureAwait(false);
+                var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
 
                 await InvokeAsync(
                     VSSymbolMethods.WorkspacePublishSymbolName,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static async Task<VSSymbolInformation[]> Convert(
+        private static async Task<VSSymbolInformation[]> ConvertAsync(
             ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
             var symbols = new VSSymbolInformation[results.Length];
