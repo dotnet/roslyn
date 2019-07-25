@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Venus = nameof(Venus);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
+            public const string VsSearch = nameof(VsSearch);
             public const string WinForms = nameof(WinForms);
             public const string Workspace = nameof(Workspace);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);
