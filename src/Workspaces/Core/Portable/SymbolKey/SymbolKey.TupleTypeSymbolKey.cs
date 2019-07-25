@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var element in symbol.TupleElements)
                 {
                     friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
-                    locations.Add(element.Locations.FirstOrDefault() ?? Location.None);
+                    locations.Add(FirstOrDefault(element.Locations) ?? Location.None);
                 }
 
                 visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
@@ -54,16 +52,16 @@ namespace Microsoft.CodeAnalysis
                 var isError = reader.ReadBoolean();
                 if (isError)
                 {
-                    var elementTypes = reader.ReadSymbolKeyArray().SelectAsArray(r => r.GetAnySymbol() as ITypeSymbol);
-                    var elementNames = reader.ReadStringArray();
+                    using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                    using var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
-                    if (!elementTypes.Any(t => t == null))
+                    if (!elementTypes.IsDefault)
                     {
                         try
                         {
                             var result = reader.Compilation.CreateTupleTypeSymbol(
-                                elementTypes, elementNames, elementLocations);
+                                elementTypes.ToImmutable(), elementNames.ToImmutable(), elementLocations);
                             return new SymbolKeyResolution(result);
                         }
                         catch (ArgumentException)
@@ -74,14 +72,21 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     var underlyingTypeResolution = reader.ReadSymbolKey();
-                    var elementNames = reader.ReadStringArray();
+                    using var elementNamesBuilder = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
                     try
                     {
-                        var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
-                            t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
-                        return CreateSymbolInfo(result);
+                        using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+                        var elementNames = elementNamesBuilder.ToImmutable();
+                        foreach (var namedType in underlyingTypeResolution.OfType<INamedTypeSymbol>())
+                        {
+                            result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
+                                namedType, elementNames, elementLocations));
+                        }
+
+                        return CreateResolution(result);
                     }
                     catch (ArgumentException)
                     {
@@ -93,15 +98,16 @@ namespace Microsoft.CodeAnalysis
 
             private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)
             {
+                using var elementLocations = reader.ReadLocationArray();
+
                 // Compiler API requires that all the locations are non-null, or that there is a default
                 // immutable array passed in.
-                var elementLocations = reader.ReadLocationArray();
-                if (elementLocations.All(loc => loc == null))
+                if (elementLocations.Builder.All(loc => loc == null))
                 {
-                    elementLocations = default;
+                    return default;
                 }
 
-                return elementLocations;
+                return elementLocations.ToImmutable();
             }
         }
     }

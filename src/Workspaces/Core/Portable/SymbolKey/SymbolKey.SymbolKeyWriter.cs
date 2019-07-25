@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;
@@ -128,20 +128,7 @@ namespace Microsoft.CodeAnalysis
 
             internal void WriteSymbolKey(ISymbol symbol)
             {
-                WriteSymbolKey(symbol, first: false);
-            }
-
-            internal void WriteFirstSymbolKey(ISymbol symbol)
-            {
-                WriteSymbolKey(symbol, first: true);
-            }
-
-            private void WriteSymbolKey(ISymbol symbol, bool first)
-            {
-                if (!first)
-                {
-                    WriteSpace();
-                }
+                WriteSpace();
 
                 if (symbol == null)
                 {
@@ -150,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int id;
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -215,11 +202,17 @@ namespace Microsoft.CodeAnalysis
                 _stringBuilder.Append(' ');
             }
 
+            internal void WriteFormatVersion(int version)
+                => WriteIntegerRaw_DoNotCallDirectly(version);
+
             internal void WriteInteger(int value)
             {
                 WriteSpace();
-                _stringBuilder.Append(value);
+                WriteIntegerRaw_DoNotCallDirectly(value);
             }
+
+            private void WriteIntegerRaw_DoNotCallDirectly(int value)
+                => _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
 
             internal void WriteBoolean(bool value)
             {
@@ -269,6 +262,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// Writes out the provided symbols to the key.  The array provided must not
+            /// be <c>default</c>.
+            /// </summary>
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
                 where TSymbol : ISymbol
             {
@@ -304,11 +301,7 @@ namespace Microsoft.CodeAnalysis
                 where T : U
             {
                 WriteSpace();
-                if (array.IsDefault)
-                {
-                    WriteType(SymbolKeyType.Null);
-                    return;
-                }
+                Debug.Assert(!array.IsDefault);
 
                 StartKey();
                 WriteType(SymbolKeyType.Array);
@@ -537,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             public void PopMethod(IMethodSymbol method)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack[_methodSymbolStack.Count - 1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
         }

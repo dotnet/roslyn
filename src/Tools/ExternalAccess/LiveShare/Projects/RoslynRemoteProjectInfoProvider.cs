@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using CustomProtocol = Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
             CustomProtocol.Project[] projects;
             try
             {
-                var request = new LSP.LspRequest<object, CustomProtocol.Project[]>(CustomProtocol.RoslynMethods.ProjectsName);
+                var request = new LspRequest<object, CustomProtocol.Project[]>(CustomProtocol.RoslynMethods.ProjectsName);
                 projects = await lspClient.RequestAsync(request, new object(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
