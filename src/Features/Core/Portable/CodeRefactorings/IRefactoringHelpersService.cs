@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -12,8 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         /// <summary>
         /// <para>
-        /// Returns an instance of <typeparamref name="TSyntaxNode"/> for refactoring given specified selection in document or null
-        /// if no such instance exists.
+        /// Returns an array of <typeparamref name="TSyntaxNode"/> instances for refactoring given specified selection in document.
         /// </para>
         /// <para>
         /// A <typeparamref name="TSyntaxNode"/> instance is returned if:
@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
-        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
-        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<TSyntaxNode, bool> predicate, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
     }
 }

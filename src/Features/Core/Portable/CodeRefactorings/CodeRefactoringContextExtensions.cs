@@ -2,9 +2,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
@@ -27,13 +30,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        internal static Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
+        internal static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
             where TSyntaxNode : SyntaxNode
         {
-            var document = context.Document;
-            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+            (var document, var span, var cancellationToken) = context;
+            var potentialNodes = await GetRelevantNodes<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
+            return potentialNodes.FirstOrDefault();
+        }
 
-            return helpers.TryGetSelectedNodeAsync<TSyntaxNode>(document, context.Span, context.CancellationToken);
+        internal static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this Document document, TextSpan span, Func<TSyntaxNode, bool> predicate, CancellationToken cancellationToken)
+where TSyntaxNode : SyntaxNode
+        {
+            var potentialNodes = await GetRelevantNodes<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
+            return potentialNodes.FirstOrDefault(predicate);
+        }
+
+        internal static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this Document document, TextSpan span, CancellationToken cancellationToken)
+where TSyntaxNode : SyntaxNode
+        {
+            var potentialNodes = await GetRelevantNodes<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
+            return potentialNodes.FirstOrDefault();
+        }
+
+        private static async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodes<TSyntaxNode>(Document document, TextSpan span, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+            var potentialNodes = await helpers.GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
+            return potentialNodes;
         }
     }
 }
