@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// Run code actions handler.  Called when lightbulb invoked.
     /// TODO - Move to CodeAnalysis.LanguageServer once the UI thread dependency is removed.
     /// </summary>
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.WorkspaceExecuteCommandName)]
     internal class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
         public RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
             : base(codeFixService, codeRefactoringService)
         {

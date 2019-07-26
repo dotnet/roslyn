@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this, symbol, binder, memberDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(memberDecl, binder: binder));
                     }
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this, symbol, binder, accessorDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(accessorDecl, binder: binder));
                     }
 
                 case SyntaxKind.Block:
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this, symbol, binder, exprDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(exprDecl, binder: binder));
                     }
 
                 case SyntaxKind.GlobalStatement:
@@ -1149,8 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return MethodBodySemanticModel.Create(
                                 this,
                                 scriptInitializer,
-                                new ExecutableCodeBinder(node, scriptInitializer, new ScriptLocalScopeBinder(_globalStatementLabels, defaultOuter())),
-                                node);
+                                new MethodBodySemanticModel.InitialState(node, binder: new ExecutableCodeBinder(node, scriptInitializer, new ScriptLocalScopeBinder(_globalStatementLabels, defaultOuter()))));
                         }
                     }
                     break;

@@ -102,27 +102,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
-                    _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
+                        _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
-                    _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
+                        _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
-                    _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
+                        _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:

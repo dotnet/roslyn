@@ -9,12 +9,47 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentCompletionResolveName)]
     internal class CompletionResolverHandlerShim : AbstractLiveShareHandlerShim<CompletionItem, CompletionItem>
     {
-        [ImportingConstructor]
-        public CompletionResolverHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public CompletionResolverHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.TextDocumentCompletionResolveName)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentCompletionResolveName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynCompletionResolverHandlerShim : CompletionResolverHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynCompletionResolverHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentCompletionResolveName)]
+    internal class CSharpCompletionResolverHandlerShim : CompletionResolverHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpCompletionResolverHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentCompletionResolveName)]
+    internal class VisualBasicCompletionResolverHandlerShim : CompletionResolverHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicCompletionResolverHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionResolveName)]
+    internal class TypeScriptCompletionResolverHandlerShim : CompletionResolverHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptCompletionResolverHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }
