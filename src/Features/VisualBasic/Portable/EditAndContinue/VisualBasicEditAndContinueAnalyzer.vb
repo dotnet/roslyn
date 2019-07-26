@@ -2616,8 +2616,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
-                ' Ignore async keyword when matching modifiers.
-                ' async checks are done in ComputeBodyMatch.
+                ' Ignore Async and Iterator keywords when matching modifiers.
+                ' State machine checks are done in ComputeBodyMatch.
 
                 Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
                 Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
@@ -2639,11 +2639,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newIteratorIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newIteratorIndex)
-                End If
-
-                ' 'iterator' keyword is allowed to add, but not to remove
-                If oldIteratorIndex >= 0 AndAlso newIteratorIndex < 0 Then
-                    Return False
                 End If
 
                 Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
