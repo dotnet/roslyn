@@ -314,33 +314,43 @@ class C
 
         [Fact]
         [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
         public void StaticFields_GenericTypes()
         {
             var source =
 @"#pragma warning disable 0169
+using System.Diagnostics.CodeAnalysis;
 class C<T, U, V>
     where U : class
     where V : struct
 {
     private static T P1 { get; }
     private static T P2 { get; } = default!;
-    private static U P3 { get; set; }
-    private static U P4 { get; set; } = default!;
-    private static U? P5 { get; }
-    private static U? P6 { get; } = default;
-    private static V P7 { get; set; }
-    private static V P8 { get; set; } = default;
-    private static V? P9 { get; }
-    private static V? P10 { get; } = default;
+    [MaybeNull] private static T P3 { get; }
+    [MaybeNull] private static T P4 { get; } = default;
+    private static U P5 { get; set; }
+    private static U P6 { get; set; } = default!;
+    private static U? P7 { get; }
+    private static U? P8 { get; } = default;
+    private static V P9 { get; set; }
+    private static V P10 { get; set; } = default;
+    private static V? P11 { get; }
+    private static V? P12 { get; } = default;
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (6,22): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                // (7,22): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     private static T P1 { get; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(6, 22),
-                // (8,22): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
-                //     private static U P3 { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(8, 22));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 22),
+                // (9,34): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                //     [MaybeNull] private static T P3 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(9, 34),
+                // (10,48): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     [MaybeNull] private static T P4 { get; } = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(10, 48),
+                // (11,22): warning CS8618: Non-nullable property 'P5' is uninitialized. Consider declaring the property as nullable.
+                //     private static U P5 { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P5").WithArguments("property", "P5").WithLocation(11, 22));
         }
 
         [Fact]
@@ -582,14 +592,17 @@ class C
         }
 
         [Fact]
+        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
         public void GenericType()
         {
             var source =
-@"class C<T>
+@"using System.Diagnostics.CodeAnalysis;
+class C<T>
 {
 #pragma warning disable 0169
     private readonly T F1;
     private readonly T F2;
+    [MaybeNull] private readonly T F3;
     private T P1 { get; }
     private T P2 { get; set; }
     internal T P3 { get; }
@@ -601,17 +614,20 @@ class C
         P4 = t;
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                // (12,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(10, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                //     private C(T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(12, 13));
         }
 
         [Fact]
