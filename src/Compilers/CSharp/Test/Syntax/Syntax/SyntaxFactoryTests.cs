@@ -547,17 +547,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
         public void TestUnnecessarySemicolon()
         {
-            //public static MethodDeclarationSyntax MethodDeclaration(
-            //    SyntaxList<AttributeListSyntax> attributeLists,
-            //    SyntaxTokenList modifiers,
-            //    TypeSyntax returnType,
-            //    ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            //    SyntaxToken identifier,
-            //    TypeParameterListSyntax typeParameterList,
-            //    ParameterListSyntax parameterList,
-            //    SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            //    BlockSyntax body,
-            //    SyntaxToken semicolonToken)
             var syntaxNode = SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
                 modifiers: default,
