@@ -825,6 +825,86 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void LambdasInArrayType()
+        {
+            var src1 = "var x = new int[F(a => 1)];";
+            var src2 = "var x = new int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[F(a => 1)];", "var x = new int[F(a => 2)];" },
+                { "var x = new int[F(a => 1)]", "var x = new int[F(a => 2)]" },
+                { "x = new int[F(a => 1)]", "x = new int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInArrayInitializer()
+        {
+            var src1 = "var x = new int[] { F(a => 1) };";
+            var src2 = "var x = new int[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[] { F(a => 1) };", "var x = new int[] { F(a => 2) };" },
+                { "var x = new int[] { F(a => 1) }", "var x = new int[] { F(a => 2) }" },
+                { "x = new int[] { F(a => 1) }", "x = new int[] { F(a => 2) }" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc()
+        {
+            var src1 = "var x = stackalloc int[F(a => 1)];";
+            var src2 = "var x = stackalloc int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc int[F(a => 1)];", "var x = stackalloc int[F(a => 2)];" },
+                { "var x = stackalloc int[F(a => 1)]", "var x = stackalloc int[F(a => 2)]" },
+                { "x = stackalloc int[F(a => 1)]", "x = stackalloc int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc_Initializer()
+        {
+            var src1 = "var x = stackalloc[] { F(a => 1) };";
+            var src2 = "var x = stackalloc[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc[] { F(a => 1) };", "var x = stackalloc[] { F(a => 2) };" },
+                { "var x = stackalloc[] { F(a => 1) }", "var x = stackalloc[] { F(a => 2) }" },
+                { "x = stackalloc[] { F(a => 1) }", "x = stackalloc[] { F(a => 2) }" },
+                { "a => 1", "a => 2" },
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Local Functions
@@ -1225,7 +1305,7 @@ var q = from a in await seq1
         select a + 1;
 ";
 
-            var match = GetMethodMatches(src1, src2);
+            var match = GetMethodMatches(src1, src2, MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -1258,7 +1338,7 @@ var q = from a in await seq1
             var src1 = "F(from a in await b from x in y select c);";
             var src2 = "F(from a in await c from x in y select c);";
 
-            var match = GetMethodMatches(src1, src2);
+            var match = GetMethodMatches(src1, src2, MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -1466,13 +1546,13 @@ foreach ((var b3, int b2) in e) { A2(); }
         public void ForeachVariable_Update2()
         {
             var src1 = @"
-foreach (_ in e2) { yield return 4; }
+foreach (_ in e2) { }
 foreach (_ in e3) { A(); }
 ";
 
             var src2 = @"
 foreach (_ in e4) { A(); }
-foreach (var b in e2) { yield return 4; }
+foreach (var b in e2) { }
 ";
 
             var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
@@ -1480,9 +1560,8 @@ foreach (var b in e2) { yield return 4; }
 
             var expected = new MatchingPairs
             {
-                { "foreach (_ in e2) { yield return 4; }", "foreach (var b in e2) { yield return 4; }" },
-                { "{ yield return 4; }", "{ yield return 4; }" },
-                { "yield return 4;", "yield return 4;" },
+                { "foreach (_ in e2) { }", "foreach (var b in e2) { }" },
+                { "{ }", "{ }" },
                 { "foreach (_ in e3) { A(); }", "foreach (_ in e4) { A(); }" },
                 { "{ A(); }", "{ A(); }" },
                 { "A();", "A();" }
@@ -1764,7 +1843,7 @@ if (o is string { Length: 7 } s7) return 5;
 };
 ";
 
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {
