@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly CSharpLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         [ImportingConstructor]
-        public RoslynRemoteProjectInfoProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public RoslynRemoteProjectInfoProvider(CSharpLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(RemoteLanguageServiceWorkspace));

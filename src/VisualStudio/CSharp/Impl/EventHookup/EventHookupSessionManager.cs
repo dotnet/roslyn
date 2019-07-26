@@ -54,9 +54,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
                 // tooltips text is: Program_MyEvents;      (Press TAB to insert)
                 // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
-                var eventText = analyzedSession.GetEventNameTask.Result + ";";
-                var texts = new[] { eventText, CSharpEditorResources.Press_TAB_to_insert };
-                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Text, s));
+                var textRuns = new[]
+                {
+                    new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
+                };
                 var content = new[] { new ClassifiedTextElement(textRuns) };
 
                 _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);

@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             CodeAnalysisQuickInfoItem quickInfoItem,
             ITextSnapshot snapshot,
             Document document,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             CancellationToken cancellationToken)
         {
             // Build the first line of QuickInfo item, the images and the Description section should be on the first line with Wrapped style
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (descSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts))
+                foreach (var element in Helpers.BuildInteractiveTextElements(descSection.TaggedParts, document, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (documentationCommentSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts))
+                foreach (var element in Helpers.BuildInteractiveTextElements(documentationCommentSection.TaggedParts, document, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
-                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts)));
+                                      .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, document, streamingPresenter)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var tabSize = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                 var text = await document.GetTextAsync().ConfigureAwait(false);
                 var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
-                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, snapshot.GetText(s.TextSpan.ToSpan())));
+                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, snapshot.GetText(s.TextSpan.ToSpan()), ClassifiedTextRunStyle.UseClassificationFont));
 
                 if (textRuns.Any())
                 {
