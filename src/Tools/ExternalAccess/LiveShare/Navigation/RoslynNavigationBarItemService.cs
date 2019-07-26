@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
 {
     internal class RoslynNavigationBarItemService : AbstractNavigationBarItemService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        internal RoslynNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        internal RoslynNavigationBarItemService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }

@@ -2350,21 +2350,21 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var arrayType = comp.CreateArrayTypeSymbol(elementType);
             Assert.Equal(1, arrayType.Rank);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
 
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, default));
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, 0));
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, 1, default);
             Assert.Equal(1, arrayType.Rank);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
 
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: default));
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: 0));
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: default);
             Assert.Equal(1, arrayType.Rank);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
         }
 
         [Fact]
@@ -2374,9 +2374,9 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var comp = (Compilation)CSharpCompilation.Create("");
             var elementType = comp.GetSpecialType(SpecialType.System_Object);
 
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotApplicable).ElementNullableAnnotation);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Disabled).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation);
         }
@@ -2580,7 +2580,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames);
             Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
-            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, GetAnonymousTypeNullableAnnotations(type));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, GetAnonymousTypeNullableAnnotations(type));
 
             Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)));
 
@@ -2611,7 +2611,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var type = genericType.Construct(typeArguments, default);
             Assert.Equal("Pair<System.Object, System.String>", type.ToTestDisplayString(includeNonNullable: true));
-            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations);
 
             Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
             Assert.Throws<ArgumentException>(() => genericType.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));
@@ -2644,7 +2644,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var type = genericMethod.Construct(typeArguments, default);
             Assert.Equal("void Program.M<System.Object, System.String>()", type.ToTestDisplayString(includeNonNullable: true));
-            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations);
 
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));

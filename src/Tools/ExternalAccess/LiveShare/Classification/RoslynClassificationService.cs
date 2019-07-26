@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 {
     internal class RoslynClassificationService : ISyntaxClassificationService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
 
-        public RoslynClassificationService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
+        public RoslynClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
