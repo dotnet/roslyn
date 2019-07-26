@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -18,5 +16,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that the type is an interface, rather than a concrete type.
         /// </summary>
         bool IsInterface { get; }
+
+        /// <summary>
+        /// Indicates that this info uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        bool RequiresValueContentAnalysis { get; }
     }
 }
