@@ -6429,7 +6429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         state = result.State;
 
                         // If we inferred the type of this variable, then record the inferred type of the variable for later use by the SemanticModel.
-                        if (node.Syntax is ForEachStatementSyntax syntax && syntax.Type.IsVar)
+                        if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
                         {
                             _variableTypes[iterationVariable] = result.ToTypeWithAnnotations();
                         }

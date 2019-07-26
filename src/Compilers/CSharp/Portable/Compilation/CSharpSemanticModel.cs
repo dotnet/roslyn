@@ -3027,9 +3027,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a local symbol, gets an updated version of that local symbol adjusted for nullability analysis
         /// if the analysis affects the local.
         /// </summary>
-        /// <param name="originalSymbol">The unadjusted symbol from initial binding.</param>
+        /// <param name="originalSymbol">The original symbol from initial binding.</param>
         /// <param name="position">The position the local was declared at.</param>
-        /// <returns>The nullabiltiy-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
+        /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
         internal abstract LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position);
 
         /// <summary>
