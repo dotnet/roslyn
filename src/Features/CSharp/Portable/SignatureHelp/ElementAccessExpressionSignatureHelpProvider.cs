@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var accessibleIndexers = indexers.WhereAsArray(
-                m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
+                m => m.IsAccessibleWithin(within, throughType: expressionType));
             if (!accessibleIndexers.Any())
             {
                 return null;

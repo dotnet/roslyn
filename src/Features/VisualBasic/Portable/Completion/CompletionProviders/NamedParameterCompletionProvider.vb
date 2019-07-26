@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Dim delegateType = DirectCast(expressionType, INamedTypeSymbol)
                     Return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters.As(Of ISymbol)())
                 ElseIf indexers.Count > 0 Then
-                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughTypeOpt:=expressionType)).
+                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughType:=expressionType)).
                                     Select(Function(i) i.Parameters.As(Of ISymbol)())
                 End If
             End If
