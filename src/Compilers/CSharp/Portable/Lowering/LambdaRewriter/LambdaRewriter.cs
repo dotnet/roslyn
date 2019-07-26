@@ -939,11 +939,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     oldTypeArg = newTypeArg;
                     newTypeArg = this.TypeMap.SubstituteType(oldTypeArg);
-
-                    // When type substitution does not change the type, it is expected to return the very same object.
-                    // Therefore the loop is terminated when that type (as an object) does not change.
                 }
-                while ((object)oldTypeArg.Type != newTypeArg.Type);
+                while (!TypeSymbol.Equals(oldTypeArg.Type, newTypeArg.Type, TypeCompareKind.ConsiderEverything));
+
+                // When type substitution does not change the type, it is expected to return the very same object.
+                // Therefore the loop is terminated when that type (as an object) does not change.
+                Debug.Assert((object)oldTypeArg.Type == newTypeArg.Type);
 
                 // The types are the same, so the last pass performed no substitutions.
                 // Therefore the annotations ought to be the same too.
