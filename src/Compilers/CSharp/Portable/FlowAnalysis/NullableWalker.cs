@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (method.IsGenericTaskReturningAsync(compilation))
+            if (returnType.Type.IsGenericTaskType(compilation))
             {
                 type = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
                 return true;
