@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             Func<SyntaxNode, bool> isTupleArgumentExpression = n => n.Parent != null && syntaxFacts.IsTupleExpression(n.Parent);
-            var argument = await helperService.TryGetSelectedNodeAsync<TArgumentSyntax>(document, span, isTupleArgumentExpression, cancellationToken).ConfigureAwait(false);
-
+            var argument = await document.TryGetSelectedNodeAsync<TArgumentSyntax>(span, isTupleArgumentExpression, cancellationToken).ConfigureAwait(false);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
                 return default;

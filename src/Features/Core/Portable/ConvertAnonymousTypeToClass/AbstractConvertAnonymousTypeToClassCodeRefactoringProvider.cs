@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // it matches even when caret is next to some tokens within the anonymous object creation node.
             // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
             var helper = document.GetLanguageService<IRefactoringHelpersService>();
-            var anonymousObject = await helper.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
-                document, span, cancellationToken).ConfigureAwait(false);
+            var anonymousObject = await document.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
             {
                 return default;

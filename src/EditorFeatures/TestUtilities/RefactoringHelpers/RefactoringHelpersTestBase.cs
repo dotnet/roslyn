@@ -89,9 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
         private async Task<TNode> GetNodeForSelection<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
             var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
-            var service = document.GetLanguageService<IRefactoringHelpersService>();
+            var resultNode = await document.TryGetSelectedNodeAsync<TNode>(selection, predicate, CancellationToken.None).ConfigureAwait(false);
 
-            var resultNode = await service.TryGetSelectedNodeAsync<TNode>(document, selection, predicate, CancellationToken.None).ConfigureAwait(false);
             return resultNode;
         }
     }
