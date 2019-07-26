@@ -1145,7 +1145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
             NamedTypeSymbol containingType;
-            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && method.RequiresInstanceReceiver && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
+            if (receiverOpt != null
+                && ((object)method == null
+                    || method.MethodKind == MethodKind.Constructor
+                    || (object)(containingType = method.ContainingType) != null
+                    && method.RequiresInstanceReceiver
+                    && (!containingType.IsReferenceType && !method.IsEffectivelyReadOnly)
+                    && !TypeIsImmutable(containingType)))
             {
                 WriteArgument(receiverOpt, method?.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method);
             }

@@ -202,11 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var isUnsafe = this.CSharpSelectionResult.ShouldPutUnsafeModifier();
                 var isAsync = this.CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isStatic = !this.AnalyzerResult.UseInstanceMember;
+                var isReadOnly = this.AnalyzerResult.ShouldBeReadOnly;
 
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,
                     isAsync: isAsync,
-                    isStatic: !this.AnalyzerResult.UseInstanceMember);
+                    isStatic: isStatic,
+                    isReadOnly: isReadOnly);
             }
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)

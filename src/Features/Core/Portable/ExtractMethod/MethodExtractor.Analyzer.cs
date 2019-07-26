@@ -86,8 +86,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                // check whether instance member is used inside of the selection
-                var instanceMemberIsUsed = IsInstanceMemberUsedInSelectedCode(dataFlowAnalysisData);
+                var thisParameterBeingRead = dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s)) as IParameterSymbol;
+                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+
+                var instanceMemberIsUsed = thisParameterBeingRead is object || isThisParameterWritten;
+                var shouldBeReadOnly = !isThisParameterWritten
+                    && thisParameterBeingRead?.Type is ITypeSymbol thisType
+                    && thisType.TypeKind == TypeKind.Struct
+                    && !thisType.IsReadOnly;
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
@@ -117,10 +123,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
 
                 return new AnalyzerResult(
-                    newDocument,
-                    typeParametersInDeclaration, typeParametersInConstraintList,
-                    parameters, variableToUseAsReturnValue, returnType, awaitTaskReturn,
-                    instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
+                    document: newDocument,
+                    typeParametersInDeclaration: typeParametersInDeclaration,
+                    typeParametersInConstraintList: typeParametersInConstraintList,
+                    variables: parameters,
+                    variableToUseAsReturnValue: variableToUseAsReturnValue,
+                    returnType: returnType,
+                    awaitTaskReturn: awaitTaskReturn,
+                    instanceMemberIsUsed: instanceMemberIsUsed,
+                    shouldBeReadOnly: shouldBeReadOnly,
+                    endOfSelectionReachable: endOfSelectionReachable,
+                    status: operationStatus);
             }
 
             private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
@@ -668,7 +681,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return parameter.RefKind != RefKind.Out;
             }
 
-            private bool IsThisParameter(ISymbol localOrParameter)
+            private static bool IsThisParameter(ISymbol localOrParameter)
             {
                 var parameter = localOrParameter as IParameterSymbol;
                 if (parameter == null)
@@ -937,15 +950,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return OperationStatus.Succeeded;
-            }
-
-            private bool IsInstanceMemberUsedInSelectedCode(DataFlowAnalysis dataFlowAnalysisData)
-            {
-                Contract.ThrowIfNull(dataFlowAnalysisData);
-
-                // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => IsThisParameter(s)) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
             }
 
             protected VariableInfo CreateFromSymbolCommon<T>(
