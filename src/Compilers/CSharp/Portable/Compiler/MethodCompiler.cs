@@ -593,11 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If there is no explicit or implicit .cctor and there are static fields but no initializers,
+            // If there is no explicit or implicit .cctor and there are static members but no initializers,
             // then report warnings for any non-nullable fields. (If there is no .cctor, there should
             // not be any initializers but for robustness, we check both.)
             if (!hasStaticConstructor &&
-                members.Any(m => (m as FieldSymbol)?.IsStatic == true) &&
+                members.Any(m => m.IsStatic) &&
                 processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty)
             {
                 UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(

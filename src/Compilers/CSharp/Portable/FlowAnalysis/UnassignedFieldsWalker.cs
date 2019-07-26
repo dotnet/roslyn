@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
                     _ => member
                 };
-                var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrDefault() ?? Location.None;
+                var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
                 diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }
         }
