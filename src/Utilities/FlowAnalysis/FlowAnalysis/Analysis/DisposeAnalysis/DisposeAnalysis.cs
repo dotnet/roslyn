@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -49,13 +50,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool defaultDisposeOwnershipTransferAtConstructor = false,
             bool defaultDisposeOwnershipTransferAtMethodCall = false)
         {
+            Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, wellKnownTypeProvider.Compilation, cancellationToken));
+
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             var disposeOwnershipTransferAtConstructor = analyzerOptions.GetDisposeOwnershipTransferAtConstructorOption(
                 rule, defaultValue: defaultDisposeOwnershipTransferAtConstructor, cancellationToken);
             var disposeOwnershipTransferAtMethodCall = analyzerOptions.GetDisposeOwnershipTransferAtMethodCall(
                 rule, defaultValue: defaultDisposeOwnershipTransferAtMethodCall, cancellationToken);
-            return TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+            return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
@@ -66,6 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         private static DisposeAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             if (pointsToAnalysisResult == null)
             {
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             }
 
             var analysisContext = DisposeAnalysisContext.Create(
-                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 PessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, disposeOwnershipTransferAtMethodCall, trackInstanceFields);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);

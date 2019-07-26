@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public static CopyAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
@@ -29,11 +31,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             bool exceptionPathsAnalysis = false)
         {
             var pointsToAnalysisResultOpt = performPointsToAnalysis ?
-                PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
                 null;
             var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
-                cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt,
+                cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt,
                 TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
