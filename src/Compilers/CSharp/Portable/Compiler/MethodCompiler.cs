@@ -593,6 +593,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If there is no explicit or implicit .cctor and there are static fields but no initializers,
+            // then report warnings for any non-nullable fields. (If there is no .cctor, there should
+            // not be any initializers but for robustness, we check both.)
+            if (!hasStaticConstructor &&
+                members.Any(m => (m as FieldSymbol)?.IsStatic == true) &&
+                processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty)
+            {
+                UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
+                    walkerOpt: null,
+                    thisSlot: -1,
+                    isStatic: true,
+                    members,
+                    getIsAssigned: (walker, slot, member) => false,
+                    getSymbolForLocation: (walker, member) => member,
+                    _diagnostics);
+            }
+
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
             if (scriptCtor != null && compilationState.Emitting)
             {

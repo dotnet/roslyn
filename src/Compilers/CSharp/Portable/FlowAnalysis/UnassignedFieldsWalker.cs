@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -33,7 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (HasThisConstructorInitializer(method) || method.ContainingType.IsValueType)
+            if (HasThisConstructorInitializer(method))
+            {
+                return;
+            }
+
+            if (!method.IsStatic && method.ContainingType.IsValueType)
             {
                 return;
             }
@@ -89,7 +95,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var containingType = method.ContainingType;
-            foreach (var member in containingType.GetMembersUnordered())
+            var members = containingType.GetMembersUnordered();
+
+            ReportUninitializedNonNullableReferenceTypeFields(
+                this,
+                thisSlot,
+                isStatic,
+                members,
+                (walker, slot, member) => walker.GetIsSymbolAssigned(slot, member),
+                (walker, member) => walker.GetSymbolForLocation(member),
+                _diagnostics);
+        }
+
+        private bool GetIsSymbolAssigned(int thisSlot, Symbol symbol)
+        {
+            if (HasInitializer(symbol))
+            {
+                return true;
+            }
+            int slot = VariableSlot(symbol, thisSlot);
+            return slot > 0 && this.State.IsAssigned(slot);
+        }
+
+        private Symbol GetSymbolForLocation(Symbol symbol)
+        {
+            return topLevelMethod.DeclaringSyntaxReferences.IsEmpty
+                ? symbol // default constructor, use the field location
+                : topLevelMethod;
+        }
+
+        internal static void ReportUninitializedNonNullableReferenceTypeFields(
+            UnassignedFieldsWalker walkerOpt,
+            int thisSlot,
+            bool isStatic,
+            ImmutableArray<Symbol> members,
+            Func<UnassignedFieldsWalker, int, Symbol, bool> getIsAssigned,
+            Func<UnassignedFieldsWalker, Symbol, Symbol> getSymbolForLocation,
+            DiagnosticBag diagnostics)
+        {
+            foreach (var member in members)
             {
                 if (member.IsStatic != isStatic)
                 {
@@ -114,10 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         continue;
                 }
-                if (HasInitializer(member))
-                {
-                    continue;
-                }
                 if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
@@ -126,19 +166,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                int fieldSlot = VariableSlot(field, thisSlot);
-                if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
+                if (getIsAssigned(walkerOpt, thisSlot, field))
                 {
-                    var symbol = member switch
-                    {
-                        FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
-                        _ => member
-                    };
-                    var location = (topLevelMethod.DeclaringSyntaxReferences.IsEmpty
-                        ? symbol // default constructor, use the field location
-                        : topLevelMethod).Locations[0];
-                    _diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
+                    continue;
                 }
+                var symbol = member switch
+                {
+                    FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
+                    _ => member
+                };
+                var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrDefault() ?? Location.None;
+                diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }
         }
 
