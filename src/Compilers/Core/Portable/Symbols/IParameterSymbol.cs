@@ -84,5 +84,6 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
+        bool IsNullChecked { get; }
     }
 }

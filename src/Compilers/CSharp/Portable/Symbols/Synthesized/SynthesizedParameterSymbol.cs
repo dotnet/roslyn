@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
-        internal sealed override bool IsNullChecked { get; }
+        public sealed override bool IsNullChecked { get; }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

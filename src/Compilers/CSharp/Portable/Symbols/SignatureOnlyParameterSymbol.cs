@@ -79,9 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
-
-        internal override bool IsNullChecked => false;
-
         #endregion Not used by MethodSignatureComparer
 
         public override bool Equals(object obj)
