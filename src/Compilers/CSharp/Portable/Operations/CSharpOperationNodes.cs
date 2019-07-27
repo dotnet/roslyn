@@ -332,19 +332,17 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundBlock _block;
-        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
-        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, ImmutableArray<ConditionalOperation> prependedNullChecks, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _block = block;
-            _prependedNullChecks = prependedNullChecks;
         }
 
         protected override ImmutableArray<IOperation> CreateOperations()
         {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements).InsertRange(0, _prependedNullChecks);
+            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements);
         }
     }
 
@@ -860,19 +858,17 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _body;
-        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
-        internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _body = body;
-            _prependedNullChecks = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            return _operationFactory.CreateNullCheckedIOperationBody(_body as BoundBlock, _prependedNullChecks, this);
+            return (IBlockOperation)_operationFactory.Create(_body);
         }
     }
 
@@ -1472,19 +1468,17 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundLocalFunctionStatement _localFunctionStatement;
-        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
-        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _localFunctionStatement = localFunctionStatement;
-            _prependedNullChecks = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            return _operationFactory.CreateNullCheckedIOperationBody(_localFunctionStatement.Body, _prependedNullChecks, this);
+            return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
         }
 
         protected override IBlockOperation CreateIgnoredBody()
