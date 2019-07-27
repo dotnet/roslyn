@@ -1226,6 +1226,46 @@ struct S
         }
 
         [Fact]
+        public void Interface()
+        {
+            var source =
+@"#nullable enable
+interface I
+{
+    object F1;
+    public static object F2;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0525: Interfaces cannot contain instance fields
+                //     object F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 12),
+                // (4,12): warning CS0649: Field 'I.F1' is never assigned to, and will always have its default value null
+                //     object F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("I.F1", "null").WithLocation(4, 12),
+                // (5,26): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static object F2;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 26),
+                // (5,26): warning CS0649: Field 'I.F2' is never assigned to, and will always have its default value null
+                //     public static object F2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("I.F2", "null").WithLocation(5, 26));
+        }
+
+        [Fact]
+        public void Enum()
+        {
+            var source =
+@"#nullable enable
+enum E
+{
+    A,
+    B = A,
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LocalFunction()
         {
             var source =

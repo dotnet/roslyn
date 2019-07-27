@@ -600,14 +600,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
                 _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
-                UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
-                    walkerOpt: null,
-                    thisSlot: -1,
-                    isStatic: true,
-                    members,
-                    getIsAssigned: (walker, slot, member) => false,
-                    getSymbolForLocation: (walker, member) => member,
-                    _diagnostics);
+                switch (containingType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
+                            walkerOpt: null,
+                            thisSlot: -1,
+                            isStatic: true,
+                            members,
+                            getIsAssigned: (walker, slot, member) => false,
+                            getSymbolForLocation: (walker, member) => member,
+                            _diagnostics);
+                        break;
+                }
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
