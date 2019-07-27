@@ -1429,9 +1429,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
             ImmutableArray<IParameterSymbol> parameters = member switch
             {
-                var x when
-                    x is null ||
-                    x is IFieldSymbol => ImmutableArray<IParameterSymbol>.Empty,
+                null => ImmutableArray<IParameterSymbol>.Empty,
+                IFieldSymbol _ => ImmutableArray<IParameterSymbol>.Empty,
                 IParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
                 IMethodSymbol method => method.Parameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(member)
