@@ -1445,12 +1445,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         internal void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters, int? captureIdForResult)
         {
             var temp = _currentStatement;
-            var nullChecks = GenerateNullChecksForParameters(parameters, operation.Syntax, ((Operation)operation).OwningSemanticModel);
-
-            foreach (var check in nullChecks)
+            foreach (var param in parameters)
             {
-                _currentStatement = check;
-                VisitConditional(check, captureIdForResult);
+                if (param.IsNullChecked)
+                {
+                    var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel);
+                    _currentStatement = check;
+                    VisitConditional(check, captureIdForResult);
+                }
             }
             _currentStatement = temp;
         }
@@ -1460,7 +1462,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
             Optional<object> constantValue = default(Optional<object>);
             var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
-            //IOperation conditionOp = MakeIsNullOperation(paramReference);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation conditionOp;
             if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
@@ -1503,7 +1504,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     constantValue,
                     isImplicit: true);
             }
-
             var argumentNullExceptionMethodSymbol = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
             var argumentNullExceptionType = argumentNullExceptionMethodSymbol?.ReturnType;
             var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
@@ -1555,20 +1555,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 constantValue,
                 isImplicit: true);
             return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue, isImplicit: true);
-        }
-
-        private ImmutableArray<ConditionalOperation> GenerateNullChecksForParameters(ImmutableArray<IParameterSymbol> parameters, SyntaxNode syntax, SemanticModel semanticModel)
-        {
-            ArrayBuilder<ConditionalOperation> ifList = null;
-            foreach (var param in parameters)
-            {
-                if (param.IsNullChecked)
-                {
-                    ifList ??= ArrayBuilder<ConditionalOperation>.GetInstance();
-                    ifList.Add(GenerateNullCheckForParameter(param, syntax, semanticModel));
-                }
-            }
-            return ifList?.ToImmutableAndFree() ?? ImmutableArray<ConditionalOperation>.Empty;
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
