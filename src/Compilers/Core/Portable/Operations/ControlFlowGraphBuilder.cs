@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
-            VisitNullChecks(operation, ((IMethodDefinition)member).Parameters.CastArray<IParameterSymbol>(), captureIdForResult);
+            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters, captureIdForResult);
 
             if (operation.Initializer != null)
             {
