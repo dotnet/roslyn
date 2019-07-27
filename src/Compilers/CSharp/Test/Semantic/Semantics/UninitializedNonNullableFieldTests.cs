@@ -49,7 +49,7 @@ class C
         }
 
         [Fact]
-        public void NoExplicitConstructors_CSharp7()
+        public void NoExplicitConstructors_CSharp7_01()
         {
             var source =
 @"class C
@@ -65,6 +65,29 @@ class C
                 // (4,19): warning CS0169: The field 'C.G' is never used
                 //     static object G;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void NoExplicitConstructors_CSharp7_02()
+        {
+            var source =
+@"class C
+{
+#nullable enable
+    internal object F;
+    static object G;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(3, 2),
+                // (4,21): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
+                //     internal object F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(4, 21),
+                // (5,19): warning CS0169: The field 'C.G' is never used
+                //     static object G;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(5, 19));
         }
 
         [Fact]
@@ -90,6 +113,66 @@ class C
                 // (4,19): warning CS0169: The field 'C.G' is never used
                 //     static object G;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_01()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable enable
+class C
+{
+    internal object F;
+    static object G;
+    static C() { }
+#nullable disable
+    C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
+                //     static C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(7, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_02()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable enable
+class C
+{
+    internal object F;
+    static object G;
+    C() { }
+#nullable disable
+    static C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,5): warning CS8618: Non-nullable field 'F' is uninitialized. Consider declaring the field as nullable.
+                //     C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(7, 5));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_03()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable disable
+class C
+{
+    internal object F;
+    static object G;
+#nullable enable
+    C() { }
+    static C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(29849, "https://github.com/dotnet/roslyn/issues/29849")]
