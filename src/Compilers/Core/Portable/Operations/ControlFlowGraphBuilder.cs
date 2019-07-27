@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 case OperationKind.AnonymousFunction:
                     Debug.Assert(captureIdDispenser != null);
                     var anonymousFunction = (IAnonymousFunctionOperation)body;
+                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters, (int?)captureIdDispenser.GetCurrentId());
                     builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
@@ -1335,7 +1337,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
@@ -1407,6 +1408,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
+            var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
+            VisitNullChecks(operation, (member as IMethodDefinition).Parameters.CastArray<IParameterSymbol>(), captureIdForResult);
+
             if (operation.Initializer != null)
             {
                 VisitStatement(operation.Initializer);
@@ -1422,8 +1426,149 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             StartVisitingStatement(operation);
 
+            var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
+            ImmutableArray<IParameterSymbol> parameters = member switch
+            {
+                var x when
+                    x is null ||
+                    x is IFieldSymbol => ImmutableArray<IParameterSymbol>.Empty,
+                IParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
+                _ => (member as IMethodDefinition).Parameters.CastArray<IParameterSymbol>()
+            };
+
+            VisitNullChecks(operation, parameters, captureIdForResult);
+
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
+        }
+
+        internal void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters, int? captureIdForResult)
+        {
+            var temp = _currentStatement;
+            var nullChecks = GenerateNullChecksForParameters(parameters, operation.Syntax, ((Operation)operation).OwningSemanticModel);
+
+            foreach (var check in nullChecks)
+            {
+                _currentStatement = check;
+                VisitConditional(check, captureIdForResult);
+            }
+            _currentStatement = temp;
+        }
+
+        private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
+        {
+            Debug.Assert(parameter.Language == LanguageNames.CSharp);
+            Optional<object> constantValue = default(Optional<object>);
+            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
+            //IOperation conditionOp = MakeIsNullOperation(paramReference);
+            var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+            IOperation conditionOp;
+            if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
+            {
+                conditionOp = new UnaryOperation(
+                    UnaryOperatorKind.Not,
+                    new InvocationOperation(
+                        targetMethod: ((IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue)).Construct(parameter.Type),
+                        instance: paramReference,
+                        isVirtual: false,
+                        arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        semanticModel,
+                        syntax,
+                        boolType,
+                        constantValue,
+                        isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    operatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue,
+                    isImplicit: true);
+            }
+            else
+            {
+                conditionOp = new BinaryOperation(
+                    BinaryOperatorKind.Equals,
+                    paramReference,
+                    new LiteralOperation(semanticModel, syntax, parameter.Type, ConstantValue.Null, isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    isCompareText: false,
+                    operatorMethod: null,
+                    unaryOperatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue,
+                    isImplicit: true);
+            }
+
+            var argumentNullExceptionMethodSymbol = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
+            var argumentNullExceptionType = argumentNullExceptionMethodSymbol?.ReturnType;
+            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
+            // Occurs when a member is missing.
+            IOperation argumentNullExceptionObject;
+            if (argumentNullExceptionMethodSymbol is null)
+            {
+                argumentNullExceptionObject = new InvalidOperation(
+                    children: ImmutableArray.Create((IOperation)paramNameLiteral),
+                    semanticModel,
+                    syntax,
+                    argumentNullExceptionType,
+                    constantValue,
+                    isImplicit: true);
+            }
+            else
+            {
+                argumentNullExceptionObject = new ObjectCreationOperation(
+                        argumentNullExceptionMethodSymbol,
+                        initializer: null,
+                        ImmutableArray.Create<IArgumentOperation>(
+                            new ArgumentOperation(
+                                paramNameLiteral,
+                                ArgumentKind.Explicit,
+                                parameter: argumentNullExceptionMethodSymbol.Parameters[0],
+                                inConversionOpt: null,
+                                outConversionOpt: null,
+                                semanticModel,
+                                syntax,
+                                isImplicit: true)),
+                        semanticModel,
+                        syntax,
+                        argumentNullExceptionType,
+                        constantValue,
+                        isImplicit: true);
+            }
+
+            IOperation whenTrue = new ExpressionStatementOperation(
+                new ThrowOperation(
+                    argumentNullExceptionObject,
+                    semanticModel,
+                    syntax,
+                    argumentNullExceptionType,
+                    constantValue,
+                    isImplicit: true),
+                semanticModel,
+                syntax,
+                _compilation.GetSpecialType(SpecialType.System_Void),
+                constantValue,
+                isImplicit: true);
+            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue, isImplicit: true);
+        }
+
+        private ImmutableArray<ConditionalOperation> GenerateNullChecksForParameters(ImmutableArray<IParameterSymbol> parameters, SyntaxNode syntax, SemanticModel semanticModel)
+        {
+            ArrayBuilder<ConditionalOperation> ifList = null;
+            foreach (var param in parameters)
+            {
+                if (param.IsNullChecked)
+                {
+                    ifList ??= ArrayBuilder<ConditionalOperation>.GetInstance();
+                    ifList.Add(GenerateNullCheckForParameter(param, syntax, semanticModel));
+                }
+            }
+            return ifList?.ToImmutableAndFree() ?? ImmutableArray<ConditionalOperation>.Empty;
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
@@ -5840,6 +5985,7 @@ oneMoreTime:
         private IOperation VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
+            VisitNullChecks(operation, operation.Symbol.Parameters, null);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }
