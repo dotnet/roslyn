@@ -1442,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return FinishVisitingStatement(operation);
         }
 
-        internal void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters, int? captureIdForResult)
+        private void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters, int? captureIdForResult)
         {
             var temp = _currentStatement;
             foreach (var param in parameters)
@@ -1504,12 +1504,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     constantValue,
                     isImplicit: true);
             }
-            var argumentNullExceptionMethodSymbol = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
-            var argumentNullExceptionType = argumentNullExceptionMethodSymbol?.ReturnType;
+            var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
+            var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
             var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
             // Occurs when a member is missing.
             IOperation argumentNullExceptionObject;
-            if (argumentNullExceptionMethodSymbol is null)
+            if (argumentNullExceptionMethod is null)
             {
                 argumentNullExceptionObject = new InvalidOperation(
                     children: ImmutableArray.Create((IOperation)paramNameLiteral),
@@ -1522,13 +1522,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             else
             {
                 argumentNullExceptionObject = new ObjectCreationOperation(
-                        argumentNullExceptionMethodSymbol,
+                        argumentNullExceptionMethod,
                         initializer: null,
                         ImmutableArray.Create<IArgumentOperation>(
                             new ArgumentOperation(
                                 paramNameLiteral,
                                 ArgumentKind.Explicit,
-                                parameter: argumentNullExceptionMethodSymbol.Parameters[0],
+                                parameter: argumentNullExceptionMethod.Parameters[0],
                                 inConversionOpt: null,
                                 outConversionOpt: null,
                                 semanticModel,
