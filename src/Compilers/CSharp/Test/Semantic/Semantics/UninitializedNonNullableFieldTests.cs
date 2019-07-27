@@ -175,6 +175,26 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void Constants()
+        {
+            var source =
+@"class C
+{
+    private const object? C1 = null;
+    internal const object C2 = null!;
+    protected const string? C3 = """";
+    public const string C4 = """";
+}
+struct S
+{
+    internal const string? C5 = null;
+    private const string C6 = null!;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(29849, "https://github.com/dotnet/roslyn/issues/29849")]
         public void UnconstrainedGenericType()
         {

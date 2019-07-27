@@ -158,6 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         continue;
                 }
+                if (field.IsConst)
+                {
+                    continue;
+                }
                 if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
