@@ -1433,7 +1433,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     x is null ||
                     x is IFieldSymbol => ImmutableArray<IParameterSymbol>.Empty,
                 IParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
-                _ => (member as IMethodDefinition).Parameters.CastArray<IParameterSymbol>()
+                IMethodSymbol method => method.Parameters,
+                _ => throw ExceptionUtilities.UnexpectedValue(member)
             };
 
             VisitNullChecks(operation, parameters, captureIdForResult);
