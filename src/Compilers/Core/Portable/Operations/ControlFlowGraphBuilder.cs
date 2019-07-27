@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 case OperationKind.AnonymousFunction:
                     Debug.Assert(captureIdDispenser != null);
                     var anonymousFunction = (IAnonymousFunctionOperation)body;
-                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters, (int?)captureIdDispenser.GetCurrentId());
+                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters, captureIdDispenser.GetCurrentId());
                     builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
