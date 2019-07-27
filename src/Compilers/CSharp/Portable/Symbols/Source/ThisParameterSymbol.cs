@@ -155,5 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        public override bool IsNullChecked => false;
     }
 }
