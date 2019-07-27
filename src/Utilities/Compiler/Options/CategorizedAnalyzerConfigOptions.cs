@@ -120,6 +120,7 @@ namespace Analyzer.Utilities
         {
             if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
                 TryGetSpecificOptionValue(rule.Category, out optionValue) ||
+                TryGetAnySpecificOptionValue(rule.CustomTags, out optionValue) ||
                 TryGetGeneralOptionValue(out optionValue))
             {
                 return optionValue;
@@ -128,9 +129,7 @@ namespace Analyzer.Utilities
             return defaultValue;
 
             // Local functions.
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/32973
             bool TryGetSpecificOptionValue(string specificOptionKey, out T specificOptionValue)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 if (SpecificOptions.TryGetValue(specificOptionKey, out var specificRuleOptions) &&
                     specificRuleOptions.TryGetValue(optionName, out var valueString))
@@ -142,9 +141,21 @@ namespace Analyzer.Utilities
                 return false;
             }
 
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/32973
+            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, out T specificOptionValue)
+            {
+                foreach (var specificOptionKey in specificOptionKeys)
+                {
+                    if (TryGetSpecificOptionValue(specificOptionKey, out specificOptionValue))
+                    {
+                        return true;
+                    }
+                }
+
+                specificOptionValue = defaultValue;
+                return false;
+            }
+
             bool TryGetGeneralOptionValue(out T generalOptionValue)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 if (GeneralOptions.TryGetValue(optionName, out var valueString))
                 {
