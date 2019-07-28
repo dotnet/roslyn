@@ -16,6 +16,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaTests : CompilingTestBase
     {
+        [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
+        public void Verify37456()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public static partial class EnumerableEx
+{
+    public static void Join1<TA, TKey, T>(this IEnumerable<TA> a, Func<TA, TKey> aKey, Func<TA, T> aSel, Func<TA, TA, T> sel)
+    {
+        KeyValuePair<TK, TV> Pair<TK, TV>(TK k, TV v) => new KeyValuePair<TK, TV>(k, v);
+
+        _ = a.GroupJoin(a, aKey, aKey, (f, ss) => Pair(f, ss.Select(s => Pair(true, s)))); // simplified repro
+    }
+
+    public static IEnumerable<T> Join2<TA, TB, TKey, T>(this IEnumerable<TA> a, IEnumerable<TB> b, Func<TA, TKey> aKey, Func<TB, TKey> bKey, Func<TA, T> aSel, Func<TA, TB, T> sel, IEqualityComparer<TKey> comp) 
+    {
+        KeyValuePair<TK, TV> Pair<TK, TV>(TK k, TV v) => new KeyValuePair<TK, TV>(k, v);
+
+        return
+            from j in a.GroupJoin(b, aKey, bKey, (f, ss) => Pair(f, from s in ss select Pair(true, s)), comp)
+            from s in j.Value.DefaultIfEmpty()
+            select s.Key ? sel(j.Key, s.Value) : aSel(j.Key);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+            // emitting should not hang
+        }
+
         [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
         {
@@ -31,10 +64,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,52): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52),
-                // (7,42): error CS0149: Method name expected
-                //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(7, 42)
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52)
                 );
         }
 
@@ -2556,23 +2586,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

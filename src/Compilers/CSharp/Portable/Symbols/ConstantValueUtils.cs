@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundFieldEqualsValue boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
             var initValueNodeLocation = equalsValueNode.Value.Location;
 
-            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type.TypeSymbol, initValueNodeLocation, diagnostics);
+            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, initValueNodeLocation, diagnostics);
             Debug.Assert(value != null);
 
             return value;

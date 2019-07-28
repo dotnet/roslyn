@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 #pragma warning disable xUnit1013 // currently there are public virtual methods that are overridden by derived types
@@ -13,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
+        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
         }
@@ -99,7 +100,7 @@ End Module");
             Assert.Equal("Sub Program.M(p As Object) (+ 1 overload)", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30599")]
+        [WpfFact]
         public void RenamingOpenFiles()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -109,6 +110,21 @@ End Module");
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
 
             VisualStudio.SolutionExplorer.RenameFile(project, "BeforeRename.cs", "AfterRename.cs");
+
+            // ...and after.
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+        }
+
+        [WpfFact]
+        public virtual void RenamingOpenFilesViaDTE()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
+
+            // Verify we are connected to the project before...
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+
+            VisualStudio.SolutionExplorer.RenameFileViaDTE(project, "BeforeRename.cs", "AfterRename.cs");
 
             // ...and after.
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());

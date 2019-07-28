@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                return _underlyingTypeParameter.HasNotNullConstraint;
+            }
+        }
+
         public override bool HasUnmanagedTypeConstraint
         {
             get
@@ -134,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            _underlyingTypeParameter.EnsureAllConstraintsAreResolved(early);
+            _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
         }
     }
 }

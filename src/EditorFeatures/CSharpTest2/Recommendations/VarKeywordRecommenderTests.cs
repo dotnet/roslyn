@@ -221,6 +221,70 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop2()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref v$$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref readonly $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(

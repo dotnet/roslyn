@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -13,21 +14,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private readonly string _solutionName;
         private readonly string _projectTemplate;
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
-            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string solutionName)
+            : this(instanceFactory, testOutputHelper, solutionName, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected AbstractEditorTest(
             VisualStudioInstanceFactory instanceFactory,
+            ITestOutputHelper testOutputHelper,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory)
+           : base(instanceFactory, testOutputHelper)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
@@ -51,7 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
                     _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
                 {
-                    VisualStudio.Workspace.SetUseSuggestionMode(false);
+                    VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();
                 }
             }

@@ -20,6 +20,9 @@ parameters:
   #           if 'true', the build won't run any of the internal only steps, even if it is running in non-public projects.
   runAsPublic: false
 
+  # Optional: whether the build's artifacts will be published using release pipelines or direct feed publishing
+  publishUsingPipelines: false
+
 jobs:
 - job: Asset_Registry_Publish
 
@@ -52,9 +55,24 @@ jobs:
           /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
           /p:BuildAssetRegistryToken=$(MaestroAccessToken)
           /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
+          /p:PublishUsingPipelines=${{ parameters.publishUsingPipelines }}
           /p:Configuration=$(_BuildConfig)
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
+    - task: powershell@2
+      displayName: Create ReleaseConfigs Artifact
+      inputs:
+        targetType: inline
+        script: |
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(BARBuildId)
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value "$(DefaultChannels)"
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(IsStableBuild)
+    - task: PublishBuildArtifacts@1
+      displayName: Publish ReleaseConfigs Artifact
+      inputs:
+        PathtoPublish: '$(Build.StagingDirectory)/ReleaseConfigs.txt'
+        PublishLocation: Container
+        ArtifactName: ReleaseConfigs
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
       - task: PublishBuildArtifacts@1
         displayName: Publish Logs to VSTS

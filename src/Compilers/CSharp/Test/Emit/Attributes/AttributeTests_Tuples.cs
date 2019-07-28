@@ -268,10 +268,10 @@ class C
             {
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
-                    typeSymbols.Add(methodSymbol.ReturnType.TypeSymbol);
-                    foreach (var parameterType in methodSymbol.ParameterTypes)
+                    typeSymbols.Add(methodSymbol.ReturnType);
+                    foreach (var parameterType in methodSymbol.ParameterTypesWithAnnotations)
                     {
-                        typeSymbols.Add(parameterType.TypeSymbol);
+                        typeSymbols.Add(parameterType.Type);
                     }
                     break;
                 case SymbolKind.NamedType:
@@ -279,13 +279,13 @@ class C
                     typeSymbols.Add(namedType.BaseType() ?? namedType);
                     break;
                 case SymbolKind.Field:
-                    typeSymbols.Add(((FieldSymbol)symbol).Type.TypeSymbol);
+                    typeSymbols.Add(((FieldSymbol)symbol).Type);
                     break;
                 case SymbolKind.Property:
-                    typeSymbols.Add(((PropertySymbol)symbol).Type.TypeSymbol);
+                    typeSymbols.Add(((PropertySymbol)symbol).Type);
                     break;
                 case SymbolKind.Event:
-                    typeSymbols.Add(((EventSymbol)symbol).Type.TypeSymbol);
+                    typeSymbols.Add(((EventSymbol)symbol).Type);
                     break;
             }
             var symbolString = string.Join(" | ", typeSymbols
@@ -474,22 +474,22 @@ class C
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
                 ValidateTupleNameAttribute(field6.GetAttributes(), expectedTupleNamesAttribute: false);
-                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type.TypeSymbol);
+                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
                 var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1].TypeSymbol;
+                Assert.Equal(2, firstTuple.TupleElementTypesWithAnnotations.Length);
+                var secondTuple = firstTuple.TupleElementTypesWithAnnotations[1].Type;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, secondTuple.TupleElementTypes.Length);
+                Assert.Equal(2, secondTuple.TupleElementTypesWithAnnotations.Length);
 
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.TypeSymbol.IsTupleType);
+                Assert.False(field7.Type.IsTupleType);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -617,7 +617,7 @@ class C
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
                     Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
-                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (kind.IsUserDefined())
             {
                 Debug.Assert((object)method != null);
-                Debug.Assert(TypeSymbol.Equals(type, method.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(TypeSymbol.Equals(type, method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
                     return BoundCall.Synthesized(syntax, null, method, loweredOperand);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -590,11 +590,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
             SyntaxNode syntax = node.Syntax;
 
-            TypeSymbol type = node.MethodOpt.ParameterTypes[0].TypeSymbol;
+            TypeSymbol type = node.MethodOpt.GetParameterType(0);
             if (isLifted)
             {
                 type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
-                Debug.Assert(TypeSymbol.Equals(node.MethodOpt.ParameterTypes[0].TypeSymbol, node.MethodOpt.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(TypeSymbol.Equals(node.MethodOpt.GetParameterType(0), node.MethodOpt.ReturnType, TypeCompareKind.ConsiderEverything2));
             }
 
             if (!node.OperandConversion.IsIdentity)
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);

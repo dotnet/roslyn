@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public void EnableTestTelemetryChannel()
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 TelemetryService.DetachTestChannel(LoggerTestChannel.Instance);
 
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DisableTestTelemetryChannel()
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 TelemetryService.DetachTestChannel(LoggerTestChannel.Instance);
 

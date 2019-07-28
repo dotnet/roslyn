@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             var vsShell = _serviceProvider.GetService<IVsShell, SVsShell>();
-            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out int extensionEnabled);
+            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
                 FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             ThisCanBeCalledOnAnyThread();
 
-            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out Uri fwLink))
+            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out var fwLink))
             {
                 // We're providing a constant, known-good link. This should be impossible.
                 throw ExceptionUtilities.Unreachable;

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             results in <c>p</c>'s having the value (2,8).
             </example>";
 
-            var expected = "This method changes the point's location by the given x- and y-offsets. For example: Point p = new Point(3,5); p.Translate(-1,3); results in p's having the value (2,8).";
+            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\nPoint p = new Point(3,5); p.Translate(-1,3);\r\n\r\nresults in p's having the value (2,8).";
 
             TestFormat(comment, expected);
         }
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
         </item>
         </list>";
 
-            var expected = @"Here is an example of a bulleted list: Item 1. Item 2.";
+            var expected = "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.";
 
             TestFormat(comment, expected);
         }
@@ -239,6 +240,47 @@ This is part of a paragraph.";
 @"This is part of a paragraph.
 
 This is part of the summary, too.";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        public void Paragraphs5()
+        {
+            var comment =
+@"
+<para>This is part of a<br/>paragraph.</para>
+<para>This is also part of a paragraph.</para>
+";
+
+            var expected =
+@"This is part of a
+paragraph.
+
+This is also part of a paragraph.";
+
+            TestFormat(comment, expected);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [InlineData("<br/><br/>")]
+        [InlineData("<br/><br/><br/>")]
+        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        public void Paragraphs6(string lineBreak)
+        {
+            var comment =
+$@"
+<para>This is part of a{lineBreak}paragraph.</para>
+<para>This is also part of a paragraph.</para>
+";
+
+            var expected =
+@"This is part of a
+
+paragraph.
+
+This is also part of a paragraph.";
 
             TestFormat(comment, expected);
         }

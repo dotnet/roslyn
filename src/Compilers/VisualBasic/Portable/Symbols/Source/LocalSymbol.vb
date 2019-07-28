@@ -389,6 +389,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_NullableAnnotation As NullableAnnotation Implements ILocalSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property ILocalSymbol_IsConst As Boolean Implements ILocalSymbol.IsConst
             Get
                 Return Me.IsConst

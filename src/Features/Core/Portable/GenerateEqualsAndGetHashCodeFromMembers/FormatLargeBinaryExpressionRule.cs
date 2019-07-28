@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// </summary>
         private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
         {
-            private ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxFactsService _syntaxFacts;
 
             public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
             {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.
             /// </summary>
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+                SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (_syntaxFacts.IsLogicalAndExpression(previousToken.Parent))
                 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ///        ...
             /// </summary>
             public override void AddIndentBlockOperations(
-                List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+                List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
             {
                 if (_syntaxFacts.IsReturnStatement(node))
                 {
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     }
                 }
 
-                nextOperation.Invoke(list);
+                nextOperation.Invoke();
             }
         }
     }

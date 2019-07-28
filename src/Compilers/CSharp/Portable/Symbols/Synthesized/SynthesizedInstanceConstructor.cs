@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -145,19 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public sealed override TypeSymbolWithAnnotations ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
+            get { return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public sealed override Symbol AssociatedSymbol
@@ -263,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
+            return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
         #endregion
 
@@ -286,11 +291,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var block = factory.Block(
-                factory.ExpressionStatement(baseConstructorCall),
-                factory.Return());
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            statements.Add(factory.ExpressionStatement(baseConstructorCall));
+            GenerateMethodBodyStatements(factory, statements, diagnostics);
+            statements.Add(factory.Return());
+
+            var block = factory.Block(statements.ToImmutableAndFree());
 
             factory.CloseMethod(block);
         }
+
+        protected virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        {
+            // overridden in a derived class to add extra statements to the body of the generated constructor
+        }
+
     }
 }

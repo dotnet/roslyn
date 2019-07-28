@@ -6,14 +6,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>
@@ -84,11 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal abstract Guid GetProjectGuid(ProjectId projectId);
 
         public virtual string GetFilePath(DocumentId documentId)
-        {
-            var solution = CurrentSolution;
-
-            return (solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId))?.FilePath;
-        }
+            => CurrentSolution.GetTextDocument(documentId)?.FilePath;
 
         /// <summary>
         /// Given a document id, opens an invisible editor for the document.

@@ -115,14 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static SyntaxNode GetNestedFunctionBody(SyntaxNode nestedFunction)
-        {
-            switch (nestedFunction)
+            => nestedFunction switch
             {
-                case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax: return anonymousFunctionExpressionSyntax.Body;
-                case LocalFunctionStatementSyntax localFunctionStatementSyntax: return (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression;
-                default: throw ExceptionUtilities.UnexpectedValue(nestedFunction);
-            }
-        }
+                AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
+            };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
         {
@@ -460,6 +458,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        internal static int GetDeclaratorPosition(SyntaxNode node)
+        {
+            // To differentiate between nested switch expressions that start at the same offset, use the offset of the `switch` keyword.
+            return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
         }
 
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)

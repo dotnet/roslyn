@@ -1,11 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using System.Runtime.CompilerServices;
+
+// 🐉 The XAML markup compiler does not recognize InternalsVisibleTo. However, since it allows type
+// forwarding, we use TypeForwardedTo to make CodeStyleNoticeTextBlock appear to the markup compiler
+// as an internal type in the current assembly instead of an internal type in one of the referenced
+// assemblies.
+[assembly: TypeForwardedTo(typeof(CodeStyleNoticeTextBlock))]
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -14,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     /// </summary>
     internal partial class FormattingOptionPageControl : AbstractOptionPageControl
     {
-        public FormattingOptionPageControl(IServiceProvider serviceProvider) : base(serviceProvider)
+        public FormattingOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
 
@@ -27,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(FormatWhenTypingCheckBox, FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
             BindToOption(FormatOnCloseBraceCheckBox, FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp);
             BindToOption(FormatOnSemicolonCheckBox, FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp);
-            BindToOption(FormatOnReturnCheckBox, FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp);
+            BindToOption(FormatOnReturnCheckBox, FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp);
             BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
         }
     }

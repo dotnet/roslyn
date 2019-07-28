@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveUp();
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveDown();
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (Members.SelectedIndex >= 0)
             {
-                DataGridRow row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
+                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
                 if (row == null)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void FocusRow(DataGridRow row)
         {
-            DataGridCell cell = row.FindDescendant<DataGridCell>();
+            var cell = row.FindDescendant<DataGridCell>();
             if (cell != null)
             {
                 cell.Focus();
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveSelectionUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (oldSelectedIndex > 0)
             {
                 var potentialNewSelectedParameter = Members.Items[oldSelectedIndex - 1] as ChangeSignatureDialogViewModel.ParameterViewModel;
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveSelectionDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (oldSelectedIndex >= 0 && oldSelectedIndex < Members.Items.Count - 1)
             {
                 Members.SelectedIndex = oldSelectedIndex + 1;
@@ -201,6 +201,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             Members.Items.Refresh();
             SetFocusToSelectedRow();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ChangeSignatureDialog _dialog;
+
+            public TestAccessor(ChangeSignatureDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public ChangeSignatureDialogViewModel ViewModel => _dialog._viewModel;
+
+            public DataGrid Members => _dialog.Members;
+
+            public DialogButton OKButton => _dialog.OKButton;
+
+            public DialogButton CancelButton => _dialog.CancelButton;
+
+            public DialogButton DownButton => _dialog.DownButton;
+
+            public DialogButton UpButton => _dialog.UpButton;
+
+            public DialogButton RemoveButton => _dialog.RemoveButton;
+
+            public DialogButton RestoreButton => _dialog.RestoreButton;
         }
     }
 }

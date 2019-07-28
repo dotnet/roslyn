@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class CastExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of CastExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As CastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Select Case node.Kind
                 Case SyntaxKind.CTypeExpression

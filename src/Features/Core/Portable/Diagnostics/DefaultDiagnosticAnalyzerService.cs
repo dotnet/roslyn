@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
         public bool SupportGetDiagnostics => false;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
         {
-            this.DiagnosticsUpdated?.Invoke(this, state);
+            DiagnosticsUpdated?.Invoke(this, state);
         }
 
         private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer

@@ -111,6 +111,60 @@ namespace Microsoft.CodeAnalysis
         /// has no concept of unmanaged types.
         /// </summary>
         bool IsUnmanagedType { get; }
+
+        /// <summary>
+        /// True if the type is readonly.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A formatted string representation of the symbol with the given nullability.</returns>
+        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Converts a symbol to an array of string parts, each of which has a kind. Useful
+        /// for colorizing the display string.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Converts a symbol to a string that can be displayed to the user. May be tailored to a
+        /// specific location in the source code.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A formatted string that can be displayed to the user.</returns>
+        string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
+        /// to a specific location in the source code. Useful for colorizing the display string.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes

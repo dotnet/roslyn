@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">Diagnose für geschlossene Dateien anzeigen; 
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Diagnose für geschlossene Dateien anzeigen; 
 Reguläre Ausdrücke farbig hervorheben; 
 Zugehörige Komponenten unter dem Cursor markieren; 
 Ungültige reguläre Ausdrücke melden; 
@@ -324,13 +327,13 @@ Namensvorschläge anzeigen;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp-Editor</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp-Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">CSharp-Editor mit Codierung</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">CSharp-Editor mit Codierung</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -367,6 +370,16 @@ Namensvorschläge anzeigen;</target>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">C#-Komponenten, die in der IDE verwendet werden. Abhängig von Ihrem Projekttyp und den zugehörigen Einstellungen kann eine andere Version des Compilers verwendet werden.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

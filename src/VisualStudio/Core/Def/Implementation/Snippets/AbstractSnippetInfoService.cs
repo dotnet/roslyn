@@ -191,8 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             uint count = 0;
             uint fetched = 0;
-            VsExpansion snippetInfo = new VsExpansion();
-            IntPtr[] pSnippetInfo = new IntPtr[1];
+            var snippetInfo = new VsExpansion();
+            var pSnippetInfo = new IntPtr[1];
 
             try
             {

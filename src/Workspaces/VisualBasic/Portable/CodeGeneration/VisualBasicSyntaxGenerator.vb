@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
@@ -366,6 +370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
+        End Function
+
+        Friend Overrides Function SupportsThrowExpression() As Boolean
+            Return False
         End Function
 
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
@@ -1650,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf existingAttributes.Count > 0 Then
                 Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
             Else
-                Dim lists = Me.GetAttributeLists(declaration)
+                Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
         End Function
@@ -1743,7 +1751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+        Friend Shared Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.Kind
                 Case SyntaxKind.CompilationUnit
                     Return SyntaxFactory.List(DirectCast(node, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists))
@@ -2825,6 +2833,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GetModifierList(accessibility As Accessibility, modifiers As DeclarationModifiers, kind As DeclarationKind, Optional isDefault As Boolean = False) As SyntaxTokenList
             Dim _list = SyntaxFactory.TokenList()
 
+            ' While partial must always be last in C#, its preferred position in VB is to be first,
+            ' even before accessibility modifiers. This order is enforced by line commit.
+            If modifiers.IsPartial Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
+            End If
+
             If isDefault Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
             End If
@@ -2902,11 +2916,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If modifiers.IsWithEvents Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WithEventsKeyword))
-            End If
-
-            ' partial must be last
-            If modifiers.IsPartial Then
-                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
             End If
 
             If (kind = DeclarationKind.Field AndAlso _list.Count = 0) Then
@@ -4170,6 +4179,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return trivia.IsRegularOrDocComment()
         End Function
 
+        Friend Overrides Function RemoveAllComments(node As SyntaxNode) As SyntaxNode
+            Return RemoveLeadingAndTrailingComments(node)
+        End Function
+
+        Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
+            Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
+        End Function
 #End Region
 
 #Region "Patterns"
@@ -4179,6 +4195,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 

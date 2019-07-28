@@ -180,7 +180,7 @@ namespace Roslyn.Utilities
             cancellationToken.ThrowIfCancellationRequested();
 
             // If the value is already available, return it immediately
-            if (TryGetValue(out T value))
+            if (TryGetValue(out var value))
             {
                 return value;
             }
@@ -293,7 +293,7 @@ namespace Roslyn.Utilities
                 _requests = new HashSet<Request>();
             }
 
-            Request request = new Request();
+            var request = new Request();
             _requests.Add(request);
             return request;
         }
@@ -455,7 +455,7 @@ namespace Roslyn.Utilities
 
                 // The computation is complete, so get all requests to complete and null out the list. We'll create another one
                 // later if it's needed
-                requestsToComplete = _requests ?? SpecializedCollections.EmptyEnumerable<Request>();
+                requestsToComplete = _requests ?? (IEnumerable<Request>)Array.Empty<Request>();
                 _requests = null;
 
                 // The computations are done

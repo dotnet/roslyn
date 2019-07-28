@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -12,7 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractUpdateProjectTest
     {
-        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -36,6 +38,7 @@ unsafe class C
 
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
             InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "AllowUnsafeBlocks", "true");

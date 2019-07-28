@@ -5,6 +5,9 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+# Stop script if subcommand fails
+set -e 
+
 usage()
 {
   echo "Common settings:"
@@ -121,6 +124,8 @@ while [[ $# > 0 ]]; do
       ;;
     --bootstrap)
       bootstrap=true
+      # Bootstrap requires restore
+      restore=true
       ;;
     --skipanalyzers)
       skip_analyzers=true
@@ -149,7 +154,7 @@ while [[ $# > 0 ]]; do
   shift
 done
 
-if [[ "$test_mono" == true && "$docker" == true ]]
+if [[ "$docker" == true ]]
 then
   echo "Docker exec: $args"
 
@@ -181,10 +186,10 @@ function MakeBootstrapBuild {
   rm -rf $dir
   mkdir -p $dir
 
-  local package_name="Microsoft.NETCore.Compilers"
+  local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/$package_name.Package.csproj
 
-  dotnet pack -nologo "$project_path" /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir"
+  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
@@ -226,30 +231,25 @@ function BuildSolution {
     disable_parallel_restore=true
   fi
 
-  local quiet_restore=""
-  if [[ "$ci" != true ]]; then
-    quiet_restore=true
-  fi
-
   local test=false
   local test_runtime=""
   local mono_tool=""
+  local test_runtime_args=""
   if [[ "$test_mono" == true ]]; then
-    
-    mono_path="$scriptroot/invoke-mono.sh"
-    # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
+    mono_path=`command -v mono`
+    # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
     # as we're using a feed vs. a hard coded package.
     if [[ "$ci" == true ]]; then
       mono --version
-      chmod +x "$mono_path"
     fi
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
+    test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
     mono_tool=""
   fi
 
@@ -271,16 +271,18 @@ function BuildSolution {
     /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:QuietRestore=$quiet_restore \
-    /p:QuietRestoreBinaryLog="$binary_log" \
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
+    /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     $test_runtime \
     $mono_tool \
     $properties
 }
 
 InitializeDotNetCli $restore
+
+# Make sure we have a 2.1 runtime available for running our tests
+InstallDotNetSdk $_InitializeDotNetCli 2.1.503
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

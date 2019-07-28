@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -20,12 +19,10 @@
     <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\Microsoft.CodeAnalysis.InteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.vbproj" />
-    <ProjectReference Include="..\..\..\Interactive\Features\Microsoft.CodeAnalysis.InteractiveFeatures.csproj" />
-    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost32.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
@@ -39,8 +36,7 @@
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
-    <ProjectReference Include="..\..\CSharp\Repl\Microsoft.VisualStudio.CSharp.Repl.csproj" />
-    <ProjectReference Include="..\..\InteractiveServices\Microsoft.VisualStudio.InteractiveServices.csproj" />
+    <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj" />
     <ProjectReference Include="..\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
@@ -52,12 +48,5 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <!-- 
-      Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
-      Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition containing it.
-      This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
-      Remove this reference once it's fixed.
-     -->
-    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

@@ -81,9 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundExpression ShallowClone()
-                => throw ExceptionUtilities.Unreachable;
-
             public void Free()
             {
                 if (_locals != null) _locals.Free();
@@ -375,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expression;
 
                     default:
-                        if (expression.Type.SpecialType == SpecialType.System_Void || sideEffectsOnly)
+                        if (expression.Type.IsVoidType() || sideEffectsOnly)
                         {
                             builder.AddStatement(_F.ExpressionStatement(expression));
                             return null;
@@ -546,7 +543,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
-            Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
             var builder = new BoundSpillSequenceBuilder();
 
             // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
@@ -628,6 +624,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var initializers = this.VisitExpressionList(ref builder, node.Initializers);
             return UpdateExpression(builder, node.Update(initializers));
+        }
+
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression count = VisitExpression(ref builder, node.Count);
+            var initializerOpt = (BoundArrayInitialization)VisitExpression(ref builder, node.InitializerOpt);
+            return UpdateExpression(builder, node.Update(node.ElementType, count, initializerOpt, node.Type));
         }
 
         public override BoundNode VisitArrayLength(BoundArrayLength node)
@@ -764,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
-            else if (!node.Method.IsStatic)
+            else if (node.Method.RequiresInstanceReceiver)
             {
                 // spill the receiver if there were await expressions in the arguments
                 var receiverBuilder = new BoundSpillSequenceBuilder();
@@ -811,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder();
             if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder();
 
-            if (node.Type.SpecialType == SpecialType.System_Void)
+            if (node.Type.IsVoidType())
             {
                 conditionBuilder.AddStatement(
                     _F.If(condition,
@@ -840,15 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(
                 builder,
-                node.Update(
-                    operand,
-                    node.Conversion,
-                    isBaseConversion: node.IsBaseConversion,
-                    @checked: node.Checked,
-                    explicitCastInCode: node.ExplicitCastInCode,
-                    conversionGroupOpt: node.ConversionGroupOpt,
-                    constantValueOpt: node.ConstantValueOpt,
-                    type: node.Type));
+                node.UpdateOperand(operand));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)
@@ -988,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
             }
 
-            if (node.Type.SpecialType == SpecialType.System_Void)
+            if (node.Type.IsVoidType())
             {
                 var whenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull));
                 whenNotNullStatement = ConditionalReceiverReplacer.Replace(whenNotNullStatement, receiver, node.Id, RecursionDepth);
@@ -1174,6 +1170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
         }
 
         #endregion

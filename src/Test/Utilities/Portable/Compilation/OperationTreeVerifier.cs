@@ -477,6 +477,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
             LogCommonPropertiesAndNewLine(operation);
 
+            if (!operation.IgnoredDimensions.IsEmpty)
+            {
+                VisitArray(operation.IgnoredDimensions, "Ignored Dimensions", true);
+            }
             VisitArray(operation.Declarators, "Declarators", false);
             Visit(operation.Initializer, "Initializer");
         }
@@ -1882,20 +1886,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.Local, " (Local Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
-        }
-
-        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
-        {
-            LogString(nameof(IFromEndIndexOperation));
-
-            if (operation.IsLifted)
-            {
-                LogString(" (IsLifted)");
-            }
-
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.Operand, nameof(operation.Operand));
         }
 
         public override void VisitRangeOperation(IRangeOperation operation)

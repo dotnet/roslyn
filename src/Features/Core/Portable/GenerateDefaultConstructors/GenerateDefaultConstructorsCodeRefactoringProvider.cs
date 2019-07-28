@@ -24,11 +24,14 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public GenerateDefaultConstructorsCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
 
             // TODO: https://github.com/dotnet/roslyn/issues/5778
             // Not supported in REPL for now.

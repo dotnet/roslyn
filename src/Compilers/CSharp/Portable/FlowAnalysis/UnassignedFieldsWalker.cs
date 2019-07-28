@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (HasThisConstructorInitializer(method))
+            if (HasThisConstructorInitializer(method) || method.ContainingType.IsValueType)
             {
                 return;
             }
@@ -67,47 +67,76 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportUninitializedNonNullableReferenceTypeFields()
         {
             var thisParameter = MethodThisParameter;
-            var location = thisParameter.ContainingSymbol.Locations.FirstOrDefault() ?? Location.None;
-
             int thisSlot = VariableSlot(thisParameter);
-            if (thisSlot == -1)
+            if (thisSlot == -1 || !State.Reachable)
             {
                 return;
             }
 
-            var thisType = thisParameter.Type.TypeSymbol;
+            var thisType = thisParameter.Type;
             Debug.Assert(thisType.IsDefinition);
 
             foreach (var member in thisType.GetMembersUnordered())
             {
-                if (member.Kind != SymbolKind.Field)
+                TypeWithAnnotations fieldType;
+                FieldSymbol field;
+                switch (member)
                 {
-                    // https://github.com/dotnet/roslyn/issues/30067 Handle events.
+                    case FieldSymbol f:
+                        fieldType = f.TypeWithAnnotations;
+                        field = f;
+                        break;
+                    case EventSymbol e:
+                        fieldType = e.TypeWithAnnotations;
+                        field = e.AssociatedField;
+                        if (field is null)
+                        {
+                            continue;
+                        }
+                        break;
+                    default:
+                        continue;
+                }
+                if (member.IsStatic || HasInitializer(member))
+                {
                     continue;
                 }
-                var field = (FieldSymbol)member;
-                // https://github.com/dotnet/roslyn/issues/30067 Can the HasInitializer
-                // call be removed, if the body already contains the initializers?
-                if (field.IsStatic || HasInitializer(field))
+                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
                 }
-                var fieldType = field.Type;
-                if (fieldType.IsValueType || fieldType.IsErrorType())
-                {
-                    continue;
-                }
-                if (!fieldType.NullableAnnotation.IsAnyNotNullable() && !fieldType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.Type.IsTypeParameterDisallowingAnnotation())
                 {
                     continue;
                 }
                 int fieldSlot = VariableSlot(field, thisSlot);
                 if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                 {
-                    var symbol = (Symbol)(field.AssociatedSymbol as PropertySymbol) ?? field;
+                    var symbol = member switch
+                    {
+                        FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
+                        _ => member
+                    };
+                    var location = (topLevelMethod.DeclaringSyntaxReferences.IsEmpty
+                        ? symbol // default constructor, use the field location
+                        : topLevelMethod).Locations[0];
                     _diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
                 }
             }
+        }
+
+        public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
+        {
+            base.VisitEventAssignmentOperator(node);
+            if (node.IsAddition && node is { Event: { IsStatic: false, AssociatedField: { } field } })
+            {
+                int slot = MakeMemberSlot(node.ReceiverOpt, field);
+                if (slot != -1)
+                {
+                    SetSlotState(slot, assigned: true);
+                }
+            }
+            return null;
         }
     }
 }

@@ -571,7 +571,7 @@ class Program
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
             Assert.True(f.IsFixedSizeBuffer);
-            Assert.Equal("int*", f.Type.ToString());
+            Assert.Equal("int*", f.TypeWithAnnotations.ToString());
             Assert.Equal(10, f.FixedSize);
         }
 

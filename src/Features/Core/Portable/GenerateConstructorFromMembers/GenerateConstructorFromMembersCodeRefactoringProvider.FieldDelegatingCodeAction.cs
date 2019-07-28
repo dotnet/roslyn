@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -45,28 +43,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < _state.Parameters.Length; i++)
+                for (var i = 0; i < _state.Parameters.Length; i++)
                 {
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
                 }
 
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = semanticModel.SyntaxTree;
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
 
-                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                    compilation,
+                    semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
                     parameterToExistingFieldMap,
                     parameterToNewFieldMap: null,
                     addNullChecks: _addNullChecks,
-                    preferThrowExpression: preferThrowExpression,
-                    cancellationToken: cancellationToken);
+                    preferThrowExpression: preferThrowExpression);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 

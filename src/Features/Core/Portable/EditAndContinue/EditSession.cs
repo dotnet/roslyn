@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -14,8 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var debugInfo in debugInfos)
             {
-                string documentName = debugInfo.DocumentNameOpt;
+                var documentName = debugInfo.DocumentNameOpt;
                 if (documentName == null)
                 {
                     // Ignore active statements that do not have a source location.
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // TODO: associate only those documents that are from a project with the right module id
                 // https://github.com/dotnet/roslyn/issues/24320
-                for (int i = 1; i < documentIds.Length; i++)
+                for (var i = 1; i < documentIds.Length; i++)
                 {
                     var documentId = documentIds[i];
                     if (!SupportsEditAndContinue(documentId))
@@ -237,7 +236,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-                    var exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out bool isCovered);
+                    var exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out var isCovered);
 
                     builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
                 }
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal bool HasProject(ProjectId id)
         {
-            return Projects.TryGetValue(id, out var reason);
+            return Projects.TryGetValue(id, out _);
         }
 
         private List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
@@ -353,7 +352,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, documentBaseActiveStatements, document, cancellationToken).ConfigureAwait(false);
+                        var trackingService = _baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+                        var baseProject = _baseSolution.GetProject(document.Project.Id);
+                        var result = await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
 
                         if (!result.RudeEditErrors.IsDefault)
                         {
@@ -402,8 +403,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ProjectAnalysisSummary.NoChanges;
                 }
 
-                bool hasChanges = false;
-                bool hasSignificantChanges = false;
+                var hasChanges = false;
+                var hasSignificantChanges = false;
 
                 foreach (var analysis in documentAnalyses)
                 {
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using (var metadataStream = SerializableBytes.CreateWritableStream())
                 using (var ilStream = SerializableBytes.CreateWritableStream())
                 {
-                    EmitDifferenceResult result = currentCompilation.EmitDifference(
+                    var result = currentCompilation.EmitDifference(
                         baseline,
                         projectChanges.SemanticEdits,
                         s => allAddedSymbols?.Contains(s) ?? false,
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         updatedMethods,
                         cancellationToken);
 
-                    int[] updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
+                    var updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
 
                     // Determine all active statements whose span changed and exception region span deltas.
 
@@ -553,8 +554,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal static void GetActiveStatementAndExceptionRegionSpans(
+        private static void GetActiveStatementAndExceptionRegionSpans(
             Guid moduleId,
             ActiveStatementsMap baseActiveStatements,
             ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
                 Debug.Assert(newActiveStatements.Length == newExceptionRegions.Length);
 
-                for (int i = 0; i < newActiveStatements.Length; i++)
+                for (var i = 0; i < newActiveStatements.Length; i++)
                 {
                     var oldActiveStatement = oldActiveStatements[i];
                     var newActiveStatement = newActiveStatements[i];
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var methodToken = oldInstructionId.MethodId.Token;
                     var methodVersion = oldInstructionId.MethodId.Version;
 
-                    bool isMethodUpdated = updatedMethodTokens.Contains(methodToken);
+                    var isMethodUpdated = updatedMethodTokens.Contains(methodToken);
                     if (isMethodUpdated)
                     {
                         foreach (var threadId in oldActiveStatement.ThreadIds)
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
-                                int lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
+                                var lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
                                 nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
                             }
 
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     AddNonRemappableRegion(oldActiveStatement.Span, newActiveStatement.Span, isExceptionRegion: false);
 
-                    int j = 0;
+                    var j = 0;
                     foreach (var oldSpan in baseActiveExceptionRegions[oldActiveStatement.Ordinal].Spans)
                     {
                         AddNonRemappableRegion(oldSpan, newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++], isExceptionRegion: true);
@@ -720,6 +720,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(_encEditSessionInfo != null);
                 encDebuggingSessionInfo.EndEditSession(_encEditSessionInfo);
                 _encEditSessionInfo = null;
+            }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditSession _editSession;
+
+            public TestAccessor(EditSession editSession)
+            {
+                _editSession = editSession;
+            }
+
+            internal static void GetActiveStatementAndExceptionRegionSpans(
+                Guid moduleId,
+                ActiveStatementsMap baseActiveStatements,
+                ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
+                int[] updatedMethodTokens,
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
+                out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
+                out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
+            {
+                EditSession.GetActiveStatementAndExceptionRegionSpans(
+                    moduleId,
+                    baseActiveStatements,
+                    baseActiveExceptionRegions,
+                    updatedMethodTokens,
+                    previousNonRemappableRegions,
+                    newActiveStatementsInChangedDocuments,
+                    out activeStatementsInUpdatedMethods,
+                    out nonRemappableRegions);
             }
         }
     }

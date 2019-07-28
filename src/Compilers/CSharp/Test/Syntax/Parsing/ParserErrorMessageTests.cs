@@ -80,12 +80,9 @@ abstract class A
                 // (5,33): error CS0073: An add or remove accessor must have a body
                 //     event Action E { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
-                // (9,41): error CS0073: An add or remove accessor must have a body
+                // (9,36): error CS8712: 'A.E': abstract event cannot use event accessor syntax
                 //     public abstract event Action E { add; remove; }
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
-                // (9,49): error CS0073: An add or remove accessor must have a body
-                //     public abstract event Action E { add; remove; }
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("A.E").WithLocation(9, 36));
         }
 
         [Fact]
@@ -269,9 +266,6 @@ class A
                 // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
-                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
                 // (6,33): error CS1003: Syntax error, ',' expected
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
@@ -280,7 +274,10 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
                 // (6,33): error CS1003: Syntax error, ']' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33),
+                // (6,33): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "").WithLocation(6, 33)
                 );
         }
 
@@ -948,20 +945,21 @@ abstract class B : A, I
     internal override abstract void M4<T>() where T : struct;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (14,20): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 20),
-                // (15,22): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(15, 22),
-                // (16,37): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(16, 37),
-                // (17,36): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(17, 36),
-                // (18,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(18, 45),
+                // (14,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.M1<T>() where T : I { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "I").WithLocation(14, 30),
+                // (15,32): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.M2<T,U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "T").WithLocation(15, 32),
+                // (17,46): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     internal override void M2<T>() where T : new() { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "new()").WithLocation(17, 46),
+                // (18,55): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     internal override abstract void M3<U>() where U : A;
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "A").WithLocation(18, 55),
                 // (19,37): error CS0115: 'B.M4<T>()': no suitable method found to override
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37),
-                // (19,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(19, 45));
+                //     internal override abstract void M4<T>() where T : struct;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37));
         }
 
         [WorkItem(862094, "DevDiv/Personal")]
@@ -4819,9 +4817,12 @@ unsafe public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                // (4,14): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14),
+                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
                 );
         }
 
@@ -4839,9 +4840,12 @@ unsafe public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                // (6,33): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33),
+                // (6,33): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 33)
                 );
         }
 
@@ -4880,10 +4884,10 @@ public class Test
     }
 }
 ";
-            CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 16));
         }
 
         [Fact]
@@ -5199,7 +5203,7 @@ public namespace NS // CS1671
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public"));
+            ParseAndValidate(test);
         }
 
         [Fact]
@@ -5209,7 +5213,7 @@ public namespace NS // CS1671
 namespace N { }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]"));
+            ParseAndValidate(test);
         }
 
         [WorkItem(863437, "DevDiv/Personal")]
@@ -6331,6 +6335,20 @@ class C { }
                 // (3,2): error CS8022: Feature '#pragma' is not available in C# 1. Please use language version 2 or greater.
                 // #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "pragma").WithArguments("#pragma", "2"));
+        }
+
+        [Fact]
+        public void PragmaBeforeCSharp2_InDisabledCode()
+        {
+            var text = @"
+#if UNDEF
+#pragma warning disable 1584
+#pragma checksum ""file.txt"" ""{00000000-0000-0000-0000-000000000000}"" ""2453""
+#endif
+class C { }
+";
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
         }
 
         [Fact]

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -15,6 +14,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
     {
         protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(

@@ -2918,6 +2918,35 @@ public class TestClass
                 );
         }
 
+        [Fact]
+        [WorkItem(33783, "https://github.com/dotnet/roslyn/issues/33783")]
+        public void UnreachableDefaultInBoolSwitch()
+        {
+            var text = @"
+public class TestClass
+{
+    public static void Main()
+    {
+        bool b = false;
+        switch (b)
+        {
+            case true:
+                break;
+            case false:
+                break;
+            default:
+                break; //1
+        }
+    }
+}";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17));
+        }
+
         #endregion
     }
 }

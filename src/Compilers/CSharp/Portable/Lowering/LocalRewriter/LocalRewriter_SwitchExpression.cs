@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             // The switch expression is lowered to an expression that involves the use of side-effects
             // such as jumps and labels, therefore it is represented by a BoundSpillSequence and
@@ -22,14 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
-        private class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
+        private sealed class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
-            private SwitchExpressionLocalRewriter(BoundSwitchExpression node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax), isSwitchStatement: false)
+            private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
+                : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax))
             {
             }
 
-            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
+            protected override bool IsSwitchStatement => false;
+
+            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
                 var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
                 BoundExpression result = rewriter.LowerSwitchExpression(node);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private BoundExpression LowerSwitchExpression(BoundSwitchExpression node)
+            private BoundExpression LowerSwitchExpression(BoundConvertedSwitchExpression node)
             {
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // decision tree, so the code in result is unreachable at this point.
 
                 // Lower each switch expression arm
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
+                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
                 LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
                 foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
                 {

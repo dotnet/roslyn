@@ -18,18 +18,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly SyntaxNode Syntax;
 
         [Flags()]
-        private enum BoundNodeAttributes : byte
+        private enum BoundNodeAttributes : short
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
-#if DEBUG
+            IsSuppressed = 1 << 2,
+
+            // Bit 3: 1 if the node has maybe-null state, 0 if the node is not null
+            // Bits 4 and 5: 01 if the node is not annotated, 10 if the node is annotated, 11 if the node is disabled
+            TopLevelFlowStateMaybeNull = 1 << 3,
+            TopLevelNotAnnotated = 1 << 4,
+            TopLevelAnnotated = 1 << 5,
+            TopLevelNone = TopLevelAnnotated | TopLevelNotAnnotated,
+            TopLevelAnnotationMask = TopLevelNone,
+
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 2,
-#endif
-            IsSuppressed = 1 << 4,
+            WasCompilerGeneratedIsChecked = 1 << 6,
+            WasTopLevelNullabilityChecked = 1 << 7,
+
+            /// <summary>
+            /// Captures the fact that the node was either converted to some type, or converted to its natural
+            /// type.  This is used to check the fact that every rvalue must pass through one of the two,
+            /// so that expressions like tuple literals and switch expressions can reliably be rewritten once
+            /// the target type is known.
+            /// </summary>
+            WasConverted = 1 << 8,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+        }
+
+        protected new BoundNode MemberwiseClone()
+        {
+            var result = (BoundNode)base.MemberwiseClone();
+            result._attributes &= BoundNodeAttributes.AttributesPreservedInClone;
+            return result;
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -70,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 var expression = this as BoundExpression;
-                return expression != null && !ReferenceEquals(expression.Type, null) && expression.Type.IsErrorType();
+                return expression?.Type?.IsErrorType() == true;
             }
         }
 
@@ -90,6 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (_attributes & BoundNodeAttributes.HasErrors) != 0;
             }
+            private set
+            {
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.HasErrors;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.HasErrors) == 0,
+                        "HasErrors flag should not be reset here");
+                }
+            }
         }
 
         public SyntaxTree SyntaxTree
@@ -106,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+            this.WasConverted = original.WasConverted;
         }
 
         /// <remarks>
@@ -158,6 +196,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Top level nullability for the node. This should not be used by flow analysis.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        protected NullabilityInfo TopLevelNullability
+        {
+            get
+            {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
+#endif
+
+                // This is broken out into a separate property so the debugger can display the
+                // top level nullability without setting the _attributes flag and interferring
+                // with the normal operation of tests.
+                return TopLevelNullabilityCore;
+            }
+            set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
+                    "bound node nullability should not be set after reading it");
+#endif
+                _attributes &= ~(BoundNodeAttributes.TopLevelAnnotationMask | BoundNodeAttributes.TopLevelFlowStateMaybeNull);
+
+                _attributes |= value.Annotation switch
+                {
+                    CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
+                    CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
+                    CodeAnalysis.NullableAnnotation.None => BoundNodeAttributes.TopLevelNone,
+                    var a => throw ExceptionUtilities.UnexpectedValue(a),
+                };
+
+                switch (value.FlowState)
+                {
+                    case CodeAnalysis.NullableFlowState.MaybeNull:
+                        _attributes |= BoundNodeAttributes.TopLevelFlowStateMaybeNull;
+                        break;
+
+                    case CodeAnalysis.NullableFlowState.NotNull:
+                        // Not needed: unset is NotNull
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value.FlowState);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This is for debugger display use only: <see cref="TopLevelNullability"/> will set the BoundNodeAttributes.WasTopLevelNullabilityChecked
+        /// bit in the boundnode properties, which will break debugging. This allows the debugger to display the current value without setting the bit.
+        /// </summary>
+        private NullabilityInfo TopLevelNullabilityCore
+        {
+            get
+            {
+                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
+                {
+                    return default;
+                }
+
+                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
+                {
+                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelNone => CodeAnalysis.NullableAnnotation.None,
+                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
+                };
+
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
+
+                return new NullabilityInfo(annotation, flowState);
+            }
+        }
+
         public bool IsSuppressed
         {
             get
@@ -174,6 +288,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// WasConverted flag is used for debugging purposes only (not to direct the behavior of semantic analysis).
+        /// It is used on BoundLocal and BoundParameter to check that every such rvalue that has not been converted to
+        /// some type has been converted to its natural type.
+        /// </summary>
+        public bool WasConverted
+        {
+            get
+            {
+#if DEBUG
+                return (_attributes & BoundNodeAttributes.WasConverted) != 0;
+#else
+                return true;
+#endif
+            }
+            protected set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasConverted;
+                }
+#endif
+            }
+        }
+
         public BoundKind Kind
         {
             get
@@ -185,6 +326,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode Accept(BoundTreeVisitor visitor)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Return a clone of the current node with the HasErrors flag set.
+        /// </summary>
+        internal BoundNode WithHasErrors()
+        {
+            if (this.HasErrors)
+                return this;
+
+            BoundNode clone = MemberwiseClone();
+            clone.HasErrors = true;
+            return clone;
         }
 
 #if DEBUG

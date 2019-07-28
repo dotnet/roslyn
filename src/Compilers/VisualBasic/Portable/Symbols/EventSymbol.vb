@@ -276,6 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IEventSymbol_NullableAnnotation As NullableAnnotation Implements IEventSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_AddMethod As IMethodSymbol Implements IEventSymbol.AddMethod
             Get
                 Return Me.AddMethod

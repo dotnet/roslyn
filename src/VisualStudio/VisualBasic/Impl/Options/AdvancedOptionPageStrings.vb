@@ -214,5 +214,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
             ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
+
+        Public ReadOnly Property Option_Classifications As String =
+            ServicesVSResources.Classifications
+
+        Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
     End Module
 End Namespace

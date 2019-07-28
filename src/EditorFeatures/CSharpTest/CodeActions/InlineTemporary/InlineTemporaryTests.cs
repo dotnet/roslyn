@@ -4687,5 +4687,64 @@ class C
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(35645, "https://github.com/dotnet/roslyn/issues/35645")]
+        public async Task UsingDeclaration()
+        {
+            var code = @"
+using System;
+class C : IDisposable
+{
+    public void M()
+    {
+        using var [||]c = new C();
+        c.ToString();
+    }
+    public void Dispose() { }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections1()
+        {
+            await TestFixOneAsync(
+    @"{ [|int x = 0;|]
+
+Console.WriteLine(x); }",
+    @"{
+        Console.WriteLine(0); }");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections2()
+        {
+            await TestFixOneAsync(
+    @"{ int [|x = 0|], y = 1;
+
+Console.WriteLine(x); }",
+    @"{
+        int y = 1;
+
+        Console.WriteLine(0); }");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections3()
+        {
+            await TestFixOneAsync(
+    @"{ int x = 0, [|y = 1|], z = 2;
+
+Console.WriteLine(y); }",
+    @"{
+        int x = 0, z = 2;
+
+        Console.WriteLine(1); }");
+        }
     }
 }

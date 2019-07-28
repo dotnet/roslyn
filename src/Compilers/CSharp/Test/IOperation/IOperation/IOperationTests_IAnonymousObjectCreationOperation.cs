@@ -848,7 +848,7 @@ Block[B0] - Entry
                                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
                               ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'b = new { a ... 2, b = i3 }')
                                 Left: 
-                                  IPropertyReferenceOperation: <anonymous type: System.Int32 a, System.Int32 b>? <anonymous type: System.Int32 a, <anonymous type: System.Int32 a, System.Int32 b> b>.b { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'b')
+                                  IPropertyReferenceOperation: <anonymous type: System.Int32 a, System.Int32 b> <anonymous type: System.Int32 a, <anonymous type: System.Int32 a, System.Int32 b> b>.b { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'b')
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 a, <anonymous type: System.Int32 a, System.Int32 b> b>, IsImplicit) (Syntax: 'new { a = i ... , b = i3 }}')
                                 Right: 
@@ -1048,7 +1048,7 @@ Block[B0] - Entry
                           Initializers(1):
                               ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'a = ')
                                 Left: 
-                                  IPropertyReferenceOperation: ?? <anonymous type: ? a>.a { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
+                                  IPropertyReferenceOperation: ? <anonymous type: ? a>.a { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? a>, IsInvalid, IsImplicit) (Syntax: 'new { a = }')
                                 Right: 
@@ -1216,7 +1216,7 @@ Block[B0] - Entry
                           Initializers(1):
                               ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'a[i] = j')
                                 Left: 
-                                  IPropertyReferenceOperation: ?? <anonymous type: ? $0>.$0 { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'a[i] = j')
+                                  IPropertyReferenceOperation: ? <anonymous type: ? $0>.$0 { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'a[i] = j')
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? $0>, IsInvalid, IsImplicit) (Syntax: 'new { a[i] = j }')
                                 Right: 
@@ -1638,6 +1638,47 @@ Block[B9] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AnonymousObjectCreation_NullableEnabled_PropertyMatches()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    void M(int i1, object o1)
+    {
+        var obj = /*<bind>*/new { a = i1, o1, b = ""Hello world!"" }/*</bind>*/;
+    }
+}";
+
+            var expectedOperationTree = @"
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a, System.Object o1, System.String b>) (Syntax: 'new { a = i ... o world!"" }')
+  Initializers(3):
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'a = i1')
+        Left: 
+          IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 a, System.Object o1, System.String b>.a { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 a, System.Object o1, System.String b>, IsImplicit) (Syntax: 'new { a = i ... o world!"" }')
+        Right: 
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'o1')
+        Left: 
+          IPropertyReferenceOperation: System.Object <anonymous type: System.Int32 a, System.Object o1, System.String b>.o1 { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'o1')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 a, System.Object o1, System.String b>, IsImplicit) (Syntax: 'new { a = i ... o world!"" }')
+        Right: 
+          IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: ""Hello world!"") (Syntax: 'b = ""Hello world!""')
+        Left: 
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 a, System.Object o1, System.String b>.b { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'b')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 a, System.Object o1, System.String b>, IsImplicit) (Syntax: 'new { a = i ... o world!"" }')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Hello world!"") (Syntax: '""Hello world!""')";
+
+            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: DiagnosticDescription.None);
         }
     }
 }

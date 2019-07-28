@@ -3263,72 +3263,74 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      127 (0x7f)
+  // Code size      131 (0x83)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0014
+  IL_0008:  brfalse.s  IL_0012
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0076
-  IL_0010:  br.s       IL_0012
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
-  IL_0014:  ldarg.0
-  IL_0015:  ldc.i4.m1
-  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001b:  nop
-  IL_001c:  ldarg.0
-  IL_001d:  ldarg.0
-  IL_001e:  ldfld      ""C C.<F>d__0.<>4__this""
-  IL_0023:  call       ""System.Collections.Generic.IEnumerable<int> C.F()""
-  IL_0028:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.0
-  IL_002f:  stfld      ""bool C.<F>d__0.<>s__2""
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_007a
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001f:  nop
+  IL_0020:  ldarg.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldfld      ""C C.<F>d__0.<>4__this""
+  IL_0027:  call       ""System.Collections.Generic.IEnumerable<int> C.F()""
+  IL_002c:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_0031:  ldarg.0
+  IL_0032:  ldc.i4.0
+  IL_0033:  stfld      ""bool C.<F>d__0.<>s__2""
   .try
   {
-    IL_0034:  ldarg.0
-    IL_0035:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_003a:  ldarg.0
-    IL_003b:  ldflda     ""bool C.<F>d__0.<>s__2""
-    IL_0040:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_0045:  nop
-    IL_0046:  nop
-    IL_0047:  nop
-    IL_0048:  leave.s    IL_005f
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_003e:  ldarg.0
+    IL_003f:  ldflda     ""bool C.<F>d__0.<>s__2""
+    IL_0044:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0049:  nop
+    IL_004a:  nop
+    IL_004b:  nop
+    IL_004c:  leave.s    IL_0063
   }
   finally
   {
-    IL_004a:  ldarg.0
-    IL_004b:  ldfld      ""bool C.<F>d__0.<>s__2""
-    IL_0050:  brfalse.s  IL_005e
-    IL_0052:  ldarg.0
-    IL_0053:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_0058:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_005d:  nop
-    IL_005e:  endfinally
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""bool C.<F>d__0.<>s__2""
+    IL_0054:  brfalse.s  IL_0062
+    IL_0056:  ldarg.0
+    IL_0057:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_005c:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0061:  nop
+    IL_0062:  endfinally
   }
-  IL_005f:  ldarg.0
-  IL_0060:  ldnull
-  IL_0061:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-  IL_0066:  ldarg.0
-  IL_0067:  ldc.i4.1
-  IL_0068:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_006d:  ldarg.0
-  IL_006e:  ldc.i4.1
-  IL_006f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0074:  ldc.i4.1
-  IL_0075:  ret
-  IL_0076:  ldarg.0
-  IL_0077:  ldc.i4.m1
-  IL_0078:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_007d:  ldc.i4.0
-  IL_007e:  ret
+  IL_0063:  ldarg.0
+  IL_0064:  ldnull
+  IL_0065:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_006a:  ldarg.0
+  IL_006b:  ldc.i4.1
+  IL_006c:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0071:  ldarg.0
+  IL_0072:  ldc.i4.1
+  IL_0073:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0078:  ldc.i4.1
+  IL_0079:  ret
+  IL_007a:  ldarg.0
+  IL_007b:  ldc.i4.m1
+  IL_007c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0081:  ldc.i4.0
+  IL_0082:  ret
 }");
 
 #if TODO 
@@ -3370,7 +3372,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      244 (0xf4)
+  // Code size      246 (0xf6)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -3383,111 +3385,112 @@ class C
   .try
   {
    ~IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_009c
-    IL_000d:  br.s       IL_000f
-   -IL_000f:  nop
-   -IL_0010:  ldarg.0
-    IL_0011:  ldarg.0
-    IL_0012:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> C.F()""
-    IL_001c:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.0
-    IL_0023:  stfld      ""bool C.<F>d__0.<>s__2""
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_009e
+   -IL_0011:  nop
+   -IL_0012:  ldarg.0
+    IL_0013:  ldarg.0
+    IL_0014:  ldfld      ""C C.<F>d__0.<>4__this""
+    IL_0019:  call       ""System.Threading.Tasks.Task<int> C.F()""
+    IL_001e:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  stfld      ""bool C.<F>d__0.<>s__2""
     .try
     {
-      IL_0028:  ldarg.0
-      IL_0029:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
-      IL_002e:  ldarg.0
-      IL_002f:  ldflda     ""bool C.<F>d__0.<>s__2""
-      IL_0034:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-      IL_0039:  nop
-     -IL_003a:  nop
-     -IL_003b:  nop
-      IL_003c:  leave.s    IL_0057
+      IL_002a:  ldarg.0
+      IL_002b:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+      IL_0030:  ldarg.0
+      IL_0031:  ldflda     ""bool C.<F>d__0.<>s__2""
+      IL_0036:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+      IL_003b:  nop
+     -IL_003c:  nop
+     -IL_003d:  nop
+      IL_003e:  leave.s    IL_0059
     }
     finally
     {
-     ~IL_003e:  ldloc.0
-      IL_003f:  ldc.i4.0
-      IL_0040:  bge.s      IL_0056
-      IL_0042:  ldarg.0
-      IL_0043:  ldfld      ""bool C.<F>d__0.<>s__2""
-      IL_0048:  brfalse.s  IL_0056
-      IL_004a:  ldarg.0
-      IL_004b:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
-      IL_0050:  call       ""void System.Threading.Monitor.Exit(object)""
-      IL_0055:  nop
-     ~IL_0056:  endfinally
+     ~IL_0040:  ldloc.0
+      IL_0041:  ldc.i4.0
+      IL_0042:  bge.s      IL_0058
+      IL_0044:  ldarg.0
+      IL_0045:  ldfld      ""bool C.<F>d__0.<>s__2""
+      IL_004a:  brfalse.s  IL_0058
+      IL_004c:  ldarg.0
+      IL_004d:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+      IL_0052:  call       ""void System.Threading.Monitor.Exit(object)""
+      IL_0057:  nop
+     ~IL_0058:  endfinally
     }
-   ~IL_0057:  ldarg.0
-    IL_0058:  ldnull
-    IL_0059:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
-   -IL_005e:  ldarg.0
-    IL_005f:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0064:  call       ""System.Threading.Tasks.Task<int> C.F()""
-    IL_0069:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_006e:  stloc.2
-   ~IL_006f:  ldloca.s   V_2
-    IL_0071:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0076:  brtrue.s   IL_00b8
-    IL_0078:  ldarg.0
-    IL_0079:  ldc.i4.0
-    IL_007a:  dup
-    IL_007b:  stloc.0
-    IL_007c:  stfld      ""int C.<F>d__0.<>1__state""
-   <IL_0081:  ldarg.0
-    IL_0082:  ldloc.2
-    IL_0083:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_0088:  ldarg.0
-    IL_0089:  stloc.3
+   ~IL_0059:  ldarg.0
+    IL_005a:  ldnull
+    IL_005b:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+   -IL_0060:  ldarg.0
+    IL_0061:  ldfld      ""C C.<F>d__0.<>4__this""
+    IL_0066:  call       ""System.Threading.Tasks.Task<int> C.F()""
+    IL_006b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0070:  stloc.2
+   ~IL_0071:  ldloca.s   V_2
+    IL_0073:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0078:  brtrue.s   IL_00ba
+    IL_007a:  ldarg.0
+    IL_007b:  ldc.i4.0
+    IL_007c:  dup
+    IL_007d:  stloc.0
+    IL_007e:  stfld      ""int C.<F>d__0.<>1__state""
+   <IL_0083:  ldarg.0
+    IL_0084:  ldloc.2
+    IL_0085:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
     IL_008a:  ldarg.0
-    IL_008b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_0090:  ldloca.s   V_2
-    IL_0092:  ldloca.s   V_3
-    IL_0094:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
-    IL_0099:  nop
-    IL_009a:  leave.s    IL_00f3
-   >IL_009c:  ldarg.0
-    IL_009d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_00a2:  stloc.2
-    IL_00a3:  ldarg.0
-    IL_00a4:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_00a9:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_00af:  ldarg.0
-    IL_00b0:  ldc.i4.m1
-    IL_00b1:  dup
-    IL_00b2:  stloc.0
-    IL_00b3:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_00b8:  ldloca.s   V_2
-    IL_00ba:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00bf:  pop
-   -IL_00c0:  ldc.i4.1
-    IL_00c1:  stloc.1
-    IL_00c2:  leave.s    IL_00de
+    IL_008b:  stloc.3
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0092:  ldloca.s   V_2
+    IL_0094:  ldloca.s   V_3
+    IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
+    IL_009b:  nop
+    IL_009c:  leave.s    IL_00f5
+   >IL_009e:  ldarg.0
+    IL_009f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_00a4:  stloc.2
+    IL_00a5:  ldarg.0
+    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_00ab:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldc.i4.m1
+    IL_00b3:  dup
+    IL_00b4:  stloc.0
+    IL_00b5:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_00ba:  ldloca.s   V_2
+    IL_00bc:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00c1:  pop
+   -IL_00c2:  ldc.i4.1
+    IL_00c3:  stloc.1
+    IL_00c4:  leave.s    IL_00e0
   }
   catch System.Exception
   {
-   ~IL_00c4:  stloc.s    V_4
-    IL_00c6:  ldarg.0
-    IL_00c7:  ldc.i4.s   -2
-    IL_00c9:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_00ce:  ldarg.0
-    IL_00cf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_00d4:  ldloc.s    V_4
-    IL_00d6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00db:  nop
-    IL_00dc:  leave.s    IL_00f3
+   ~IL_00c6:  stloc.s    V_4
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldc.i4.s   -2
+    IL_00cb:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_00d6:  ldloc.s    V_4
+    IL_00d8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00dd:  nop
+    IL_00de:  leave.s    IL_00f5
   }
- -IL_00de:  ldarg.0
-  IL_00df:  ldc.i4.s   -2
-  IL_00e1:  stfld      ""int C.<F>d__0.<>1__state""
- ~IL_00e6:  ldarg.0
-  IL_00e7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_00ec:  ldloc.1
-  IL_00ed:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00f2:  nop
-  IL_00f3:  ret
+ -IL_00e0:  ldarg.0
+  IL_00e1:  ldc.i4.s   -2
+  IL_00e3:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_00e8:  ldarg.0
+  IL_00e9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00ee:  ldloc.1
+  IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00f4:  nop
+  IL_00f5:  ret
 }", sequencePoints: "C+<F>d__0.MoveNext");
 
 #if TODO
@@ -3798,43 +3801,418 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       52 (0x34)
+  // Code size       47 (0x2f)
   .maxstack  2
   .locals init (bool V_0,
                 [int] V_1,
-                [int] V_2,
-                int V_3,
-                int V_4)
+                int V_2)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""bool""
-  IL_0007:  brtrue.s   IL_0021
+  IL_0007:  brtrue.s   IL_001f
   IL_0009:  ldarg.0
   IL_000a:  isinst     ""int""
-  IL_000f:  brfalse.s  IL_001e
+  IL_000f:  brfalse.s  IL_001c
   IL_0011:  ldarg.0
   IL_0012:  unbox.any  ""int""
-  IL_0017:  stloc.3
-  IL_0018:  ldloc.3
-  IL_0019:  ldc.i4.0
-  IL_001a:  ceq
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldc.i4.0
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.1
-  IL_0022:  stloc.0
- ~IL_0023:  ldloc.0
-  IL_0024:  brfalse.s  IL_002c
- -IL_0026:  nop
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_4
-  IL_002a:  br.s       IL_0031
- -IL_002c:  ldc.i4.1
-  IL_002d:  stloc.s    V_4
-  IL_002f:  br.s       IL_0031
- -IL_0031:  ldloc.s    V_4
-  IL_0033:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  ceq
+  IL_001a:  br.s       IL_001d
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldc.i4.1
+  IL_0020:  stloc.0
+ ~IL_0021:  ldloc.0
+  IL_0022:  brfalse.s  IL_0029
+ -IL_0024:  nop
+ -IL_0025:  ldc.i4.0
+  IL_0026:  stloc.2
+  IL_0027:  br.s       IL_002d
+ -IL_0029:  ldc.i4.1
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_002d
+ -IL_002d:  ldloc.2
+  IL_002e:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void VarPattern()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static object G(object o1, object o2)
+    {
+        return (o1, o2) switch
+        {
+            (int a, string b) => a,
+            _ => 0
+        };
+    }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  1
+  .locals init (int V_0, //a
+                string V_1, //b
+                [int] V_2,
+                [int] V_3,
+                [object] V_4,
+                int V_5,
+                int V_6,
+                object V_7)
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0023
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.0
+  IL_0010:  ldarg.1
+  IL_0011:  isinst     ""string""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  brtrue.s   IL_001c
+  IL_001a:  br.s       IL_0023
+  IL_001c:  br.s       IL_001e
+  IL_001e:  ldloc.0
+  IL_001f:  stloc.s    V_5
+  IL_0021:  br.s       IL_0028
+  IL_0023:  ldc.i4.0
+  IL_0024:  stloc.s    V_5
+  IL_0026:  br.s       IL_0028
+  IL_0028:  ldloc.s    V_5
+  IL_002a:  stloc.s    V_6
+  IL_002c:  ldloc.s    V_6
+  IL_002e:  box        ""int""
+  IL_0033:  stloc.s    V_7
+  IL_0035:  br.s       IL_0037
+ -IL_0037:  ldloc.s    V_7
+  IL_0039:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void RecursiveSwitchExpression()
+        {
+            var source = @"
+class C
+{
+    static object G(object o)
+    {
+        return o switch
+        {
+            int i => i switch
+            {
+                0  => 1,
+                _ => 2,
+            },
+            _ => 3
+        };
+    }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  1
+  .locals init (int V_0, //i
+                [int] V_1,
+                [int] V_2,
+                [int] V_3,
+                [int] V_4,
+                [object] V_5,
+                int V_6,
+                int V_7,
+                int V_8,
+                int V_9,
+                object V_10)
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_002d
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.0
+  IL_0010:  br.s       IL_0012
+  IL_0012:  br.s       IL_0014
+  IL_0014:  ldloc.0
+  IL_0015:  brfalse.s  IL_0019
+  IL_0017:  br.s       IL_001e
+  IL_0019:  ldc.i4.1
+  IL_001a:  stloc.s    V_8
+  IL_001c:  br.s       IL_0023
+  IL_001e:  ldc.i4.2
+  IL_001f:  stloc.s    V_8
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.s    V_8
+  IL_0025:  stloc.s    V_9
+  IL_0027:  ldloc.s    V_9
+  IL_0029:  stloc.s    V_6
+  IL_002b:  br.s       IL_0032
+  IL_002d:  ldc.i4.3
+  IL_002e:  stloc.s    V_6
+  IL_0030:  br.s       IL_0032
+  IL_0032:  ldloc.s    V_6
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloc.s    V_7
+  IL_0038:  box        ""int""
+  IL_003d:  stloc.s    V_10
+  IL_003f:  br.s       IL_0041
+ -IL_0041:  ldloc.s    V_10
+  IL_0043:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void RecursiveSwitchExpressionWithAwait()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<object> G(object o)
+    {
+        return o switch
+        {
+            Task<int> i when await i > 0 => await i switch
+            {
+                1 => 1,
+                _ => 2,
+            },
+            _ => 3
+        };
+    }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C.<G>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+ ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+ ~IL_0007:  ldarg.0
+  IL_0008:  stfld      ""object C.<G>d__0.o""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+ -IL_0019:  ldc.i4.m1
+ -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+  IL_002f:  ldloc.0
+  IL_0030:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0035:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003a:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SwitchExpressionInsideAwait()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<object> G(Task<object> o)
+    {
+        return await o switch 
+        {
+            int i => 0,
+            _ => 1
+        };
+    }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C.<G>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+ ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+ ~IL_0007:  ldarg.0
+  IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
+  IL_000d:  ldloc.0
+ -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+  IL_002f:  ldloc.0
+  IL_0030:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0035:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003a:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SwitchExpressionWithOutVar()
+        {
+            var source = @"
+class C
+{
+    static object G()
+    {
+        return N(out var x) switch 
+        {
+            null => x switch {1 =>  1, _ => 2 },
+            _ => 1
+        };
+    }
+
+    static object N(out int x) { x = 1; return null; }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (int V_0, //x
+                [int] V_1,
+                [object] V_2,
+                [int] V_3,
+                [int] V_4,
+                [int] V_5,
+                [object] V_6,
+                int V_7,
+                object V_8,
+                int V_9,
+                int V_10,
+                int V_11,
+                object V_12)
+ -IL_0000:  nop
+ -IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""object C.N(out int)""
+  IL_0008:  stloc.s    V_8
+  IL_000a:  ldloc.s    V_8
+  IL_000c:  brfalse.s  IL_0010
+  IL_000e:  br.s       IL_002a
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  beq.s      IL_0016
+  IL_0014:  br.s       IL_001b
+  IL_0016:  ldc.i4.1
+  IL_0017:  stloc.s    V_10
+  IL_0019:  br.s       IL_0020
+  IL_001b:  ldc.i4.2
+  IL_001c:  stloc.s    V_10
+  IL_001e:  br.s       IL_0020
+  IL_0020:  ldloc.s    V_10
+  IL_0022:  stloc.s    V_11
+  IL_0024:  ldloc.s    V_11
+  IL_0026:  stloc.s    V_7
+  IL_0028:  br.s       IL_002f
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.s    V_7
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.s    V_7
+  IL_0031:  stloc.s    V_9
+  IL_0033:  ldloc.s    V_9
+  IL_0035:  box        ""int""
+  IL_003a:  stloc.s    V_12
+  IL_003c:  br.s       IL_003e
+ -IL_003e:  ldloc.s    V_12
+  IL_0040:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -3945,7 +4323,8 @@ class C
         var <N:2>c</N:2> = new[] { b };
         int[] <N:3>array</N:3> = { 1, 2, 3 };
         ref int <N:4>d</N:4> = ref array[0];
-        C1<(int, dynamic)>.E***[,,] <N:5>x</N:5> = null;
+        ref readonly int <N:5>e</N:5> = ref array[0];
+        C1<(int, dynamic)>.E***[,,] <N:6>x</N:6> = null;
     }
 }
 ";
@@ -3964,14 +4343,15 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
-  // Code size       72 (0x48)
+  // Code size       81 (0x51)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -3998,9 +4378,13 @@ class C
   IL_003c:  ldc.i4.0
   IL_003d:  ldelema    ""int""
   IL_0042:  stloc.s    V_4
-  IL_0044:  ldnull
-  IL_0045:  stloc.s    V_5
-  IL_0047:  ret
+  IL_0044:  ldloc.3
+  IL_0045:  ldc.i4.0
+  IL_0046:  ldelema    ""int""
+  IL_004b:  stloc.s    V_5
+  IL_004d:  ldnull
+  IL_004e:  stloc.s    V_6
+  IL_0050:  ret
 }
 ");
 
@@ -4014,14 +4398,15 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       73 (0x49)
+  // Code size       82 (0x52)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4057,9 +4442,13 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
-  IL_0045:  ldnull
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ret
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  ldelema    ""int""
+  IL_004c:  stloc.s    V_5
+  IL_004e:  ldnull
+  IL_004f:  stloc.s    V_6
+  IL_0051:  ret
 }
 ");
 
@@ -4070,14 +4459,15 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
-  // Code size       73 (0x49)
+  // Code size       82 (0x52)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4113,9 +4503,13 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
-  IL_0045:  ldnull
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ret
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  ldelema    ""int""
+  IL_004c:  stloc.s    V_5
+  IL_004e:  ldnull
+  IL_004f:  stloc.s    V_6
+  IL_0051:  ret
 }
 ");
         }

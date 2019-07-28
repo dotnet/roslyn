@@ -597,15 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             ExprContext.Sideeffects :
                             ExprContext.Value;
 
-            return node.Update(
-                this.VisitExpression(node.Operand, context),
-                node.Conversion,
-                node.IsBaseConversion,
-                node.Checked,
-                node.ExplicitCastInCode,
-                node.ConstantValue,
-                node.ConversionGroupOpt,
-                node.Type);
+            return node.UpdateOperand(this.VisitExpression(node.Operand, context));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)
@@ -1015,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
                fieldAccess.FieldSymbol.IsFixedSizeBuffer &&
-               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 
@@ -1107,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // matches or a bit stronger than EmitReceiverRef
             // if there are any doubts that receiver is a ref type, 
             // assume we will need an address (that will prevent scheduling of receiver).
-            if (!node.Method.IsStatic)
+            if (node.Method.RequiresInstanceReceiver)
             {
                 receiver = VisitCallReceiver(receiver);
             }
@@ -2162,7 +2154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { throw new NotImplementedException(); }
         }

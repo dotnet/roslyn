@@ -68,8 +68,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         // Diagnostic reported for value assignments to locals/parameters that are never used on any control flow path.
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_symbol_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_0_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value_to_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         // Diagnostic reported for unneccessary parameters that can be removed.
@@ -77,21 +78,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            string language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                        .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                   language)
         {
+            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+            UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given
@@ -163,8 +175,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 builder.Add((preference, isUnusedLocalAssignment, isRemovableAssignment), propertiesBuilder.ToImmutable());
             }
         }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         // Our analysis is limited to unused expressions in a code block, hence is unaffected by changes outside the code block.
         // Hence, we can support incremental span based method body analysis.
@@ -270,15 +280,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            switch (unusedParametersPreference)
+            if (unusedParametersPreference == UnusedParametersPreference.NonPublicMethods)
             {
-                case UnusedParametersPreference.AllMethods:
-                    return true;
-                case UnusedParametersPreference.NonPublicMethods:
-                    return !symbol.HasPublicResultantVisibility();
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                return !symbol.HasPublicResultantVisibility();
             }
+
+            return true;
         }
 
         public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)

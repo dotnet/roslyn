@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol).TypeSymbol;
+            var type = id.Symbol.GetTypeOrReturnType().Type;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function
             var nearestLocalFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
-            return !(nearestLocalFunc is null) && IsCaptured(rootSymbol, nearestLocalFunc);
+            return !(nearestLocalFunc is null) && Symbol.IsCaptured(rootSymbol, nearestLocalFunc);
         }
 
         private LocalFuncUsages GetOrCreateLocalFuncUsages(LocalFunctionSymbol localFunc)

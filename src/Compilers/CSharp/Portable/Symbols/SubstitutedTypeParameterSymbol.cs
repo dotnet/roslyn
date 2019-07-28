@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -96,11 +97,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetAttributes();
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress, early), constraintTypes, null);
-            return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.NullableAnnotation.IsAnyNullable());
+            var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
+
+            TypeWithAnnotations bestObjectConstraint = default;
+
+            // Strip all Object constraints.
+            for (int i = constraintTypes.Count - 1; i >= 0; i--)
+            {
+                TypeWithAnnotations type = constraintTypes[i];
+                if (ConstraintsHelper.IsObjectConstraint(type, ref bestObjectConstraint))
+                {
+                    constraintTypes.RemoveAt(i);
+                }
+            }
+
+            if (bestObjectConstraint.HasType)
+            {
+                // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
+                if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
+                {
+                    Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
+                    if (constraintTypes.Count == 0)
+                    {
+                        if (bestObjectConstraint.NullableAnnotation.IsOblivious() && !HasReferenceTypeConstraint)
+                        {
+                            bestObjectConstraint = default;
+                        }
+                    }
+                    else
+                    {
+                        foreach (TypeWithAnnotations constraintType in constraintTypes)
+                        {
+                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, out _), bestObjectConstraint))
+                            {
+                                bestObjectConstraint = default;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (bestObjectConstraint.HasType)
+                    {
+                        constraintTypes.Insert(0, bestObjectConstraint);
+                    }
+                }
+            }
+
+            return constraintTypes.ToImmutableAndFree();
+        }
+
+        internal override bool? IsNotNullable
+        {
+            get
+            {
+                if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _underlyingTypeParameter.IsNotNullable;
+                }
+                else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
+                {
+                    var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
+                    return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
+                }
+
+                return CalculateIsNotNullable();
+            }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

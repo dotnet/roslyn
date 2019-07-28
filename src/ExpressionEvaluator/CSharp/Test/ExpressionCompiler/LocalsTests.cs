@@ -1102,7 +1102,7 @@ class C
                 Assert.Equal(locals.Count, 2);
 
                 var method = (MethodSymbol)testData.GetMethodData("<>x.<>m0").Method;
-                Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
+                Assert.Equal(method.Parameters[0].Type, method.ReturnType);
 
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
     @"{
@@ -1113,7 +1113,7 @@ class C
 }");
 
                 method = (MethodSymbol)testData.GetMethodData("<>x.<>m1").Method;
-                Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
+                Assert.Equal(method.Parameters[0].Type, method.ReturnType);
 
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
     @"{
@@ -1449,6 +1449,49 @@ class C
         }
 
         [Fact]
+        public void RefReadOnlyLocalFunction()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M() { }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+@"new Action(() =>
+{
+    int y = 0;
+    ref readonly int F(ref int x) => ref x;
+    F(ref y);
+}).Invoke()",
+                    out var error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""void <>x.<>c.<<>m0>b__0_0()""
+  IL_0014:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Action <>x.<>c.<>9__0_0""
+  IL_001f:  callvirt   ""void System.Action.Invoke()""
+  IL_0024:  ret
+}");
+            });
+        }
+
+        [Fact]
         public void NestedLambdas()
         {
             var source =
@@ -1717,7 +1760,7 @@ class C
                         expectedGeneric: true);
                 var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
                 var containingType = method.ContainingType;
-                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var returnType = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[1]);
                 returnType = returnType.ContainingType;
@@ -1735,7 +1778,7 @@ class C
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
                 // method.ReturnType: A<U>.B<V, object>[]
-                returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.TypeSymbol;
+                returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType).ElementType;
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[0]);
                 returnType = returnType.ContainingType;
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
@@ -1752,7 +1795,7 @@ class C
                 expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m2<W>").Method;
                 containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[0], method.ReturnType.TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[0], method.ReturnType);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[3], "<>m3<W>", "u", expectedILOpt:
     @"{
@@ -1767,7 +1810,7 @@ class C
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m3<W>").Method;
                 containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[4], "<>m4<W>", "w", expectedILOpt:
     @"{
@@ -1781,7 +1824,7 @@ class C
 }",
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m4<W>").Method;
-                Assert.Equal(method.TypeParameters[0], method.ReturnType.TypeSymbol);
+                Assert.Equal(method.TypeParameters[0], method.ReturnType);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[5], "<>m5<W>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
     @"{
@@ -1795,7 +1838,7 @@ class C
 }",
                         expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
-                returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                returnType = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0]);
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[1]);
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[2]);
@@ -1851,7 +1894,7 @@ class C
 
                 var method = (MethodSymbol)testData.GetMethodData("<>x<T, U>.<>m1").Method;
                 var containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
+                Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
 
                 locals.Free();
             });
@@ -3492,6 +3535,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
   IL_0006:  ret
@@ -3501,6 +3545,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
   IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
@@ -3511,6 +3556,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
   IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
@@ -3577,6 +3623,7 @@ class C
 {
   // Code size        2 (0x2)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }
@@ -3585,6 +3632,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
@@ -3595,6 +3643,7 @@ class C
 {
   // Code size       17 (0x11)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
@@ -3606,6 +3655,7 @@ class C
 {
   // Code size       17 (0x11)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""

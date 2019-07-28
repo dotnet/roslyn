@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     [ExportLanguageService(typeof(AbstractExtractInterfaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceService
     {
+        [ImportingConstructor]
+        public CSharpExtractInterfaceService()
+        {
+        }
+
         protected override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

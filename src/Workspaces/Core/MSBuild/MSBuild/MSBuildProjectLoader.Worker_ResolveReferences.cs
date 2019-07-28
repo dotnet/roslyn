@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             private readonly struct ResolvedReferences
             {
-                public ImmutableArray<ProjectReference> ProjectReferences { get; }
+                public ImmutableHashSet<ProjectReference> ProjectReferences { get; }
                 public ImmutableArray<MetadataReference> MetadataReferences { get; }
 
-                public ResolvedReferences(ImmutableArray<ProjectReference> projectReferences, ImmutableArray<MetadataReference> metadataReferences)
+                public ResolvedReferences(ImmutableHashSet<ProjectReference> projectReferences, ImmutableArray<MetadataReference> metadataReferences)
                 {
                     ProjectReferences = projectReferences;
                     MetadataReferences = metadataReferences;
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 /// </summary>
                 private readonly HashSet<int> _indicesToRemove;
 
-                private readonly ImmutableArray<ProjectReference>.Builder _projectReferences;
+                private readonly ImmutableHashSet<ProjectReference>.Builder _projectReferences;
 
                 public ResolvedReferencesBuilder(IEnumerable<MetadataReference> metadataReferences)
                 {
                     _metadataReferences = metadataReferences.ToImmutableArray();
                     _pathToIndicesMap = CreatePathToIndexMap(_metadataReferences);
                     _indicesToRemove = new HashSet<int>();
-                    _projectReferences = ImmutableArray.CreateBuilder<ProjectReference>();
+                    _projectReferences = ImmutableHashSet.CreateBuilder<ProjectReference>();
                 }
 
                 private static ImmutableDictionary<string, HashSet<int>> CreatePathToIndexMap(ImmutableArray<MetadataReference> metadataReferences)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return builder.ToImmutable();
                 }
 
-                private ImmutableArray<ProjectReference> GetProjectReferences()
+                private ImmutableHashSet<ProjectReference> GetProjectReferences()
                     => _projectReferences.ToImmutable();
 
                 public ResolvedReferences ToResolvedReferences()

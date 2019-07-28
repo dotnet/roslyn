@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
         // For example, if we had an unused field with no references, then editing any single method body
@@ -290,6 +288,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
+
+                // If the invoked method is a reduced extension method, also mark the original
+                // method from which it was reduced as "used".
+                if (targetMethod.ReducedFrom != null)
+                {
+                    OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+                }
             }
 
             private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
@@ -303,7 +308,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 if (nameofArgument is IMemberReferenceOperation memberReference)
                 {
-                    OnSymbolUsage(memberReference.Member, ValueUsageInfo.ReadWrite);
+                    OnSymbolUsage(memberReference.Member.OriginalDefinition, ValueUsageInfo.ReadWrite);
                     return;
                 }
 
@@ -319,7 +324,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // for method group/property group.
                         case SymbolKind.Method:
                         case SymbolKind.Property:
-                            OnSymbolUsage(symbol, ValueUsageInfo.ReadWrite);
+                            OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
                             break;
                     }
                 }
@@ -442,11 +447,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                ISymbol member)
             {
                 var messageFormat = rule.MessageFormat;
-                if (rule == s_removeUnreadMembersRule &&
-                    member is IMethodSymbol)
+                if (rule == s_removeUnreadMembersRule)
                 {
-                    // IDE0052 has a different message for method symbols.
-                    messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                    // IDE0052 has a different message for method and property symbols.
+                    switch (member)
+                    {
+                        case IMethodSymbol _:
+                            messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                            break;
+
+                        case IPropertySymbol property:
+                            if (property.GetMethod != null && property.SetMethod != null)
+                            {
+                                messageFormat = FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
+                            }
+
+                            break;
+                    }
                 }
 
                 var memberName = $"{member.ContainingType.Name}.{member.Name}";
@@ -476,7 +493,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .OfType<TDocumentationCommentTriviaSyntax>()
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
-                        lazyModel = lazyModel ?? compilation.GetSemanticModel(root.SyntaxTree);
+                        lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
                         var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {

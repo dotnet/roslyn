@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
+            internal readonly string title;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
-                bool retainNonFixableDiagnostics = false)
+                bool retainNonFixableDiagnostics = false,
+                string title = null)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -54,16 +56,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.index = index;
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
+                this.title = title;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+
+            public TestParameters WithOptions(IDictionary<OptionKey, object> options)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
         }
 
         protected abstract string GetLanguage();
@@ -323,11 +329,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             object fixProviderData = null,
-            ParseOptions parseOptions = null)
+            ParseOptions parseOptions = null,
+            string title = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title));
         }
 
         internal async Task TestInRegularAndScript1Async(
@@ -374,10 +381,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionAsync(
                     workspace, expected, action,
@@ -499,17 +502,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         var root = await doc.GetSyntaxRootAsync();
                         var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
-
-                        var expected = expectedRoot.ToFullString();
-                        if (expected == "")
-                        {
-                            Assert.Equal((object)expected, root.ToFullString());
-                        }
-                        else
-                        {
-                            Assert.Equal(expected, root.ToFullString());
-                        }
+                        VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }
+
+                    foreach (var additionalDoc in project.AdditionalDocuments)
+                    {
+                        var root = await additionalDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+
+                    foreach (var analyzerConfigDoc in project.AnalyzerConfigDocuments)
+                    {
+                        var root = await analyzerConfigDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AnalyzerConfigDocuments.Single(d => d.FilePath == analyzerConfigDoc.FilePath);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+                }
+            }
+
+            return;
+
+            // Local functions.
+            static void VerifyExpectedDocumentText(string expected, string actual)
+            {
+                if (expected == "")
+                {
+                    Assert.Equal((object)expected, actual);
+                }
+                else
+                {
+                    Assert.Equal(expected, actual);
                 }
             }
         }
@@ -522,6 +547,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);
+            }
+
+            if (parameters.title != null)
+            {
+                Assert.Equal(parameters.title, action.Title);
             }
 
             return action.GetOperationsAsync(CancellationToken.None);
@@ -636,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters,
             params string[] outputs)
         {
-            for (int index = 0; index < outputs.Length; index++)
+            for (var index = 0; index < outputs.Length; index++)
             {
                 var output = outputs[index];
                 await TestInRegularAndScript1Async(input, output, index, parameters: parameters);

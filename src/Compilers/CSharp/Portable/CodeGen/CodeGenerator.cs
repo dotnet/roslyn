@@ -157,11 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
-                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type.TypeSymbol, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType.TypeSymbol, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;

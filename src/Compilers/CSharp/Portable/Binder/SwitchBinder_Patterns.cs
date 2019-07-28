@@ -12,8 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // We use a subclass of SwitchBinder for the pattern-matching switch statement until we have completed
-    // a totally compatible implementation of switch that also accepts pattern-matching constructs.
     internal partial class SwitchBinder : LocalScopeBinder
     {
         internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
             if (reusableSyntax != null)
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             if (constructor.IsStatic)
             {
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

@@ -2,12 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argument.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
                 var decl = (DeclarationExpressionSyntax)argument.Expression;
-                typeInfo = semanticModel.GetTypeInfo(decl.Type);
+                typeInfo = semanticModel.GetTypeInfo(decl.Type, cancellationToken);
                 return typeInfo.Type?.IsErrorType() == false ? typeInfo.Type : semanticModel.Compilation.ObjectType;
             }
 

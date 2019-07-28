@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
 
         /// <summary>
         /// If this field represents a tuple element with index X
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             int tupleElementIndex,
             Location location,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             DiagnosticInfo useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TupleErrorFieldSymbol);
+            return Equals(obj as TupleErrorFieldSymbol, compareKind);
         }
 
-        public bool Equals(TupleErrorFieldSymbol other)
+        public bool Equals(TupleErrorFieldSymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
         }
     }
 }

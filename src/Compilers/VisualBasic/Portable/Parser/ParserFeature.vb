@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         NonTrailingNamedArguments
         PrivateProtected
         UnconstrainedTypeParameterInConditional
+        CommentsAfterLineContinuation
     End Enum
 
     Friend Module FeatureExtensions
@@ -95,7 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
 
-                Case Feature.UnconstrainedTypeParameterInConditional
+                Case Feature.UnconstrainedTypeParameterInConditional,
+                    Feature.CommentsAfterLineContinuation
                     Return LanguageVersion.VisualBasic16
 
                 Case Else
@@ -167,6 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_InterpolatedStrings
                 Case Feature.UnconstrainedTypeParameterInConditional
                     Return ERRID.FEATURE_UnconstrainedTypeParameterInConditional
+                Case Feature.CommentsAfterLineContinuation
+                    Return ERRID.FEATURE_CommentsAfterLineContinuation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

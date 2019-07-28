@@ -52,10 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
 #endif
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _dataFlowsOut;
+        }
+
+        protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
+        {
+            _dataFlowsOut.Clear();
+            return base.Scan(ref badRegion);
         }
 
         protected override void EnterRegion()

@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">顯示已關閉檔的診斷程式;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">顯示已關閉檔的診斷程式;
 著色正則運算式;
 在游標下突出顯示相關元件;
 報告不正確正則運算式;
@@ -324,13 +327,13 @@ Enter 鍵行為;
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp 編輯器</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">具備編碼功能的 CSharp 編輯器</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">具備編碼功能的 CSharp 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -367,6 +370,16 @@ Enter 鍵行為;
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

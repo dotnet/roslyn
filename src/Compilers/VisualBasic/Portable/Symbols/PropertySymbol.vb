@@ -525,6 +525,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_NullableAnnotation As NullableAnnotation Implements IPropertySymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.RefCustomModifiers
             Get
                 Return Me.RefCustomModifiers

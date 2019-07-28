@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return format;
         }
 
-        public static string ToTestDisplayString(this TypeSymbolWithAnnotations symbol, bool includeNonNullable = false)
+        public static string ToTestDisplayString(this TypeWithAnnotations symbol, bool includeNonNullable = false)
         {
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);

@@ -13,13 +13,13 @@
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXml Include="BasicExpressionCompiler.vsdconfigxml">
+    <VsdConfigXmlFiles Include="BasicExpressionCompiler.vsdconfigxml">
       <SubType>Designer</SubType>
-    </VsdConfigXml>
+    </VsdConfigXmlFiles>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" Key="$(VisualStudioDebuggerKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" Key="$(VisualStudioDebuggerKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35084" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.vb">
@@ -37,9 +37,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataVersion)</Version>
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation">
+      <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
   </ItemGroup>

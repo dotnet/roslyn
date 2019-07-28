@@ -1673,5 +1673,18 @@ class Program : Base
 }",
 index: 0);
         }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialSelection()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int [|a|];
+}");
+        }
     }
 }

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         MetadataSignatureHelper.AppendFieldAttributes(result, field.Flags);
                         result.Append(" ");
 
-                        result.Append(field.Type);
+                        result.Append(field.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(member.Name);
                         result.AppendLine();
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(property.Type);
+                        result.Append(property.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(property.Name);
                         result.AppendLine();
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(evnt.Type);
+                        result.Append(evnt.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(evnt.Name);
                         result.AppendLine();
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         {
             MetadataSignatureHelper.AppendMethodAttributes(result, method.Flags);
             result.Append(" ");
-            AppendSignatureType(result, method.ReturnType.TypeSymbol, RefKind.None);
+            AppendSignatureType(result, method.ReturnType, RefKind.None);
             result.Append(" ");
 
             if (includeTypeName)
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     result.Append(" ");
                 }
 
-                AppendSignatureType(result, parameter.Type.TypeSymbol, parameter.RefKind);
+                AppendSignatureType(result, parameter.Type, parameter.RefKind);
                 result.Append(" ");
                 result.Append(parameter.Name);
                 i++;

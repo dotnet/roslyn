@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

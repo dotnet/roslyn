@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the kind of this type.
         ''' </summary>
-        Public MustOverride ReadOnly Property TypeKind As TypeKind
+        Public MustOverride ReadOnly Property TypeKind As TYPEKIND
 
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
@@ -329,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            ' VB doesn't support any nullable annotations, but it is desirable at the top level to allow them to be provided
+            ' as a comparison option so that a user doesn't need to distinguish between VB and C# symbols.
+            ' We explicitly strip out the nullable ignore options here so that later assertions and code don't have to consider them 
+            comparison = comparison And Not TypeCompareKind.AllNullableIgnoreOptions
             Return left.IsSameType(right, comparison)
         End Function
 
@@ -552,7 +556,7 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
+        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind
             Get
                 Return Me.TypeKind
             End Get
@@ -571,6 +575,29 @@ Done:
                 Return False
             End Get
         End Property
+
+        Private ReadOnly Property ITypeSymbol_IsReadOnly As Boolean Implements ITypeSymbol.IsReadOnly
+            Get
+                ' VB does not have readonly structures
+                Return False
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
+            Return ToDisplayString(format)
+        End Function
+
+        Private Function ITypeSymbol_ToDisplayParts(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToDisplayParts
+            Return ToDisplayParts(format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayString(semanticModel As SemanticModel, topLevelNullability As NullableFlowState, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToMinimalDisplayString
+            Return ToMinimalDisplayString(semanticModel, position, format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayParts(semanticModel As SemanticModel, topLevelNullability As NullableFlowState, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToMinimalDisplayParts
+            Return ToMinimalDisplayParts(semanticModel, position, format)
+        End Function
 
 #End Region
 

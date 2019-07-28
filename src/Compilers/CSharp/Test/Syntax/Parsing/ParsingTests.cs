@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            // https://github.com/dotnet/roslyn/issues/29819 Revert options coalesce
-            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options ?? TestOptions.Regular8), expectedErrors);
+            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
         private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)

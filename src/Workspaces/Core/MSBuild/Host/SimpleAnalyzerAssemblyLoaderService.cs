@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly CoreClrAnalyzerAssemblyLoader _loader = new CoreClrAnalyzerAssemblyLoader();
 #endif
 
+        [ImportingConstructor]
+        public SimpleAnalyzerAssemblyLoaderService()
+        {
+        }
+
         public IAnalyzerAssemblyLoader GetLoader()
         {
             return _loader;

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
+        private const string NotNullKeyword = "notnull";
         private const string DynamicKeyword = "dynamic";
         private const string AwaitKeyword = "await";
 
@@ -227,6 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
             {
                 return ClassificationTypeNames.EnumMemberName;
+            }
+            else if (token.Parent is CatchDeclarationSyntax catchDeclaration && catchDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
             }
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {
@@ -503,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
 
                     case UnmanagedKeyword:
+                    case NotNullKeyword:
                         return token.Parent is IdentifierNameSyntax
                             && token.Parent.Parent is TypeConstraintSyntax
                             && token.Parent.Parent.Parent is TypeParameterConstraintClauseSyntax;
@@ -555,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     var tokenString = token.ToString();
                     var isKeyword = SyntaxFacts.IsKeywordKind(token.Kind())
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
-                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword));
+                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword || tokenString == NotNullKeyword));
 
                     var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
 

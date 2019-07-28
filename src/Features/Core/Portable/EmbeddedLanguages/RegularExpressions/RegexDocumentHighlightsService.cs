@@ -6,12 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
@@ -38,13 +36,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
             return tree == null
                 ? default
-                : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(document, tree, position)));
+                : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
         }
 
-        private ImmutableArray<HighlightSpan> GetHighlights(
-            Document document, RegexTree tree, int positionInDocument)
+        private ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
         {
-            var referencesOnTheRight = GetReferences(document, tree, positionInDocument, caretOnLeft: true);
+            var referencesOnTheRight = GetReferences(tree, positionInDocument, caretOnLeft: true);
             if (!referencesOnTheRight.IsEmpty)
             {
                 return referencesOnTheRight;
@@ -57,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // Nothing was on the right of the caret.  Return anything we were able to find on 
             // the left of the caret.
-            var referencesOnTheLeft = GetReferences(document, tree, positionInDocument - 1, caretOnLeft: false);
+            var referencesOnTheLeft = GetReferences(tree, positionInDocument - 1, caretOnLeft: false);
             return referencesOnTheLeft;
         }
 
         private ImmutableArray<HighlightSpan> GetReferences(
-            Document document, RegexTree tree, int position, bool caretOnLeft)
+            RegexTree tree, int position, bool caretOnLeft)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)

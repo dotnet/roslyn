@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var node in FindNodeIndices(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                 Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     yield return startingPosition;
                 }
 
-                int position = startingPosition;
+                var position = startingPosition;
                 while (position > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(concatenatedNames, nodes, position - 1), nameSlice))
                 {
                     position--;
@@ -288,12 +288,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static int BinarySearch(string concatenatedNames, ImmutableArray<Node> nodes, string name)
         {
             var nameSlice = new StringSlice(name);
-            int max = nodes.Length - 1;
-            int min = 0;
+            var max = nodes.Length - 1;
+            var min = 0;
 
             while (max >= min)
             {
-                int mid = min + ((max - min) >> 1);
+                var mid = min + ((max - min) >> 1);
 
                 var comparison = s_caseInsensitiveComparer.Compare(
                     GetNameSlice(concatenatedNames, nodes, mid), nameSlice);
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Generate index numbers from 0 to Count-1
             var tmp = new int[unsortedNodes.Length];
-            for (int i = 0; i < tmp.Length; i++)
+            for (var i = 0; i < tmp.Length; i++)
             {
                 tmp[i] = i;
             }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // be used as the map from original (unsorted) location to the
             // sorted location.
             var ranking = new int[unsortedNodes.Length];
-            for (int i = 0; i < tmp.Length; i++)
+            for (var i = 0; i < tmp.Length; i++)
             {
                 ranking[tmp[i]] = i;
             }
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Copy nodes into the result array in the appropriate order and fixing
             // up parent indexes as we go.
-            for (int i = 0; i < unsortedNodes.Length; i++)
+            for (var i = 0; i < unsortedNodes.Length; i++)
             {
                 var n = unsortedNodes[i];
                 var currentName = n.Name;
@@ -512,13 +512,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
             var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
 
-            for (int i = 0; i < orderedKeys1.Count; i++)
+            for (var i = 0; i < orderedKeys1.Count; i++)
             {
                 var values1 = this._inheritanceMap[i];
                 var values2 = other._inheritanceMap[i];
 
                 Debug.Assert(values1.Length == values2.Length);
-                for (int j = 0; j < values1.Length; j++)
+                for (var j = 0; j < values1.Length; j++)
                 {
                     Debug.Assert(values1[j] == values2[j]);
                 }

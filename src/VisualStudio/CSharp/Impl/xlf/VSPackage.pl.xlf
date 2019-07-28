@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">Pokaż diagnostykę dla zamkniętych plików;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Pokaż diagnostykę dla zamkniętych plików;
 Koloruj wyrażenie regularne; 
 Wyróżnij powiązane składniki pod kursorem; 
 Zgłoś nieprawidłowe wyrażenia regularne;
@@ -324,13 +327,13 @@ Pokaż sugestie dotyczące nazw;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">Edytor CSharp</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">Edytor CSharp</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Edytor CSharp z kodowaniem</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">Edytor CSharp z kodowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -367,6 +370,16 @@ Pokaż sugestie dotyczące nazw;</target>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Składniki języka C# używane w środowisku IDE. Zależnie od typu projektu i jego ustawień może być używana inna wersja kompilatora.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

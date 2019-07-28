@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (syntaxFactsOpt == null ||
                 caretPoint < 2 ||
                 text[caretPoint - 1] != '?' ||
-                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 1, syntaxFactsOpt))
+                !CompletionSource.QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 1, syntaxFactsOpt))
             {
                 return false;
             }
@@ -117,35 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.StartNewModelComputation(
                 completionService, new CompletionTrigger(CompletionTriggerKind.Snippets));
             return true;
-        }
-
-        private bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
-            SourceText text, int questionPosition, ISyntaxFactsService syntaxFacts)
-        {
-            var startOfLine = text.Lines.GetLineFromPosition(questionPosition).Start;
-
-            // First, skip all the whitespace.
-            var current = startOfLine;
-            while (current < questionPosition && char.IsWhiteSpace(text[current]))
-            {
-                current++;
-            }
-
-            if (current < questionPosition && syntaxFacts.IsIdentifierStartCharacter(text[current]))
-            {
-                current++;
-            }
-            else
-            {
-                return false;
-            }
-
-            while (current < questionPosition && syntaxFacts.IsIdentifierPartCharacter(text[current]))
-            {
-                current++;
-            }
-
-            return current == questionPosition;
         }
 
         private void CommitOnTab(Action nextHandler)

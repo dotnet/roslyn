@@ -4,16 +4,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Reflection.PortableExecutable;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -88,6 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         // Namespace names from module
         private ICollection<string> _lazyNamespaceNames;
+
+        private enum NullableMemberMetadata
+        {
+            Unknown = 0,
+            Public,
+            Internal,
+            All,
+        }
+
+        private NullableMemberMetadata _lazyNullableMemberMetadata;
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
@@ -258,20 +267,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
+        internal void LoadCustomAttributesFilterCompilerAttributes(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes,
-            out bool foundExtension)
+            out bool foundExtension,
+            out bool foundReadOnly)
         {
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out foundExtension);
+            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out foundExtension, out foundReadOnly);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
         internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
-            // Ignore whether or not extension attributes were found
-            bool ignore;
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out ignore);
+            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out _, out _);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
@@ -373,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetCustomAttributesForToken(token, out paramArrayAttribute, AttributeDescription.ParamArrayAttribute);
         }
 
-
         internal bool HasAnyCustomAttributes(EntityHandle token)
         {
             try
@@ -406,12 +413,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(EntityHandle token, out bool foundExtension)
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
         {
-            CustomAttributeHandle extensionAttribute;
-            var result = GetCustomAttributesForToken(token, out extensionAttribute, AttributeDescription.CaseSensitiveExtensionAttribute);
+            var result = GetCustomAttributesForToken(
+                token,
+                filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
+                filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
+                filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
+                filterOut2: AttributeDescription.IsReadOnlyAttribute,
+                filteredOutAttribute3: out _, filterOut3: default,
+                filteredOutAttribute4: out _, filterOut4: default);
 
             foundExtension = !extensionAttribute.IsNil;
+            foundReadOnly = !isReadOnlyAttribute.IsNil;
             return result;
         }
 
@@ -485,7 +499,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-
         internal NamedTypeSymbol EventRegistrationToken
         {
             get
@@ -502,7 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyEventRegistrationTokenSymbol;
             }
         }
-
 
         internal NamedTypeSymbol EventRegistrationTokenTable_T
         {
@@ -696,5 +708,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
+
+        internal bool ShouldDecodeNullableAttributes(Symbol symbol)
+        {
+            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol.IsDefinition);
+            Debug.Assert((object)symbol.ContainingModule == this);
+
+            if (_lazyNullableMemberMetadata == NullableMemberMetadata.Unknown)
+            {
+                _lazyNullableMemberMetadata = _module.HasNullablePublicOnlyAttribute(Token, out bool includesInternals) ?
+                    (includesInternals ? NullableMemberMetadata.Internal : NullableMemberMetadata.Public) :
+                    NullableMemberMetadata.All;
+            }
+
+            NullableMemberMetadata nullableMemberMetadata = _lazyNullableMemberMetadata;
+            if (nullableMemberMetadata == NullableMemberMetadata.All)
+            {
+                return true;
+            }
+
+            if (AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
+            {
+                switch (nullableMemberMetadata)
+                {
+                    case NullableMemberMetadata.Public:
+                        return !isInternal;
+                    case NullableMemberMetadata.Internal:
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nullableMemberMetadata);
+                }
+            }
+
+            return false;
+        }
     }
 }

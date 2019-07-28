@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal struct FirstDiagnosticResult
+    internal readonly struct FirstDiagnosticResult
     {
         public readonly bool PartialResult;
         public readonly bool HasFix;
@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public FirstDiagnosticResult(bool partialResult, bool hasFix, DiagnosticData diagnostic)
         {
-            this.PartialResult = partialResult;
-            this.HasFix = hasFix;
-            this.Diagnostic = diagnostic;
+            PartialResult = partialResult;
+            HasFix = hasFix;
+            Diagnostic = diagnostic;
         }
     }
 }

@@ -2,10 +2,14 @@ resources:
 - repo: self
   clean: true
 
-variables:
-  SignType: real
-  SkipTests: false
-  SkipApplyOptimizationData: false
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: real
+#  SkipTests: false
+#  SkipApplyOptimizationData: false
+#  IbcSourceBranchName: 'default'
+#  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
@@ -18,12 +22,11 @@ jobs:
     - DotNetFramework
   timeoutInMinutes: 360
 
-  variables:
-    VisualStudio.MajorVersion: 16
-    VisualStudio.ChannelName: 'int.d16.0stg'
-    VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
-
   steps:
+  - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+
+  - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
+
   - task: NuGetToolInstaller@0
     inputs:
       versionSpec: '4.9.2'
@@ -59,8 +62,10 @@ jobs:
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)
               -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+              -officialSourceBranchName $(SourceBranchName)
+              -officialIbcSourceBranchName $(IbcSourceBranchName)
+              -officialIbcDropId $(IbcDropId)
               /p:RepositoryName=$(Build.Repository.Name)
-              /p:VisualStudioIbcSourceBranchName="master-vs-deps"
               /p:VisualStudioDropAccessToken=$(System.AccessToken)
               /p:VisualStudioDropName=$(VisualStudio.DropName)
               /p:DotNetSignType=$(SignType)
@@ -70,8 +75,6 @@ jobs:
               /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-              /p:IbcOptimizationDataDir=$(Build.SourcesDirectory)\.o\\
-              /p:VisualStudioIbcDropId=75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1
     displayName: Build
     condition: succeeded()
 
@@ -79,18 +82,27 @@ jobs:
     displayName: Publish Assets
     inputs:
       filePath: 'eng\publish-assets.ps1'
-      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
     condition: succeeded()
 
   # Publish OptProf configuration files
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)'
+      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
+
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
     condition: succeeded()
 
   # Build VS bootstrapper
@@ -133,8 +145,8 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
-    displayName: Publish Test Results
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'

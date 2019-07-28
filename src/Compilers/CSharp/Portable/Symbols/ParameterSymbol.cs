@@ -45,9 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Gets the type of the parameter along with its annotations.
+        /// </summary>
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbolWithAnnotations Type { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
@@ -380,24 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
-        /// <summary>
-        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
-        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
-        /// That could mean removing an attribute.
-        /// </summary>
-        protected FlowAnalysisAnnotations? TryGetExtraAttributeAnnotations()
-        {
-            ParameterSymbol originalParameter = this.OriginalDefinition;
-            var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
-
-            if (containingMethod is null)
-            {
-                return null;
-            }
-
-            string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-            return ExtraAnnotations.TryGetExtraAttributes(key, this.Ordinal);
-        }
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
@@ -421,12 +409,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IParameterSymbol.Type
         {
-            get { return this.Type.TypeSymbol; }
+            get { return this.Type; }
         }
+
+        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            get { return this.Type.CustomModifiers; }
+            get { return this.TypeWithAnnotations.CustomModifiers; }
         }
 
         ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers

@@ -26,27 +26,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     internal static class IntegrationHelper
     {
-        public static bool BlockInput()
-        {
-            var success = NativeMethods.BlockInput(true);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-
-                if (hresult == VSConstants.E_ACCESSDENIED)
-                {
-                    Debug.WriteLine("Input cannot be blocked because the system requires Administrative privileges.");
-                }
-                else
-                {
-                    Debug.WriteLine("Input cannot be blocked because another thread has blocked the input.");
-                }
-            }
-
-            return success;
-        }
-
         public static void CreateDirectory(string path, bool deleteExisting = false)
         {
             if (deleteExisting)
@@ -199,7 +178,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static void SetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
+            activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
             NativeMethods.SwitchToThisWindow(activeWindow, true);
+
+            if (!NativeMethods.SetForegroundWindow(activeWindow))
+            {
+                if (!NativeMethods.AllocConsole())
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                try
+                {
+                    var consoleWindow = NativeMethods.GetConsoleWindow();
+                    if (consoleWindow == IntPtr.Zero)
+                    {
+                        throw new InvalidOperationException("Failed to obtain the console window.");
+                    }
+
+                    if (!NativeMethods.SetWindowPos(consoleWindow, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOZORDER))
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+                finally
+                {
+                    if (!NativeMethods.FreeConsole())
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+
+                if (!NativeMethods.SetForegroundWindow(activeWindow))
+                {
+                    throw new InvalidOperationException("Failed to set the foreground window.");
+                }
+            }
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
@@ -225,7 +239,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 switch (input.Type)
                 {
                     case NativeMethods.INPUT_KEYBOARD:
-                        LogKeyboardInput(input.ki);
+                        LogKeyboardInput(input.Input.ki);
                         break;
                     case NativeMethods.INPUT_MOUSE:
                         Debug.WriteLine("UNEXPECTED: Encountered mouse input");
@@ -430,17 +444,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             while (dte == null);
 
             return (DTE)dte;
-        }
-
-        public static void UnblockInput()
-        {
-            var success = NativeMethods.BlockInput(false);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                throw new ExternalException("Input cannot be unblocked because it was blocked by another thread.", hresult);
-            }
         }
 
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)

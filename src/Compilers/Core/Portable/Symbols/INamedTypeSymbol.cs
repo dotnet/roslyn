@@ -67,10 +67,17 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
-        /// then the type parameter itself is consider the type argument.
+        /// If nothing has been substituted for a given type parameter,
+        /// then the type parameter itself is considered the type argument.
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        /// <summary>
+        /// Returns the top-level nullability of the type arguments that have been substituted
+        /// for the type parameters. If nothing has been substituted for a given type parameter,
+        /// then <see cref="NullableAnnotation.None"/> is returned for that type argument.
+        /// </summary>
+        ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
@@ -114,6 +121,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
         INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments);
+
+        /// <summary>
+        /// Returns a constructed type given its type arguments and type argument nullable annotations.
+        /// </summary>
+        INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations);
 
         /// <summary>
         /// Returns an unbound generic type of this named type.

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = asyncMethod.IsIterator;
             if (isIterator)
             {
-                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).TypeSymbol;
+                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementTypeWithAnnotations).Type;
                 this.IteratorElementType = elementType;
 
                 bool isEnumerable = asyncMethod.IsIAsyncEnumerableReturningAsync(compilation);

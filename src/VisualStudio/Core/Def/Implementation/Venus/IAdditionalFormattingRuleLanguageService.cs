@@ -14,6 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal interface IAdditionalFormattingRuleLanguageService : ILanguageService
     {
-        IFormattingRule GetAdditionalCodeGenerationRule();
+        AbstractFormattingRule GetAdditionalCodeGenerationRule();
     }
 }

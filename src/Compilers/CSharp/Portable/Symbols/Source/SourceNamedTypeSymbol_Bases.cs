@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var b = baseTypeSyntax.Type;
                         var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag).TypeSymbol;
+                        var curBaseSym = baseBinder.BindType(b, tmpDiag).Type;
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
@@ -255,7 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
-            var interfaceLocations = PooledDictionary<NamedTypeSymbol, SourceLocation>.GetInstance();
+
+            var interfaceLocations = SpecializedCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
 
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))
@@ -400,14 +401,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             // '{0}' cannot derive from special class '{1}'
-                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, Locations[0], this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, location, this, baseType);
                             continue;
                         }
                     }
 
                     if (baseType.IsSealed && !this.IsStatic) // Give precedence to ERR_StaticDerivedFromNonObject
                     {
-                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, Locations[0], this, baseType);
+                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, location, this, baseType);
                         continue;
                     }
 
@@ -449,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
                 }
 
                 switch (baseType.TypeKind)

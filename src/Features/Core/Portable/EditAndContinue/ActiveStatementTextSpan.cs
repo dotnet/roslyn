@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ActiveStatementTextSpan
+    internal readonly struct ActiveStatementTextSpan
     {
         public readonly ActiveStatementFlags Flags;
         public readonly TextSpan Span;

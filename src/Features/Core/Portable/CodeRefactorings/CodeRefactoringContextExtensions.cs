@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -21,6 +23,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     context.RegisterRefactoring(action);
                 }
             }
+        }
+
+        internal static Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
+            where TSyntaxNode : SyntaxNode
+        {
+            var document = context.Document;
+            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+
+            return helpers.TryGetSelectedNodeAsync<TSyntaxNode>(document, context.Span, context.CancellationToken);
         }
     }
 }

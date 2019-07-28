@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">닫힌 파일에 대한 진단 표시;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
 커서 아래의 관련 구성 요소 강조; 
 잘못된 정규식 보고;
@@ -323,13 +326,13 @@ Show name suggestions;</source>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp 편집기</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp 편집기</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">CSharp 편집기(인코딩 사용)</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">CSharp 편집기(인코딩 사용)</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -366,6 +369,16 @@ Show name suggestions;</source>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE에서 사용되는 C# 구성 요소입니다. 프로젝트 형식 및 설정에 따라 다른 버전의 컴파일러를 사용할 수 있습니다.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

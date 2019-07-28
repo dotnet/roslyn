@@ -16,8 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeFixProvider)), Shared]
     internal class MakeLocalFunctionStaticCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public MakeLocalFunctionStaticCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    if (!IsAfterDot(model, model.TriggerSnapshot, textSpanToText))
+                    if (!IsAfterDot(model))
                     {
                         return null;
                     }
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = MatchesFilterText(helper, currentItem, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems);
 
                     if (matchesFilterText)
                     {
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return filterState;
             }
 
-            private bool IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            private bool IsAfterDot(Model model)
             {
                 var originalSpan = model.OriginalList.Span;
 
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     document, matchingCompletionItems, filterText);
 
                 // Of the items the service returned, pick the one most recently committed
-                var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
+                var bestCompletionItem = ItemManager.GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
 
                 // If we don't have a best completion item yet, then pick the first item from the list.
                 var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
@@ -285,56 +284,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return result;
             }
 
-            /// <summary>
-            /// Given multiple possible chosen completion items, pick the one that has the
-            /// best MRU index.
-            /// </summary>
-            private CompletionItem GetBestCompletionItemBasedOnMRU(
-                ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
-            {
-                if (chosenItems.Length == 0)
-                {
-                    return null;
-                }
-
-                // Try to find the chosen item has been most
-                // recently used.
-                var bestItem = chosenItems.FirstOrDefault();
-                for (int i = 0, n = chosenItems.Length; i < n; i++)
-                {
-                    var chosenItem = chosenItems[i];
-                    var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
-                    var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
-
-                    if (mruIndex2 < mruIndex1)
-                    {
-                        bestItem = chosenItem;
-                    }
-                }
-
-                // If our best item appeared in the MRU list, use it
-                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
-                {
-                    return bestItem;
-                }
-
-                // Otherwise use the chosen item that has the highest
-                // matchPriority.
-                for (int i = 1, n = chosenItems.Length; i < n; i++)
-                {
-                    var chosenItem = chosenItems[i];
-                    var bestItemPriority = bestItem.Rules.MatchPriority;
-                    var currentItemPriority = chosenItem.Rules.MatchPriority;
-
-                    if (currentItemPriority > bestItemPriority)
-                    {
-                        bestItem = chosenItem;
-                    }
-                }
-
-                return bestItem;
-            }
-
             private Model HandleDeletionTrigger(
                 Model model, CompletionFilterReason filterReason, List<FilterResult> filterResults)
             {
@@ -351,11 +300,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 FilterResult? bestFilterResult = null;
-                int matchCount = 0;
+                var matchCount = 0;
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
                 {
                     if (bestFilterResult == null ||
-                        IsBetterDeletionMatch(currentFilterResult, bestFilterResult.Value))
+                        ItemManager.IsBetterDeletionMatch(currentFilterResult, bestFilterResult.Value))
                     {
                         // We had no best result yet, so this is now our best result.
                         bestFilterResult = currentFilterResult;
@@ -391,38 +340,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
-            {
-                var item1 = result1.CompletionItem;
-                var item2 = result2.CompletionItem;
-
-                var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(result1.FilterText);
-                var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(result2.FilterText);
-
-                // Prefer the item that matches a longer prefix of the filter text.
-                if (prefixLength1 > prefixLength2)
-                {
-                    return true;
-                }
-
-                if (prefixLength1 == prefixLength2)
-                {
-                    // If the lengths are the same, prefer the one with the higher match priority.
-                    // But only if it's an item that would have been hard selected.  We don't want
-                    // to aggressively select an item that was only going to be softly offered.
-                    var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                        ? item1.Rules.MatchPriority : MatchPriority.Default;
-                    var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                        ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-                    if (item1Priority > item2Priority)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
             private static Model HandleAllItemsFilteredOut(
                 Model model,
                 CompletionFilterReason filterReason)
@@ -455,56 +372,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                                 .WithIsUnique(false);
                 }
             }
-
-            private static bool MatchesFilterText(
-                CompletionHelper helper, CompletionItem item,
-                string filterText, CompletionTrigger trigger,
-                CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
-            {
-                // For the deletion we bake in the core logic for how matching should work.
-                // This way deletion feels the same across all languages that opt into deletion 
-                // as a completion trigger.
-
-                // Specifically, to avoid being too aggressive when matching an item during 
-                // completion, we require that the current filter text be a prefix of the 
-                // item in the list.
-                if (filterReason == CompletionFilterReason.Deletion &&
-                    trigger.Kind == CompletionTriggerKind.Deletion)
-                {
-                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
-                }
-
-                // If the user hasn't typed anything, and this item was preselected, or was in the
-                // MRU list, then we definitely want to include it.
-                if (filterText.Length == 0)
-                {
-                    if (item.Rules.MatchPriority > MatchPriority.Default)
-                    {
-                        return true;
-                    }
-
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
-                    {
-                        return true;
-                    }
-                }
-
-                // Checks if the given completion item matches the pattern provided so far. 
-                // A  completion item is checked against the pattern by see if it's 
-                // CompletionItem.FilterText matches the item.  That way, the pattern it checked 
-                // against terms like "IList" and not IList<>
-                return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
-            }
-
-            private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
-            {
-                var index = recentItems.IndexOf(item.DisplayText);
-                return -index;
-            }
-
             private static bool IsAllDigits(string filterText)
             {
-                for (int i = 0; i < filterText.Length; i++)
+                for (var i = 0; i < filterText.Length; i++)
                 {
                     if (filterText[i] < '0' || filterText[i] > '9')
                     {
@@ -520,42 +390,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionItem bestFilterMatch,
                 SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
-                CompletionFilterReason reason)
+                CompletionFilterReason filterReason)
             {
-                if (bestFilterMatch == null || model.UseSuggestionMode)
-                {
-                    return false;
-                }
-
-                var textSnapshot = caretPosition.Snapshot;
-
-                // We don't have a builder and we have a best match.  Normally this will be hard
-                // selected, except for a few cases.  Specifically, if no filter text has been
-                // provided, and this is not a preselect match then we will soft select it.  This
-                // happens when the completion list comes up implicitly and there is something in
-                // the MRU list.  In this case we do want to select it, but not with a hard
-                // selection.  Otherwise you can end up with the following problem:
-                //
-                //  dim i as integer =<space>
-                //
-                // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
-                // not want 'space' to commit this.
                 var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
-                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, textSnapshot, endPoint: null);
-
-                var trigger = model.Trigger;
-                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
-                if (shouldSoftSelect)
-                {
-                    return false;
-                }
-
-                // If the user moved the caret left after they started typing, the 'best' match may not match at all
-                // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
-                {
-                    return false;
-                }
+                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, caretPosition.Snapshot, endPoint: null);
+                var textSpan = itemViewSpan.TextSpan;
 
                 // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
                 // This prevents commiting if user types a commit character at this position later, but 
@@ -564,67 +403,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want the filter span non-empty because we still want hard selection in the following case:
                 //
                 //  A a = new |
-                if (caretPosition == itemViewSpan.TextSpan.Start && itemViewSpan.TextSpan.Length > 0)
+                if (caretPosition == textSpan.Start && textSpan.Length > 0)
                 {
                     return false;
                 }
 
-                // There was either filter text, or this was a preselect match.  In either case, we
-                // can hard select this.
-                return true;
-            }
-
-            /// <summary>
-            /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
-            /// selected.
-            /// </summary>
-            private static bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
-            {
-                // If all that has been typed is puntuation, then don't hard select anything.
-                // It's possible the user is just typing language punctuation and selecting
-                // anything in the list will interfere.  We only allow this if the filter text
-                // exactly matches something in the list already. 
-                if (filterText.Length > 0 && IsAllPunctuation(filterText) && filterText != item.DisplayText)
-                {
-                    return true;
-                }
-
-                // If the user hasn't actually typed anything, then don't hard select any item.
-                // The only exception to this is if the completion provider has requested the
-                // item be preselected.
-                if (filterText.Length == 0)
-                {
-                    // Item didn't want to be hard selected with no filter text.
-                    // So definitely soft select it.
-                    if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
-                    {
-                        return true;
-                    }
-
-                    // Item did not ask to be preselected.  So definitely soft select it.
-                    if (item.Rules.MatchPriority == MatchPriority.Default)
-                    {
-                        return true;
-                    }
-                }
-
-                // The user typed something, or the item asked to be preselected.  In 
-                // either case, don't soft select this.
-                Debug.Assert(filterText.Length > 0 || item.Rules.MatchPriority != MatchPriority.Default);
-                return false;
-            }
-
-            private static bool IsAllPunctuation(string filterText)
-            {
-                foreach (var ch in filterText)
-                {
-                    if (!char.IsPunctuation(ch))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return ItemManager.IsHardSelection(fullFilterText, model.Trigger.Kind, bestFilterMatch, completionHelper, filterReason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
             }
         }
     }

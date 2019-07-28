@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     {
         private FormattingOptionPageControl _optionPageControl;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            _optionPageControl = new FormattingOptionPageControl(serviceProvider);
+            _optionPageControl = new FormattingOptionPageControl(optionStore);
             return _optionPageControl;
         }
     }

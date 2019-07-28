@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
+            static bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
@@ -2174,7 +2174,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition);
+            condition = CallNullableMember(condition, SpecialMember.System_Nullable_T_GetValueOrDefault);
             ConditionalBranch(condition, jumpIfTrue: true, resultIsLeft);
             UnconditionalBranch(checkRight);
 
@@ -2192,7 +2192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition);
+            condition = CallNullableMember(condition, SpecialMember.System_Nullable_T_GetValueOrDefault);
             ConditionalBranch(condition, jumpIfTrue: true, resultIsLeft);
             _currentBasicBlock = null;
 
@@ -2396,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     _currentBasicBlock = null;
 
                     Debug.Assert(unaryOperatorMethod == null || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type));
-                    condition = UnwrapNullableValue(OperationCloner.CloneOperation(capturedLeft));
+                    condition = CallNullableMember(OperationCloner.CloneOperation(capturedLeft), SpecialMember.System_Nullable_T_GetValueOrDefault);
                 }
             }
             else if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
@@ -2759,7 +2759,7 @@ oneMoreTime:
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
-                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
+                    possiblyUnwrappedValue = TryCallNullableMember(capturedValue, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 }
                 else
                 {
@@ -2874,42 +2874,15 @@ oneMoreTime:
 
             int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
-            ConditionalBranch(MakeIsNullOperation(valueCapture),
-                jumpIfTrue: true,
-                whenNull);
-
-            if (!isStatement)
+            if (operation.Target?.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+                ((INamedTypeSymbol)operation.Target.Type).TypeArguments[0].Equals(operation.Type))
             {
-                _currentBasicBlock = null;
-
-                AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(valueCapture)));
-            }
-
-            PopStackFrameAndLeaveRegion(valueFrame);
-
-            UnconditionalBranch(afterCoalesce);
-
-            AppendNewBlock(whenNull);
-
-            // The return of Visit(operation.WhenNull) can be a flow capture that wasn't used in the non-null branch. We want to create a
-            // region around it to ensure that the scope of the flow capture is as narrow as possible. If there was no flow capture, region
-            // packing will take care of removing the empty region.
-            EvalStackFrame whenNullFrame = PushStackFrame();
-
-            IOperation whenNullValue = Visit(operation.Value);
-            IOperation whenNullAssignment = new SimpleAssignmentOperation(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
-                                                                           operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
-
-            if (isStatement)
-            {
-                AddStatement(whenNullAssignment);
+                nullableValueTypeReturn();
             }
             else
             {
-                AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, whenNullAssignment));
+                standardReturn();
             }
-
-            PopStackFrameAndLeaveRegion(whenNullFrame);
 
             PopStackFrame(frame);
 
@@ -2917,6 +2890,139 @@ oneMoreTime:
             AppendNewBlock(afterCoalesce);
 
             return isStatement ? null : GetCaptureReference(resultCaptureId, operation);
+
+            void nullableValueTypeReturn()
+            {
+                // We'll transform this into one of two possibilities, depending on whether we're using
+                // this as an expression or a statement.
+                //
+                // Expression Form:
+                // intermediate1 = valueCapture.GetValueOrDefault();
+                // branch if false to whenNull: valueCapture.HasValue()
+                // result = intermediate
+                // branch to after
+                //
+                // whenNull:
+                // intermediate2 = rightValue
+                // result = intermediate2
+                // locationCapture = Convert(intermediate2)
+                //
+                // after:
+                // result
+                //
+                // Statement Form
+                // branch if false to whenNull: valueCapture.HasValue()
+                // branch to after
+                //
+                // whenNull:
+                // locationCapture = Convert(rightValue)
+                //
+                // after:
+
+                int intermediateResult = -1;
+                EvalStackFrame intermediateFrame = null;
+
+                if (!isStatement)
+                {
+                    intermediateFrame = PushStackFrame();
+                    SpillEvalStack();
+                    intermediateResult = GetNextCaptureId(intermediateFrame.RegionBuilderOpt);
+                    AddStatement(
+                        new FlowCaptureOperation(intermediateResult,
+                                                 operation.Target.Syntax,
+                                                 CallNullableMember(valueCapture, SpecialMember.System_Nullable_T_GetValueOrDefault)));
+                }
+
+                ConditionalBranch(
+                    CallNullableMember(OperationCloner.CloneOperation(valueCapture), SpecialMember.System_Nullable_T_get_HasValue),
+                    jumpIfTrue: false,
+                    whenNull);
+
+                if (!isStatement)
+                {
+                    _currentBasicBlock = null;
+                    AddStatement(
+                        new FlowCaptureOperation(resultCaptureId,
+                                                 operation.Syntax,
+                                                 GetCaptureReference(intermediateResult, operation.Target)));
+                    PopStackFrame(intermediateFrame);
+                }
+
+                PopStackFrame(valueFrame);
+
+                UnconditionalBranch(afterCoalesce);
+
+                AppendNewBlock(whenNull);
+
+                EvalStackFrame whenNullFrame = PushStackFrame();
+                SpillEvalStack();
+
+                IOperation whenNullValue = Visit(operation.Value);
+                if (!isStatement)
+                {
+                    int intermediateValueCaptureId = GetNextCaptureId(whenNullFrame.RegionBuilderOpt);
+                    AddStatement(new FlowCaptureOperation(intermediateValueCaptureId, whenNullValue.Syntax, whenNullValue));
+                    whenNullValue = GetCaptureReference(intermediateValueCaptureId, whenNullValue);
+                    AddStatement(
+                        new FlowCaptureOperation(
+                            resultCaptureId,
+                            operation.Syntax,
+                            GetCaptureReference(intermediateValueCaptureId, whenNullValue)));
+                }
+
+                AddStatement(
+                    new SimpleAssignmentOperation(
+                        OperationCloner.CloneOperation(locationCapture),
+                        isRef: false,
+                        CreateConversion(whenNullValue, operation.Target.Type),
+                        semanticModel: null,
+                        operation.Syntax,
+                        operation.Target.Type,
+                        constantValue: operation.ConstantValue,
+                        isImplicit: true));
+
+                PopStackFrameAndLeaveRegion(whenNullFrame);
+            }
+
+            void standardReturn()
+            {
+                ConditionalBranch(MakeIsNullOperation(valueCapture),
+                    jumpIfTrue: true,
+                    whenNull);
+
+                if (!isStatement)
+                {
+                    _currentBasicBlock = null;
+
+                    AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(valueCapture)));
+                }
+
+                PopStackFrameAndLeaveRegion(valueFrame);
+
+                UnconditionalBranch(afterCoalesce);
+
+                AppendNewBlock(whenNull);
+
+                // The return of Visit(operation.WhenNull) can be a flow capture that wasn't used in the non-null branch. We want to create a
+                // region around it to ensure that the scope of the flow capture is as narrow as possible. If there was no flow capture, region
+                // packing will take care of removing the empty region.
+                EvalStackFrame whenNullFrame = PushStackFrame();
+
+                IOperation whenNullValue = Visit(operation.Value);
+                IOperation whenNullAssignment = new SimpleAssignmentOperation(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
+                                                                               operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
+
+                if (isStatement)
+                {
+                    AddStatement(whenNullAssignment);
+                }
+                else
+                {
+                    AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, whenNullAssignment));
+                }
+
+                PopStackFrameAndLeaveRegion(whenNullFrame);
+            }
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
@@ -2957,13 +3063,18 @@ oneMoreTime:
                                        constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
         }
 
-        private IOperation TryUnwrapNullableValue(IOperation value)
+        private IOperation TryCallNullableMember(IOperation value, SpecialMember nullableMember)
         {
+            Debug.Assert(nullableMember == SpecialMember.System_Nullable_T_GetValueOrDefault ||
+                         nullableMember == SpecialMember.System_Nullable_T_get_HasValue ||
+                         nullableMember == SpecialMember.System_Nullable_T_get_Value ||
+                         nullableMember == SpecialMember.System_Nullable_T__op_Explicit_ToT ||
+                         nullableMember == SpecialMember.System_Nullable_T__op_Implicit_FromT);
             ITypeSymbol valueType = value.Type;
 
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
-            var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(nullableMember);
 
             if (method != null)
             {
@@ -2982,10 +3093,10 @@ oneMoreTime:
             return null;
         }
 
-        private IOperation UnwrapNullableValue(IOperation value)
+        private IOperation CallNullableMember(IOperation value, SpecialMember nullableMember)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(value.Type));
-            return TryUnwrapNullableValue(value) ??
+            return TryCallNullableMember(value, nullableMember) ??
                    MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
@@ -3043,7 +3154,7 @@ oneMoreTime:
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
-                    receiver = UnwrapNullableValue(receiver);
+                    receiver = CallNullableMember(receiver, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 }
 
                 // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
@@ -3511,7 +3622,7 @@ oneMoreTime:
             }
             else
             {
-                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, constantValue: default, children: ImmutableArray<IOperation>.Empty, isImplicit: true);
+                return new NoneOperation(children: ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, constantValue: default, isImplicit: true);
             }
         }
 
@@ -4327,7 +4438,7 @@ oneMoreTime:
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
                         {
                             stepValueIsNull = MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType);
-                            stepValue = UnwrapNullableValue(stepValue);
+                            stepValue = CallNullableMember(stepValue, SpecialMember.System_Nullable_T_GetValueOrDefault);
                         }
 
                         ITypeSymbol stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
@@ -4587,8 +4698,8 @@ oneMoreTime:
 
                         frame = PushStackFrame();
 
-                        PushOperand(UnwrapNullableValue(visitLoopControlVariableReference(forceImplicit: true))); // Yes we are going to evaluate it again
-                        limitReference = UnwrapNullableValue(GetCaptureReference(limitValueId, operation.LimitValue));
+                        PushOperand(CallNullableMember(visitLoopControlVariableReference(forceImplicit: true), SpecialMember.System_Nullable_T_GetValueOrDefault)); // Yes we are going to evaluate it again
+                        limitReference = CallNullableMember(GetCaptureReference(limitValueId, operation.LimitValue), SpecialMember.System_Nullable_T_GetValueOrDefault);
                     }
 
                     // If (positiveFlag, ctrl <= limit, ctrl >= limit)
@@ -4785,8 +4896,8 @@ oneMoreTime:
                     if (isNullable)
                     {
                         Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceForIncrement.Type));
-                        controlVariableReferenceForIncrement = UnwrapNullableValue(controlVariableReferenceForIncrement);
-                        stepValueForIncrement = UnwrapNullableValue(stepValueForIncrement);
+                        controlVariableReferenceForIncrement = CallNullableMember(controlVariableReferenceForIncrement, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                        stepValueForIncrement = CallNullableMember(stepValueForIncrement, SpecialMember.System_Nullable_T_GetValueOrDefault);
                     }
 
                     IOperation increment = new BinaryOperation(BinaryOperatorKind.Add,
@@ -6003,13 +6114,13 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children);
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
+            return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
             return PopStackFrame(PushStackFrame(),
-                                 Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, VisitArray(operation.Children.ToImmutableArray()), IsImplicit(operation)));
+                                 new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation)));
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -6575,11 +6686,6 @@ oneMoreTime:
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        internal override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
-        {
-            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)

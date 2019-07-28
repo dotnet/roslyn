@@ -5,6 +5,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
+        [ImportingConstructor]
+        public DefaultDefinitionsAndReferencesFactory()
+        {
+        }
+
         /// <summary>
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.ValueUsageInfo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
@@ -219,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
             .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

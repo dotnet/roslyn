@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public override bool AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken)
         {
-            SetCurrentAnalysisData(basicBlock, isReachable: true);
+            SetCurrentAnalysisData(basicBlock, isReachable: true, cancellationToken);
             return true;
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return (currentIsReachable, currentIsReachable);
         }
 
-        public override void SetCurrentAnalysisData(BasicBlock basicBlock, bool isReachable)
+        public override void SetCurrentAnalysisData(BasicBlock basicBlock, bool isReachable, CancellationToken cancellationToken)
         {
             _visited[basicBlock.Ordinal] = isReachable;
         }

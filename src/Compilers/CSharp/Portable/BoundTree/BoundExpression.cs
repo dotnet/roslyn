@@ -10,22 +10,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
-        /// <summary>
-        /// Bound nodes with fields that aren't declared in BoundNodes.xml should use `SkipShallowClone="true"` and override <see cref="ShallowClone"/>.
-        /// Note that ShallowClone is not fully implemented (it throws for some nodes at the moment).
-        /// </summary>
-        protected abstract BoundExpression ShallowClone();
-
-        internal BoundExpression WithSuppression()
+        internal BoundExpression WithSuppression(bool suppress = true)
         {
-            if (this.IsSuppressed)
+            if (this.IsSuppressed == suppress)
             {
                 return this;
             }
 
-            var result = ShallowClone();
-            result.IsSuppressed = true;
+            // There is no scenario where suppression goes away
+            Debug.Assert(suppress || !this.IsSuppressed);
+
+            var result = (BoundExpression)MemberwiseClone();
+            result.IsSuppressed = suppress;
             return result;
+        }
+
+        internal BoundExpression WithWasConverted()
+        {
+#if DEBUG
+            // We track the WasConverted flag for locals and parameters only, as many other
+            // kinds of bound nodes have special behavior that prevents this from working for them.
+            // Also we want to minimize the GC pressure, even in Debug, and we have excellent
+            // test coverage for locals and parameters.
+            if ((Kind != BoundKind.Local && Kind != BoundKind.Parameter) || this.WasConverted)
+                return this;
+
+            var result = (BoundExpression)MemberwiseClone();
+            result.WasConverted = true;
+            return result;
+#else
+            return this;
+#endif
+        }
+
+        internal new BoundExpression WithHasErrors()
+        {
+            return (BoundExpression)base.WithHasErrors();
+        }
+
+        internal bool NeedsToBeConverted()
+        {
+            switch (Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.UnconvertedSwitchExpression:
+#if DEBUG
+                case BoundKind.Local when !WasConverted:
+                case BoundKind.Parameter when !WasConverted:
+#endif
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public virtual ConstantValue ConstantValue
@@ -64,6 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        public new NullabilityInfo TopLevelNullability
+        {
+            get => base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
+        }
     }
 
     internal partial class BoundPassByCopy
@@ -97,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this call's method was chosen. 
+        /// The set of method symbols from which this call's method was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -188,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of indexer symbols from which this call's indexer was chosen. 
+        /// The set of indexer symbols from which this call's indexer was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best indexer.
         /// </summary>
@@ -280,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -299,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -323,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -342,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -361,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -408,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this conversion's method was chosen. 
+        /// The set of method symbols from which this conversion's method was chosen.
         /// Only kept in the tree if the conversion was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -423,6 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.IsBaseConversion; }
         }
 
+        public BoundConversion UpdateOperand(BoundExpression operand)
+        {
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.Type);
+        }
+
         /// <summary>
         /// Returns true when conversion itself (not the operand) may have side-effects
         /// A typical side-effect of a conversion is an exception when conversion is unsuccessful.
@@ -430,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         internal bool ConversionHasSideEffects()
         {
-            // only some intrinsic conversions are side effect free 
+            // only some intrinsic conversions are side effect free
             // the only side effect of an intrinsic conversion is a throw when we fail to convert.
             // and some intrinsic conversion always succeed
             switch (this.ConversionKind)
@@ -445,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     return false;
 
-                // unchecked numeric conversion does not throw 
+                // unchecked numeric conversion does not throw
                 case ConversionKind.ExplicitNumeric:
                     return this.Checked;
             }

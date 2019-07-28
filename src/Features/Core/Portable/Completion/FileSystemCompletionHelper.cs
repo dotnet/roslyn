@@ -8,8 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.Run(() => GetItems(directoryPath, cancellationToken), cancellationToken);
         }
 
-        // internal for testing
-        internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
             if (!PathUtilities.IsUnixLikePlatform && directoryPath.Length == 1 && directoryPath[0] == '\\')
             {
@@ -252,6 +251,22 @@ namespace Microsoft.CodeAnalysis.Completion
                     yield return CreateFileSystemEntryItem(file, isDirectory: false);
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
+
+            public TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
+            {
+                _fileSystemCompletionHelper = fileSystemCompletionHelper;
+            }
+
+            internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
+                => _fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);
         }
     }
 }

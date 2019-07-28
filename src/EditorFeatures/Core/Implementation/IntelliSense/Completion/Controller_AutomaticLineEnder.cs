@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            CommitOnEnter(out var sendThrough, out var committed);
+            CommitOnEnter(out _, out var committed);
 
             // We did not commit based on enter.  So our computation will still be running.  Stop it now.
             if (!committed)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -12,11 +13,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private static bool TryGetSymbolSpec(
             string namingRuleTitle,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out SymbolSpecification symbolSpec)
         {
             symbolSpec = null;
-            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out string symbolSpecName))
+            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out var symbolSpecName))
             {
                 return false;
             }
@@ -36,13 +37,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetSymbolSpecNameForNamingRule(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out string symbolSpecName)
         {
             symbolSpecName = null;
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out symbolSpecName))
             {
-                symbolSpecName = result as string;
                 return symbolSpecName != null;
             }
 
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<SymbolKindOrTypeKind> GetSymbolsApplicableKinds(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out var result))
             {
-                return ParseSymbolKindList(result as string ?? string.Empty);
+                return ParseSymbolKindList(result ?? string.Empty);
             }
 
             return _all;
@@ -161,11 +161,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<Accessibility> GetSymbolsApplicableAccessibilities(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out var result))
             {
-                return ParseAccessibilityKindList(result as string ?? string.Empty);
+                return ParseAccessibilityKindList(result ?? string.Empty);
             }
 
             return _allAccessibility;
@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<ModifierKind> GetSymbolsRequiredModifiers(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out var result))
             {
-                return ParseModifiers(result as string ?? string.Empty);
+                return ParseModifiers(result ?? string.Empty);
             }
 
             return ImmutableArray<ModifierKind>.Empty;
@@ -280,6 +280,207 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        public static string ToEditorConfigString(this ImmutableArray<SymbolKindOrTypeKind> symbols)
+        {
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            if (_all.All(symbols.Contains) && symbols.All(_all.Contains))
+            {
+                return "*";
+            }
+
+            return string.Join(", ", symbols.Select(symbol => symbol.ToEditorConfigString()));
+        }
+
+        private static string ToEditorConfigString(this SymbolKindOrTypeKind symbol)
+        {
+            switch (symbol.MethodKind)
+            {
+                case MethodKind.Ordinary:
+                    return "method";
+
+                case MethodKind.LocalFunction:
+                    return "local_function";
+
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            switch (symbol.TypeKind)
+            {
+                case TypeKind.Class:
+                    return "class";
+
+                case TypeKind.Struct:
+                    return "struct";
+
+                case TypeKind.Interface:
+                    return "interface";
+
+                case TypeKind.Enum:
+                    return "enum";
+
+                case TypeKind.Delegate:
+                    return "delegate";
+
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            switch (symbol.SymbolKind)
+            {
+                case SymbolKind.Namespace:
+                    return "namespace";
+
+                case SymbolKind.Property:
+                    return "property";
+
+                case SymbolKind.Field:
+                    return "field";
+
+                case SymbolKind.Event:
+                    return "event";
+
+                case SymbolKind.Parameter:
+                    return "parameter";
+
+                case SymbolKind.TypeParameter:
+                    return "type_parameter";
+
+                case SymbolKind.Local:
+                    return "local";
+
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(symbol);
+        }
+
+        public static string ToEditorConfigString(this ImmutableArray<Accessibility> accessibilities, string languageName)
+        {
+            if (accessibilities.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            if (_allAccessibility.All(accessibilities.Contains) && accessibilities.All(_allAccessibility.Contains))
+            {
+                return "*";
+            }
+
+            return string.Join(", ", accessibilities.Select(accessibility => accessibility.ToEditorConfigString(languageName)));
+        }
+
+        private static string ToEditorConfigString(this Accessibility accessibility, string languageName)
+        {
+            switch (accessibility)
+            {
+                case Accessibility.NotApplicable:
+                    return "local";
+
+                case Accessibility.Private:
+                    return "private";
+
+                case Accessibility.ProtectedAndInternal:
+                    return "private_protected";
+
+                case Accessibility.Protected:
+                    return "protected";
+
+                case Accessibility.Internal:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "friend";
+                    }
+                    else
+                    {
+                        return "internal";
+                    }
+
+                case Accessibility.ProtectedOrInternal:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "protected_friend";
+                    }
+                    else
+                    {
+                        return "protected_internal";
+                    }
+
+                case Accessibility.Public:
+                    return "public";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(accessibility);
+            }
+        }
+
+        public static string ToEditorConfigString(this ImmutableArray<ModifierKind> modifiers, string languageName)
+        {
+            if (modifiers.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            if (_allModifierKind.All(modifiers.Contains) && modifiers.All(_allModifierKind.Contains))
+            {
+                return "*";
+            }
+
+            return string.Join(", ", modifiers.Select(modifier => modifier.ToEditorConfigString(languageName)));
+        }
+
+        private static string ToEditorConfigString(this ModifierKind modifier, string languageName)
+        {
+            switch (modifier.ModifierKindWrapper)
+            {
+                case ModifierKindEnum.IsAbstract:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "must_inherit";
+                    }
+                    else
+                    {
+                        return "abstract";
+                    }
+
+                case ModifierKindEnum.IsStatic:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "shared";
+                    }
+                    else
+                    {
+                        return "static";
+                    }
+
+                case ModifierKindEnum.IsAsync:
+                    return "async";
+
+                case ModifierKindEnum.IsReadOnly:
+                    return "readonly";
+
+                case ModifierKindEnum.IsConst:
+                    return "const";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(modifier);
+            }
         }
     }
 }

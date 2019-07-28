@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private partial class WorkCoordinator
         {
             // this is internal only type
-            private struct WorkItem
+            private readonly struct WorkItem
             {
                 // project related workitem
                 public readonly ProjectId ProjectId;
@@ -56,18 +56,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     bool retry,
                     IAsyncToken asyncToken)
                 {
-                    this.DocumentId = documentId;
-                    this.ProjectId = projectId;
-                    this.Language = language;
-                    this.InvocationReasons = invocationReasons;
-                    this.IsLowPriority = isLowPriority;
+                    DocumentId = documentId;
+                    ProjectId = projectId;
+                    Language = language;
+                    InvocationReasons = invocationReasons;
+                    IsLowPriority = isLowPriority;
 
-                    this.ActiveMember = activeMember;
-                    this.Analyzers = analyzers;
+                    ActiveMember = activeMember;
+                    Analyzers = analyzers;
 
-                    this.IsRetry = retry;
+                    IsRetry = retry;
 
-                    this.AsyncToken = asyncToken;
+                    AsyncToken = asyncToken;
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IAsyncToken asyncToken)
@@ -102,21 +102,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (analyzers.IsEmpty)
                     {
-                        return this.Analyzers;
+                        return Analyzers;
                     }
 
-                    if (this.Analyzers.IsEmpty)
+                    if (Analyzers.IsEmpty)
                     {
                         return analyzers;
                     }
 
-                    return this.Analyzers.Union(analyzers);
+                    return Analyzers.Union(analyzers);
                 }
 
                 public WorkItem Retry(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
-                        this.DocumentId, this.ProjectId, this.Language, this.InvocationReasons, this.IsLowPriority, this.ActiveMember, this.Analyzers,
+                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, Analyzers,
                         retry: true, asyncToken: asyncToken);
                 }
 
@@ -125,22 +125,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ImmutableHashSet<IIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
                 {
                     // dispose old one
-                    this.AsyncToken.Dispose();
+                    AsyncToken.Dispose();
 
                     // create new work item
                     return new WorkItem(
-                        this.DocumentId, this.ProjectId, this.Language,
+                        DocumentId, ProjectId, Language,
                         InvocationReasons.With(invocationReasons),
                         IsLowPriority,
-                        this.ActiveMember == currentMember ? currentMember : null,
-                        Union(analyzers), this.IsRetry || retry,
+                        ActiveMember == currentMember ? currentMember : null,
+                        Union(analyzers), IsRetry || retry,
                         asyncToken);
                 }
 
                 public WorkItem With(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
-                        this.DocumentId, this.ProjectId, this.Language, this.InvocationReasons, this.IsLowPriority, this.ActiveMember, this.Analyzers,
+                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, Analyzers,
                         retry: false, asyncToken: asyncToken);
                 }
 
@@ -150,12 +150,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return new WorkItem(
                         documentId,
                         projectId,
-                        this.Language,
-                        this.InvocationReasons,
-                        this.IsLowPriority,
-                        this.ActiveMember,
-                        this.Analyzers,
-                        this.IsRetry,
+                        Language,
+                        InvocationReasons,
+                        IsLowPriority,
+                        ActiveMember,
+                        Analyzers,
+                        IsRetry,
                         asyncToken);
                 }
 

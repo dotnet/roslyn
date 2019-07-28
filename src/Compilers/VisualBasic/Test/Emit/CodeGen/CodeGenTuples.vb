@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.SigningTestHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -25,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                                                                                 SystemRef,
                                                                                                 SystemCoreRef,
                                                                                                 MsvbRef}
-
 
         ReadOnly s_trivial2uple As String = "
 Namespace System
@@ -51,7 +49,6 @@ namespace System.Runtime.CompilerServices
 	    End Sub
     End Class
 End Namespace
-
 "
 
         ReadOnly s_tupleattributes As String = "
@@ -62,7 +59,6 @@ namespace System.Runtime.CompilerServices
 	    End Sub
     End Class
 End Namespace
-
 "
 
         ReadOnly s_trivial3uple As String = "
@@ -79,7 +75,6 @@ Namespace System
         End Sub
     End Structure
 End Namespace
-
 "
         ReadOnly s_trivialRemainingTuples As String = "
 Namespace System
@@ -777,7 +772,6 @@ BC42104: Variable 'uninitialized1' is used before it has been assigned a value. 
 BC42104: Variable 'uninitialized2' is used before it has been assigned a value. A null reference exception could result at runtime.
         dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)
                                                       ~~~~~~~~~~~~~~
-
 </errors>)
 
         End Sub
@@ -5669,7 +5663,7 @@ End Class
 
             Dim b = New StringBuilder()
             b.Append("(")
-            For i As Integer = 0 To 3000
+            For i As Integer = 0 To 2000
                 b.Append("1, ")
             Next
             b.Append("1)")
@@ -6866,21 +6860,13 @@ End Class
 
             Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=Nothing))
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
-            Try
-                comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Item1"))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
-            End Try
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Item1")))
+            Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
 
             Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
             Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
-            Try
-                comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
-            End Try
+            ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1)))
+            Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
         End Sub
 
         <Fact>
@@ -7186,12 +7172,8 @@ End Class
             Dim tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"))
             Assert.Equal({"return", "class"}, GetTupleElementNames(tuple3))
 
-            Try
-                comp.CreateTupleTypeSymbol(underlyingType:=intType)
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
-            End Try
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType:=intType))
+            Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
 
         End Sub
 
@@ -7203,14 +7185,10 @@ End Class
             Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
 
-            Try
-                ' Illegal VB identifier and empty
-                Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
-                Assert.Contains("1", ex.Message)
-            End Try
+            ' Illegal VB identifier and empty
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", "")))
+            Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
+            Assert.Contains("1", ex.Message)
 
         End Sub
 
@@ -7224,13 +7202,8 @@ End Class
             Dim csType = DirectCast(csComp.GlobalNamespace.GetMembers("C").Single(), INamedTypeSymbol)
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
-            Try
-                comp.CreateTupleTypeSymbol(csType, Nothing)
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(VBResources.NotAVbSymbol, ex.Message)
-            End Try
-
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(csType, Nothing))
+            Assert.Contains(VBResources.NotAVbSymbol, ex.Message)
         End Sub
 
         <Fact>
@@ -7555,6 +7528,200 @@ additionalRefs:=s_valueTupleRefs)
             Assert.True(intType.TupleElementTypes.IsDefault)
 
         End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNames:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementLocations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNames:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementLocations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=ImmutableArray(Of NullableAnnotation).Empty))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (_1 As Object, _2 As Object, _3 As Object, _4 As Object, _5 As Object, _6 As Object, _7 As Object, _8 As Object, _9 As Object)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=ImmutableArray(Of NullableAnnotation).Empty))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (_1 As Object, _2 As Object, _3 As Object, _4 As Object, _5 As Object, _6 As Object, _7 As Object, _8 As Object, _9 As Object)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+        End Sub
+
+        Private Shared Function CreateAnnotations(annotation As CodeAnalysis.NullableAnnotation, n As Integer) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
+            Return ImmutableArray.CreateRange(Enumerable.Range(0, n).Select(Function(i) annotation))
+        End Function
+
+        Private Shared Function TypeEquals(a As ITypeSymbol, b As ITypeSymbol, compareKind As TypeCompareKind) As Boolean
+            Return TypeSymbol.Equals(DirectCast(a, TypeSymbol), DirectCast(b, TypeSymbol), compareKind)
+        End Function
 
         <Fact>
         Public Sub TupleTargetTypeAndConvert01()

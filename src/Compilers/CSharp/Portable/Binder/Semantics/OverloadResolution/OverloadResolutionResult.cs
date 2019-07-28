@@ -608,9 +608,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ErrorCode errorCode =
-                    symbol.IsStatic ? ErrorCode.ERR_ObjectProhibited :
-                    Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode ? ErrorCode.ERR_FieldInitRefNonstatic :
-                    ErrorCode.ERR_ObjectRequired;
+                    symbol.RequiresInstanceReceiver()
+                    ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
+                        ? ErrorCode.ERR_FieldInitRefNonstatic
+                        : ErrorCode.ERR_ObjectRequired
+                    : ErrorCode.ERR_ObjectProhibited;
                 // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //     -or-
                 // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
@@ -636,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
                 return true;
             }
 
@@ -973,8 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter].TypeSymbol;
-            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, location, diagnostics);
+            TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
+            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
 
             return true;
         }
@@ -1116,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
-                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type.TypeSymbol;
+                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -1198,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            TypeSymbolWithAnnotations.Create(argType),
+                            TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
@@ -1238,10 +1240,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only try to unwrap parameters if they are a parameter array and are on the last position
             if (parameter.IsParams && isLastParameter)
             {
-                ArrayTypeSymbol arrayType = parameter.Type.TypeSymbol as ArrayTypeSymbol;
+                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
                 {
-                    return arrayType.ElementType.TypeSymbol;
+                    return arrayType.ElementType;
                 }
             }
             return parameter;

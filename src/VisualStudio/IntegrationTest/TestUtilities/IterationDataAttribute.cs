@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public IterationDataAttribute(int iterations = 100)
         {
-            Iterations = 100;
+            Iterations = iterations;
         }
 
         public int Iterations { get; }

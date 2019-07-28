@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Host), Shared]
     internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public FixAllGetFixesService()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return this;

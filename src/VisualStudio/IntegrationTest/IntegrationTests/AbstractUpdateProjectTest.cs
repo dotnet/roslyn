@@ -5,14 +5,15 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractUpdateProjectTest : AbstractIntegrationTest
     {
-        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsUnconditionalPropertyGroup),
                 group => GetPropertyValue(group, name) == value);
 
-            bool IsUnconditionalPropertyGroup(XElement element)
+            static bool IsUnconditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && !element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 
@@ -41,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsConditionalPropertyGroup),
                 group => Assert.Equal(value, GetPropertyValue(group, name)));
 
-            bool IsConditionalPropertyGroup(XElement element)
+            static bool IsConditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 
