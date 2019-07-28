@@ -349,6 +349,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static bool IsConstructor(this MethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.Constructor:
+                case MethodKind.StaticConstructor:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>

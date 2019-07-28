@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _trackClassFields;
 
         /// <summary>
+        /// Track static fields, properties, events, in addition to instance members.
+        /// </summary>
+        private readonly bool _trackStaticMembers;
+
+        /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
         protected MethodSymbol topLevelMethod;
@@ -122,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
-            bool trackClassFields = false)
+            bool trackClassFields = false,
+            bool trackStaticMembers = false)
             : base(compilation, member, node,
                    compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
                    trackUnassignments)
@@ -133,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
+            _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
@@ -753,11 +760,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
+                        member = fieldSymbol;
+                        if (fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
-                        member = fieldSymbol;
+                        if (fieldSymbol.IsStatic)
+                        {
+                            return _trackStaticMembers;
+                        }
                         receiver = fieldAccess.ReceiverOpt;
                         break;
                     }
@@ -765,11 +776,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var eventAccess = (BoundEventAccess)expr;
                         var eventSymbol = eventAccess.EventSymbol;
+                        member = eventSymbol.AssociatedField;
                         if (eventSymbol.IsStatic)
                         {
-                            return false;
+                            return _trackStaticMembers;
                         }
-                        member = eventSymbol.AssociatedField;
                         receiver = eventAccess.ReceiverOpt;
                         break;
                     }
@@ -780,11 +791,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
-                            if (propSymbol.IsStatic)
+                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            if (member is null)
                             {
                                 return false;
                             }
-                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            if (propSymbol.IsStatic)
+                            {
+                                return _trackStaticMembers;
+                            }
                             receiver = propAccess.ReceiverOpt;
                         }
                         break;

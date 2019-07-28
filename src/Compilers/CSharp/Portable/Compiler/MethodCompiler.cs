@@ -593,6 +593,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If there is no explicit or implicit .cctor and no static initializers, then report
+            // warnings for any static non-nullable fields. (If there is no .cctor, there
+            // shouldn't be any initializers but for robustness, we check both.)
+            if (!hasStaticConstructor &&
+                processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
+                _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                switch (containingType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
+                            walkerOpt: null,
+                            thisSlot: -1,
+                            isStatic: true,
+                            members,
+                            getIsAssigned: (walker, slot, member) => false,
+                            getSymbolForLocation: (walker, member) => member,
+                            _diagnostics);
+                        break;
+                }
+            }
+
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
             if (scriptCtor != null && compilationState.Emitting)
             {
@@ -961,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         body = (BoundBlock)body.WithHasErrors();
                     }
 
-                    if (body != null && methodSymbol.MethodKind == MethodKind.Constructor)
+                    if (body != null && methodSymbol.IsConstructor())
                     {
                         UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
                     }
