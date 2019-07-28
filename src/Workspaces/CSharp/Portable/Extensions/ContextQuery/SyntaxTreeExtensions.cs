@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent is MemberDeclarationSyntax &&
-                    token.Parent.GetParent() is BaseTypeDeclarationSyntax)
+                    token.Parent.Parent is BaseTypeDeclarationSyntax)
                 {
                     return true;
                 }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
                 if (token.Parent is BaseTypeDeclarationSyntax &&
-                    token.Parent.GetParent() is BaseTypeDeclarationSyntax)
+                    token.Parent.Parent is BaseTypeDeclarationSyntax)
                 {
                     // after a nested type
                     return true;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
                 else if (
                     token.Parent.IsKind(SyntaxKind.Block) &&
-                    token.Parent.GetParent() is MemberDeclarationSyntax)
+                    token.Parent.Parent is MemberDeclarationSyntax)
                 {
                     // after a method/operator/etc.
                     return true;
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the attribute
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
-                var container = token.Parent.GetParent().GetParent();
+                var container = token.Parent.Parent?.Parent;
                 if (container is BaseTypeDeclarationSyntax)
                 {
                     return true;
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
                 else if (
                     token.Parent.IsKind(SyntaxKind.Block) &&
-                    token.Parent.GetParent() is MemberDeclarationSyntax)
+                    token.Parent.Parent is MemberDeclarationSyntax)
                 {
                     return true;
                 }
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the attribute
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
-                var container = token.Parent.GetParent().GetParent();
+                var container = token.Parent?.Parent?.Parent;
                 if (container.IsKind(SyntaxKind.CompilationUnit) ||
                     container.IsKind(SyntaxKind.NamespaceDeclaration) ||
                     container.IsKind(SyntaxKind.ClassDeclaration) ||
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // the parent is the member
                 // the grandparent is the container of the member
-                var container = token.Parent.GetParent();
+                var container = token.Parent?.Parent;
 
                 // ref $$
                 // readonly ref $$
