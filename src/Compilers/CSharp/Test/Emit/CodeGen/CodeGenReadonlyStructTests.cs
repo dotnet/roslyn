@@ -2065,6 +2065,8 @@ public struct S
         public void ReadOnlyMethod_CallReadOnlyMethodOnField()
         {
             var csharp = @"
+#pragma warning disable CS0649
+
 public struct S1
 {
     public readonly void M1() {}

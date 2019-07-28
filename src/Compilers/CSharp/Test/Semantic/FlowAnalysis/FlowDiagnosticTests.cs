@@ -1339,13 +1339,15 @@ struct Program
     // (16,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-    //     public Program()
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
-    );
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
         }
 
         [Fact]
@@ -1388,13 +1390,15 @@ struct Program
     // (16,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-    //     public Program()
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
-    );
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
         }
 
         [Fact]
