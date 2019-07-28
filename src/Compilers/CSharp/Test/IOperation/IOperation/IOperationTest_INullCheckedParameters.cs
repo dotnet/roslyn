@@ -51,7 +51,7 @@ public class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public void ... input!) { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... input!) { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... input!) { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""input"", IsImplicit) (Syntax: 'public void ... input!) { }')
@@ -104,7 +104,7 @@ public class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ing y!) { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'public void ... ing y!) { }')
@@ -157,7 +157,7 @@ Block[B0] - Entry
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""name"", IsImplicit) (Syntax: 'public void ... ""rose"") { }')
@@ -216,7 +216,7 @@ public class Box
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public stat ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public stat ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public stat ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""b"", IsImplicit) (Syntax: 'public stat ... }')
@@ -326,7 +326,7 @@ public class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'get ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'get ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'get ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""item"", IsImplicit) (Syntax: 'get ... }')
@@ -413,7 +413,7 @@ public class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'get => item ... ToString();')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'get => item ... ToString();')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'get => item ... ToString();')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""item"", IsImplicit) (Syntax: 'get => item ... ToString();')
@@ -480,7 +480,7 @@ public class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'set { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'set { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'set { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""item"", IsImplicit) (Syntax: 'set { }')
@@ -536,64 +536,64 @@ class C
         null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-            Entering: {R1}
-    .locals {R1}
-    {
-        Locals: [System.Func<System.String, System.String> func1]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
-                  Left: 
-                    ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x! => x')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x! => x')
-                        {
-                            Block[B0#A0] - Entry
-                                Statements (0)
-                                Next (Regular) Block[B1#A0]
-                            Block[B1#A0] - Block
-                                Predecessors: [B0#A0]
-                                Statements (0)
-                                Jump if False (Regular) to Block[B3#A0]
-                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x! => x')
-                                      Left: 
-                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x! => x')
-                                      Right: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'x! => x')
-                                Next (Regular) Block[B2#A0]
-                            Block[B2#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Throw) Block[null]
-                                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'x! => x')
-                                      Arguments(1):
-                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x! => x')
-                                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x! => x')
-                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      Initializer: 
-                                        null
-                            Block[B3#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Return) Block[B4#A0]
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-                            Block[B4#A0] - Exit
-                                Predecessors: [B3#A0]
-                                Statements (0)
-                        }
-            Next (Regular) Block[B2]
-                Leaving: {R1}
-    }
-    Block[B2] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Func<System.String, System.String> func1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
+              Left: 
+                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x! => x')
+                    Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x! => x')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Jump if False (Regular) to Block[B3#A0]
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x! => x')
+                                    Left: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x! => x')
+                                    Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'x! => x')
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Throw) Block[null]
+                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x! => x')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x! => x')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Initializer: 
+                                    null
+                        Block[B3#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Return) Block[B4#A0]
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                        Block[B4#A0] - Exit
+                            Predecessors: [B3#A0]
+                            Statements (0)
+                    }
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
         [Fact]
@@ -673,7 +673,7 @@ class C
                                 Predecessors: [B1#A0]
                                 Statements (0)
                                 Next (Throw) Block[null]
-                                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: '(x!, y) => x')
+                                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
                                       Arguments(1):
                                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
                                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '(x!, y) => x')
@@ -778,7 +778,7 @@ class C
                                 Predecessors: [B1#A0]
                                 Statements (0)
                                 Next (Throw) Block[null]
-                                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: '_! => null')
+                                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
                                       Arguments(1):
                                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '_! => null')
                                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""_"", IsImplicit) (Syntax: '_! => null')
@@ -860,7 +860,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public Func ... => s2 + s1;')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public Func ... => s2 + s1;')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public Func ... => s2 + s1;')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s1"", IsImplicit) (Syntax: 'public Func ... => s2 + s1;')
@@ -893,7 +893,7 @@ class C
                         Predecessors: [B1#A0]
                         Statements (0)
                         Next (Throw) Block[null]
-                            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 's2! => s2 + s1')
+                            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 's2! => s2 + s1')
                               Arguments(1):
                                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's2! => s2 + s1')
                                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s2"", IsImplicit) (Syntax: 's2! => s2 + s1')
@@ -979,7 +979,7 @@ class C
                             Predecessors: [B1#A0]
                             Statements (0)
                             Next (Throw) Block[null]
-                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'x! => x')
+                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
                                   Arguments(1):
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x! => x')
                                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x! => x')
@@ -1071,7 +1071,7 @@ class C
                 Predecessors: [B1#0R1]
                 Statements (0)
                 Next (Throw) Block[null]
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
@@ -1162,7 +1162,7 @@ class C
                 Predecessors: [B1#0R1]
                 Statements (0)
                 Next (Throw) Block[null]
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
@@ -1184,7 +1184,7 @@ class C
                 Predecessors: [B3#0R1]
                 Statements (0)
                 Next (Throw) Block[null]
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
@@ -1261,7 +1261,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public void ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... }')
@@ -1371,7 +1371,7 @@ class C
                 Predecessors: [B1#0R1]
                 Statements (0)
                 Next (Throw) Block[null]
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
@@ -1430,7 +1430,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public C(string x!) { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(string x!) { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(string x!) { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(string x!) { }')
@@ -1490,7 +1490,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public C(st ...  this() { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(st ...  this() { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(st ...  this() { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(st ...  this() { }')
@@ -1567,7 +1567,7 @@ class C : B
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public C(st ... base(x) { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(st ... base(x) { }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(st ... base(x) { }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(st ... base(x) { }')
@@ -1643,7 +1643,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'public C(st ... !) { y++; }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(st ... !) { y++; }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(st ... !) { y++; }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(st ... !) { y++; }')
@@ -1709,7 +1709,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""arg"", IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
@@ -1796,7 +1796,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'IEnumerable ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'IEnumerable ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'IEnumerable ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: 'IEnumerable ... }')
@@ -1986,7 +1986,7 @@ class Iterators
                 Predecessors: [B1#0R1]
                 Statements (0)
                 Next (Throw) Block[null]
-                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'IEnumerable ... }')
+                    IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'IEnumerable ... }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'IEnumerable ... }')
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: 'IEnumerable ... }')
@@ -2131,7 +2131,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'static IEnu ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'static IEnu ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'static IEnu ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: 'static IEnu ... }')
@@ -2191,7 +2191,7 @@ class C
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.Void, IsImplicit) (Syntax: 'static IEnu ... }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'static IEnu ... }')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'static IEnu ... }')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsImplicit) (Syntax: 'static IEnu ... }')
