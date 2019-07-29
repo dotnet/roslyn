@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     node = node.Parent
                 End While
 
-                Dim actualSpan = VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind, node, EditKind.Update)
+                Dim actualSpan = VisualBasicEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl(node.Kind, node, EditKind.Update).Value
                 Dim actualText = source.Substring(actualSpan.Start, actualSpan.Length)
 
                 Assert.True(expectedSpan = actualSpan, vbCrLf &
@@ -84,14 +84,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim unhandledKinds As List(Of SyntaxKind) = New List(Of SyntaxKind)()
 
             For Each k In [Enum].GetValues(GetType(SyntaxKind)).Cast(Of SyntaxKind)().Where(hasLabel)
+                Dim span As TextSpan?
                 Try
-                    VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(k, Nothing, EditKind.Update)
+                    span = VisualBasicEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl(k, Nothing, EditKind.Update)
                 Catch e1 As NullReferenceException
                     ' expected, we passed null node
-                Catch e2 As Exception
-                    ' unexpected
-                    unhandledKinds.Add(k)
+                    Continue For
                 End Try
+
+                ' unexpected
+                If span Is Nothing Then
+                    unhandledKinds.Add(k)
+                End If
             Next
 
             AssertEx.Equal(Array.Empty(Of SyntaxKind)(), unhandledKinds)
@@ -100,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ErrorSpans_TopLevel()
-            Dim source = <![CDATA[
+            Dim source = "
 <span>Option Strict Off</span>
 <span>Imports Z = Goo.Bar</span>
 
@@ -203,13 +207,13 @@ End Enum
     <A><span>Public Shared Narrowing Operator CType(d As Z)</span> As Integer
     End Operator
 End Class
-]]>.Value
+"
             TestSpans(source, Function(node) TopSyntaxComparer.HasLabel(node.Kind(), ignoreVariableDeclarations:=False))
         End Sub
 
         <Fact>
         Public Sub ErrorSpans_StatementLevel_Update()
-            Dim source = <![CDATA[
+            Dim source = "
 Class C
     Sub M()
         <span>While expr</span>
@@ -326,7 +330,7 @@ Class C
         <span>RaiseEvent e()</span>
 
         <span>Error 1</span>
-        <span>Mid(a, 1, 2) = ""</span>
+        <span>Mid(a, 1, 2) = """"</span>
         <span>a = b</span>
         <span>Call M()</span>
 
@@ -384,31 +388,31 @@ Class C
           Select 1)
     End Sub
 End Class
-]]>.Value
+"
             TestSpans(source, AddressOf StatementSyntaxComparer.HasLabel)
 
-            source = <![CDATA[
+            source = "
 Class C
     Iterator Function M() As IEnumerable(Of Integer)
         <span>Yield 1</span>
     End Function
 End Class
-]]>.Value
+"
             TestSpans(source, AddressOf StatementSyntaxComparer.HasLabel)
 
-            source = <![CDATA[
+            source = "
 Class C
     Async Function M() As Task(Of Integer)
         <span>Await expr</span>
     End Function
 End Class
-]]>.Value
+"
             TestSpans(source, AddressOf StatementSyntaxComparer.HasLabel)
 
         End Sub
 
         ''' <summary>
-        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
+        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()

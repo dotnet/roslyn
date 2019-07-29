@@ -29,6 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
         }
 
+        /// <summary>
+        /// Certain implementations require that the processing be done on the UI thread.
+        /// So allow the handler to specifiy that the thread context should be preserved.
+        /// </summary>
+        protected Task<ResponseType> HandleAsyncPreserveThreadContext(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        {
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken, keepThreadContext: true);
+        }
+
         protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
         {
             return requestHandlers.First(handler => handler.Metadata.MethodName == methodName);
