@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NameTupleElement
 {
-    abstract class AbstractNameTupleElementCodeRefactoringProvider<TArgumentSyntax, TTupleExpressionSyntax> : CodeRefactoringProvider
+    abstract class AbstractNameTupleElementCodeRefactoringProvider<TArgumentSyntax, TTupleExpressionSyntax, TExpresionSyntax> : CodeRefactoringProvider
         where TArgumentSyntax : SyntaxNode
-        where TTupleExpressionSyntax : SyntaxNode
+        where TExpresionSyntax : SyntaxNode
+        where TTupleExpressionSyntax : TExpresionSyntax
     {
         protected abstract bool IsCloseParenOrComma(SyntaxToken token);
         protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string argumentName);
@@ -44,11 +44,10 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var helperService = document.GetLanguageService<IRefactoringHelpersService>();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            Func<SyntaxNode, bool> isTupleArgumentExpression = n => n.Parent != null && syntaxFacts.IsTupleExpression(n.Parent);
-            var argument = await document.TryGetSelectedNodeAsync<TArgumentSyntax>(span, isTupleArgumentExpression, cancellationToken).ConfigureAwait(false);
+            var expressions = await document.TryGetRelevantNodesAsync<TExpresionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var argument = expressions.FirstOrDefault(
+                n => n.Parent is TArgumentSyntax && n.Parent.Parent is TTupleExpressionSyntax)?.Parent as TArgumentSyntax;
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
                 return default;
