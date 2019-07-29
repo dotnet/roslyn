@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = await context.TryGetSelectedNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
+            var lambda = await context.TryGetRelevantNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
             if (lambda == null)
             {
                 return;

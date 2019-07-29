@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var potentialArguments = await document.TryGetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var potentialArguments = await document.GetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
             var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {

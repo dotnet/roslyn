@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var variableDeclarator = await context.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
+            var variableDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
             if (variableDeclarator == default)
             {
                 return;

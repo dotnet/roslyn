@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var argument = await context.TryGetSelectedNodeAsync<TBaseArgumentSyntax>().ConfigureAwait(false) as TSimpleArgumentSyntax;
+                var argument = await context.TryGetRelevantNodeAsync<TBaseArgumentSyntax>().ConfigureAwait(false) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
