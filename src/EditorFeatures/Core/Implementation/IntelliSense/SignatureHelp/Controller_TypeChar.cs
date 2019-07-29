@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             AssertIsForeground();
 
-            var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
-            var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            using var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            using var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
             foreach (var provider in providers)
             {
                 if (provider.IsTriggerCharacter(ch))
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return (matchedProviders.ToImmutableAndFree(), unmatchedProviders.ToImmutableAndFree());
+            return (matchedProviders.ToImmutable(), unmatchedProviders.ToImmutable());
         }
     }
 }

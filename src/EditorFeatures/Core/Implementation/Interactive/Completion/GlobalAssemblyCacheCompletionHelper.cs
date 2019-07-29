@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         // internal for testing
         internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CompletionItem>.GetInstance();
+            using var result = ArrayBuilder<CompletionItem>.GetInstance();
 
             var comma = directoryPath.IndexOf(',');
             if (comma >= 0)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)

@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                             var textVersion = VersionStamp.ReadFrom(reader);
                             var dataVersion = VersionStamp.ReadFrom(reader);
 
-                            var list = ArrayBuilder<TodoItem>.GetInstance();
+                            using var list = ArrayBuilder<TodoItem>.GetInstance();
                             AppendItems(reader, value, list, cancellationToken);
 
-                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
+                            return new Data(textVersion, dataVersion, list.ToImmutable());
                         }
                     }
                 }

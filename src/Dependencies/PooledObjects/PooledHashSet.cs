@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -7,7 +8,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    internal sealed class PooledHashSet<T> : HashSet<T>
+    internal sealed class PooledHashSet<T> : HashSet<T>, IDisposable
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 
@@ -40,5 +41,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(instance.Count == 0);
             return instance;
         }
+
+        public void Dispose() => Free();
     }
 }
