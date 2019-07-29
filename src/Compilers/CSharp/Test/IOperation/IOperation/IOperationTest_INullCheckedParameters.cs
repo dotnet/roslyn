@@ -2390,5 +2390,29 @@ class Program
         Predecessors: [B1]
         Statements (0)");
         }
+
+        [Fact(Skip="PROTOTYPE")]
+        public void TestNoNullChecksInBlockOperation()
+        {
+            // PROTOTYPE
+            var source = @"
+public class C
+{
+    public void M(string input!) 
+            /*<bind>*/{ }/*</bind>*/
+}";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+
+            compilation.VerifyOperationTree(node1, expectedOperationTree: @"
+IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+");
+            var output = @"";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph: output, DiagnosticDescription.None);
+        }
     }
 }
