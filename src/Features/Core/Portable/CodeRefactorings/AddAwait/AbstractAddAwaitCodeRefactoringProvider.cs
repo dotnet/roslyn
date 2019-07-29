@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var awaitable = await context.TryGetSelectedNodeAsync<TInvocationExpressionSyntax>().ConfigureAwait(false);
+            var awaitable = await context.TryGetRelevantNodeAsync<TInvocationExpressionSyntax>().ConfigureAwait(false);
             if (awaitable == null || !IsValidAwaitableExpression(awaitable, model, syntaxFacts))
             {
                 return;

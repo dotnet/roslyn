@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        internal static Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
+        internal static Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
             where TSyntaxNode : SyntaxNode
             => TryGetRelevantNodeAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
-        internal static Task<ImmutableArray<TSyntaxNode>> TryGetSelectedNodesAsync<TSyntaxNode>(this CodeRefactoringContext context)
+        internal static Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(this CodeRefactoringContext context)
             where TSyntaxNode : SyntaxNode
-            => TryGetRelevantNodesAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
+            => GetRelevantNodesAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
         internal static async Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(
             this Document document,
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            var potentialNodes = await TryGetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
+            var potentialNodes = await GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
             return potentialNodes.FirstOrDefault();
         }
 
-        internal static async Task<ImmutableArray<TSyntaxNode>> TryGetRelevantNodesAsync<TSyntaxNode>(
+        internal static async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             this Document document,
             TextSpan span,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode

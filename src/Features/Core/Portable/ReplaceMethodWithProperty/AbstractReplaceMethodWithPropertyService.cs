@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
     {
         public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
         {
-            var property = await context.TryGetSelectedNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
+            var property = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
 
             return property;
         }
