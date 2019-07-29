@@ -6,7 +6,7 @@ jobs:
   pool: ${{ parameters.windowsPool }}
   steps:
   - checkout: self
-    clean: true # "all" doesn't work, but "true" does, despite YAML docs
+    clean: true
   - template: install-dependencies.yml
 
   - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
@@ -20,7 +20,7 @@ jobs:
     vmImage: Ubuntu 16.04
   steps:
   - checkout: self
-    clean: true # "all" doesn't work, but "true" does, despite YAML docs
+    clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
   - template: expand-template.yml
@@ -29,6 +29,8 @@ jobs:
   pool:
     vmImage: macOS 10.13
   steps:
+  - checkout: self
+    clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
   - template: expand-template.yml
@@ -43,7 +45,7 @@ jobs:
   condition: succeededOrFailed()
   steps:
   - checkout: self
-    clean: true # "all" doesn't work, but "true" does, despite YAML docs
+    clean: true
   - template: install-dependencies.yml
     parameters:
       initArgs: -NoRestore
