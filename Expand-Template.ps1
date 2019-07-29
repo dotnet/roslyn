@@ -132,7 +132,7 @@ try {
     $YmlReplacements = @{
         "(?m)^\s+- microbuild`r?`n"=""
     }
-    Replace-Placeholders -Path "azure-pipelines\microbuild.yml" -Replacements $YmlReplacements
+    Replace-Placeholders -Path "azure-pipelines\official.yml" -Replacements $YmlReplacements
     if ($CodeCovToken) {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "`$1$CodeCovToken"
     } else {
