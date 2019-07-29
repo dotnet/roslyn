@@ -56,6 +56,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -97,6 +98,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -1051,6 +1053,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -1065,6 +1068,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void Goo()
@@ -1079,6 +1083,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -1093,6 +1098,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void Goo()
@@ -1107,6 +1113,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -1115,6 +1122,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void Goo()
@@ -1135,6 +1143,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"using System;
+
 class C
 {
     void Goo()
@@ -1143,6 +1152,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void Goo()
