@@ -370,7 +370,7 @@ function TestUsingOptimizedRunner() {
     } else {
       $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
     }
-  } elseif($testOperation) {
+  } elseif($testIOperation) {
     if ($test32) {
       $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*IOperation*" $binDir
     } else {
