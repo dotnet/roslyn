@@ -108,6 +108,14 @@ class C
 
             root = FormatResult("/**/a// Comment", value);
             Assert.Equal("a.F", GetChildren(root).Single().FullName);
+
+            // See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+            root = FormatResult(@"""a//b/*"" // c", value);
+            Assert.Equal(@"(""a//b/*"").F", GetChildren(root).Single().FullName);
+
+            // incorrect - see https://github.com/dotnet/roslyn/issues/37536 
+            root = FormatResult(@"""a"" //""b", value);
+            Assert.Equal(@"(""a"" //""b).F", GetChildren(root).Single().FullName);
         }
 
         [Fact]
