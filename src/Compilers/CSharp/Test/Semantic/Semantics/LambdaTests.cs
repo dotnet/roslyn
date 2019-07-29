@@ -16,6 +16,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaTests : CompilingTestBase
     {
+        [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
+        public void Verify37456()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public static partial class EnumerableEx
+{
+    public static void Join1<TA, TKey, T>(this IEnumerable<TA> a, Func<TA, TKey> aKey, Func<TA, T> aSel, Func<TA, TA, T> sel)
+    {
+        KeyValuePair<TK, TV> Pair<TK, TV>(TK k, TV v) => new KeyValuePair<TK, TV>(k, v);
+
+        _ = a.GroupJoin(a, aKey, aKey, (f, ss) => Pair(f, ss.Select(s => Pair(true, s)))); // simplified repro
+    }
+
+    public static IEnumerable<T> Join2<TA, TB, TKey, T>(this IEnumerable<TA> a, IEnumerable<TB> b, Func<TA, TKey> aKey, Func<TB, TKey> bKey, Func<TA, T> aSel, Func<TA, TB, T> sel, IEqualityComparer<TKey> comp) 
+    {
+        KeyValuePair<TK, TV> Pair<TK, TV>(TK k, TV v) => new KeyValuePair<TK, TV>(k, v);
+
+        return
+            from j in a.GroupJoin(b, aKey, bKey, (f, ss) => Pair(f, from s in ss select Pair(true, s)), comp)
+            from s in j.Value.DefaultIfEmpty()
+            select s.Key ? sel(j.Key, s.Value) : aSel(j.Key);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+            // emitting should not hang
+        }
+
         [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
         {

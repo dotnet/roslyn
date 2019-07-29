@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -62,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // in testing requires manual handling of .editorconfig.
             if (File.Exists(document.FilePath ?? document.Name))
             {
-                var codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var codingConventionsManager = new AnalyzerConfigCodingConventionsManager(tree, document.Project.AnalyzerOptions);
                 var codingConventionContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath ?? document.Name, cancellationToken).ConfigureAwait(false);
                 options = ApplyFormattingOptions(options, codingConventionContext);
             }

@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
         {
+            return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        }
+
+        public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments);
         }
 
