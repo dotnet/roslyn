@@ -8,6 +8,12 @@
 
     Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
     NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+    Assemblies NGEN'd as priority 1 are selected based on how much JIT time they contribute, when not NGEN'd,
+    to the Visual Studio scenarios listed below. The more JIT time required for an assembly, the more likely
+    there will be a noticeable performance impact.
+        1. Start the IDE.
+        2. Load a managed solution.
+        3. Build the solution.
 
     Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
     We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
