@@ -1,15 +1,13 @@
 steps:
-- task: DownloadBuildArtifacts@0
+- download: current
   displayName: Download deployables
-  inputs:
-    artifactName: deployables-Windows
-    downloadPath: $(System.DefaultWorkingDirectory)/bin
+  artifact: deployables-Windows
 
 - task: DotNetCoreCLI@2
   displayName: Push packages to CI feed
   inputs:
     command: push
-    packagesToPush: $(System.DefaultWorkingDirectory)/bin/deployables-Windows/*.nupkg
+    packagesToPush: $(Pipeline.Workspace)/deployables-Windows/*.nupkg
     nuGetFeedType: internal
     publishVstsFeed: $(ci_feed)
     allowPackageConflicts: true
