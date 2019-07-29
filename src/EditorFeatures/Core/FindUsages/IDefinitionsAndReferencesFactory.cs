@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
             var properties = GetProperties(definition);
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(),
+                tags, displayParts, sourceLocations.ToImmutable(),
                 nameDisplayParts, properties, displayIfNoReferences);
         }
 

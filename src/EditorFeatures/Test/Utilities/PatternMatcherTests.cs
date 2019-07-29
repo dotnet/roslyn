@@ -474,14 +474,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            var result = ArrayBuilder<string>.GetInstance();
+            using var result = ArrayBuilder<string>.GetInstance();
             foreach (var span in parts)
             {
                 result.Add(identifier.Substring(span.Start, span.Length));
             }
 
             parts.Free();
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
-            var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            using var matches = ArrayBuilder<PatternMatch>.GetInstance();
             PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
 
             if (matches.Count == 0)
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 var actualSpans = matches.SelectMany(m => m.MatchedSpans).OrderBy(s => s.Start).ToList();
                 Assert.Equal(expectedSpans, actualSpans);
-                return matches;
+                return matches.ToImmutable();
             }
         }
     }
