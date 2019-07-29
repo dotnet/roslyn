@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statementList.AddRange(existingStatements);
             return statementList.ToImmutableAndFree();
+
         }
 
         private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)

@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
+
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 

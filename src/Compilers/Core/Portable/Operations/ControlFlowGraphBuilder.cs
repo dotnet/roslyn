@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     isImplicit: true),
                 semanticModel,
                 syntax,
-                _compilation.GetSpecialType(SpecialType.System_Void),
+                null,
                 constantValue,
                 isImplicit: true);
             return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue, isImplicit: true);
