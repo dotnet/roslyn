@@ -84,7 +84,7 @@ function Get-IntegrationTable() {
 
     $table = @'
 ### Integration Tests
-|Branch|Debug|Release|Debug (Legacy)|Release (Legacy)
+|Branch|Debug|Release|Debug (Legacy completion)|Release (Legacy completion)
 |:--:|:--:|:--:|:--:|:--:|
 
 '@
