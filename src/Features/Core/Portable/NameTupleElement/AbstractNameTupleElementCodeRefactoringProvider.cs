@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             syntaxFacts.GetPartsOfTupleExpression<TArgumentSyntax>(tuple, out _, out var arguments, out _);
-            var argumentIndex = potentialArguments.IndexOf(argument);
+            var argumentIndex = arguments.IndexOf(argument);
             var elements = tupleType.TupleElements;
             if (elements.IsDefaultOrEmpty || argumentIndex >= elements.Length)
             {
