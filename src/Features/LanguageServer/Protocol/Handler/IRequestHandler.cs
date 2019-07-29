@@ -15,6 +15,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
     {
-        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+        /// <summary>
+        /// Handles an LSP request.
+        /// </summary>
+        /// <param name="solution">the solution to apply the request to.</param>
+        /// <param name="request">the lsp request.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <param name="keepThreadContext">a value to set if the threading context in the handler should be kept from the caller.</param>
+        /// <returns>the lps response.</returns>
+        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false);
     }
 }
