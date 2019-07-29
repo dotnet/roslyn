@@ -2391,7 +2391,7 @@ class Program
         Statements (0)");
         }
 
-        [Fact(Skip="PROTOTYPE")]
+        [Fact(Skip = "PROTOTYPE")]
         public void TestNoNullChecksInBlockOperation()
         {
             // PROTOTYPE
@@ -2413,6 +2413,138 @@ IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ");
             var output = @"";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph: output, DiagnosticDescription.None);
+        }
+
+        [Fact]
+        public void TestNullCheckedBaseCallOrdering()
+        {
+            var source = @"
+public class B
+{
+    public B(string x) { }
+}
+public class C : B
+{
+    public C(string param!) : base(param ?? """") { }
+}";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().ElementAt(1);
+            compilation.VerifyOperationTree(node1, expectedOperationTree: @"
+    IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C(st ...  ?? """") { }')
+      Initializer: 
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(param ?? """")')
+          Expression: 
+            IInvocationOperation ( B..ctor(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(param ?? """")')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: ': base(param ?? """")')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'param ?? """"')
+                    ICoalesceOperation (OperationKind.Coalesce, Type: System.String) (Syntax: 'param ?? """"')
+                      Expression: 
+                        IParameterReferenceOperation: param (OperationKind.ParameterReference, Type: System.String) (Syntax: 'param')
+                      ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      WhenNull: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      BlockBody: 
+        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+      ExpressionBody: 
+        null");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+              Left: 
+                IParameterReferenceOperation: param (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+            Entering: {R1}
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""param"", IsImplicit) (Syntax: 'public C(st ...  ?? """") { }')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+    .locals {R1}
+    {
+        CaptureIds: [0] [2]
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: ': base(param ?? """")')
+                  Value: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: ': base(param ?? """")')
+            Next (Regular) Block[B4]
+                Entering: {R2}
+        .locals {R2}
+        {
+            CaptureIds: [1]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'param')
+                      Value: 
+                        IParameterReferenceOperation: param (OperationKind.ParameterReference, Type: System.String) (Syntax: 'param')
+                Jump if True (Regular) to Block[B6]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'param')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'param')
+                    Leaving: {R2}
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'param')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'param')
+                Next (Regular) Block[B7]
+                    Leaving: {R2}
+        }
+        Block[B6] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '""""')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(param ?? """")')
+                  Expression: 
+                    IInvocationOperation ( B..ctor(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(param ?? """")')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: ': base(param ?? """")')
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'param ?? """"')
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'param ?? """"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B8]
+                Leaving: {R1}
+    }
+    Block[B8] - Exit
+        Predecessors: [B7]
+        Statements (0)");
         }
     }
 }
