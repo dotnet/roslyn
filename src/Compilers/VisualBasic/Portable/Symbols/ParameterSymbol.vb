@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property IsNullChecked As Boolean Implements IParameterSymbol.IsNullChecked
+        Private ReadOnly Property IsNullChecked As Boolean Implements IParameterSymbol.IsNullChecked
             Get
                 Return False
             End Get
