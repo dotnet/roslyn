@@ -2345,7 +2345,32 @@ class Program
         Methods: [void M(System.String x)]
         Block[B1] - Block
             Predecessors: [B0]
-            Statements (1)
+            Statements (1)Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+              Children(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """"x"""", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """"x"""", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+    Block[B3] - Exit
+        Predecessors: [B1]
+        Statements (0)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M(""ok"");')
                   Expression: 
                     IInvocationOperation (void M(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M(""ok"")')
@@ -2391,10 +2416,62 @@ class Program
         Statements (0)");
         }
 
+        [Fact]
+        public void TestNullCheckedMethodWithMissingHasValue()
+        {
+            var source =
+@"
+class Program
+{
+    public void Method(int? x!) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            comp.VerifyDiagnostics(
+                    // (4,29): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
+                    //     public void Method(int? x!) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(4, 29));
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            comp.VerifyOperationTree(node, expectedOperationTree: @"
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... nt? x!) { }')
+      BlockBody: 
+        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+      ExpressionBody: 
+        null");
+            VerifyFlowGraph(comp, node, @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+              Children(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+    Block[B3] - Exit
+        Predecessors: [B1]
+        Statements (0)");
+        }
+
         [Fact(Skip = "PROTOTYPE")]
         public void TestNoNullChecksInBlockOperation()
         {
-            // PROTOTYPE
+            // PROTOTYPE - Nullchecks currently included when only BlockSyntax is bound. Falls into VisitMethodBody instead of VisitBlock.
             var source = @"
 public class C
 {
