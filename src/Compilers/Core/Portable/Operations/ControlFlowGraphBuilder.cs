@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 case OperationKind.AnonymousFunction:
                     Debug.Assert(captureIdDispenser != null);
                     var anonymousFunction = (IAnonymousFunctionOperation)body;
-                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters, captureIdDispenser.GetCurrentId());
+                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters);
                     builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
-            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters, captureIdForResult);
+            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters);
 
             if (operation.Initializer != null)
             {
@@ -1435,14 +1435,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 IMethodSymbol method => method.Parameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(member)
             };
-
-            VisitNullChecks(operation, parameters, captureIdForResult);
+            Debug.Assert(captureIdForResult is null);
+            VisitNullChecks(operation, parameters);
 
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
         }
 
-        private void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters, int? captureIdForResult)
+        private void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters)
         {
             var temp = _currentStatement;
             foreach (var param in parameters)
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel);
                     _currentStatement = check;
-                    VisitConditional(check, captureIdForResult);
+                    VisitConditional(check, captureIdForResult: null);
                 }
             }
             _currentStatement = temp;
@@ -5971,7 +5971,7 @@ oneMoreTime:
         private IOperation VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
-            VisitNullChecks(operation, operation.Symbol.Parameters, null);
+            VisitNullChecks(operation, operation.Symbol.Parameters);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }
