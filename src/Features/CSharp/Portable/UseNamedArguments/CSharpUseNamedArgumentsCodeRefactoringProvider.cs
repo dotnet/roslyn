@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNamedArgumentsCodeRefactoringProvider)), Shared]
     internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
     {
-        private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
+        private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList, ExpressionSyntax>
             where TSyntax : SyntaxNode
             where TSyntaxList : SyntaxNode
         {

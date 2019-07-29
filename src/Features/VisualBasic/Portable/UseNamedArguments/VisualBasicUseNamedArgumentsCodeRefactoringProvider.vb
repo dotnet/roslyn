@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
         Inherits AbstractUseNamedArgumentsCodeRefactoringProvider
 
         Private Class ArgumentAnalyzer
-            Inherits Analyzer(Of ArgumentSyntax, SimpleArgumentSyntax, ArgumentListSyntax)
+            Inherits Analyzer(Of ArgumentSyntax, SimpleArgumentSyntax, ArgumentListSyntax, ExpressionSyntax)
 
             Protected Overrides Function IsPositionalArgument(argument As SimpleArgumentSyntax) As Boolean
                 Return argument.NameColonEquals Is Nothing

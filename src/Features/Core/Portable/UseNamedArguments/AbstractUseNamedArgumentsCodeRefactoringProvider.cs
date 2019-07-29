@@ -20,17 +20,19 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             Task ComputeRefactoringsAsync(CodeRefactoringContext context, SyntaxNode root);
         }
 
-        protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
+        protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax, TExpressionSyntax> : IAnalyzer
             where TBaseArgumentSyntax : SyntaxNode
             where TSimpleArgumentSyntax : TBaseArgumentSyntax
             where TArgumentListSyntax : SyntaxNode
+            where TExpressionSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
                 CodeRefactoringContext context, SyntaxNode root)
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
+                var expressions = await context.TryGetSelectedNodesAsync<TExpressionSyntax>().ConfigureAwait(false);
+                var argument = expressions.FirstOrDefault(n => n is TExpressionSyntax)?.Parent as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;

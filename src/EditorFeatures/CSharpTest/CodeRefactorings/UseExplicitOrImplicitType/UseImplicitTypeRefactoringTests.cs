@@ -105,7 +105,6 @@ class C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-
         [Fact]
         public async Task TestForeachInsideLocalDeclaration()
         {
