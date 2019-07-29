@@ -12,12 +12,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -47,11 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
-            /*
-            var allRefactorings = await GetCodeRefactoringsAsync(workspace, parameters).ConfigureAwait(false);
-            return allRefactorings.ElementAtOrDefault(parameters.index);
-            */
+            return (await GetCodeRefactoringsAsync(workspace, parameters)).Last();
         }
 
         private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
