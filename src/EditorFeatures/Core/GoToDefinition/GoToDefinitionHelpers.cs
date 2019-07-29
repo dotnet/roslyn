@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            using var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             definitions.Add(definitionItem);
-            return definitions.ToImmutableAndFree();
+            return definitions.ToImmutable();
         }
 
         public static bool TryGoToDefinition(

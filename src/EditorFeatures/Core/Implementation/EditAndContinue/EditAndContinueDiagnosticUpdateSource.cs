@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             Debug.Assert(projectId != null);
 
             var updateEvent = DiagnosticsUpdated;
-            var documentIds = PooledHashSet<DocumentId>.GetInstance();
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var documentIds = PooledHashSet<DocumentId>.GetInstance();
+            using var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -130,9 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             var result = documentIds.AsImmutableOrEmpty();
-            documentDiagnosticData.Free();
-            projectDiagnosticData.Free();
-            documentIds.Free();
             return result;
         }
 
