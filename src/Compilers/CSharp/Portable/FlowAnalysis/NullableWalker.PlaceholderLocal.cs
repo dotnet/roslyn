@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _identifier = identifier;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)
                 {

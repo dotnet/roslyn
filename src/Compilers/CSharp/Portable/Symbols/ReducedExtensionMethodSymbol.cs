@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            _reducedFrom.Parameters[0].TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+            _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
@@ -501,12 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj) return true;
 
             ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
-            return (object)other != null && _reducedFrom.Equals(other._reducedFrom);
+            return (object)other != null && _reducedFrom.Equals(other._reducedFrom, compareKind);
         }
 
         public override int GetHashCode()
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public sealed override bool Equals(object obj)
+            public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)
                 {
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = obj as ReducedExtensionMethodParameterSymbol;
                 return (object)other != null &&
                     this.Ordinal == other.Ordinal &&
-                    this.ContainingSymbol.Equals(other.ContainingSymbol);
+                    this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }
 
             public sealed override int GetHashCode()

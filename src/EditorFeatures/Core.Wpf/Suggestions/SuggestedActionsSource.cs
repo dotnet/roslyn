@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixes = Task.Run(
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // the UI thread.
                     var refactorings = Task.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, cancellationToken),
+                            document, selection, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);

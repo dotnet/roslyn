@@ -1229,7 +1229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     for (int i = 0; i < typeArguments.Length; i++)
                     {
-                        if (!typeParameters[i].Equals(typeArguments[i].Type.OriginalDefinition))
+                        if (!typeParameters[i].Equals(
+                                 typeArguments[i].Type.OriginalDefinition,
+                                 SymbolEqualityComparer.ConsiderEverything.CompareKind))
                         {
                             return false;
                         }

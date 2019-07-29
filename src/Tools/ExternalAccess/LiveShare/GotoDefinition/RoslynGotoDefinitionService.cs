@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using TPL = System.Threading.Tasks;
@@ -21,13 +22,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteWorkspace;
         private readonly IThreadingContext _threadingContext;
 
         public RoslynGotoDefinitionService(
             IStreamingFindUsagesPresenter streamingPresenter,
-            RoslynLspClientServiceFactory roslynLspClientServiceFactory,
+            AbstractLspClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace,
             IThreadingContext threadingContext)
         {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
+            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition.ToLSRequest(), textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
             if (locations == null)
             {

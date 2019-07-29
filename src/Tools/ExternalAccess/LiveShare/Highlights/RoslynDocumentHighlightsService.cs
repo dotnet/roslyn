@@ -8,14 +8,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
 {
     internal class RoslynDocumentHighlightsService : IDocumentHighlightsService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynDocumentHighlightsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynDocumentHighlightsService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
             var text = await document.GetTextAsync().ConfigureAwait(false);
             var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            var highlights = await lspClient.RequestAsync(Methods.TextDocumentDocumentHighlight, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
+            var highlights = await lspClient.RequestAsync(Methods.TextDocumentDocumentHighlight.ToLSRequest(), textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             if (highlights == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;

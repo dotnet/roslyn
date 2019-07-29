@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.
-                BaseTypeOrInterfaceOpt = baseType.WithNullability(NullableAnnotation.NotApplicable);
+                BaseTypeOrInterfaceOpt = baseType.WithNullability(NullableAnnotation.None);
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)

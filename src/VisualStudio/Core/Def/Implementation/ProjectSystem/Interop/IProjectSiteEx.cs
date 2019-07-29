@@ -14,5 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.I
         void EndBatch();
 
         void AddFileEx([MarshalAs(UnmanagedType.LPWStr)] string filePath, [MarshalAs(UnmanagedType.LPWStr)] string linkMetadata);
+
+        /// <summary>
+        /// Allows the project system to pass along property values not covered by the
+        /// compiler's command line arguments.
+        /// See <see cref="LanguageServices.ProjectSystem.IWorkspaceProjectContext.SetProperty(string, string)"/>
+        /// for the corresponding method for CPS-based projects.
+        /// </summary>
+        void SetProperty([MarshalAs(UnmanagedType.LPWStr)] string property, [MarshalAs(UnmanagedType.LPWStr)] string value);
     }
 }

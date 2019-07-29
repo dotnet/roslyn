@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharp.NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState) =>
             flowState switch
             {
-                CodeAnalysis.NullableFlowState.NotApplicable => CSharp.NullableFlowState.NotNull,
+                CodeAnalysis.NullableFlowState.None => CSharp.NullableFlowState.NotNull,
                 CodeAnalysis.NullableFlowState.NotNull => CSharp.NullableFlowState.NotNull,
                 CodeAnalysis.NullableFlowState.MaybeNull => CSharp.NullableFlowState.MaybeNull,
                 _ => throw ExceptionUtilities.UnexpectedValue(flowState)

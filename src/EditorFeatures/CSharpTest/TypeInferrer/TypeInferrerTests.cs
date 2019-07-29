@@ -1623,7 +1623,7 @@ for (string? s = [|Goo()|]; ; ) { }", "global::System.String?");
             await TestInMethodAsync(@"foreach (int v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37309"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForEachNullableElements()
         {
             await TestInMethodAsync(
@@ -2508,7 +2508,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Int32>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAwaitTaskOfTNullableValue()
         {
             var text =
@@ -3031,7 +3031,7 @@ class C
             await TestAsync(text, "global::Program", testNode: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37310"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestInferringThroughGenericFunctionWithNullableReturn()
         {
             var text =

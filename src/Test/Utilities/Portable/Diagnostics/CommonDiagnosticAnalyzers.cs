@@ -1398,7 +1398,10 @@ namespace Microsoft.CodeAnalysis
                 _symbolKind = symbolKind;
                 _operationKind = operationKindOpt;
                 _analyzerId = $"Analyzer{(analyzerId.HasValue ? analyzerId.Value : 1)}";
+                SymbolsStarted = new ConcurrentSet<ISymbol>();
             }
+
+            internal ConcurrentSet<ISymbol> SymbolsStarted { get; }
 
             public static readonly DiagnosticDescriptor SymbolStartTopLevelRule = new DiagnosticDescriptor(
                 "SymbolStartTopLevelRuleId",
@@ -1492,7 +1495,6 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 var diagnostics = new ConcurrentBag<Diagnostic>();
-                var symbolsStarted = new ConcurrentSet<ISymbol>();
                 var symbolsEnded = new ConcurrentSet<ISymbol>();
                 var seenOperationContainers = new ConcurrentDictionary<OperationAnalysisContext, ISet<ISymbol>>();
 
@@ -1543,10 +1545,10 @@ namespace Microsoft.CodeAnalysis
 
                 void reportDiagnosticsAtCompilationEnd(CompilationAnalysisContext compilationEndContext)
                 {
-                    if (!symbolsStarted.SetEquals(symbolsEnded))
+                    if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", symbolsStarted.Select(s => s.ToDisplayString()).Order());
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString()).Order());
                         var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
@@ -1561,7 +1563,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     verifySymbolStartOrdering(symbolStartContext);
                     verifySymbolStartAndOperationOrdering(symbolStartContext);
-                    if (!symbolsStarted.Add(symbolStartContext.Symbol))
+                    if (!SymbolsStarted.Add(symbolStartContext.Symbol))
                     {
                         diagnostics.Add(Diagnostic.Create(DuplicateStartActionRule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                     }
@@ -1621,7 +1623,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var member in members.Where(m => !m.IsImplicitlyDeclared))
                     {
-                        if (symbolsStarted.Contains(member))
+                        if (SymbolsStarted.Contains(member))
                         {
                             // Member '{0}' started before container '{1}', Analyzer {2}
                             diagnostics.Add(Diagnostic.Create(SymbolStartedOrderingRule, Location.None, member, symbolStarted, _analyzerId));

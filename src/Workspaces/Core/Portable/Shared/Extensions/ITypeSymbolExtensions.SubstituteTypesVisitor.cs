@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                // TODO: pass nullability to the substituted arguments once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.Select(t => t.WithoutNullability()).ToArray()).WithNullability(symbol.GetNullability());
+                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullability(symbol.GetNullability());
             }
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)

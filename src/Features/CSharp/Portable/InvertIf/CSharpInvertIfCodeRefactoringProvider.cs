@@ -58,13 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
             => ifNode.Else.Statement;
 
-        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
-        {
-            return TextSpan.FromBounds(
-                ifNode.IfKeyword.SpanStart,
-                ifNode.CloseParenToken.Span.End);
-        }
-
         protected override bool CanControlFlowOut(SyntaxNode node)
         {
             switch (node.Kind())

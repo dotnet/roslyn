@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the top-level nullability of the type arguments that have been substituted
         /// for the type parameters. If nothing has been substituted for a given type parameter,
-        /// then <see cref="NullableAnnotation.NotApplicable"/> is returned for that type argument.
+        /// then <see cref="NullableAnnotation.None"/> is returned for that type argument.
         /// </summary>
         ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 

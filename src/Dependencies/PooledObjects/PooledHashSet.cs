@@ -7,11 +7,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    internal class PooledHashSet<T> : HashSet<T>
+    internal sealed class PooledHashSet<T> : HashSet<T>
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 
-        private PooledHashSet(ObjectPool<PooledHashSet<T>> pool)
+        private PooledHashSet(ObjectPool<PooledHashSet<T>> pool, IEqualityComparer<T> equalityComparer) :
+            base(equalityComparer)
         {
             _pool = pool;
         }
@@ -23,13 +24,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         // global pool
-        private static readonly ObjectPool<PooledHashSet<T>> s_poolInstance = CreatePool();
+        private static readonly ObjectPool<PooledHashSet<T>> s_poolInstance = CreatePool(EqualityComparer<T>.Default);
 
         // if someone needs to create a pool;
-        public static ObjectPool<PooledHashSet<T>> CreatePool()
+        public static ObjectPool<PooledHashSet<T>> CreatePool(IEqualityComparer<T> equalityComparer)
         {
             ObjectPool<PooledHashSet<T>> pool = null;
-            pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool), 128);
+            pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool, equalityComparer), 128);
             return pool;
         }
 
