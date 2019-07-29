@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NameTupleElement
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpNameTupleElementCodeRefactoringProvider)), Shared]
-    internal class CSharpNameTupleElementCodeRefactoringProvider : AbstractNameTupleElementCodeRefactoringProvider<ArgumentSyntax, TupleExpressionSyntax, ExpressionSyntax>
+    internal class CSharpNameTupleElementCodeRefactoringProvider : AbstractNameTupleElementCodeRefactoringProvider<ArgumentSyntax, TupleExpressionSyntax>
     {
         [ImportingConstructor]
         public CSharpNameTupleElementCodeRefactoringProvider()

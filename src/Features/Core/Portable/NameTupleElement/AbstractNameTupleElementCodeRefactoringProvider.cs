@@ -12,10 +12,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NameTupleElement
 {
-    abstract class AbstractNameTupleElementCodeRefactoringProvider<TArgumentSyntax, TTupleExpressionSyntax, TExpresionSyntax> : CodeRefactoringProvider
+    abstract class AbstractNameTupleElementCodeRefactoringProvider<TArgumentSyntax, TTupleExpressionSyntax> : CodeRefactoringProvider
         where TArgumentSyntax : SyntaxNode
-        where TExpresionSyntax : SyntaxNode
-        where TTupleExpressionSyntax : TExpresionSyntax
+        where TTupleExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsCloseParenOrComma(SyntaxToken token);
         protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string argumentName);
@@ -45,9 +44,8 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var expressions = await document.TryGetRelevantNodesAsync<TExpresionSyntax>(span, cancellationToken).ConfigureAwait(false);
-            var argument = expressions.FirstOrDefault(
-                n => n.Parent is TArgumentSyntax && n.Parent.Parent is TTupleExpressionSyntax)?.Parent as TArgumentSyntax;
+            var potentialArguments = await document.TryGetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
                 return default;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             syntaxFacts.GetPartsOfTupleExpression<TArgumentSyntax>(tuple, out _, out var arguments, out _);
-            var argumentIndex = arguments.IndexOf(argument);
+            var argumentIndex = potentialArguments.IndexOf(argument);
             var elements = tupleType.TupleElements;
             if (elements.IsDefaultOrEmpty || argumentIndex >= elements.Length)
             {

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicNameTupleElementCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicNameTupleElementCodeRefactoringProvider
-        Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax, ExpressionSyntax)
+        Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax)
 
         <ImportingConstructor>
         Public Sub New()
