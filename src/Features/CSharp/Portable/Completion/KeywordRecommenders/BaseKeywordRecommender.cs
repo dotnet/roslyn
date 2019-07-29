@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.ColonToken &&
                 token.Parent is ConstructorInitializerSyntax &&
                 token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration) &&
-                token.Parent.GetParent().IsParentKind(SyntaxKind.ClassDeclaration))
+                token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration))
             {
                 var constructor = token.GetAncestor<ConstructorDeclarationSyntax>();
                 if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))

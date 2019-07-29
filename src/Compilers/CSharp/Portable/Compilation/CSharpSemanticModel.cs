@@ -3019,9 +3019,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
-                ? local
+                ? GetAdjustedLocalSymbol(local, forEachStatement.SpanStart)
                 : null;
         }
+
+        /// <summary>
+        /// Given a local symbol, gets an updated version of that local symbol adjusted for nullability analysis
+        /// if the analysis affects the local.
+        /// </summary>
+        /// <param name="originalSymbol">The original symbol from initial binding.</param>
+        /// <param name="position">The position the local was declared at.</param>
+        /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
+        internal abstract LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position);
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable

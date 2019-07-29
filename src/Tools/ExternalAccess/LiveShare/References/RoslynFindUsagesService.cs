@@ -6,18 +6,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
-using LiveShareProtocol = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
-        public RoslynFindUsagesService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public RoslynFindUsagesService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 
             var documentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            var response = await lspClient.RequestAsync(LiveShareProtocol.Methods.TextDocumentImplementations, documentPositionParams, context.CancellationToken).ConfigureAwait(false);
+            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentImplementation.ToLSRequest(), documentPositionParams, context.CancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
             if (locations == null)
             {
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
                 Position = ProtocolConversions.LinePositionToPosition(text.Lines.GetLinePosition(position))
             };
 
-            var locations = await lspClient.RequestAsync(LSP.Methods.TextDocumentReferences, referenceParams, context.CancellationToken).ConfigureAwait(false);
+            var locations = await lspClient.RequestAsync(LSP.Methods.TextDocumentReferences.ToLSRequest(), referenceParams, context.CancellationToken).ConfigureAwait(false);
             if (locations == null)
             {
                 return;

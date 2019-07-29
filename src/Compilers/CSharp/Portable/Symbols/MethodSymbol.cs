@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -1040,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => ReturnTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => ReturnTypeWithAnnotations.ToPublicAnnotation();
 
         ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
         {
@@ -1050,7 +1048,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations =>
+            TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.ToPublicAnnotation());
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {
@@ -1111,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => ReceiverNullableAnnotation;
 
         protected virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            RequiresInstanceReceiver ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.NotApplicable;
+            RequiresInstanceReceiver ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.None;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {
@@ -1221,14 +1220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)
+        IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] typeArguments)
         {
-            foreach (var arg in arguments)
-            {
-                arg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("typeArguments");
-            }
+            return Construct(ConstructTypeArguments(typeArguments));
+        }
 
-            return this.Construct(arguments.Cast<TypeSymbol>().AsImmutable());
+        IMethodSymbol IMethodSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations));
         }
 
         IMethodSymbol IMethodSymbol.PartialImplementationPart

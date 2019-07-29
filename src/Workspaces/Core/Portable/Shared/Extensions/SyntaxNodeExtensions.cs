@@ -762,8 +762,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var parent = node.Parent;
             if (parent == null && ascendOutOfTrivia)
             {
-                var structuredTrivia = node as IStructuredTriviaSyntax;
-                if (structuredTrivia != null)
+                if (node is IStructuredTriviaSyntax structuredTrivia)
                 {
                     parent = structuredTrivia.ParentTrivia.Token.Parent;
                 }

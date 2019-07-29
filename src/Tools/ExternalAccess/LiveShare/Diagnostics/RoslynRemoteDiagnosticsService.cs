@@ -6,16 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
-using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using CustomMethods = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CustomMethods;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
 {
     internal class RoslynRemoteDiagnosticsService : IRemoteDiagnosticsService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynRemoteDiagnosticsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynRemoteDiagnosticsService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
                 }
             };
 
-            var request = new LSP.LspRequest<TextDocumentParams, RoslynDiagnostic[]>(Methods.GetDocumentDiagnosticsName);
+            var request = new LspRequest<TextDocumentParams, RoslynDiagnostic[]>(CustomMethods.GetDocumentDiagnosticsName);
             var lspDiagnostics = await lspClient.RequestAsync(request, textDocumentParams, cancellationToken).ConfigureAwait(false);
             if (lspDiagnostics == null)
             {

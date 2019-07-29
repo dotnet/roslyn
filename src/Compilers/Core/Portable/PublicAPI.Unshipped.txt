@@ -7,7 +7,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.GetPdbFilePath(string outputFileName
 Microsoft.CodeAnalysis.Compilation.CreateAnonymousTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> memberTypes, System.Collections.Immutable.ImmutableArray<string> memberNames, System.Collections.Immutable.ImmutableArray<bool> memberIsReadOnly = default(System.Collections.Immutable.ImmutableArray<bool>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> memberLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation> memberNullableAnnotations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 *REMOVED*Microsoft.CodeAnalysis.Compilation.CreateAnonymousTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> memberTypes, System.Collections.Immutable.ImmutableArray<string> memberNames, System.Collections.Immutable.ImmutableArray<bool> memberIsReadOnly = default(System.Collections.Immutable.ImmutableArray<bool>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> memberLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.CreateAnonymousTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> memberTypes, System.Collections.Immutable.ImmutableArray<string> memberNames, System.Collections.Immutable.ImmutableArray<bool> memberIsReadOnly, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> memberLocations) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.Compilation.CreateArrayTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType, int rank = 1, Microsoft.CodeAnalysis.NullableAnnotation elementNullableAnnotation = Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
+Microsoft.CodeAnalysis.Compilation.CreateArrayTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType, int rank = 1, Microsoft.CodeAnalysis.NullableAnnotation elementNullableAnnotation = Microsoft.CodeAnalysis.NullableAnnotation.None) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
 *REMOVED*Microsoft.CodeAnalysis.Compilation.CreateArrayTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType, int rank = 1) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
 Microsoft.CodeAnalysis.Compilation.CreateArrayTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType, int rank) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
 Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(Microsoft.CodeAnalysis.INamedTypeSymbol underlyingType, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> elementLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation> elementNullableAnnotations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.IDiscardSymbol.NullableAnnotation.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IFieldSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.ILocalSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IMethodSymbol.Construct(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> typeArguments, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations) -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
@@ -43,6 +44,7 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.Construct(System.Collections.Immutable.I
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
 Microsoft.CodeAnalysis.IParameterSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IPropertySymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.ISymbol.Equals(Microsoft.CodeAnalysis.ISymbol other, Microsoft.CodeAnalysis.SymbolEqualityComparer equalityComparer) -> bool
 Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
 Microsoft.CodeAnalysis.ITypeParameterSymbol.HasNotNullConstraint.get -> bool
 Microsoft.CodeAnalysis.ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
@@ -55,10 +57,9 @@ Microsoft.CodeAnalysis.NullabilityInfo.Annotation.get -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.NullabilityInfo.Equals(Microsoft.CodeAnalysis.NullabilityInfo other) -> bool
 Microsoft.CodeAnalysis.NullabilityInfo.FlowState.get -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 3 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.None = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableContext
 Microsoft.CodeAnalysis.NullableContext.AnnotationsContextInherited = 8 -> Microsoft.CodeAnalysis.NullableContext
 Microsoft.CodeAnalysis.NullableContext.AnnotationsEnabled = 2 -> Microsoft.CodeAnalysis.NullableContext
@@ -76,7 +77,7 @@ Microsoft.CodeAnalysis.NullableContextOptions.Warnings = 1 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.NullableContextOptionsExtensions
 Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableFlowState.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableFlowState.None = 0 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.NotNull = 1 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.SuppressionDescriptor
 Microsoft.CodeAnalysis.SuppressionDescriptor.Equals(Microsoft.CodeAnalysis.SuppressionDescriptor other) -> bool
@@ -95,6 +96,9 @@ Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeconstructSymbol.g
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeconstructionSubpatterns.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IPatternOperation>
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.MatchedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.PropertySubpatterns.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation>
+Microsoft.CodeAnalysis.SymbolEqualityComparer
+Microsoft.CodeAnalysis.SymbolEqualityComparer.Equals(Microsoft.CodeAnalysis.ISymbol x, Microsoft.CodeAnalysis.ISymbol y) -> bool
+Microsoft.CodeAnalysis.SymbolEqualityComparer.GetHashCode(Microsoft.CodeAnalysis.ISymbol obj) -> int
 Microsoft.CodeAnalysis.TypeInfo.ConvertedNullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
 Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
@@ -355,6 +359,8 @@ static Microsoft.CodeAnalysis.NullableContextExtensions.WarningsInherited(this M
 static Microsoft.CodeAnalysis.NullableContextOptionsExtensions.AnnotationsEnabled(this Microsoft.CodeAnalysis.NullableContextOptions context) -> bool
 static Microsoft.CodeAnalysis.NullableContextOptionsExtensions.WarningsEnabled(this Microsoft.CodeAnalysis.NullableContextOptions context) -> bool
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetCorrespondingOperation(this Microsoft.CodeAnalysis.Operations.IBranchOperation operation) -> Microsoft.CodeAnalysis.IOperation
+static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.Default -> Microsoft.CodeAnalysis.SymbolEqualityComparer
+static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.IncludeNullability -> Microsoft.CodeAnalysis.SymbolEqualityComparer
 static readonly Microsoft.CodeAnalysis.SyntaxTree.EmptyDiagnosticOptions -> System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void

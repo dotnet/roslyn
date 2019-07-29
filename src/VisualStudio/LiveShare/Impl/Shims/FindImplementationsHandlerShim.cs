@@ -13,13 +13,11 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentImplementationName)]
     internal class FindImplementationsHandlerShim : AbstractLiveShareHandlerShim<TextDocumentPositionParams, object>
     {
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
-        public FindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
+        public FindImplementationsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
             : base(requestHandlers, Methods.TextDocumentImplementationName)
         {
             _threadingContext = threadingContext;
@@ -29,7 +27,44 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             // TypeScript requires this call to be on the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
+            return await base.HandleAsyncPreserveThreadContext(param, requestContext, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentImplementationName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynFindImplementationsHandlerShim : FindImplementationsHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentImplementationName)]
+    internal class CSharpFindImplementationsHandlerShim : FindImplementationsHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentImplementationName)]
+    internal class VisualBasicFindImplementationsHandlerShim : FindImplementationsHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentImplementationName)]
+    internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        {
         }
     }
 }

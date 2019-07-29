@@ -153,14 +153,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .WithLeadingTrivia(leadingTrivia);
             }
 
-            private ExpressionStatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia)
+            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia)
             {
                 Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
-                return ExpressionStatement(
-                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                        left: DeclarationExpression(IdentifierName(Identifier(leadingTrivia, "var", trailing: default)),
-                            SingleVariableDesignation(((IdentifierNameSyntax)_assignmentTargetOpt).Identifier)),
-                        right: switchExpression));
+
+                return LocalDeclarationStatement(
+                        VariableDeclaration(
+                            type: IdentifierName(Identifier(leadingTrivia, "var", trailing: default)),
+                            variables: SingletonSeparatedList(
+                                        VariableDeclarator(
+                                            identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
+                                            argumentList: null,
+                                            initializer: EqualsValueClause(switchExpression)))));
             }
 
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
@@ -245,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 return SwitchExpression(
-                    node.Expression,
+                    node.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
                     Token(SyntaxKind.OpenBraceToken),
                     SeparatedList(

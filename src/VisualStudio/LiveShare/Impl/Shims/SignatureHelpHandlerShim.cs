@@ -9,12 +9,47 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandlerShim : AbstractLiveShareHandlerShim<TextDocumentPositionParams, SignatureHelp>
     {
-        [ImportingConstructor]
-        public SignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public SignatureHelpHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.TextDocumentSignatureHelpName)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentSignatureHelpName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynSignatureHelpHandlerShim : SignatureHelpHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentSignatureHelpName)]
+    internal class CSharpSignatureHelpHandlerShim : SignatureHelpHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentSignatureHelpName)]
+    internal class VisualBasicSignatureHelpHandlerShim : SignatureHelpHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
+    internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsDefinitionOrDistinct()
         {
-            return this.IsDefinition || !this.Equals(this.OriginalDefinition);
+            return this.IsDefinition || !this.Equals(this.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
