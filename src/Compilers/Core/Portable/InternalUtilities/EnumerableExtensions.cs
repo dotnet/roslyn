@@ -501,7 +501,6 @@ namespace Roslyn.Utilities
     {
         public static readonly Func<T, T> Identity = t => t;
         public static readonly Func<T, bool> True = t => true;
-        public static readonly Func<T, bool> False = t => false;
     }
 
     /// <summary>
