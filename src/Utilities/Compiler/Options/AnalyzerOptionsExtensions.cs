@@ -59,8 +59,7 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParseValue, defaultValue);
-
-            bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
+            static bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
             {
                 var builder = ImmutableHashSet.CreateBuilder<TEnum>();
                 foreach (var kindStr in value.Split(','))

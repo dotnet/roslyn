@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             break;
                         }
 
-                        builderOpt = builderOpt ?? ImmutableHashSet.CreateBuilder<IFieldSymbol>();
+                        builderOpt ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
                         builderOpt.Add((IFieldSymbol)fieldData.Symbol);
                         indexThreshold -= 4;
                     }

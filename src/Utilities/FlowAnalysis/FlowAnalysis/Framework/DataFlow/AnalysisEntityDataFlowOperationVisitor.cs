@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            bool ShouldProcessPointsToValue(PointsToAbstractValue pointsToValue)
+            static bool ShouldProcessPointsToValue(PointsToAbstractValue pointsToValue)
                 => pointsToValue.Kind == PointsToAbstractValueKind.KnownLocations &&
                    pointsToValue != PointsToAbstractValue.NoLocation;
         }
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return;
 
             // Local function
-            bool IsMatchingAssignedEntity(AnalysisEntity tupleElementEntity, AnalysisEntity childEntity)
+            static bool IsMatchingAssignedEntity(AnalysisEntity tupleElementEntity, AnalysisEntity childEntity)
             {
                 Debug.Assert(tupleElementEntity != null);
                 if (childEntity == null)

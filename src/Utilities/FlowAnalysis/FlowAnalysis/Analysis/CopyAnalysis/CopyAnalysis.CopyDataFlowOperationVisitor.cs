@@ -513,12 +513,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
             {
-                using (var mergedData = GetClonedAnalysisData(resultData))
-                {
-                    ApplyMissingCurrentAnalysisDataCore(mergedData, predicateOpt: null);
-                    CurrentAnalysisData.CoreAnalysisData.Clear();
-                    CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
-                }
+                using var mergedData = GetClonedAnalysisData(resultData);
+                ApplyMissingCurrentAnalysisDataCore(mergedData, predicateOpt: null);
+                CurrentAnalysisData.CoreAnalysisData.Clear();
+                CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
             }
 
             private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool> predicateOpt)
