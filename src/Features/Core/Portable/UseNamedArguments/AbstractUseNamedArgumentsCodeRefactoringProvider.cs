@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var (document, textSpan, cancellationToken) = context;
 
                 var expressions = await context.TryGetSelectedNodesAsync<TExpressionSyntax>().ConfigureAwait(false);
-                var argument = expressions.FirstOrDefault(n => n is TExpressionSyntax)?.Parent as TSimpleArgumentSyntax;
+                var argument = expressions.FirstOrDefault(n => n.Parent is TSimpleArgumentSyntax)?.Parent as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
