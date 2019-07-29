@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsMetadataOptional { get; }
 
         /// <summary>
-        /// True if parameter will throw when null.
+        /// True if the containing member will throw if this parameter is null.
         /// </summary>
         public abstract bool IsNullChecked { get; }
 
