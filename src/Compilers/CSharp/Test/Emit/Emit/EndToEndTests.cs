@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             thread.Start();
             thread.Join();
 
-            if (!(exception is null))
+            if (exception is object)
             {
                 throw exception;
             }

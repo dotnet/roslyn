@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
             var info = featureId.GetFeatureAvailabilityDiagnosticInfoOpt(options);
-            if (!(info is null))
+            if (info is object)
             {
                 infos.Add(info);
             }

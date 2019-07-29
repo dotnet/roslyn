@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Skip some diagnostics when the local function is not associated with a compilation
             // (specifically, local functions nested in expressions in the EE).
-            if (!(compilation is null))
+            if (compilation is object)
             {
                 if (this.IsAsync)
                 {

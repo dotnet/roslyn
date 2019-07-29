@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var patternDisposeDiags = new DiagnosticBag();
                 var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
                 MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
-                if (!(disposeMethod is null))
+                if (disposeMethod is object)
                 {
                     builder.NeedsDisposal = true;
                     builder.DisposeMethod = disposeMethod;

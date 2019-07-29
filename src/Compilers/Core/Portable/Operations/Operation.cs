@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         internal static void VerifyParentOperation(IOperation parent, IOperation child)
         {
-            if (!(child is null))
+            if (child is object)
             {
                 Debug.Assert((object)child.Parent == parent);
             }

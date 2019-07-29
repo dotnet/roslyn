@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 disposeCall = MakeCallWithNoExplicitArgument(syntax, disposedExpression, methodOpt);
 
-                if (!(awaitOpt is null))
+                if (awaitOpt is object)
                 {
                     // await local.DisposeAsync()
                     _sawAwaitInExceptionHandler = true;

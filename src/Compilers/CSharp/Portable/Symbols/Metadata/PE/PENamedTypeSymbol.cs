@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
                 var baseType = MakeDeclaredBaseType();
-                if (!(baseType is null))
+                if (baseType is object)
                 {
                     if (skipTransformsIfNecessary)
                     {

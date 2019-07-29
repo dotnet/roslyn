@@ -3339,7 +3339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var builder = new MostCommonNullableValueBuilder();
             var baseType = BaseTypeNoUseSiteDiagnostics;
-            if (!(baseType is null))
+            if (baseType is object)
             {
                 builder.AddValue(TypeWithAnnotations.Create(baseType));
             }
@@ -3366,7 +3366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
-            if (!(baseType is null))
+            if (baseType is object)
             {
                 if (baseType.ContainsDynamic())
                 {
@@ -3386,7 +3386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
                 }
 
-                if (!(baseType is null))
+                if (baseType is object)
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, nullableContextValue, TypeWithAnnotations.Create(baseType)));
                 }

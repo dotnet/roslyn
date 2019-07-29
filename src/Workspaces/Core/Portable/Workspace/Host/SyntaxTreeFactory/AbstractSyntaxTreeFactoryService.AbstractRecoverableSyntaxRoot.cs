@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
                 int length,
                 ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
             {
-                Debug.Assert(!(diagnosticOptions is null));
+                Debug.Assert(diagnosticOptions is object);
 
                 FilePath = filePath ?? string.Empty;
                 Options = options;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal SyntaxTreeInfo WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
             {
-                Debug.Assert(!(options is null));
+                Debug.Assert(options is object);
                 return new SyntaxTreeInfo(
                     FilePath,
                     Options,

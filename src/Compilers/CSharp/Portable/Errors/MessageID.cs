@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
         {
             var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
-            if (!(diag is null))
+            if (diag is object)
             {
                 diagnostics.Add(diag, errorLocation);
                 return false;
