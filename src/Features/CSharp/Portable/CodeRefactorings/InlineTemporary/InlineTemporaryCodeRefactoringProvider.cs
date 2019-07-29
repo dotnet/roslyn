@@ -200,12 +200,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var topmostParentingExpressions = nonConflictingIdentifierNodes
                 .Select(ident => GetTopMostParentingExpression(ident))
-                .Distinct();
+                .Distinct().ToList();
 
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) => Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
+            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+            {
+                var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
+
+                // If we are inlining an expression into a single location and that single location is inside a conditional method call,
+                // then it is likely that the number of times the expression is called matters,
+                // and that the user hasn't realised that the expression won't be called unless the correct conditional symbol is defined.
+                if (topmostParentingExpressions.Count == 1
+                    && semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                {
+                    node = node.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
+                }
+                return node;
+            }, cancellationToken).ConfigureAwait(false);
+
             semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticModelBeforeInline = semanticModel;
 
