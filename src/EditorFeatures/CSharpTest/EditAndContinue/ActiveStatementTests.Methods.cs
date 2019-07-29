@@ -597,7 +597,7 @@ class C
 
             // Can be improved with https://github.com/dotnet/roslyn/issues/22696
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "=>       M()"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "int P"));
         }
 
         #endregion

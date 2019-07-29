@@ -460,5 +460,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellisense_CompletionProviders_Data,
         SnapshotService_IsExperimentEnabledAsync,
         PartialLoad_FullyLoaded,
+        Liveshare_UnknownCodeAction,
     }
 }

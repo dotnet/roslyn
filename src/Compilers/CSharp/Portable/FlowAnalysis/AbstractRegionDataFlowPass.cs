@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
+    // Note: this code has a copy-and-paste sibling in AbstractRegionControlFlowPass.
     // Any fix to one should be applied to the other.
     internal abstract class AbstractRegionDataFlowPass : DefiniteAssignmentPass
     {

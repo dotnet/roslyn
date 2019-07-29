@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
 
-        // TODO - this should not be liveshare.
-        protected const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
-        protected const string ProviderName = "Roslyn";
 
         public CodeActionsHandlerBase(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
         {
@@ -29,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService ?? throw new ArgumentNullException(nameof(codeRefactoringService));
         }
 
-        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution, Uri documentUri, LSP.Range selection, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution, Uri documentUri, LSP.Range selection, bool keepThreadContext, CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(documentUri);
             if (document == null)
@@ -37,11 +34,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
 
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
-            var codeFixCollections = await _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
-            var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var codeFixCollections = await _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(keepThreadContext);
+            var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(keepThreadContext);
 
             var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
                                 codeRefactorings.SelectMany(r => r.Actions));

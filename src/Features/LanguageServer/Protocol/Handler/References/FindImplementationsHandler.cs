@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, object>
     {
         public async Task<object> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
-            await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(false);
+            await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(keepThreadContext);
 
             foreach (var definition in context.GetDefinitions())
             {
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (clientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(keepThreadContext));
                     }
                     else
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(keepThreadContext));
                     }
                 }
             }

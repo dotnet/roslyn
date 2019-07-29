@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
                 RudeEditKind.RenamingCapturedVariable,
+                RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
             };
 
