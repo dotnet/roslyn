@@ -7,8 +7,9 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.OrderModifiers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
+namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStaticWithParameters
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeRefactoringProvider)), Shared]
     internal class MakeLocalFunctionStaticCodeRefactoringProvider : CodeRefactoringProvider
@@ -22,24 +23,50 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
 
-            //Gets the code from the document
+            
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            //Gets the local function statement
             var localFunction = await context.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;
             }
 
+            var service = document.GetLanguageService<GetCaptures>();
 
-            //Need to make a call to GetCaptures and add the modifer static
-            //Need to register refactoring
+
+           
+            //Need to register refactoring and add the modifier static
+
+            context.RegisterRefactoring(new MyCodeAction("Make local function static", c => service.CreateParameterSymbolAsync(document, localFunction, cancellationToken)));
+
+
+
+
+
+
+
 
 
 
         }
+
+        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
+            {
+            }
+        }
+    }
 }
-}
+
+
+
+
+
+
+
