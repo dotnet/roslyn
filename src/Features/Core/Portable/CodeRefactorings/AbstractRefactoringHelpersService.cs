@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,8 +13,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax> : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax> : IRefactoringHelpersService
         where TExpressionSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
     {
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
@@ -105,9 +105,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     AddNodesForTokenToLeft(syntaxFacts, relevantNodesBuilder, location, tokenToLeft, cancellationToken);
 
                     // If the wanted node is an expression syntax -> traverse upwards even if location is deep within a SyntaxNode.
-                    if (typeof(TSyntaxNode).IsSubclassOf(typeof(TExpressionSyntax)) || typeof(TSyntaxNode) == typeof(TExpressionSyntax))
+                    // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
+                    if (IsWantedTypeExpressionLike<TSyntaxNode>())
                     {
-                        await AddNodesDeepInExpression(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+                        await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -116,6 +117,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             finally
             {
                 relevantNodesBuilder.Free();
+            }
+        }
+
+        private static bool IsWantedTypeExpressionLike<TSyntaxNode>() where TSyntaxNode : SyntaxNode
+        {
+            var wantedType = typeof(TSyntaxNode);
+            var expressionType = typeof(TExpressionSyntax);
+            var argumentType = typeof(TArgumentSyntax);
+
+            return IsAEqualOrSubclassOfB(wantedType, expressionType) || IsAEqualOrSubclassOfB(wantedType, argumentType);
+
+            static bool IsAEqualOrSubclassOfB(Type a, Type b)
+            {
+                return a.IsSubclassOf(b) || a == b;
             }
         }
 
@@ -404,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual async Task AddNodesDeepInExpression<TSyntaxNode>(
+        protected virtual async Task AddNodesDeepIn<TSyntaxNode>(
             Document document, int position,
             ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
