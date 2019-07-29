@@ -362,10 +362,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function FindStatementAndPartner(declarationBody As SyntaxNode,
-                                                             position As Integer,
+                                                             span As TextSpan,
                                                              partnerDeclarationBodyOpt As SyntaxNode,
                                                              <Out> ByRef partnerOpt As SyntaxNode,
                                                              <Out> ByRef statementPart As Integer) As SyntaxNode
+            Dim position = span.Start
+
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda:=False)
             Debug.Assert(partnerDeclarationBodyOpt Is Nothing OrElse partnerDeclarationBodyOpt.RawKind = declarationBody.RawKind)
 
@@ -446,6 +448,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 node = declarationBody.FindToken(position).Parent
                 partnerOpt = Nothing
             End If
+
+            ' In some cases active statements may start at the same position.
+            ' Consider a nested lambda: 
+            '   Function(a) [|[|Function(b)|] a + b|]
+            ' There are 2 active statements, one spanning the the body of the outer lambda and 
+            ' the other on the nested lambda's header.
+            ' Find the parent whose span starts at the same position but it's lenght is at least as long as the active span's length.
+            While node.Span.Length < span.Length AndAlso node.Parent.SpanStart = position
+                node = node.Parent
+                partnerOpt = partnerOpt?.Parent
+            End While
 
             Debug.Assert(node IsNot Nothing)
 
@@ -735,11 +748,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span)
         End Function
 
-        Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, span)
+        Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
@@ -873,10 +886,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Shared Function HasMultiInitializer(modifiedIdentifier As SyntaxNode) As Boolean
             Return modifiedIdentifier.Parent.IsKind(SyntaxKind.VariableDeclarator) AndAlso
                    DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).Names.Count > 1
-        End Function
-
-        Friend Overrides Function IsMethod(declaration As SyntaxNode) As Boolean
-            Return SyntaxUtilities.IsMethod(declaration)
         End Function
 
         Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
@@ -1140,19 +1149,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
-            Return GetDiagnosticSpanImpl(node, editKind)
+        Protected Overrides Function TryGetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan?
+            Return TryGetDiagnosticSpanImpl(node, editKind)
         End Function
 
-        Private Shared Function GetDiagnosticSpanImpl(node As SyntaxNode, editKind As EditKind) As TextSpan
-            Return GetDiagnosticSpanImpl(node.Kind, node, editKind)
+        Protected Overloads Shared Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
+            Return If(TryGetDiagnosticSpanImpl(node, editKind), node.Span)
+        End Function
+
+        Private Shared Function TryGetDiagnosticSpanImpl(node As SyntaxNode, editKind As EditKind) As TextSpan?
+            Return TryGetDiagnosticSpanImpl(node.Kind, node, editKind)
+        End Function
+
+        Protected Overrides Function GetBodyDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
+            Return GetDiagnosticSpan(node, editKind)
         End Function
 
         ' internal for testing; kind is passed explicitly for testing as well
-        Friend Shared Function GetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan
+        Friend Shared Function TryGetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan?
             Select Case kind
                 Case SyntaxKind.CompilationUnit
-                    Return Nothing
+                    Return New TextSpan()
 
                 Case SyntaxKind.OptionStatement,
                      SyntaxKind.ImportsStatement
@@ -1177,7 +1194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return GetDiagnosticSpan(DirectCast(node, TypeStatementSyntax))
 
                 Case SyntaxKind.EnumBlock
-                    Return GetDiagnosticSpanImpl(DirectCast(node, EnumBlockSyntax).EnumStatement, editKind)
+                    Return TryGetDiagnosticSpanImpl(DirectCast(node, EnumBlockSyntax).EnumStatement, editKind)
 
                 Case SyntaxKind.EnumStatement
                     Dim enumStatement = DirectCast(node, EnumStatementSyntax)
@@ -1208,7 +1225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.DeclareSubStatement,
                      SyntaxKind.DeclareFunctionStatement,
                      SyntaxKind.DelegateSubStatement,
-                    SyntaxKind.DelegateFunctionStatement
+                     SyntaxKind.DelegateFunctionStatement
                     Return GetDiagnosticSpan(DirectCast(node, MethodBaseSyntax))
 
                 Case SyntaxKind.PropertyBlock
@@ -1240,7 +1257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.AttributeList,
                      SyntaxKind.SimpleAsClause
                     If editKind = EditKind.Delete Then
-                        Return GetDiagnosticSpanImpl(node.Parent, editKind)
+                        Return TryGetDiagnosticSpanImpl(node.Parent, editKind)
                     Else
                         Return node.Span
                     End If
@@ -1321,7 +1338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return DirectCast(node, LambdaExpressionSyntax).SubOrFunctionHeader.Span
 
                 Case SyntaxKind.QueryExpression
-                    Return GetDiagnosticSpanImpl(DirectCast(node, QueryExpressionSyntax).Clauses.First(), editKind)
+                    Return TryGetDiagnosticSpanImpl(DirectCast(node, QueryExpressionSyntax).Clauses.First(), editKind)
 
                 Case SyntaxKind.WhereClause
                     Return DirectCast(node, WhereClauseSyntax).WhereKeyword.Span
@@ -1353,7 +1370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.CollectionRangeVariable,
                      SyntaxKind.ExpressionRangeVariable
-                    Return GetDiagnosticSpanImpl(node.Parent, editKind)
+                    Return TryGetDiagnosticSpanImpl(node.Parent, editKind)
 
                 Case SyntaxKind.TakeWhileClause,
                      SyntaxKind.SkipWhileClause
@@ -1482,21 +1499,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As EditKind) As String
-            Return GetTopLevelDisplayNameImpl(node)
+        Protected Overrides Function TryGetDisplayName(node As SyntaxNode, editKind As EditKind) As String
+            Return TryGetDisplayNameImpl(node, editKind)
         End Function
 
-        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind) As String
-            Return GetStatementDisplayNameImpl(node, editKind)
+        Protected Overloads Shared Function GetDisplayName(node As SyntaxNode, editKind As EditKind) As String
+            Dim result = TryGetDisplayNameImpl(node, editKind)
+
+            If result Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(node.Kind)
+            End If
+
+            Return result
         End Function
 
-        Protected Overrides Function GetLambdaDisplayName(lambda As SyntaxNode) As String
-            Return GetStatementDisplayNameImpl(lambda, EditKind.Update)
+        Protected Overrides Function GetBodyDisplayName(node As SyntaxNode, Optional editKind As EditKind = EditKind.Update) As String
+            Return GetDisplayName(node, editKind)
         End Function
 
-        ' internal for testing
-        Friend Shared Function GetTopLevelDisplayNameImpl(node As SyntaxNode) As String
+        Private Shared Function TryGetDisplayNameImpl(node As SyntaxNode, editKind As EditKind) As String
             Select Case node.Kind
+                ' top-level
+
                 Case SyntaxKind.OptionStatement
                     Return VBFeaturesResources.option_
 
@@ -1538,7 +1562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
-                    Return GetTopLevelDisplayNameImpl(node.Parent)
+                    Return TryGetDisplayNameImpl(node.Parent, editKind)
 
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
@@ -1616,14 +1640,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.Attribute
                     Return FeaturesResources.attribute
 
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-            End Select
-        End Function
+                ' statement-level
 
-        ' internal for testing
-        Friend Shared Function GetStatementDisplayNameImpl(node As SyntaxNode, kind As EditKind) As String
-            Select Case node.Kind
                 Case SyntaxKind.TryBlock
                     Return VBFeaturesResources.Try_block
 
@@ -1634,16 +1652,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return VBFeaturesResources.Finally_clause
 
                 Case SyntaxKind.UsingBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
 
                 Case SyntaxKind.WithBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
 
                 Case SyntaxKind.SyncLockBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
 
                 Case SyntaxKind.ForEachBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
 
                 Case SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToZeroStatement,
@@ -1665,7 +1683,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression
+                     SyntaxKind.SingleLineSubLambdaExpression,
+                     SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubLambdaHeader
                     Return VBFeaturesResources.Lambda
 
                 Case SyntaxKind.WhereClause
@@ -1697,7 +1717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.CollectionRangeVariable,
                      SyntaxKind.ExpressionRangeVariable
-                    Return GetStatementDisplayNameImpl(node.Parent, kind)
+                    Return TryGetDisplayNameImpl(node.Parent, editKind)
 
                 Case SyntaxKind.TakeWhileClause
                     Return VBFeaturesResources.Take_While_clause
@@ -1713,7 +1733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return VBFeaturesResources.Join_condition
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
+                    Return Nothing
             End Select
         End Function
 
@@ -1738,17 +1758,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                            Optional match As Match(Of SyntaxNode) = Nothing,
                            Optional span As TextSpan? = Nothing)
 
-                Me._analyzer = analyzer
-                Me._diagnostics = diagnostics
-                Me._oldNode = oldNode
-                Me._newNode = newNode
-                Me._kind = kind
-                Me._span = span
-                Me._match = match
+                _analyzer = analyzer
+                _diagnostics = diagnostics
+                _oldNode = oldNode
+                _newNode = newNode
+                _kind = kind
+                _span = span
+                _match = match
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
-                ReportError(kind, {GetDisplayName()})
+                ReportError(kind, {GetDisplayName(If(_newNode, _oldNode), EditKind.Update)})
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, args As String())
@@ -1756,7 +1776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me._kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpan(spanNode, _kind), displayNode, {GetDisplayName(displayNode, EditKind.Update)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
@@ -1767,12 +1787,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 If _newNode Is Nothing Then
                     Return _analyzer.GetDeletedNodeDiagnosticSpan(_match.Matches, _oldNode)
                 Else
-                    Return GetDiagnosticSpanImpl(_newNode, _kind)
+                    Return GetDiagnosticSpan(_newNode, _kind)
                 End If
-            End Function
-
-            Private Function GetDisplayName() As String
-                Return GetTopLevelDisplayNameImpl(If(_newNode, _oldNode))
             End Function
 
             Public Sub ClassifyEdit()
@@ -2600,6 +2616,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+                ' Ignore Async and Iterator keywords when matching modifiers.
+                ' State machine checks are done in ComputeBodyMatch.
+
                 Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
                 Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
 
@@ -2611,11 +2630,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex)
                 End If
 
-                ' 'async' keyword is allowed to add, but not to remove
-                If oldAsyncIndex >= 0 AndAlso newAsyncIndex < 0 Then
-                    Return False
-                End If
-
                 Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
                 Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
 
@@ -2625,11 +2639,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newIteratorIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newIteratorIndex)
-                End If
-
-                ' 'iterator' keyword is allowed to add, but not to remove
-                If oldIteratorIndex >= 0 AndAlso newIteratorIndex < 0 Then
-                    Return False
                 End If
 
                 Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
@@ -2934,7 +2943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Debug.Assert(edit.Kind <> EditKind.Update OrElse edit.OldNode.RawKind = edit.NewNode.RawKind)
 
                 If edit.Kind <> EditKind.Update OrElse Not AreExceptionHandlingPartsEquivalent(edit.OldNode, edit.NewNode) Then
-                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
+                    AddAroundActiveStatementRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
                 End If
             Next
         End Sub
@@ -2996,17 +3005,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKind)
+        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKinds)
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
-                kind = StateMachineKind.Async
+                kind = StateMachineKinds.Async
             ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
-                kind = StateMachineKind.Iterator
+                kind = StateMachineKinds.Iterator
             Else
                 suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
-                kind = StateMachineKind.None
+                kind = StateMachineKinds.None
             End If
         End Sub
 
@@ -3129,7 +3138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
             If onErrorOrResumeStatement IsNot Nothing Then
-                AddRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
+                AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement)
@@ -3166,22 +3175,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.SyncLockBlock}, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.WithBlock}, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.UsingBlock}, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.ForEachBlock}, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
-                                                                         DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
+                                                                               DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
 
 #End Region

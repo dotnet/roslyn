@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 foreach (var constructor in containingType.InstanceConstructors)
                 {
                     if (await IsApplicableConstructorAsync(
-                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name) , cancellationToken).ConfigureAwait(false))
+                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name), cancellationToken).ConfigureAwait(false))
                     {
                         applicableConstructors.Add(CreateConstructorCandidate(parametersForSelectedMembers, selectedMembers, constructor));
                     }

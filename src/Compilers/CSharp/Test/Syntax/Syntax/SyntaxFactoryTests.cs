@@ -542,5 +542,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
             Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
         }
+
+        [Fact]
+        [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
+        public void TestUnnecessarySemicolon()
+        {
+            var syntaxNode = SyntaxFactory.MethodDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                returnType: SyntaxFactory.ParseTypeName("int[]"),
+                explicitInterfaceSpecifier: default,
+                identifier: SyntaxFactory.Identifier("M"),
+                typeParameterList: default,
+                parameterList: SyntaxFactory.ParseParameterList("()"),
+                constraintClauses: default,
+                body: (BlockSyntax)SyntaxFactory.ParseStatement("{}"),
+                semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                );
+            Assert.Equal("int[]M(){};", syntaxNode.ToFullString());
+        }
     }
 }
