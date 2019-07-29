@@ -118,6 +118,40 @@ namespace Microsoft.AspNetCore
         public abstract class HttpContext
         {
         }
+
+        public interface IResponseCookies
+        {
+            void Append(string key, string value);
+
+            void Append(string key, string value, CookieOptions options);
+        }
+
+        public class CookieOptions
+        {
+            public CookieOptions()
+            {
+            }
+
+            public bool Secure { get; set; }
+        }
+
+        namespace Internal
+        {
+            public class ResponseCookies : IResponseCookies
+            {
+                public ResponseCookies()
+                {
+                }
+
+                public void Append(string key, string value)
+                {
+                }
+
+                public void Append(string key, string value, CookieOptions options)
+                {
+                }
+            }
+        }
     }
 }";
     }
