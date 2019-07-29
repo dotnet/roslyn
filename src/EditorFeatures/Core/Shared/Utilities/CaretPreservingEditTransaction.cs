@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public static CaretPreservingEditTransaction TryCreate(string description, 
+        public static CaretPreservingEditTransaction TryCreate(string description,
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out var unused))
+            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out _))
             {
                 return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
             }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             get
             {
-                return _transaction != null ? _transaction.MergePolicy : null;
+                return _transaction?.MergePolicy;
             }
 
             set

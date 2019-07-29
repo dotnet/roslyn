@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return ExactMatchDist;
             }
 
-            double distance = ComputeDistance(oldNode, newNode);
+            var distance = ComputeDistance(oldNode, newNode);
 
             // We don't want to return an exact match, because there
             // must be something different, since we got here 

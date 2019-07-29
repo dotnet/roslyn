@@ -1077,7 +1077,7 @@ interface I
         public void OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
@@ -1098,7 +1098,7 @@ interface I
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new OrganizeDocumentCommandHandler();
-                
+
                 var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
                 Assert.True(state.IsUnspecified);
 

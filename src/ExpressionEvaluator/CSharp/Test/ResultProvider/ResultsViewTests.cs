@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
 
@@ -813,6 +814,131 @@ class C
                     EvalResult("_2", "\"2\"", "object {string}", "o._2", DkmEvaluationResultFlags.RawString, editableValue: "\"2\""),
                     EvalResult("_3", "\"3\"", "System.Collections.IEnumerable {string}", "o._3", DkmEvaluationResultFlags.RawString, editableValue: "\"3\""),
                     EvalResult("_4", "\"4\"", "System.Collections.Generic.IEnumerable<char> {string}", "o._4", DkmEvaluationResultFlags.RawString, editableValue: "\"4\""));
+            }
+        }
+
+        [Fact]
+        public void AsyncStateMachine()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => Async(1).Wait();
+
+    static async Task Async(int parameter)
+    {
+        int i = 42;
+        await Task.FromResult(1);
+        Console.WriteLine(i + parameter);
+    }
+}
+";
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(typeof(Task).Assembly, assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var stateMachineType = assembly.GetType("C").GetNestedTypes(BindingFlags.NonPublic).Single();
+
+                var value = CreateDkmClrValue(
+                    value: stateMachineType.Instantiate(),
+                    type: runtime.GetType((TypeImpl)stateMachineType));
+
+                // Raw view
+
+                var evalResult = FormatResult("sm", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ShowValueRaw));
+
+                Verify(evalResult,
+                    EvalResult("sm", "{C.<Async>d__1}", "C.<Async>d__1", "sm, raw", DkmEvaluationResultFlags.Expandable));
+
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("<>1__state", "0", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("<>t__builder", "{System.Runtime.CompilerServices.AsyncTaskMethodBuilder}", "System.Runtime.CompilerServices.AsyncTaskMethodBuilder", null, DkmEvaluationResultFlags.Expandable),
+                    EvalResult("<>u__1", "{System.Runtime.CompilerServices.TaskAwaiter<int>}", "System.Runtime.CompilerServices.TaskAwaiter<int>", null, DkmEvaluationResultFlags.Expandable),
+                    EvalResult("<i>5__2", "0", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.None));
+
+                // Regular view
+
+                evalResult = FormatResult("sm", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.None));
+
+                Verify(evalResult,
+                    EvalResult("sm", "{C.<Async>d__1}", "C.<Async>d__1", "sm", DkmEvaluationResultFlags.Expandable));
+
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.None));
+            }
+        }
+
+        [Fact]
+        public void IteratorStateMachine()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => Iter(1).ToArray();
+
+    static IEnumerable<int> Iter(int parameter)
+    {
+        int i = 42;
+        yield return 1;
+        Console.WriteLine(i + parameter);
+    }
+}
+";
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(typeof(Task).Assembly, assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var stateMachineType = assembly.GetType("C").GetNestedTypes(BindingFlags.NonPublic).Single();
+
+                var value = CreateDkmClrValue(
+                    value: stateMachineType.Instantiate(1),
+                    type: runtime.GetType((TypeImpl)stateMachineType));
+
+                // Raw view
+
+                var evalResult = FormatResult("sm", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ShowValueRaw));
+
+                Verify(evalResult,
+                    EvalResult("sm", "{C.<Iter>d__1}", "C.<Iter>d__1", "sm, raw", DkmEvaluationResultFlags.Expandable));
+
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("<>1__state", "1", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("<>2__current", "0", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("<>3__parameter", "0", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("<>l__initialThreadId", UnspecifiedValue, "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("<i>5__2", "0", "int", null, DkmEvaluationResultFlags.None),
+                    EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.None),
+                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, raw, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+
+                // Regular view
+
+                evalResult = FormatResult("sm", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.None));
+
+                Verify(evalResult,
+                    EvalResult("sm", "{C.<Iter>d__1}", "C.<Iter>d__1", "sm", DkmEvaluationResultFlags.Expandable));
+
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.None),
+                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -1713,6 +1839,47 @@ class C
                         "<>f__AnonymousType0<int, int>",
                         null,
                         DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void NoSideEffects()
+        {
+            var source =
+@"using System.Collections;
+class C : IEnumerable
+{
+    private readonly IEnumerable e;
+    internal C(IEnumerable e)
+    {
+        this.e = e;
+    }
+    public IEnumerator GetEnumerator()
+    {
+        return this.e.GetEnumerator();
+    }
+}";
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var type = assembly.GetType("C");
+                var value = CreateDkmClrValue(
+                    value: type.Instantiate(new[] { 1, 2 }),
+                    type: runtime.GetType((TypeImpl)type));
+                var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.NoSideEffects);
+                var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult, inspectionContext: inspectionContext);
+                Verify(children,
+                    EvalResult(
+                        "e",
+                        "{int[2]}",
+                        "System.Collections.IEnumerable {int[]}",
+                        "o.e",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 

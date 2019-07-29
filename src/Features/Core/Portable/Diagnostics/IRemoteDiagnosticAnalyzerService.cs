@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
     }
 
-    internal struct AnalyzerPerformanceInfo
+    internal readonly struct AnalyzerPerformanceInfo
     {
         public readonly string AnalyzerId;
         public readonly bool BuiltIn;

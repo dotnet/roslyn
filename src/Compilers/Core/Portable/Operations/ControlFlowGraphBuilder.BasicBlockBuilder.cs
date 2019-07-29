@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                            BranchValue,
                                            ConditionKind,
                                            Ordinal,
-                                           IsReachable, 
+                                           IsReachable,
                                            Region);
                 _statements = null;
                 return block;

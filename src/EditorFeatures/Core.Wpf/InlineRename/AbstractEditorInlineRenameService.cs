@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsKeyword(triggerToken))
+            if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span, 
+                refactorNotifyServices, document, triggerToken.Span,
                 symbolAndProjectId, forceRenameOverloads, cancellationToken);
         }
 

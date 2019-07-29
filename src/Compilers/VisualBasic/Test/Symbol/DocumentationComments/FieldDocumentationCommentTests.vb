@@ -60,14 +60,14 @@ End Namespace
 <member name="F:Acme.ValueType.total1">
 <summary>Summary for total fields.</summary>
 </member>
-]]>.Value.Replace(vbLf, vbCrLf).Trim, total1.GetDocumentationCommentXml())
+]]>.Value.Replace(vbLf, Environment.NewLine).Trim, total1.GetDocumentationCommentXml())
 
             Assert.Equal("F:Acme.ValueType.total2", total2.GetDocumentationCommentId())
             Assert.Equal(<![CDATA[
 <member name="F:Acme.ValueType.total2">
 <summary>Summary for total fields.</summary>
 </member>
-]]>.Value.Replace(vbLf, vbCrLf).Trim, total2.GetDocumentationCommentXml())
+]]>.Value.Replace(vbLf, Environment.NewLine).Trim, total2.GetDocumentationCommentXml())
         End Sub
 
         <Fact>
@@ -121,7 +121,7 @@ End Namespace
 <member name="F:Acme.E.A">
 <summary>Enum field</summary>
 </member>
-]]>.Value.Replace(vbLf, vbCrLf).Trim, field.GetDocumentationCommentXml())
+]]>.Value.Replace(vbLf, Environment.NewLine).Trim, field.GetDocumentationCommentXml())
         End Sub
 
     End Class

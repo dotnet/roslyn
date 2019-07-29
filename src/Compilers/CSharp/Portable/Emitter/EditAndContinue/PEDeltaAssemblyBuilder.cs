@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers);
             }
 
-            _previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
+            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);
             _previousGeneration = previousGeneration;
             _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
@@ -194,6 +195,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
+        {
+            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+
+            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
+            {
+                yield return typeDef;
+            }
+        }
+
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
+        {
+            return _changes.GetTopLevelSourceTypeDefinitions(context);
+        }
+
         internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
@@ -209,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
@@ -218,11 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SymbolChanges Changes
         {
             get { return _changes; }
-        }
-
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
-        {
-            return _changes.GetTopLevelTypes(context);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

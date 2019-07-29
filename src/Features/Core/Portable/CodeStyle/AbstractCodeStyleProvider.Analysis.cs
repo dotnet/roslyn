@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             protected sealed override void InitializeWorker(Diagnostics.AnalysisContext context)
                 => _codeStyleProvider.DiagnosticAnalyzerInitialize(new AnalysisContext(_codeStyleProvider, context));
-
-            public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-                => _codeStyleProvider.GetDiagnosticAnalyzerCategory();
-
-            public sealed override bool OpenFileOnly(Workspace workspace)
-                => _codeStyleProvider.DiagnosticsForOpenFileOnly(workspace);
         }
 
         /// <summary>

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                _buildManager.Start();
+                _buildManager.StartBatchBuild(_globalProperties);
                 try
                 {
                     foreach (var projectPath in _requestedProjectPaths)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 finally
                 {
-                    _buildManager.Stop();
+                    _buildManager.EndBatchBuild();
                 }
             }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     ProjectLoadOperation.Evaluate,
                     projectPath,
                     targetFramework: null,
-                    () => loader.LoadProjectFileAsync(projectPath, _globalProperties, _buildManager, cancellationToken)
+                    () => loader.LoadProjectFileAsync(projectPath, _buildManager, cancellationToken)
                 ).ConfigureAwait(false);
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
                 string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
-                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results))
+                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results) ||
+                    _pathToDiscoveredProjectInfosMap.TryGetValue(projectPath, out results))
                 {
                     return results;
                 }
@@ -360,7 +361,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
                     var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                    CheckForDuplicateDocuments(documents, additionalDocuments, projectPath, projectId);
+                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
+                    CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
 
                     var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
@@ -383,7 +385,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         analyzerReferences: analyzerReferences,
                         additionalDocuments: additionalDocuments,
                         isSubmission: false,
-                        hostObjectType: null);
+                        hostObjectType: null)
+                        .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
+                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
                 });
             }
 
@@ -407,10 +411,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
                 {
-                    var fullPath = Path.GetFullPath(path);
-                    if (File.Exists(fullPath))
+                    string fullPath;
+
+                    if (PathUtilities.IsAbsolute(path))
                     {
-                        analyzerLoader.AddDependencyLocation(fullPath);
+                        fullPath = FileUtilities.TryNormalizeAbsolutePath(path);
+
+                        if (fullPath != null && File.Exists(fullPath))
+                        {
+                            analyzerLoader.AddDependencyLocation(fullPath);
+                        }
                     }
                 }
 
@@ -465,10 +475,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, ImmutableArray<DocumentInfo> additionalDocuments, string projectFilePath, ProjectId projectId)
+            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, string projectFilePath, ProjectId projectId)
             {
                 var paths = new HashSet<string>(PathUtilities.Comparer);
-                foreach (var doc in documents.Concat(additionalDocuments))
+                foreach (var doc in documents)
                 {
                     if (paths.Contains(doc.FilePath))
                     {

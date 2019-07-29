@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

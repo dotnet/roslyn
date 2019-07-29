@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("InvocationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class InvocationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public InvocationExpressionSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // if the symbol could be bound, replace that item in the symbol list
             if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
             {
-                methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+                methodGroup = methodGroup.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }
 
             methodGroup = methodGroup.Sort(
@@ -95,10 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
-                var selectedItem = TryGetSelectedIndex(methodGroup, symbolInfo);
+                var (items, selectedItem) =
+                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, symbolInfo, cancellationToken);
 
                 return CreateSignatureHelpItems(
-                    GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),
+                    items,
                     textSpan,
                     GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
                     selectedItem);

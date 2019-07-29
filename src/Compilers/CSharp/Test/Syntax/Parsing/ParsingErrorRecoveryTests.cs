@@ -690,8 +690,7 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_BadModifiersOnNamespace, file.Errors()[0].Code);
+            Assert.Equal(0, file.Errors().Length);
         }
 
         [Fact]
@@ -5429,7 +5428,7 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
-            Assert.Equal(new [] {
+            Assert.Equal(new[] {
                                 (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
@@ -5527,7 +5526,7 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
-            Assert.Equal(new [] {
+            Assert.Equal(new[] {
                                 (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,

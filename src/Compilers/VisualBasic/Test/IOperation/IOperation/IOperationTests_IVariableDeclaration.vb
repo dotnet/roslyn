@@ -628,7 +628,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'i1(2)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'i1(2)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                       Right: 
@@ -699,7 +699,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'i1(2)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'i1(2)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                       Right: 
@@ -746,7 +746,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(0 To 4)')
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 4)')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: '0 To 4')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: '0 To 4')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                     Right: 
@@ -1046,7 +1046,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: 'x(1)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'x(1)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                       Right: 
@@ -1097,7 +1097,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(1)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(1)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       Right: 
@@ -1109,7 +1109,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y(2)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'y(2)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                       Right: 
@@ -1159,7 +1159,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(10)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(10)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
@@ -1203,7 +1203,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(10)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(10)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
@@ -1256,7 +1256,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y(10)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'y(10)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
@@ -1302,7 +1302,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x%(10)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x%(10)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
@@ -1314,7 +1314,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y$(11)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(), IsImplicit) (Syntax: 'y$(11)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: '11')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: '11')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 11) (Syntax: '11')
                       Right: 
@@ -3223,7 +3223,7 @@ Block[B0] - Entry
               Right: 
                 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
                   Dimension Sizes(1):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                         Left: 
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                         Right: 
@@ -3283,7 +3283,7 @@ Block[B0] - Entry
                   Children(2):
                       IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10)')
                         Dimension Sizes(1):
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsInvalid, IsImplicit) (Syntax: '10')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsInvalid, IsImplicit) (Syntax: '10')
                               Left: 
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
                               Right: 
@@ -3345,7 +3345,7 @@ Block[B0] - Entry
                   Children(2):
                       IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
                         Dimension Sizes(1):
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                               Left: 
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                               Right: 

@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             bool skipVerificationForReplacedNode = false,
-            bool failOnOverloadResolutionFailuresInOriginalCode = false) :
-            base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
+            bool failOnOverloadResolutionFailuresInOriginalCode = false)
+            : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         {
         }
 
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static SemanticModel CreateSpeculativeSemanticModelForNode(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
         {
-            int position = originalNode.SpanStart;
-            bool isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
+            var position = originalNode.SpanStart;
+            var isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
             return CreateSpeculativeSemanticModelForNode(nodeToSpeculate, semanticModel, position, isInNamespaceOrTypeContext);
         }
 
@@ -114,9 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 semanticModel = semanticModel.ParentModel;
             }
 
-            var statementNode = nodeToSpeculate as StatementSyntax;
             SemanticModel speculativeModel;
-            if (statementNode != null)
+            if (nodeToSpeculate is StatementSyntax statementNode)
             {
                 semanticModel.TryGetSpeculativeSemanticModel(position, statementNode, out speculativeModel);
                 return speculativeModel;
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         Debug.Assert(originalParams.Count == replacedParams.Count);
 
                         paramNames = new List<string>();
-                        for (int i = 0; i < originalParams.Count; i++)
+                        for (var i = 0; i < originalParams.Count; i++)
                         {
                             var originalParam = originalParams[i];
                             var replacedParam = replacedParams[i];
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             var originalParamType = this.OriginalSemanticModel.GetDeclaredSymbol(originalParam).Type;
             var replacedParamType = this.SpeculativeSemanticModel.GetDeclaredSymbol(replacedParam).Type;
-            return originalParamType == replacedParamType;
+            return Equals(originalParamType, replacedParamType);
         }
 
         private bool ReplacementChangesSemanticsForNodes(
@@ -362,8 +361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         newOtherPartOfConditional = newExpression.WhenTrue;
                     }
 
-                    var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalExpression, this.CancellationToken).Type;
-                    var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(newExpression, this.CancellationToken).Type;
+                    var originalExpressionTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression, this.CancellationToken);
+                    var newExpressionTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression, this.CancellationToken);
+
+                    var originalExpressionType = originalExpressionTypeInfo.Type;
+                    var newExpressionType = newExpressionTypeInfo.Type;
 
                     if (originalExpressionType == null || newExpressionType == null)
                     {
@@ -377,6 +379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     // If this changes a boxing operation in one of the branches, we assume that semantics will change.
                     if (originalConversion.IsBoxing != newConversion.IsBoxing)
+                    {
+                        return true;
+                    }
+
+                    if (ReplacementBreaksBoxingInConditionalExpression(originalExpressionTypeInfo, newExpressionTypeInfo, (ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode))
                     {
                         return true;
                     }
@@ -397,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var originalCaseType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode, this.CancellationToken).Type;
                 var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
 
-                if (originalCaseType == newCaseType)
+                if (Equals(originalCaseType, newCaseType))
                     return false;
 
                 var oldSwitchStatement = (SwitchStatementSyntax)originalCaseSwitchLabel.Parent.Parent;
@@ -430,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (int i = 0; i < originalSwitchLabels.Length; i++)
+                    for (var i = 0; i < originalSwitchLabels.Length; i++)
                     {
                         if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
                         {
@@ -487,11 +494,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
+        /// <summary>
+        /// Checks if the conversion might change the resultant boxed type.
+        /// Similar boxing checks are performed elsewhere, but in this case we need to perform the check on the entire conditional expression.
+        /// This will make sure the resultant cast is proper for the type of the conditional expression.
+        /// </summary>
+        private bool ReplacementBreaksBoxingInConditionalExpression(TypeInfo originalExpressionTypeInfo, TypeInfo newExpressionTypeInfo, ExpressionSyntax previousOriginalNode, ExpressionSyntax previousReplacedNode)
+        {
+            // If the resultant types are different and it is boxing to the converted type then semantics could be changing.
+            if (!Equals(originalExpressionTypeInfo.Type, newExpressionTypeInfo.Type))
+            {
+                var originalConvertedTypeConversion = this.OriginalSemanticModel.ClassifyConversion(previousOriginalNode, originalExpressionTypeInfo.ConvertedType);
+                var newExpressionConvertedTypeConversion = this.SpeculativeSemanticModel.ClassifyConversion(previousReplacedNode, newExpressionTypeInfo.ConvertedType);
+
+                if (originalConvertedTypeConversion.IsBoxing && newExpressionConvertedTypeConversion.IsBoxing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private bool ReplacementBreaksAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator, AnonymousObjectMemberDeclaratorSyntax replacedAnonymousObjectMemberDeclarator)
         {
             var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
             var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(replacedAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
-            return originalExpressionType != newExpressionType;
+            return !object.Equals(originalExpressionType, newExpressionType);
         }
 
         private bool ReplacementBreaksConstructorInitializer(ConstructorInitializerSyntax ctorInitializer, ConstructorInitializerSyntax newCtorInitializer)
@@ -510,9 +539,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ExpressionMightReferenceMember(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.InvocationExpression) ||
-                node.IsKind(SyntaxKind.ElementAccessExpression) ||
-                node.IsKind(SyntaxKind.SimpleMemberAccessExpression);
+            return node.IsKind(
+                SyntaxKind.InvocationExpression,
+                SyntaxKind.ElementAccessExpression,
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxKind.ImplicitElementAccess,
+                SyntaxKind.ObjectCreationExpression);
         }
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
@@ -527,18 +559,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             expression = expression.WalkDownParentheses();
 
-            switch (expression.Kind())
+            return expression.Kind() switch
             {
-                case SyntaxKind.InvocationExpression:
-                    return ((InvocationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ElementAccessExpression:
-                    return ((ElementAccessExpressionSyntax)expression).ArgumentList;
-
-                default:
-                    return null;
-            }
+                SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
+                _ => (BaseArgumentListSyntax)null,
+            };
         }
 
         protected override ExpressionSyntax GetReceiver(ExpressionSyntax expression)
@@ -682,8 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementBreaksQueryClause(QueryClauseSyntax originalClause, QueryClauseSyntax newClause)
         {
             // Ensure QueryClauseInfos are compatible.
-            QueryClauseInfo originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
-            QueryClauseInfo newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
+            var originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
+            var newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
 
             return !SymbolInfosAreCompatible(originalClauseInfo.CastInfo, newClauseInfo.CastInfo) ||
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);

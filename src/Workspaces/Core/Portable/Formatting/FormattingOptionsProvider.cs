@@ -8,12 +8,13 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Formatting
 {
     [ExportOptionProvider, Shared]
-    internal class FormattingOptionsProvider : IOptionProvider
+    internal sealed class FormattingOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            FormattingOptions.UseTabs,
-            FormattingOptions.TabSize,
-            FormattingOptions.IndentationSize,
-            FormattingOptions.SmartIndent);
+        [ImportingConstructor]
+        public FormattingOptionsProvider()
+        {
+        }
+
+        public ImmutableArray<IOption> Options { get; } = FormattingOptions.AllOptions;
     }
 }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesWpfResources {
@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configure or Suppress issues.
+        /// </summary>
+        internal static string Configure_or_Suppress_issues {
+            get {
+                return ResourceManager.GetString("Configure_or_Suppress_issues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading index failed.
         /// </summary>
         internal static string Downloading_index_failed {
@@ -84,6 +93,87 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Downloading_IntelliSense_index_for_0 {
             get {
                 return ResourceManager.GetString("Downloading_IntelliSense_index_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Alternation.
+        /// </summary>
+        internal static string Regex_Alternation {
+            get {
+                return ResourceManager.GetString("Regex_Alternation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Anchor.
+        /// </summary>
+        internal static string Regex_Anchor {
+            get {
+                return ResourceManager.GetString("Regex_Anchor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Character Class.
+        /// </summary>
+        internal static string Regex_Character_Class {
+            get {
+                return ResourceManager.GetString("Regex_Character_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Comment.
+        /// </summary>
+        internal static string Regex_Comment {
+            get {
+                return ResourceManager.GetString("Regex_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Grouping.
+        /// </summary>
+        internal static string Regex_Grouping {
+            get {
+                return ResourceManager.GetString("Regex_Grouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Other Escape.
+        /// </summary>
+        internal static string Regex_OtherEscape {
+            get {
+                return ResourceManager.GetString("Regex_OtherEscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Quantifier.
+        /// </summary>
+        internal static string Regex_Quantifier {
+            get {
+                return ResourceManager.GetString("Regex_Quantifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Self Escaped Character.
+        /// </summary>
+        internal static string Regex_SelfEscapedCharacter {
+            get {
+                return ResourceManager.GetString("Regex_SelfEscapedCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Text.
+        /// </summary>
+        internal static string Regex_Text {
+            get {
+                return ResourceManager.GetString("Regex_Text", resourceCulture);
             }
         }
     }

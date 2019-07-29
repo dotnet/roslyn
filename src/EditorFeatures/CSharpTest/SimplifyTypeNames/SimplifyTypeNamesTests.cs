@@ -178,7 +178,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -205,7 +205,7 @@ namespace Root
             [|System.Exception|] c;
         }
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -250,7 +250,7 @@ class A
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"namespace Root
 {
     using MyType = System.Exception;
@@ -274,7 +274,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -301,7 +301,7 @@ namespace Root
             [|System.Exception|] c;
         }
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -331,7 +331,7 @@ namespace Root
             var c = [|System.Int32|].MaxValue;
         }
     }
-}", 
+}",
 @"using Goo = System.Int32;
 
 namespace Root
@@ -468,7 +468,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -496,7 +496,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", 
+}",
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -541,7 +541,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -627,7 +627,7 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
+                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
@@ -662,7 +662,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using System;
 
 namespace Root
@@ -695,7 +695,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"namespace System
 {
     class A
@@ -722,7 +722,7 @@ namespace Root
             [|N1.A1|] a;
         }
     }
-}", 
+}",
 @"namespace N1
 {
     public class A1
@@ -757,7 +757,7 @@ namespace Root
     {
         [|N1.N2.A1|] a;
     }
-}", 
+}",
 @"namespace N1
 {
     namespace N2
@@ -791,7 +791,7 @@ namespace Root
     {
         [|N1.NC1.A1|] a;
     }
-}", 
+}",
 @"namespace N1
 {
     class NC1
@@ -847,7 +847,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"namespace N1
 {
     namespace N2
@@ -893,7 +893,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using System;
 
 namespace N1
@@ -920,7 +920,7 @@ namespace N1
     {
         {|FixAllInDocument:System.Action|}<System.Action<System.Action<System.EventArgs>, System.Action<System.Action<System.EventArgs, System.Action<System.EventArgs>, System.Action<System.Action<System.Action<System.Action<System.EventArgs>, System.Action<System.EventArgs>>>>>>>> a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -963,7 +963,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using MyHandler = System.EventHandler<System.EventArgs>;
 
 namespace N1
@@ -1007,7 +1007,7 @@ namespace N1
     {
         [|N1.N2.A1<System.Exception>|] a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -1050,7 +1050,7 @@ namespace N1
     {
         N1.N2.A1<[|System.Exception|]> a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -1083,7 +1083,7 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[]>|] a;
     }
-}", 
+}",
 @"using System.Collections.Generic;
 
 namespace N1
@@ -1129,7 +1129,7 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[][,][,,,]>|] a;
     }
-}", 
+}",
 @"using System.Collections.Generic;
 
 namespace N1
@@ -1260,7 +1260,7 @@ class Program
         {
         }
     }
-}", 
+}",
 @"namespace N1
 {
     public class C1
@@ -1303,7 +1303,7 @@ namespace N1
     class Test
     {
     }
-}", 
+}",
 @"using I64 = System.Int64;
 using Goo = System.Collections.Generic.IList<long>;
 
@@ -1331,7 +1331,7 @@ namespace N1
         {
         }
     }
-}", 
+}",
 @"namespace Outer
 {
     using I64 = System.Int64;
@@ -1363,7 +1363,7 @@ namespace Outer
         {
         }
     }
-}", 
+}",
 @"using I64 = System.Int64;
 
 namespace Outer
@@ -1414,7 +1414,7 @@ class A
     {
         return null;
     }
-}", 
+}",
 @"using alias1 = A;
 
 class A
@@ -2794,7 +2794,7 @@ class Program
     {
         Action a = [|System.Console.WriteLine|];
     }
-}", 
+}",
 @"using System;
 
 class Program
@@ -3308,7 +3308,7 @@ class Attribute : System.Attribute
     public void z()
     {
     }
-}", 
+}",
 @"class C
 {
     int x;
@@ -3592,7 +3592,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", 
+}",
 @"class C
 {
     public void z()
@@ -3615,7 +3615,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", 
+}",
 @"using System;
 
 class C
@@ -3743,7 +3743,7 @@ class Program
         {
         }
     }
-}", 
+}",
 @"using System;
 
 class Program
@@ -3769,7 +3769,7 @@ class Program
     {
         public object X => ([|System.Int32|])0;
     }
-}", 
+}",
 @"namespace ClassLibrary2
 {
     public class Class1
@@ -3787,7 +3787,7 @@ class Program
 @"class C
 {
     public string Goo() => ([|System.String|])"";
-}", 
+}",
 @"class C
 {
     public string Goo() => (string)"";
@@ -3802,7 +3802,7 @@ class Program
 @"class C
 {
     public int this[int index] => ([|System.Int32|])0;
-}", 
+}",
 @"class C
 {
     public int this[int index] => (int)0;
@@ -3994,6 +3994,152 @@ namespace Root
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirective()
+        {
+            await TestInRegularAndScriptAsync(
+                "using [|global::System.IO|];",
+                "using System.IO;");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+                $"using My{typeName} = [|global::System.{typeName}|];",
+                $"using My{typeName} = System.{typeName};");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
+        {
+            await TestInRegularAndScriptAsync(
+                "using static [|global::System.Math|];",
+                "using static System.Math;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using [|global::System.IO|];
+}",
+@"using System;
+namespace N
+{
+    using System.IO;
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = System.{typeName};
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using static [|global::System.Math|];
+}",
+@"using System;
+namespace N
+{
+    using static System.Math;
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|{typeName}|];
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}");
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
             await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
@@ -4016,9 +4162,9 @@ namespace Root
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
 
         private IDictionary<OptionKey, object> PreferImplicitTypeWithSilent => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
         private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);

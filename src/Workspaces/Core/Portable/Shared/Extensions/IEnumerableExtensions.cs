@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class IEnumerableExtensions
     {
         public static Task<IEnumerable<S>> SelectManyAsync<T, S>(
-            this IEnumerable<T> sequence, 
+            this IEnumerable<T> sequence,
             Func<T, CancellationToken, Task<IEnumerable<S>>> selector, CancellationToken cancellationToken)
         {
             var whenAllTask = Task.WhenAll(sequence.Select(e => selector(e, cancellationToken)));

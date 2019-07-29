@@ -20,6 +20,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
@@ -1150,7 +1151,7 @@ IL_0005:  ret
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
             var sourceA =
@@ -1248,6 +1249,7 @@ IL_0030:  ret
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         [Fact]
         public void CorLibWithAssemblyReferences()
         {
@@ -1365,8 +1367,9 @@ namespace System
 
         // References to missing assembly from PDB custom debug info.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [Fact]
-        public void CorLibWithAssemblyReferences_Pdb()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
+        public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {
             string sourceLib =
 @"namespace Namespace
@@ -1395,7 +1398,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib }, options: options);
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -1533,17 +1536,12 @@ namespace System
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
             }
 
-            internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
+            public override IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
             {
-                foreach (var type in base.GetTopLevelTypesCore(context))
+                foreach (var type in base.GetTopLevelSourceTypeDefinitions(context))
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }
-            }
-
-            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-            {
-                throw new NotImplementedException();
             }
 
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
@@ -1554,6 +1552,11 @@ namespace System
 
             protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<ManagedResource> builder, DiagnosticBag diagnostics)
             {
+            }
+
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
             }
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;

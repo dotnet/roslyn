@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             {
                                 var newParameters = parameterList.Parameters;
 
-                                for (int i = 0; i < parameterSymbols.Length; i++)
+                                for (var i = 0; i < parameterSymbols.Length; i++)
                                 {
                                     var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                                     var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return false;
                 }
 
-                bool found = false;
+                var found = false;
                 foreach (var argument in tuple.Arguments)
                 {
                     string elementName = null;
@@ -480,6 +480,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             aliasTarget = ((INamedTypeSymbol)aliasTarget).ConstructUnboundGenericType();
                         }
 
+                        if (aliasTarget is INamedTypeSymbol typeSymbol && typeSymbol.IsTupleType)
+                        {
+                            // ValueTuple type is not allowed in using alias, so when expanding an alias
+                            // of ValueTuple types, always use its underlying type, i.e. `System.ValueTuple<>` instead of `(...)`
+                            aliasTarget = typeSymbol.TupleUnderlyingType;
+                        }
+
                         // the expanded form replaces the current identifier name.
                         var replacement = FullyQualifyIdentifierName(
                             aliasTarget,
@@ -493,11 +500,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         // We replace the simple name completely, so we can't continue and rename the token
                         // with a RenameLocationAnnotation.
                         // There's also no way of removing annotations, so we just add a DoNotRenameAnnotation.
-                        if (replacement.Kind() == SyntaxKind.AliasQualifiedName)
+                        switch (replacement.Kind())
                         {
-                            var qualifiedReplacement = (AliasQualifiedNameSyntax)replacement;
+                            case SyntaxKind.AliasQualifiedName:
+                                var aliasQualifiedReplacement = (AliasQualifiedNameSyntax)replacement;
+                                replacement = replacement.ReplaceNode(
+                                        aliasQualifiedReplacement.Name,
+                                        aliasQualifiedReplacement.Name.WithIdentifier(
+                                            GetNewIdentifier(aliasQualifiedReplacement.Name.Identifier)));
 
-                            var newIdentifier = identifier.CopyAnnotationsTo(qualifiedReplacement.Name.Identifier);
+                                var firstReplacementToken = replacement.GetFirstToken(true, false, true, true);
+                                var firstOriginalToken = originalSimpleName.GetFirstToken(true, false, true, true);
+                                if (TryAddLeadingElasticTriviaIfNecessary(firstReplacementToken, firstOriginalToken, out var tokenWithLeadingWhitespace))
+                                {
+                                    replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
+                                }
+                                break;
+
+                            case SyntaxKind.QualifiedName:
+                                var qualifiedReplacement = (QualifiedNameSyntax)replacement;
+                                replacement = replacement.ReplaceNode(
+                                        qualifiedReplacement.Right,
+                                        qualifiedReplacement.Right.WithIdentifier(
+                                            GetNewIdentifier(qualifiedReplacement.Right.Identifier)));
+                                break;
+
+                            case SyntaxKind.IdentifierName:
+                                var identifierReplacement = (IdentifierNameSyntax)replacement;
+                                replacement = replacement.ReplaceToken(identifier, GetNewIdentifier(identifierReplacement.Identifier));
+                                break;
+
+                            default:
+                                throw new NotImplementedException();
+                        }
+
+                        replacement = newNode.CopyAnnotationsTo(replacement);
+                        replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
+
+                        return replacement;
+
+                        SyntaxToken GetNewIdentifier(SyntaxToken _identifier)
+                        {
+                            var newIdentifier = identifier.CopyAnnotationsTo(_identifier);
 
                             if (_annotationForReplacedAliasIdentifier != null)
                             {
@@ -505,78 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             }
 
                             var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
-
-                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
-
-                            replacement = replacement.ReplaceNode(
-                                    qualifiedReplacement.Name,
-                                    qualifiedReplacement.Name.WithIdentifier(newIdentifier));
-
-                            replacement = newNode.CopyAnnotationsTo(replacement);
-
-                            var firstReplacementToken = replacement.GetFirstToken(true, false, true, true);
-                            var firstOriginalToken = originalSimpleName.GetFirstToken(true, false, true, true);
-                            if (TryAddLeadingElasticTriviaIfNecessary(firstReplacementToken, firstOriginalToken, out var tokenWithLeadingWhitespace))
-                            {
-                                replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
-                            }
-
-                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
-
-                            return replacement;
+                            return newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
                         }
-
-                        if (replacement.Kind() == SyntaxKind.QualifiedName)
-                        {
-                            var qualifiedReplacement = (QualifiedNameSyntax)replacement;
-
-                            var newIdentifier = identifier.CopyAnnotationsTo(qualifiedReplacement.Right.Identifier);
-
-                            if (_annotationForReplacedAliasIdentifier != null)
-                            {
-                                newIdentifier = newIdentifier.WithAdditionalAnnotations(_annotationForReplacedAliasIdentifier);
-                            }
-
-                            var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
-
-                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
-
-                            replacement = replacement.ReplaceNode(
-                                    qualifiedReplacement.Right,
-                                    qualifiedReplacement.Right.WithIdentifier(newIdentifier));
-
-                            replacement = newNode.CopyAnnotationsTo(replacement);
-
-                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
-
-                            return replacement;
-                        }
-
-                        if (replacement.IsKind(SyntaxKind.IdentifierName))
-                        {
-                            var identifierReplacement = (IdentifierNameSyntax)replacement;
-
-                            var newIdentifier = identifier.CopyAnnotationsTo(identifierReplacement.Identifier);
-
-                            if (_annotationForReplacedAliasIdentifier != null)
-                            {
-                                newIdentifier = newIdentifier.WithAdditionalAnnotations(_annotationForReplacedAliasIdentifier);
-                            }
-
-                            var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
-
-                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
-
-                            replacement = replacement.ReplaceToken(identifier, newIdentifier);
-
-                            replacement = newNode.CopyAnnotationsTo(replacement);
-
-                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
-
-                            return replacement;
-                        }
-
-                        throw new NotImplementedException();
                     }
                 }
 
@@ -665,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
                     ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
                     (parent.Kind() == SyntaxKind.QualifiedName && originalSimpleName.IsRightSideOfQualifiedName()) ||
-                    (parent.Kind() == SyntaxKind.AliasQualifiedName)||
+                    (parent.Kind() == SyntaxKind.AliasQualifiedName) ||
                     (parent.Kind() == SyntaxKind.NameColon))
                 {
                     return TryAddTypeArgumentToIdentifierName(newNode, symbol);
@@ -723,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             ExpressionSyntax left;
 
                             // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
-                            if (_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) != symbol.ContainingType)
+                            if (!Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType))
                             {
                                 left = SyntaxFactory.BaseExpression();
                             }
@@ -756,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (isInsideCref)
                 {
                     var leftTokens = expression.DescendantTokens();
-                    List<SyntaxToken> candidateTokens = new List<SyntaxToken>();
+                    var candidateTokens = new List<SyntaxToken>();
 
                     foreach (var candidateToken in leftTokens)
                     {
@@ -802,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private IList<ISymbol> TypeArgumentSymbolsPresentInName(SimpleNameSyntax simpleName)
             {
-                List<ISymbol> typeArgumentSymbols = new List<ISymbol>();
+                var typeArgumentSymbols = new List<ISymbol>();
                 var typeArgumentListSyntax = simpleName.DescendantNodesAndSelf().Where(n => n is TypeArgumentListSyntax);
                 foreach (var typeArgumentList in typeArgumentListSyntax)
                 {
@@ -848,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
             {
-                if (symbol == symbol.OriginalDefinition)
+                if (Equals(symbol, symbol.OriginalDefinition))
                 {
                     return false;
                 }

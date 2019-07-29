@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         private async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, _, cancellationToken) = context;
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var optionValue = optionSet.GetOption(_option);
@@ -61,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private async Task ComputeRefactoringsAsync(
             CodeRefactoringContext context, TOptionKind option, bool analyzerActive)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, span, cancellationToken) = context;
 
             var computationTask = analyzerActive
                 ? ComputeOpposingRefactoringsWhenAnalyzerActiveAsync(document, span, option, cancellationToken)

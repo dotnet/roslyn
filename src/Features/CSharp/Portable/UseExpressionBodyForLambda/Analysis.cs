@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,12 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
     internal partial class UseExpressionBodyForLambdaCodeStyleProvider
     {
-        protected override bool DiagnosticsForOpenFileOnly(Workspace workspace)
-            => false;
-
-        protected override DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void DiagnosticAnalyzerInitialize(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);

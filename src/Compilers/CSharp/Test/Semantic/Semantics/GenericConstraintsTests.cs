@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class GenericConstraintsTests : CompilingTestBase
     {
@@ -580,9 +580,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Enum { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Enum { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Enum").WithLocation(8, 43));
         }
 
         [Fact]
@@ -599,9 +599,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Enum { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Enum { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Enum").WithLocation(4, 43));
         }
 
         [Fact]
@@ -699,9 +699,9 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (2,14): error CS0644: 'Child' cannot derive from special class 'Enum'
+                // (2,22): error CS0644: 'Child' cannot derive from special class 'Enum'
                 // public class Child : System.Enum
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Child").WithArguments("Child", "System.Enum").WithLocation(2, 14),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "System.Enum").WithArguments("Child", "System.Enum").WithLocation(2, 22),
                 // (20,9): error CS0311: The type 'Child' cannot be used as type parameter 'T' in the generic type or method 'Test.M<T>(T)'. There is no implicit reference conversion from 'Child' to 'System.Enum'.
                 //         M(new Child());     // invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Test.M<T>(T)", "System.Enum", "T", "Child").WithLocation(20, 9));
@@ -1095,9 +1095,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Delegate { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Delegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Delegate").WithLocation(8, 43));
         }
 
         [Fact]
@@ -1114,9 +1114,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Delegate { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Delegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Delegate").WithLocation(4, 43));
         }
 
         [Fact]
@@ -1580,9 +1580,9 @@ public class B : A
 {
     public override void M<T>() where T : System.MulticastDelegate { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.MulticastDelegate").WithLocation(8, 43));
         }
 
         [Fact]
@@ -1599,9 +1599,9 @@ public class B : A
 {
     public override void M<T>() where T : System.MulticastDelegate { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.MulticastDelegate").WithLocation(4, 43));
         }
 
         [Fact]
@@ -1692,7 +1692,7 @@ class B<T> : A<T> where T : System.Delegate { }";
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B").WithArguments("A<T>", "System.MulticastDelegate", "T", "T").WithLocation(3, 7));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Type()
         {
             CreateCompilation(@"
@@ -1724,7 +1724,7 @@ public class Test2
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(16, 26));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Method()
         {
             CreateCompilation(@"
@@ -1758,7 +1758,7 @@ public class Test2
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Delegate()
         {
             CreateCompilation(@"
@@ -1785,7 +1785,7 @@ public abstract class Test2<U, W> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(12, 26));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_LocalFunction()
         {
             CreateCompilation(@"
@@ -2277,15 +2277,19 @@ public class B : A
 {
     public override void M<T>() where T : unmanaged { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : unmanaged { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(8, 43));
         }
 
         [Fact]
         public void UnmanagedConstraint_StructMismatchInImplements()
         {
             CreateCompilation(@"
+public struct Segment<T> {
+    public T[] array;
+}
+
 public interface I1<in T> where T : unmanaged
 {
     void Test<G>(G x) where G : unmanaged;
@@ -2296,22 +2300,22 @@ public class C2<T> : I1<T> where T : struct
     public void Test<G>(G x) where G : struct
     {
         I1<T> i = this;
-        i.Test(default(System.ArraySegment<int>));
+        i.Test(default(Segment<int>));
     }
 }
 ").VerifyDiagnostics(
-                // (7,14): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // (11,14): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 // public class C2<T> : I1<T> where T : struct
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(7, 14),
-                // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(11, 14),
+                // (13,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
                 //     public void Test<G>(G x) where G : struct
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
-                // (11,12): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(13, 17),
+                // (15,12): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 //         I1<T> i = this;
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(11, 12),
-                // (12,11): error CS8379: The type 'ArraySegment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
-                //         i.Test(default(System.ArraySegment<int>));
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "System.ArraySegment<int>").WithLocation(12, 11)
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(15, 12),
+                // (16,11): error CS8377: The type 'Segment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
+                //         i.Test(default(Segment<int>));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "Segment<int>").WithLocation(16, 11)
                 );
         }
 
@@ -2443,12 +2447,12 @@ public class B : A
 {
     public override void M<T>() where T : unmanaged { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : unmanaged { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(4, 43));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerOperations_Invalid()
         {
             CreateCompilation(@"
@@ -2467,7 +2471,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("Test.M<T>(T)", "T", "string").WithLocation(9, 9));
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [InlineData("(sbyte)1", "System.SByte", 1)]
         [InlineData("(byte)1", "System.Byte", 1)]
         [InlineData("(short)1", "System.Int16", 2)]
@@ -2532,7 +2536,7 @@ unsafe class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_InterfaceMethod()
         {
             CompileAndVerify(@"
@@ -2585,7 +2589,7 @@ unsafe class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CtorAndValueTypeAreEmitted()
         {
             CompileAndVerify(@"
@@ -2605,7 +2609,7 @@ class Program
     options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "NotNullableValueTypeConstraint, DefaultConstructorConstraint");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Flat()
         {
             CompileAndVerify(@"
@@ -2630,7 +2634,7 @@ unsafe class Test
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "4");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Nested()
         {
             CompileAndVerify(@"
@@ -2665,7 +2669,7 @@ unsafe class Test
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "8");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Error()
         {
             CreateCompilation(@"
@@ -2702,7 +2706,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "N<TestData>").WithArguments("Test.N<T>()", "T", "TestData").WithLocation(24, 9));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_ExistingUnmanagedKeywordType_InScope()
         {
             CompileAndVerify(@"
@@ -2726,7 +2730,7 @@ class Test
 }", expectedOutput: "success");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_ExistingUnmanagedKeywordType_OutOfScope()
         {
             CreateCompilation(@"
@@ -2759,7 +2763,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Print").WithArguments("T", "Print").WithLocation(20, 13));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Methods()
         {
             CompileAndVerify(@"
@@ -2780,7 +2784,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Types()
         {
             CompileAndVerify(@"
@@ -2803,7 +2807,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Interfaces()
         {
             CompileAndVerify(@"
@@ -2827,7 +2831,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_LocalFunctions()
         {
             CompileAndVerify(@"
@@ -2850,7 +2854,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerTypeSubstitution()
         {
             var compilation = CreateCompilation(@"
@@ -2871,10 +2875,10 @@ unsafe public class Test
             Assert.Equal("M<int>()", value.ToFullString());
 
             var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
-            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Int32*", symbol.ReturnTypeWithAnnotations.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CannotConstraintToTypeParameterConstrainedByUnmanaged()
         {
             CreateCompilation(@"
@@ -2889,7 +2893,7 @@ class Test<U> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "T").WithArguments("T", "U").WithLocation(4, 12));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
         {
             CreateCompilation(@"
@@ -2906,7 +2910,7 @@ class Test<unmanaged> where unmanaged : System.IDisposable
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "NonExistentMethod").WithArguments("T", "NonExistentMethod").WithLocation(7, 13));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CircularReferenceToUnmanagedTypeWillBindSuccessfully()
         {
             CreateCompilation(@"
@@ -2923,7 +2927,7 @@ public unsafe class C<U> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(4, 35));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_EnumWithUnmanaged()
         {
             Action<ModuleSymbol> validator = module =>
@@ -2947,7 +2951,7 @@ public unsafe class C<U> where U : unmanaged
                 symbolValidator: validator);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedInGenericType()
         {
             var code = @"
@@ -2976,7 +2980,7 @@ public class Test
         IsStruct<Wrapper<int>.E>();
         IsNew<Wrapper<int>.E>();
 
-        IsUnmanaged<Wrapper<int>.S>();          // Invalid
+        IsUnmanaged<Wrapper<int>.S>();
         IsEnum<Wrapper<int>.S>();               // Invalid
         IsStruct<Wrapper<int>.S>();
         IsNew<Wrapper<int>.S>();
@@ -2986,7 +2990,7 @@ public class Test
         IsStruct<Wrapper<string>.E>();
         IsNew<Wrapper<string>.E>();
 
-        IsUnmanaged<Wrapper<string>.S>();          // Invalid
+        IsUnmanaged<Wrapper<string>.S>();
         IsEnum<Wrapper<string>.S>();               // Invalid
         IsStruct<Wrapper<string>.S>();
         IsNew<Wrapper<string>.S>();
@@ -2994,21 +2998,15 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (27,9): error CS8377: The type 'Wrapper<int>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<int>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<int>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<int>.S").WithLocation(27, 9),
                 // (28,9): error CS0315: The type 'Wrapper<int>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<int>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<int>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9),
-                // (37,9): error CS8377: The type 'Wrapper<string>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<string>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<string>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<string>.S").WithLocation(37, 9),
                 // (38,9): error CS0315: The type 'Wrapper<string>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<string>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<string>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<string>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<string>.S").WithLocation(38, 9));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerInsideStruct()
         {
             CompileAndVerify(@"
@@ -3042,7 +3040,7 @@ unsafe class Test
                 expectedOutput: "S");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_LambdaTypeParameters()
         {
             CompileAndVerify(@"
@@ -3084,7 +3082,7 @@ public class Program
                 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_IsConsideredDuringOverloadResolution()
         {
             CompileAndVerify(@"
@@ -3116,7 +3114,7 @@ Object: 2
 Unmanaged: 3");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference()
         {
@@ -3140,10 +3138,10 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_CallFromADifferentMethod()
         {
@@ -3170,10 +3168,10 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs()
         {
@@ -3196,10 +3194,10 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs_CallFromADifferentMethod()
         {
@@ -3225,10 +3223,10 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_Errors()
         {
@@ -3269,6 +3267,860 @@ unsafe class C
                 // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
+
+        [Fact]
+        public void UnmanagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ManagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2<T>(MyStruct<T>* ms) where T : unmanaged { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12));
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct OuterStruct
+{
+    public int x;
+    public InnerStruct inner;
+}
+
+public struct InnerStruct
+{
+    public int y;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<OuterStruct> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<OuterStruct>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (16,18): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         MyStruct<InnerStruct<int>> myStruct;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18),
+                // (17,12): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         M2(&myStruct);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&myStruct").WithArguments("unmanaged constructed types", "8.0").WithLocation(17, 12),
+                // (20,27): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<InnerStruct<int>>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 27),
+                // (20,55): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55));
+        }
+
+        [Fact]
+        public void UnmanagedGenericStructMultipleConstraints()
+        {
+            // A diagnostic will only be produced for the first violated constraint.
+            var code = @"
+public struct MyStruct<T> where T : unmanaged, System.IDisposable
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct = default;
+        _ = myStruct;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (16,18): error CS0315: The type 'InnerStruct<int>' cannot be used as type parameter 'T' in the generic type or method 'MyStruct<T>'. There is no boxing conversion from 'InnerStruct<int>' to 'System.IDisposable'.
+                    //         MyStruct<InnerStruct<int>> myStruct = default;
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "InnerStruct<int>").WithArguments("MyStruct<T>", "System.IDisposable", "T", "InnerStruct<int>").WithLocation(16, 18)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (16,18): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         MyStruct<InnerStruct<int>> myStruct = default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintPartialConstructedStruct()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M<U>()
+    {
+        MyStruct<U> myStruct;
+        M2<U>(&myStruct);
+    }
+
+    public unsafe void M2<V>(MyStruct<V>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (11,18): error CS8377: The type 'U' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //         MyStruct<U> myStruct;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "U").WithArguments("MyStruct<T>", "T", "U").WithLocation(11, 18),
+                    // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
+                    //         M2<U>(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
+                    // (15,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<V>*").WithArguments("MyStruct<V>").WithLocation(15, 30),
+                    // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
+        }
+
+        [Fact]
+        public void GenericStructManagedFieldPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<string>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
+                    // (15,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //     public unsafe void M2(MyStruct<string>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<string>*").WithArguments("MyStruct<string>").WithLocation(15, 27));
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveGenericStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public YourStruct<T>* field;
+}
+
+public unsafe struct YourStruct<T> where T : unmanaged
+{
+    public MyStruct<T>* field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct
+{
+    public YourStruct* field;
+}
+
+public unsafe struct YourStruct
+{
+    public MyStruct* field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgument()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void UnmanagedCyclic()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<T> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public MyStruct<T> field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,26): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<T>' causes a cycle in the struct layout
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<T>").WithLocation(4, 26),
+                    // (4,26): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "T").WithLocation(4, 26),
+                    // (9,24): error CS0523: Struct member 'YourStruct<T>.field' of type 'MyStruct<T>' causes a cycle in the struct layout
+                    //     public MyStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentManagedGenericField()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public T myField;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public string s;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveTypeArgumentConstraintViolation_02()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+    public string s;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+        }
+
+        [Fact]
+        public void NestedGenericStructContainingPointer()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T* field;
+
+    public T this[int index]
+    {
+        get { return field[index]; }
+    }
+}
+
+public class C
+{
+    public static unsafe void Main()
+    {
+        float f = 42;
+        var ms = new MyStruct<float> { field = &f };
+        var test = new MyStruct<MyStruct<float>> { field = &ms };
+        float value = test[0][0];
+        System.Console.Write(value);
+    }
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void SimpleGenericStructPointer_ILValidation()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+
+    public static void Test()
+    {
+        var ms = new MyStruct<int>();
+        MyStruct<int>* ptr = &ms;
+        ptr->field = 42;
+    }
+}
+";
+            var il = @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (MyStruct<int> V_0) //ms
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""MyStruct<int>""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  stfld      ""int MyStruct<int>.field""
+  IL_0012:  ret
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped)
+                .VerifyIL("MyStruct<T>.Test", il);
+        }
+
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}";
+            var compilation = CreateCompilation(code);
+            compilation.VerifyDiagnostics();
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedType);
+        }
+
+        [Fact]
+        public void GenericStructAddressOfRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (9,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var ptr = &ms;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStructFixedRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public MyStruct<int> ms;
+    public static unsafe void Test(MyClass c)
+    {
+        fixed (MyStruct<int>* ptr = &c.ms)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (12,16): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         fixed (MyStruct<int>* ptr = &c.ms)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 16),
+                // (12,37): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         fixed (MyStruct<int>* ptr = &c.ms)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37));
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStructSizeofRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var size = sizeof(MyStruct<int>);
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (8,20): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var size = sizeof(MyStruct<int>);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericImplicitStackallocRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var arr = stackalloc[] { new MyStruct<int>() };
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (8,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var arr = stackalloc[] { new MyStruct<int>() };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19));
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStackallocRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var arr = stackalloc MyStruct<int>[4];
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (8,30): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var arr = stackalloc MyStruct<int>[4];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30));
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStructPointerFieldRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public unsafe struct OtherStruct
+{
+    public MyStruct<int>* ms;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (9,12): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public MyStruct<int>* ms;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 12)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
+        public void StructContainingTuple_Unmanaged_RequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct
+{
+    public (int, int) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { }
+
+    public void M2()
+    {
+        M<MyStruct>();
+        M<(int, int)>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         M<MyStruct>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                // (14,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         M<(int, int)>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
+        public void StructContainingGenericTuple_Unmanaged()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public (T, T) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { }
+
+    public void M2<U>() where U : unmanaged
+    {
+        M<MyStruct<U>>();
+    }
+
+    public void M3<V>()
+    {
+        M<MyStruct<V>>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         M<MyStruct<U>>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct<U>>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                //         M<MyStruct<V>>();
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                    //         M<MyStruct<V>>();
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        public void GenericRefStructAddressOf_01()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>() { field = 42 };
+        var ptr = &ms;
+        System.Console.Write(ptr->field);
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericRefStructAddressOf_02()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public unsafe void M()
+    {
+        var ms = new MyStruct<object>();
+        var ptr = &ms;
+    }
+}
+";
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<object>')
+                //         var ptr = &ms;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&ms").WithArguments("MyStruct<object>").WithLocation(12, 19)
+            );
+        }
+
+        [Fact]
+        public void GenericStructFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public MyStruct<int> ms;
+    public static unsafe void Main()
+    {
+        var c = new MyClass();
+        c.ms.field = 42;
+        fixed (MyStruct<int>* ptr = &c.ms)
+        {
+            System.Console.Write(ptr->field);
+        }
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericStructLocalFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>();
+        fixed (int* ptr = &ms.field)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,27): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                    //         fixed (int* ptr = &ms.field)
+                    Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
+                );
         }
     }
 }

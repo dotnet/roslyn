@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -81,6 +80,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // FAR on the Delegate type and use those results to find Invoke calls
 
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None)));
+                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false,
+                    symbolUsageInfo: GetSymbolUsageInfo(n, semanticModel, syntaxFactsService, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
         }
     }
 }

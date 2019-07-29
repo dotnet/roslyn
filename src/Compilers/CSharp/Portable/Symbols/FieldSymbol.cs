@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this field.
+        /// Gets the type of this field along with its annotations.
         /// </summary>
-        public TypeSymbol Type
+        public TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
@@ -56,12 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         /// <summary>
-        /// Gets the list of custom modifiers, if any, associated with the field.
+        /// Gets the type of this field.
         /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
+
+        internal abstract TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
@@ -83,22 +85,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsVolatile { get; }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// Returns true if this field was declared as "fixed".
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
-        public virtual bool IsFixed { get { return false; } }
+        public virtual bool IsFixedSizeBuffer { get { return false; } }
 
         /// <summary>
-        /// If IsFixed is true, the value between brackets in the fixed-size-buffer declaration.
-        /// If IsFixed is false FixedSize is 0.
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false FixedSize is 0.
         /// Note that for fixed-a size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         public virtual int FixedSize { get { return 0; } }
 
         /// <summary>
-        /// If this.IsFixed is true, returns the underlying implementation type for the
+        /// If this.IsFixedSizeBuffer is true, returns the underlying implementation type for the
         /// fixed-size buffer when emitted.  Otherwise returns null.
         /// </summary>
         internal virtual NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
@@ -310,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         #region Use-Site Diagnostics
@@ -330,8 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.CustomModifiers))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
             {
                 return true;
             }
@@ -341,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, this, ref unificationCheckedTypes))
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -462,9 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
+
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.TypeWithAnnotations.CustomModifiers; }
         }
 
         IFieldSymbol IFieldSymbol.OriginalDefinition

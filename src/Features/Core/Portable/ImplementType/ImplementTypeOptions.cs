@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.ImplementType
 
     internal static class ImplementTypeOptions
     {
-        public static readonly PerLanguageOption<ImplementTypeInsertionBehavior> InsertionBehavior = 
+        public static readonly PerLanguageOption<ImplementTypeInsertionBehavior> InsertionBehavior =
             new PerLanguageOption<ImplementTypeInsertionBehavior>(
-                nameof(ImplementTypeOptions), 
-                nameof(InsertionBehavior), 
+                nameof(ImplementTypeOptions),
+                nameof(InsertionBehavior),
                 defaultValue: ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
                 storageLocations: new RoamingProfileStorageLocation(
                     $"TextEditor.%LANGUAGE%.{nameof(ImplementTypeOptions)}.{nameof(InsertionBehavior)}"));

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
-            return VisitTupleExpression(node);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
@@ -90,13 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 currentCreation = currentCreation.Update(
-                    currentCreation.Constructor, 
-                    currentCreation.Arguments, 
-                    currentCreation.ArgumentNamesOpt, 
-                    currentCreation.ArgumentRefKindsOpt, 
-                    currentCreation.Expanded, 
-                    currentCreation.ArgsToParamsOpt, 
-                    currentCreation.ConstantValue, 
+                    currentCreation.Constructor,
+                    currentCreation.Arguments,
+                    currentCreation.ArgumentNamesOpt,
+                    currentCreation.ArgumentRefKindsOpt,
+                    currentCreation.Expanded,
+                    currentCreation.ArgsToParamsOpt,
+                    currentCreation.ConstantValue,
                     currentCreation.InitializerExpressionOpt,
                     currentCreation.BinderOpt,
                     type);

@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional includeSymbols As Boolean = True) As CompilationTestData
 
             Dim compilation0 = CreateEmptyCompilationWithReferences(
-                {Parse(source)},
+                {Parse(source, SyntaxHelpers.ParseOptions)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
 

@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _corTypeId As SpecialType
 
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
         Private _lazyEnumUnderlyingType As NamedTypeSymbol
 
         ' Stores symbols for overriding WithEvents properties if we have such
@@ -138,12 +139,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-            Return _lazyDocComment
         End Function
 
         ' Create a LocationSpecificBinder for the type. This is a binder that wraps the
@@ -1344,7 +1344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     For Each typeSyntax In types
                         Dim bt = binder.BindTypeSyntax(typeSyntax, diag, suppressUseSiteError:=True)
-                        If bt = base Then
+                        If TypeSymbol.Equals(bt, base, TypeCompareKind.ConsiderEverything) Then
                             Return typeSyntax.GetLocation()
                         End If
                     Next
@@ -1761,7 +1761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Interlocked.CompareExchange(Me._lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
                         ContainingSourceModule.AddDiagnostics(tempDiags, CompilationStage.Declare)
                     Else
-                        Debug.Assert(underlyingType = Me._lazyEnumUnderlyingType)
+                        Debug.Assert(TypeSymbol.Equals(underlyingType, Me._lazyEnumUnderlyingType, TypeCompareKind.ConsiderEverything))
                         underlyingType = Me._lazyEnumUnderlyingType
                     End If
 

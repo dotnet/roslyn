@@ -1671,15 +1671,15 @@ class C
         return (System.Type)typeof(Program).GetMember(target)[0].GetCustomAttributesData().ElementAt(0).ConstructorArguments[0].Value;
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             var p = compilation.GetTypeByMetadataName("Program");
-            var a1 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;
+            var a1 = (IArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;
             Assert.Equal("System.Int32[]", a1.ToTestDisplayString());
             Assert.Equal(1, a1.Rank);
             Assert.True(a1.IsSZArray);
 
-            var a2 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test2").GetAttributes().Single().ConstructorArguments.Single().Value;
+            var a2 = (IArrayTypeSymbol)p.GetMember<MethodSymbol>("Test2").GetAttributes().Single().ConstructorArguments.Single().Value;
             Assert.Equal("System.Int32[*]", a2.ToTestDisplayString());
             Assert.Equal(1, a2.Rank);
             Assert.False(a2.IsSZArray);

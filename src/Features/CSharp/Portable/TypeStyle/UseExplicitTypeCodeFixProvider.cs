@@ -21,8 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -47,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         internal static async Task HandleDeclarationAsync(
-            Document document, SyntaxEditor editor, 
+            Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
             var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
-            for (int i = 0; i < elements.Length; i++)
+            for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
                 var type = elements[i].Type;
@@ -151,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Use_explicit_type_instead_of_var)
             {
             }
         }

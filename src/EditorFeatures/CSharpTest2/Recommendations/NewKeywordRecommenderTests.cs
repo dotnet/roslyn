@@ -118,6 +118,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34324, "https://github.com/dotnet/roslyn/issues/34324")]
+        public async Task TestAfterNullCoalescingAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"q ??= $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInParenthesizedExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -419,6 +427,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitForeachIn()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await foreach (var v in $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInFromIn()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -545,6 +560,13 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"using ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitUsing()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await using ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

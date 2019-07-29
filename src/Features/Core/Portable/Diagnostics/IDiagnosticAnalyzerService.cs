@@ -70,17 +70,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets a list of the diagnostics that are provided by this service.
-        /// If the given <paramref name="projectOpt"/> is non-null, then gets the diagnostics for the project.
-        /// Otherwise, returns the global set of diagnostics enabled for the workspace.
+        /// Gets a list of <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>
         /// </summary>
-        /// <returns>A mapping from analyzer name to the diagnostics produced by that analyzer</returns>
-        ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt);
+        ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project);
 
         /// <summary>
-        /// Gets a list of the diagnostics provided by the given <see cref="DiagnosticAnalyzer"/>.
+        /// Gets a list of <see cref="DiagnosticDescriptor"/>s per <see cref="AnalyzerReference"/>
+        /// If the given <paramref name="projectOpt"/> is non-null, then gets <see cref="DiagnosticDescriptor"/>s for the project.
+        /// Otherwise, returns the global set of <see cref="DiagnosticDescriptor"/>s enabled for the workspace.
         /// </summary>
-        /// <returns>A list of the diagnostics produced by the given analyzer</returns>
+        /// <returns>A mapping from <see cref="AnalyzerReference.Display"/> to the <see cref="DiagnosticDescriptor"/></returns>
+        ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project projectOpt);
+
+        /// <summary>
+        /// Gets supported <see cref="DiagnosticDescriptor"/>s of <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <returns>A list of the diagnostic descriptors of the analyzer</returns>
         ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
 
         /// <summary>
@@ -97,6 +102,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
         /// </summary>
         bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer);
+
+        /// <summary>
+        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compilation end analyzer
+        /// By compilation end analyzer, it means compilation end analysis here
+        /// </summary>
+        bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer, Project project, Compilation compilation);
 
         /// <summary>
         /// Return host <see cref="AnalyzerReference"/>s. (ex, analyzers installed by vsix)

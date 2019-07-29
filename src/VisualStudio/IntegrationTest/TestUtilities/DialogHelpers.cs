@@ -144,8 +144,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             => FindDialogByPropertyWorker(visualStudioHWnd, dialogName, AutomationElementIdentifiers.NameProperty);
 
         private static IUIAutomationElement FindDialogByPropertyWorker(
-            IntPtr visualStudioHWnd, 
-            string propertyValue, 
+            IntPtr visualStudioHWnd,
+            string propertyValue,
             AutomationProperty nameProperty)
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle(visualStudioHWnd);
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
+            T retval = default;
 
             do
             {

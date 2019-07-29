@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 }
                 else
                 {
-                    text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix) 
+                    text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix)
                         ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length)
                         : text;
                 }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     if (trivia.IsSingleLineComment())
                     {
-                        startComment = startComment ?? trivia;
+                        startComment ??= trivia;
                         endComment = trivia;
                     }
                     else if (trivia.IsMultiLineComment())
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static BlockSpan CreateBlockSpan(
-            TextSpan textSpan, TextSpan hintSpan, 
+            TextSpan textSpan, TextSpan hintSpan,
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -250,13 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return CreateBlockSpan(
                 node.Span,
                 bannerText,
-                autoCollapse, 
+                autoCollapse,
                 type,
                 isCollapsible);
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken, 
+            SyntaxNode node, SyntaxToken syntaxToken,
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, 
+            SyntaxNode node, SyntaxToken startToken,
             int endPos, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, 
+            SyntaxNode node, SyntaxToken startToken,
             SyntaxToken endToken, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken, 
+            SyntaxNode node, SyntaxToken syntaxToken,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken, 
+            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // snippet shown is the text from the first line of the first 
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
-            IEnumerable<SyntaxNode> syntaxList, bool autoCollapse, 
+            IEnumerable<SyntaxNode> syntaxList, bool autoCollapse,
             string type, bool isCollapsible)
         {
             if (syntaxList.IsEmpty())

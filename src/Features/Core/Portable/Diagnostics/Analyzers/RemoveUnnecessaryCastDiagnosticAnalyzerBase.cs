@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -11,12 +10,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
 {
     internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<
         TLanguageKindEnum,
-        TCastExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TCastExpression : SyntaxNode
     {
         protected RemoveUnnecessaryCastDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
@@ -26,14 +26,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         protected abstract TextSpan GetFadeSpan(TCastExpression node);
         protected abstract bool IsUnnecessaryCast(SemanticModel model, TCastExpression node, CancellationToken cancellationToken);
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, this.SyntaxKindsOfInterest);
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKindsOfInterest);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             }
 
             return Diagnostic.Create(
-                UnnecessaryWithSuggestionDescriptor, 
+                UnnecessaryWithSuggestionDescriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),
                 ImmutableArray.Create(node.GetLocation()));
         }

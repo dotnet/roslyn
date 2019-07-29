@@ -50,19 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            if (!document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !args.SubjectBuffer.SupportsRefactorings())
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -72,23 +62,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 
         public bool ExecuteCommand(ExtractMethodCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return false;
-            }
-
             // Finish any rename that had been started. We'll do this here before we enter the
             // wait indicator for Extract Method
             if (_renameService.ActiveSession != null)
             {
                 _renameService.ActiveSession.Commit();
+            }
+
+            if (!args.SubjectBuffer.SupportsRefactorings())
+            {
+                return false;
             }
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
@@ -110,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(waitContext).WaitAndGetResult(cancellationToken);
             if (document == null)
             {
                 return false;
@@ -134,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                         // and also will take it into consideration when measuring command handling duration.
                         waitContext.TakeOwnership();
                         if (!notificationService.ConfirmMessageBox(
-                                EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
+                                EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
                                 string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
                                 EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
                                 title: EditorFeaturesResources.Extract_Method,
@@ -184,17 +167,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             // wait context. That means the command system won't attempt to show its own wait dialog 
             // and also will take it into consideration when measuring command handling duration.
             waitContext.TakeOwnership();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            var project = document.Project;
+            var solution = project.Solution;
+            var notificationService = solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!document.Project.Solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, document.Project.Language) ||
-                !result.Status.HasBestEffort() || result.Document == null)
+            if (!solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, project.Language) ||
+                !result.Status.HasBestEffort() ||
+                result.Document == null)
             {
                 if (notificationService != null)
                 {
                     notificationService.SendNotification(
-                        EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
-                        string.Join(Environment.NewLine, result.Reasons),
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
                         title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Error);
                 }
@@ -206,11 +192,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             if (notificationService != null)
             {
                 if (!notificationService.ConfirmMessageBox(
-                        EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
-                        string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                        EditorFeaturesResources.Do_you_still_want_to_proceed_it_will_generate_broken_code,
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
+                        EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
                         title: EditorFeaturesResources.Extract_Method,
-                        severity: NotificationSeverity.Error))
+                        severity: NotificationSeverity.Warning))
                 {
                     return true;
                 }
@@ -222,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
             Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, CancellationToken cancellationToken)
         {
-            OptionSet options = document.Project.Solution.Options;
+            var options = document.Project.Solution.Options;
 
             if (options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language) || !result.Reasons.IsSingle())
             {
@@ -252,15 +238,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         /// </summary>
         private void ApplyChangesToBuffer(ExtractMethodResult extractMethodResult, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
-            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method"))
-            {
-                // apply extract method code to buffer
-                var document = extractMethodResult.Document;
-                document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
+            using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
-                // apply changes
-                undoTransaction.Complete();
-            }
+            // apply extract method code to buffer
+            var document = extractMethodResult.Document;
+            document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
+
+            // apply changes
+            undoTransaction.Complete();
         }
     }
 }

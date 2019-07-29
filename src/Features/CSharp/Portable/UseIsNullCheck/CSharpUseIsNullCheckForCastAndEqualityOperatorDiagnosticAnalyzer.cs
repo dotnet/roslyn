@@ -10,13 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly ImmutableDictionary<string, string> s_properties =
             ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpFeaturesResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -24,9 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         }
 
                         return true;
-                   }
+                    }
                 }
             }
 

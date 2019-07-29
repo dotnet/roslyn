@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool HasReferenceTypeConstraint { get; }
         public bool HasValueTypeConstraint { get; }
         public bool HasUnmanagedTypeConstraint { get; }
+        public bool HasNotNullConstraint { get; }
         public int Ordinal { get; }
 
         public CodeGenerationTypeParameterSymbol(
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool hasReferenceConstraint,
             bool hasValueConstraint,
             bool hasUnmanagedConstraint,
+            bool hasNotNullConstraint,
             int ordinal)
             : base(containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None)
         {
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.HasReferenceTypeConstraint = hasReferenceConstraint;
             this.HasValueTypeConstraint = hasValueConstraint;
             this.HasUnmanagedTypeConstraint = hasUnmanagedConstraint;
+            this.HasNotNullConstraint = hasNotNullConstraint;
         }
 
         protected override CodeGenerationSymbol Clone()
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationTypeParameterSymbol(
                 this.ContainingType, this.GetAttributes(), this.Variance, this.Name,
                 this.ConstraintTypes, this.HasConstructorConstraint, this.HasReferenceTypeConstraint,
-                this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.Ordinal);
+                this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.HasNotNullConstraint, this.Ordinal);
         }
 
         public new ITypeParameterSymbol OriginalDefinition => this;
@@ -89,5 +92,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this.ContainingSymbol as INamedTypeSymbol;
             }
         }
+
+        public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new System.NotImplementedException();
+
+        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => ConstraintTypes.SelectAsArray(t => t.GetNullability());
     }
 }

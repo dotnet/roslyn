@@ -219,7 +219,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A\u1234", "\u1234B" }, tupleElementNames);
-                var method = testData.Methods.Single().Value.Method;
+                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 Assert.True(method.ReturnType.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
@@ -267,7 +267,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { null, "A", "B", null }, tupleElementNames);
-                var method = (MethodSymbol)testData.Methods.Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = method.ReturnType;
                 Assert.False(returnType.IsTupleType);
@@ -353,7 +353,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeclareLocal()
         {
             var source =
@@ -418,8 +418,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
-        [Fact]
         public void Alias()
         {
             var source =
@@ -465,7 +465,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(aliasElementNames, tupleElementNames);
-                var method = testData.Methods.Single().Value.Method;
+                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);
@@ -483,8 +483,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
-        [Fact]
         public void AliasElement_NoNames()
         {
             var source =

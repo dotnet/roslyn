@@ -400,7 +400,7 @@ End Module
 
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub Error_ErrorHandler_BothTypesOfErrorHandling()
             Dim compilationDef =
     <compilation>
@@ -453,7 +453,7 @@ End Module
     )
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub Error_ErrorHandler_InVBCore()
             'Old Style handling not supported in VBCore
             Dim compilationDef =

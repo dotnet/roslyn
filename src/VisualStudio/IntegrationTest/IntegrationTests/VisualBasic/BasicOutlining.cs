@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
@@ -16,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicOutlining(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicOutlining))
+        public BasicOutlining(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicOutlining))
         {
         }
 

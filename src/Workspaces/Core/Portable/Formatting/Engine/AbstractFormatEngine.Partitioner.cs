@@ -15,17 +15,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             private const int MinimumItemsPerPartition = 30000;
 
             private readonly FormattingContext _context;
-            private readonly TokenStream _tokenStream;
             private readonly TokenPairWithOperations[] _operationPairs;
 
-            public Partitioner(FormattingContext context, TokenStream tokenStream, TokenPairWithOperations[] operationPairs)
+            public Partitioner(FormattingContext context, TokenPairWithOperations[] operationPairs)
             {
                 Contract.ThrowIfNull(context);
-                Contract.ThrowIfNull(tokenStream);
                 Contract.ThrowIfNull(operationPairs);
 
                 _context = context;
-                _tokenStream = tokenStream;
                 _operationPairs = operationPairs;
             }
 
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     var list = new List<IEnumerable<TokenPairWithOperations>>();
 
                     // too small items in the list. give out one list
-                    int perPartition = _operationPairs.Length / partitionCount;
+                    var perPartition = _operationPairs.Length / partitionCount;
                     if (perPartition < 10 || partitionCount <= 1 || _operationPairs.Length < MinimumItemsPerPartition)
                     {
                         list.Add(GetOperationPairsFromTo(0, _operationPairs.Length));
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                             break;
                         }
 
-                        var nextTokenWithIndex = _tokenStream.GetTokenData(nextToken);
+                        var nextTokenWithIndex = _context.TokenStream.GetTokenData(nextToken);
                         if (nextTokenWithIndex.IndexInStream < 0)
                         {
                             // first token for next partition is out side of valid token stream
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private IEnumerable<TokenPairWithOperations> GetOperationPairsFromTo(int from, int to)
             {
-                for (int i = from; i < to; i++)
+                for (var i = from; i < to; i++)
                 {
                     yield return _operationPairs[i];
                 }

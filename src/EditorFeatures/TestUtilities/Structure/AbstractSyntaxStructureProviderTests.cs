@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
                 Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
 
-                for (int i = 0; i < expectedRegions.Length; i++)
+                for (var i = 0; i < expectedRegions.Length; i++)
                 {
                     AssertRegion(expectedRegions[i], actualRegions[i]);
                 }
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var hintSpan = spans[hintSpanName][0];
 
             return new BlockSpan(isCollapsible: true,
-                textSpan: textSpan, 
+                textSpan: textSpan,
                 hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
-                autoCollapse: autoCollapse, 
+                autoCollapse: autoCollapse,
                 isDefaultCollapsed: isDefaultCollapsed);
         }
 

@@ -980,7 +980,7 @@ End Class
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
         End Sub
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub CaseVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1124,7 +1124,7 @@ End Class
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub EventAndMethodReferencesVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1280,7 +1280,7 @@ End Class
                                            Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub NoneOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
             Dim source = <compilation>
@@ -1316,7 +1316,7 @@ End Class
                          </compilation>
 
             ' We have 2 OperationKind.None operations in the operation tree:
-            ' (1) BoundUnstructedExceptionHandlingStatement for the method block with Resume statement
+            ' (1) BoundUnstructuredExceptionHandlingStatement for the method block with Resume statement
             ' (2) BoundResumeStatement for Resume statement
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1327,7 +1327,7 @@ End Class
                                            Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub LambdaExpressionVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1706,7 +1706,7 @@ End Module
                 Diagnostic("BinaryUserDefinedOperator", "x >> 3").WithArguments("RightShift").WithLocation(128, 13))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub InvalidOperatorsVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1745,7 +1745,7 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
                                    Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
-                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", Environment.NewLine & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
 
             ' no diagnostic since nodes are invalid
             comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False)

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class NameSyntaxClassifier : AbstractSyntaxClassifier
+    internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
             Workspace workspace,
@@ -31,32 +31,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(NameSyntax));
 
+        protected override int? GetRightmostNameArity(SyntaxNode node)
+        {
+            if (node is ExpressionSyntax expressionSyntax)
+            {
+                return expressionSyntax.GetRightmostName()?.Arity;
+            }
+
+            return null;
+        }
+
+        protected override bool IsParentAnAttribute(SyntaxNode node)
+        {
+            return node.IsParentKind(SyntaxKind.Attribute);
+        }
+
         private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (!IsNamespaceName(name))
-            {
-                var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
+            var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
 
-                var _ =
-                    TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
-                    TryClassifyFromIdentifier(name, symbolInfo, result) ||
-                    TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                    TryClassifyNameOfIdentifier(name, symbolInfo, result);
-            }
-        }
-
-        private static bool IsNamespaceName(NameSyntax name)
-        {
-            while (name.Parent is NameSyntax)
-            {
-                name = (NameSyntax)name.Parent;
-            }
-
-            return name.IsParentKind(SyntaxKind.NamespaceDeclaration);
+            var _ =
+                TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
+                TryClassifyFromIdentifier(name, symbolInfo, result) ||
+                TryClassifyValueIdentifier(name, symbolInfo, result) ||
+                TryClassifyNameOfIdentifier(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -66,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
+            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
+                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
@@ -77,6 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);
+
+                if (classifiedSpan.ClassificationType != ClassificationTypeNames.Keyword)
+                {
+                    // Additionally classify static symbols
+                    TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
+                }
+
                 return true;
             }
 
@@ -123,11 +133,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            // Classify a reference to an attribute constructor in an attribute location
-            // as if we were classifying the attribute type itself.
-            if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
+            // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
+            // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
+            // creating overlapping ClassifiedSpans.
+            if (symbol is INamespaceSymbol namespaceSymbol &&
+                name is IdentifierNameSyntax identifierNameSyntax)
             {
-                symbol = symbol.ContainingType;
+                // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
+                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace &&
+                    identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+                if (isGlobalNamespace)
+                {
+                    classifiedSpan = default;
+                    return false;
+                }
+
+                // Classifies both extern aliases and namespaces.
+                classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName);
+                return true;
             }
 
             if (name.IsVar &&
@@ -147,14 +170,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (name.IsUnmanaged && name.Parent.IsKind(SyntaxKind.TypeConstraint))
+            if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
+                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != "unmanaged")
+                if (alias == null || alias.Name != nameToCheck)
                 {
-                    if (!IsSymbolWithName(symbol, "unmanaged"))
+                    if (!IsSymbolWithName(symbol, nameToCheck))
                     {
-                        // We bound to a symbol.  If we bound to a symbol called "unmanaged" then we want to
+                        // We bound to a symbol.  If we bound to a symbol called "unmanaged"/"notnull" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -206,6 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
+                case ILabelSymbol labelSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
+                    return true;
             }
 
             classifiedSpan = default;
@@ -231,6 +259,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
         {
+            // Classify constructors by their containing type. We do not need to worry about
+            // destructors because their declaration is handled by syntactic classification
+            // and they cannot be invoked, so their is no usage to semantically classify.
+            if (methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                return methodSymbol.ContainingType?.GetClassification() ?? ClassificationTypeNames.MethodName;
+            }
+
             // Note: We only classify an extension method if it is in reduced form.
             // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
             // it is classified as an ordinary method.
@@ -247,61 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 name.CheckParent<DeclarationPatternSyntax>(v => v.Type == name) ||
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
-        }
-
-        private static ISymbol TryGetSymbol(NameSyntax name, SymbolInfo symbolInfo, SemanticModel semanticModel)
-        {
-            if (symbolInfo.Symbol == null && symbolInfo.CandidateSymbols.Length > 0)
-            {
-                var firstSymbol = symbolInfo.CandidateSymbols[0];
-
-                switch (symbolInfo.CandidateReason)
-                {
-                    case CandidateReason.NotAValue:
-                        return firstSymbol;
-
-                    case CandidateReason.NotCreatable:
-                        // We want to color types even if they can't be constructed.
-                        if (firstSymbol.IsConstructor() || firstSymbol is ITypeSymbol)
-                        {
-                            return firstSymbol;
-                        }
-
-                        break;
-
-                    case CandidateReason.OverloadResolutionFailure:
-                        // If we couldn't bind to a constructor, still classify the type.
-                        if (firstSymbol.IsConstructor())
-                        {
-                            return firstSymbol;
-                        }
-
-                        break;
-
-                    case CandidateReason.Inaccessible:
-                        // If a constructor wasn't accessible, still classify the type if it's accessible.
-                        if (firstSymbol.IsConstructor() && semanticModel.IsAccessible(name.SpanStart, firstSymbol.ContainingType))
-                        {
-                            return firstSymbol;
-                        }
-
-                        break;
-
-                    case CandidateReason.WrongArity:
-                        if (name.GetRightmostName()?.Arity == 0)
-                        {
-                            // When the user writes something like "IList" we don't want to *not* classify 
-                            // just because the type bound to "IList<T>".  This is also important for use
-                            // cases like "Add-using" where it can be confusing when the using is added for
-                            // "using System.Collection.Generic" but then the type name still does not classify.
-                            return firstSymbol;
-                        }
-
-                        break;
-                }
-            }
-
-            return symbolInfo.Symbol;
         }
 
         private bool TryClassifyFromIdentifier(

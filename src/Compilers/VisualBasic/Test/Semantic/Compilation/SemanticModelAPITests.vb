@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -2899,6 +2900,83 @@ End Class
 #End Region
 
 #Region "Msic."
+
+        <Fact>
+        Public Sub IsUnmanagedType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public struct S2 { public S1 F1; }
+public struct S3 { public object F1; }
+public struct S4<T> { public T F1; }
+public enum E1 { }
+")
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim s4 = new S4(Of Integer)()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseCompileDiagnostics()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a managed type
+            Assert.False(getLocalType("s1").IsUnmanagedType)
+            Assert.False(getLocalType("s2").IsUnmanagedType)
+            Assert.False(getLocalType("s3").IsUnmanagedType)
+            Assert.False(getLocalType("s4").IsUnmanagedType)
+            Assert.False(getLocalType("e1").IsUnmanagedType)
+        End Sub
+
+        <Fact>
+        Public Sub IsRefLikeType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public ref struct S2 { public S1 F1; }
+public enum E1 { }
+", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3))
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Structure S3 
+    Dim F1 As Object
+End Structure
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<errors>
+BC30668: 'S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 = new S2()
+                     ~~
+                                        </errors>)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a ref-like type
+            Assert.False(getLocalType("s1").IsRefLikeType)
+            Assert.False(getLocalType("s2").IsRefLikeType)
+            Assert.False(getLocalType("s3").IsRefLikeType)
+            Assert.False(getLocalType("e1").IsRefLikeType)
+        End Sub
 
         <Fact()>
         Public Sub IsAccessible()

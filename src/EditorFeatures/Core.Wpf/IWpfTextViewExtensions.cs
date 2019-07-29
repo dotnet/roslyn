@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
 
-                    var newHeight = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;             
+                    var newHeight = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;
                     if (IsGreater(newHeight, view.VisualElement.Height))
                     {
                         view.VisualElement.Height = newHeight;
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             view.LayoutChanged += firstLayout;
-            
-            bool IsGreater(double value, double other)
+
+            static bool IsGreater(double value, double other)
                 => IsNormal(value) && (!IsNormal(other) || value > other);
 
-            bool IsNormal(double value)
+            static bool IsNormal(double value)
                 => !double.IsNaN(value) && !double.IsInfinity(value);
         }
     }

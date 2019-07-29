@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var text = line.ToString();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!SyntaxFacts.IsWhitespace(text[i]))
                 {
@@ -59,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            SyntaxNode node = root.FindToken(position).Parent;
+            var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                TextSpan? breakpointSpan = TryCreateSpanForNode(node, position);
+                var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // event Action P { add [|{|] ... } remove { ... } }
                     // event Action P { [|add;|] [|remove;|] }
                     var @event = (EventDeclarationSyntax)node;
-                    return CreateSpanForAccessors(@event.AccessorList.Accessors, position);
+                    return @event.AccessorList != null ? CreateSpanForAccessors(@event.AccessorList.Accessors, position) : null;
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
@@ -527,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // way up.  Similarly, hitting a 'case' label will already have been taken care
                     // of.  So in this case, we just set the bp on the "switch(expr)" itself.
                     var switchStatement = (SwitchStatementSyntax)statement;
-                    return CreateSpan(switchStatement, switchStatement.CloseParenToken);
+                    return CreateSpan(switchStatement, (switchStatement.CloseParenToken != default) ? switchStatement.CloseParenToken : switchStatement.Expression.GetLastToken());
 
                 case SyntaxKind.TryStatement:
                     // Note: if the user was in the body of the 'try', then we would have hit its nested

@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -434,6 +436,27 @@ index: 2);
 @"class Class
 {
     Goo f;
+
+    private class Goo
+    {
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    [|Goo?|] f;
+}",
+@"#nullable enable
+class Class
+{
+    Goo? f;
 
     private class Goo
     {
@@ -1384,6 +1407,76 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string? s;
+
+    public T(string? s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameterThatIsNotNull()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string s;
+
+    public T(string s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1509,7 +1602,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters2()
+        public async Task GenerateWithOutParameters2_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -1536,6 +1629,40 @@ internal class T
     public T(out DateTime d)
     {
         d = default(DateTime);
+    }
+}",
+index: 1,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new T(out d);
+    }
+}
+
+internal class T
+{
+    public T(out DateTime d)
+    {
+        d = default;
     }
 }",
 index: 1);
@@ -1633,7 +1760,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters6()
+        public async Task GenerateWithOutParameters6_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"class Class<X>
@@ -1655,6 +1782,36 @@ index: 1);
         public T(out X d)
         {
             d = default(X);
+        }
+    }
+}",
+index: 2,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new T(out d);
+    }
+
+    private class T
+    {
+        public T(out X d)
+        {
+            d = default;
         }
     }
 }",
@@ -2039,6 +2196,41 @@ class Base
     protected Base(out int o)
     {
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+class Base
+{
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+internal class T : Base
+{
+}
+
+class Base
+{
 }",
 index: 1);
         }
@@ -4328,7 +4520,7 @@ class A<T>
     {
     }
 }",
-count: 3);
+count: 6);
         }
 
         [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]

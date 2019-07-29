@@ -61,6 +61,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return TryConvertToExpressionBody(declaration, options, preference, out _, out _);
         }
 
+        private static bool TryConvertToExpressionBody(
+            LambdaExpressionSyntax declaration,
+            ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ExpressionSyntax expression, out SyntaxToken semicolon)
+        {
+            var body = declaration.Body as BlockSyntax;
+
+            return body.TryConvertToExpressionBody(
+                declaration.Kind(), options, conversionPreference,
+                out expression, out semicolon);
+        }
+
         private static bool CanOfferUseBlockBody(
             SemanticModel semanticModel, ExpressionBodyPreference preference,
             LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
@@ -120,6 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
+        private static LambdaExpressionSyntax UpdateWorker(
+            SemanticModel semanticModel, bool useExpressionBody,
+            LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
+        {
+            return useExpressionBody
+                ? WithExpressionBody(currentDeclaration)
+                : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
+        }
+
         private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
         {
             if (!TryConvertToExpressionBody(
@@ -140,17 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             return updatedDecl;
-        }
-
-        private static bool TryConvertToExpressionBody(
-            LambdaExpressionSyntax declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ExpressionSyntax expression, out SyntaxToken semicolon)
-        {
-            var body = declaration.Body as BlockSyntax;
-
-            return body.TryConvertToExpressionBody(
-                declaration.Kind(), options, conversionPreference,
-                out expression, out semicolon);
         }
 
         private static LambdaExpressionSyntax WithBlockBody(

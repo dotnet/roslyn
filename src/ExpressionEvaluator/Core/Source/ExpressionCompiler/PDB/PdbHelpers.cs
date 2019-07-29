@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -82,176 +81,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 type = ((INamedTypeSymbol)type).EnumUnderlyingType;
             }
 
-            short shortValue;
-            switch (type.SpecialType)
+            return (type.SpecialType, symValue) switch
             {
-                case SpecialType.System_Boolean:
-                    if (!(symValue is short))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((short)symValue != 0);
-
-                case SpecialType.System_Byte:
-                    if (!(symValue is short))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    shortValue = (short)symValue;
-                    if (unchecked((byte)shortValue) != shortValue)
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((byte)shortValue);
-
-                case SpecialType.System_SByte:
-                    if (!(symValue is short))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    shortValue = (short)symValue;
-                    if (unchecked((sbyte)shortValue) != shortValue)
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((sbyte)shortValue);
-
-                case SpecialType.System_Int16:
-                    if (!(symValue is short))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((short)symValue);
-
-                case SpecialType.System_Char:
-                    if (!(symValue is ushort))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((char)(ushort)symValue);
-
-                case SpecialType.System_UInt16:
-                    if (!(symValue is ushort))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((ushort)symValue);
-
-                case SpecialType.System_Int32:
-                    if (!(symValue is int))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((int)symValue);
-
-                case SpecialType.System_UInt32:
-                    if (!(symValue is uint))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((uint)symValue);
-
-                case SpecialType.System_Int64:
-                    if (!(symValue is long))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((long)symValue);
-
-                case SpecialType.System_UInt64:
-                    if (!(symValue is ulong))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((ulong)symValue);
-
-                case SpecialType.System_Single:
-                    if (!(symValue is float))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((float)symValue);
-
-                case SpecialType.System_Double:
-                    if (!(symValue is double))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((double)symValue);
-
-                case SpecialType.System_String:
-                    if (symValue is int && (int)symValue == 0)
-                    {
-                        return ConstantValue.Null;
-                    }
-
-                    if (symValue == null)
-                    {
-                        return ConstantValue.Create(string.Empty);
-                    }
-
-                    var str = symValue as string;
-                    if (str == null)
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create(str);
-
-                case SpecialType.System_Object:
-                    if (symValue is int && (int)symValue == 0)
-                    {
-                        return ConstantValue.Null;
-                    }
-
-                    return ConstantValue.Bad;
-
-                case SpecialType.System_Decimal:
-                    if (!(symValue is decimal))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create((decimal)symValue);
-
-                case SpecialType.System_DateTime:
-                    if (!(symValue is double))
-                    {
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Create(DateTimeUtilities.ToDateTime((double)symValue));
-
-                case SpecialType.None:
-                    if (type.IsReferenceType)
-                    {
-                        if (symValue is int && (int)symValue == 0)
-                        {
-                            return ConstantValue.Null;
-                        }
-
-                        return ConstantValue.Bad;
-                    }
-
-                    return ConstantValue.Bad;
-
-                default:
-                    return ConstantValue.Bad;
-            }
+                (SpecialType.System_Boolean, short shortVal) => ConstantValue.Create(shortVal != 0),
+                (SpecialType.System_Byte, short shortVal) when unchecked((byte)shortVal) == shortVal => ConstantValue.Create((byte)shortVal),
+                (SpecialType.System_SByte, short shortVal) when unchecked((sbyte)shortVal) == shortVal => ConstantValue.Create((sbyte)shortVal),
+                (SpecialType.System_Int16, short shortVal) => ConstantValue.Create(shortVal),
+                (SpecialType.System_Char, ushort ushortVal) => ConstantValue.Create((char)ushortVal),
+                (SpecialType.System_UInt16, ushort ushortVal) => ConstantValue.Create(ushortVal),
+                (SpecialType.System_Int32, int intVal) => ConstantValue.Create(intVal),
+                (SpecialType.System_UInt32, uint uintVal) => ConstantValue.Create(uintVal),
+                (SpecialType.System_Int64, long longVal) => ConstantValue.Create(longVal),
+                (SpecialType.System_UInt64, ulong ulongVal) => ConstantValue.Create(ulongVal),
+                (SpecialType.System_Single, float floatVal) => ConstantValue.Create(floatVal),
+                (SpecialType.System_Double, double doubleVal) => ConstantValue.Create(doubleVal),
+                (SpecialType.System_String, 0) => ConstantValue.Null,
+                (SpecialType.System_String, null) => ConstantValue.Create(string.Empty),
+                (SpecialType.System_String, string str) => ConstantValue.Create(str),
+                (SpecialType.System_Object, 0) => ConstantValue.Null,
+                (SpecialType.System_Decimal, decimal decimalValue) => ConstantValue.Create(decimalValue),
+                (SpecialType.System_DateTime, double doubleVal) => ConstantValue.Create(DateTimeUtilities.ToDateTime(doubleVal)),
+                (SpecialType.None, 0) when type.IsReferenceType => ConstantValue.Null,
+                _ => ConstantValue.Bad,
+            };
         }
     }
 }

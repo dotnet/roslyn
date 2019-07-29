@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public static readonly EventProcessedState NotProcessed = new EventProcessedState(EventProcessedStateKind.NotProcessed);
 
             public EventProcessedStateKind Kind { get; }
-            
+
             /// <summary>
             /// Subset of processed analyzers.
             /// NOTE: This property is only non-null for <see cref="EventProcessedStateKind.PartiallyProcessed"/>.

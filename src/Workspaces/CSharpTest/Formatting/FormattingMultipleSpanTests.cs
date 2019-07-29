@@ -125,8 +125,10 @@ class A { }";
     System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.IndentBlock, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
@@ -150,8 +152,10 @@ class A { }";
         System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.WrappingPreserveSingleLine, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
@@ -159,14 +163,13 @@ class A { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySpan()
         {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-                var document = project.AddDocument("Document", SourceText.From(""));
+            using var workspace = new AdhocWorkspace();
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-                var result = await Formatter.FormatAsync(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
-            }
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+            var document = project.AddDocument("Document", SourceText.From(""));
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
         }
 
         private Task AssertFormatAsync(string content, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
@@ -178,12 +181,12 @@ class A { }";
 
         private Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
         {
-            int currentIndex = 0;
+            var currentIndex = 0;
             var spans = new List<TextSpan>();
 
             while (currentIndex < codeWithMarker.Length)
             {
-                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
+                var startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
                 if (startPosition < 0)
                 {
                     // no more markers
@@ -192,7 +195,7 @@ class A { }";
 
                 codeWithMarker = codeWithMarker.Substring(0, startPosition) + codeWithMarker.Substring(startPosition + 5);
 
-                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
+                var endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
 
                 codeWithMarker = codeWithMarker.Substring(0, endPosition) + codeWithMarker.Substring(endPosition + 5);
 

@@ -37,19 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return _underlyingProperty.Type;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return _underlyingProperty.TypeCustomModifiers;
+                return _underlyingProperty.TypeWithAnnotations;
             }
         }
 
@@ -147,19 +139,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingProperty.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TuplePropertySymbol);
+            return Equals(obj as TuplePropertySymbol, compareKind);
         }
 
-        public bool Equals(TuplePropertySymbol other)
+        public bool Equals(TuplePropertySymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingProperty == other._underlyingProperty;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingProperty == other._underlyingProperty;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

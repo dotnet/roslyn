@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string CreateDiagnosticDescription(this Exception exception)
         {
-            var aggregateException = exception as AggregateException;
-            if (aggregateException != null)
+            if (exception is AggregateException aggregateException)
             {
                 var flattened = aggregateException.Flatten();
                 return string.Join(s_separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return exception.ToString();
             }
 
-            var fusionLog = DesktopShim.FileNotFoundException.TryGetFusionLog(fileNotFoundException);
+            var fusionLog = DesktopShim.FileNotFoundExceptionShim.TryGetFusionLog(fileNotFoundException);
             if (fusionLog == null)
             {
                 return exception.ToString();

@@ -1,0 +1,18 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Scripting</PackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageDescription>
+      Microsoft .NET Compiler Platform ("Roslyn") CSharp and VB scripting package.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
+  </ItemGroup>
+</Project>

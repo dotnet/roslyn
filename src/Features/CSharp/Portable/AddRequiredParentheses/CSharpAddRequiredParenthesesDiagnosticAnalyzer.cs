@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
@@ -19,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
         AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
+        public CSharpAddRequiredParenthesesDiagnosticAnalyzer()
+            : base(CSharpPrecedenceService.Instance)
+        {
+        }
+
         private static readonly ImmutableArray<SyntaxKind> s_kinds = ImmutableArray.Create(
             SyntaxKind.AddExpression,
             SyntaxKind.SubtractExpression,
@@ -48,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 
         protected override int GetPrecedence(ExpressionSyntax binaryLike)
             => (int)binaryLike.GetOperatorPrecedence();
-
-        protected override PrecedenceKind GetPrecedenceKind(ExpressionSyntax binaryLike)
-            => CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind(binaryLike);
 
         protected override bool IsBinaryLike(ExpressionSyntax node)
             => node is BinaryExpressionSyntax ||

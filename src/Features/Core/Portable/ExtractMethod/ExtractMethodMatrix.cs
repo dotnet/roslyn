@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             BuildMatrix();
         }
 
-        public static VariableStyle GetVariableStyle(
+        public static bool TryGetVariableStyle(
+            bool bestEffort,
             bool captured,
             bool dataFlowIn,
             bool dataFlowOut,
@@ -26,21 +27,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             bool writtenInside,
             bool readOutside,
             bool writtenOutside,
-            bool unsafeAddressTaken)
+            bool unsafeAddressTaken,
+            out VariableStyle variableStyle)
         {
-#if false
-            // decide not to treat capture variable special
-            if (captured)
-            {
-                // if a variable is captured, it can only be passed as ref parameter.
-                return VariableStyle.OnlyAsRefParam;
-            }
-#endif
             // bug # 12258, 12114
             // use "out" if "&" is taken for the variable
             if (unsafeAddressTaken)
             {
-                return VariableStyle.Out;
+                variableStyle = VariableStyle.Out;
+                return true;
             }
 
             var key = new Key(
@@ -82,9 +77,24 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
+            if (s_matrix.TryGetValue(key, out variableStyle))
+            {
+                return true;
+            }
 
-            return s_matrix[key];
+            if (bestEffort)
+            {
+                // In best effort mode, even though we didn't know precisely what to do, we still
+                // allow the user to keep going, assuming that this variable is a very basic one.
+                variableStyle = VariableStyle.InputOnly;
+                return true;
+            }
+
+            // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
+            // and bail out.
+            FatalError.ReportWithoutCrash(new Exception($"extract method encountered unknown states: {key.ToString()}"));
+
+            return false;
         }
 
         private static void BuildMatrix()
@@ -158,13 +168,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
         }
 
-        private struct Key : IEquatable<Key>
+        private readonly struct Key : IEquatable<Key>
         {
             public bool DataFlowIn { get; }
             public bool DataFlowOut { get; }
@@ -183,29 +194,29 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 bool readInside,
                 bool writtenInside,
                 bool readOutside,
-                bool writtenOutside) :
-                this()
+                bool writtenOutside)
+                : this()
             {
-                this.DataFlowIn = dataFlowIn;
-                this.DataFlowOut = dataFlowOut;
-                this.AlwaysAssigned = alwaysAssigned;
-                this.VariableDeclared = variableDeclared;
-                this.ReadInside = readInside;
-                this.WrittenInside = writtenInside;
-                this.ReadOutside = readOutside;
-                this.WrittenOutside = writtenOutside;
+                DataFlowIn = dataFlowIn;
+                DataFlowOut = dataFlowOut;
+                AlwaysAssigned = alwaysAssigned;
+                VariableDeclared = variableDeclared;
+                ReadInside = readInside;
+                WrittenInside = writtenInside;
+                ReadOutside = readOutside;
+                WrittenOutside = writtenOutside;
             }
 
             public bool Equals(Key key)
             {
-                return this.DataFlowIn == key.DataFlowIn &&
-                       this.DataFlowOut == key.DataFlowOut &&
-                       this.AlwaysAssigned == key.AlwaysAssigned &&
-                       this.VariableDeclared == key.VariableDeclared &&
-                       this.ReadInside == key.ReadInside &&
-                       this.WrittenInside == key.WrittenInside &&
-                       this.ReadOutside == key.ReadOutside &&
-                       this.WrittenOutside == key.WrittenOutside;
+                return DataFlowIn == key.DataFlowIn &&
+                       DataFlowOut == key.DataFlowOut &&
+                       AlwaysAssigned == key.AlwaysAssigned &&
+                       VariableDeclared == key.VariableDeclared &&
+                       ReadInside == key.ReadInside &&
+                       WrittenInside == key.WrittenInside &&
+                       ReadOutside == key.ReadOutside &&
+                       WrittenOutside == key.WrittenOutside;
             }
 
             public override bool Equals(object obj)
@@ -222,14 +233,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var hashCode = 0;
 
-                hashCode = this.DataFlowIn ? 1 << 7 | hashCode : hashCode;
-                hashCode = this.DataFlowOut ? 1 << 6 | hashCode : hashCode;
-                hashCode = this.AlwaysAssigned ? 1 << 5 | hashCode : hashCode;
-                hashCode = this.VariableDeclared ? 1 << 4 | hashCode : hashCode;
-                hashCode = this.ReadInside ? 1 << 3 | hashCode : hashCode;
-                hashCode = this.WrittenInside ? 1 << 2 | hashCode : hashCode;
-                hashCode = this.ReadOutside ? 1 << 1 | hashCode : hashCode;
-                hashCode = this.WrittenOutside ? 1 << 0 | hashCode : hashCode;
+                hashCode = DataFlowIn ? 1 << 7 | hashCode : hashCode;
+                hashCode = DataFlowOut ? 1 << 6 | hashCode : hashCode;
+                hashCode = AlwaysAssigned ? 1 << 5 | hashCode : hashCode;
+                hashCode = VariableDeclared ? 1 << 4 | hashCode : hashCode;
+                hashCode = ReadInside ? 1 << 3 | hashCode : hashCode;
+                hashCode = WrittenInside ? 1 << 2 | hashCode : hashCode;
+                hashCode = ReadOutside ? 1 << 1 | hashCode : hashCode;
+                hashCode = WrittenOutside ? 1 << 0 | hashCode : hashCode;
 
                 return hashCode;
             }

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public class SmartTokenFormatterFormatTokenTests : FormatterTestsBase
+    public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
@@ -575,7 +575,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);
@@ -614,7 +614,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);

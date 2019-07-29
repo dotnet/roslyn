@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 {
     internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
-        private MutableNamingStyle _style;
+        private readonly MutableNamingStyle _style;
         private readonly INotificationService _notificationService;
 
         public NamingStyleViewModel(MutableNamingStyle style, bool canBeDeleted, INotificationService notificationService)
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 }
             }
         }
-        
+
         public bool CanBeDeleted { get; set; }
 
         internal bool TrySubmit()

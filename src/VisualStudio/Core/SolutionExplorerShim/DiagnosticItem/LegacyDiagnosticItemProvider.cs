@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             if (relationshipName == KnownRelationships.Contains)
             {
-                IDiagnosticAnalyzerService analyzerService = GetAnalyzerService();
+                var analyzerService = GetAnalyzerService();
                 return new LegacyDiagnosticItemSource(item, _commandHandler, analyzerService);
             }
 
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             if (_diagnosticAnalyzerService == null)
             {
-                IComponentModel componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+                var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                 _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
             }
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TElementAccessExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -34,13 +33,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
+                   CodeStyleOptions.PreferNullPropagation,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         protected abstract bool TryAnalyzePatternCondition(
-            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
             out SyntaxNode conditionPartToCheck, out bool isEquals);
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 

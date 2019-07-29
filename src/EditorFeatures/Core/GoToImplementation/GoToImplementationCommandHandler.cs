@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
@@ -25,19 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         [ImportingConstructor]
-        public GoToImplementationCommandHandler(
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public GoToImplementationCommandHandler(IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
-        }
-
-        private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
-        {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IFindUsagesService>());
+            _streamingPresenter = streamingPresenter;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
@@ -45,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
-            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var findUsagesService = document?.GetLanguageService<IFindUsagesService>();
             return findUsagesService != null
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unavailable;
@@ -53,18 +47,32 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         public bool ExecuteCommand(GoToImplementationCommandArgs args, CommandExecutionContext context)
         {
-            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            if (findUsagesService != null)
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
-                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                if (caret.HasValue)
+                var subjectBuffer = args.SubjectBuffer;
+                if (!subjectBuffer.TryGetWorkspace(out var workspace))
                 {
-                    ExecuteCommand(document, caret.Value, findUsagesService, context);
-                    return true;
+                    return false;
                 }
-            }
 
-            return false;
+                var findUsagesService = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<IFindUsagesService>();
+                if (findUsagesService != null)
+                {
+                    var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                    if (caret.HasValue)
+                    {
+                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                            context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                        if (document != null)
+                        {
+                            ExecuteCommand(document, caret.Value, findUsagesService, context);
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         private void ExecuteCommand(
@@ -72,19 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             IFindUsagesService streamingService,
             CommandExecutionContext context)
         {
-            var streamingPresenter = GetStreamingPresenter();
-
             if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
 
-                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
+                var userCancellationToken = context.OperationContext.UserCancellationToken;
+                using (Logger.LogBlock(FunctionId.CommandHandler_GoToImplementation, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
                 {
-                    var userCancellationToken = context.OperationContext.UserCancellationToken;
                     StreamingGoToImplementation(
                         document, caretPosition,
-                        streamingService, streamingPresenter,
+                        streamingService, _streamingPresenter,
                         userCancellationToken, out messageToShow);
                 }
 
@@ -128,18 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, goToImplContext.SearchTitle, definitionItems).Wait(cancellationToken);
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
         Private Shared ReadOnly s_asyncToken As SyntaxToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return s_diagnosticIds
@@ -39,9 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
+        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTypes) As Boolean
+            Return IsTaskLike(type, knownTypes)
+        End Function
+
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
+                knownTypes As KnownTypes) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -52,22 +60,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
                 Return FixMultiLineLambdaExpression(DirectCast(node, MultiLineLambdaExpressionSyntax))
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
-                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), taskType)
+                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTypes._taskType)
             Else
                 Return FixFunctionBlock(
-                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType, valueTaskOfTType)
+                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTypes)
             End If
         End Function
 
-        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax,
-                                          taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
+        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
 
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
-            If Not IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType, valueTaskOfTType) Then
+            If Not IsTaskLike(methodSymbol.ReturnType, knownTypes) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
-                Dim returnType = taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax()
+                Dim returnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax()
                 newFunctionStatement = newFunctionStatement.WithAsClause(
                 newFunctionStatement.AsClause.WithType(returnType))
             End If

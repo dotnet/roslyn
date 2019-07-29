@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
                     lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
                 }
 
-                threshold = threshold ?? WordSimilarityChecker.GetThreshold(value);
+                threshold ??= WordSimilarityChecker.GetThreshold(value);
                 var result = new List<string>();
                 Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result, recursionCount: 0);
                 return result;
@@ -101,7 +101,7 @@ namespace Roslyn.Utilities
             char[] queryCharacters,
             int queryLength,
             int threshold,
-            List<string> result, 
+            List<string> result,
             int recursionCount)
         {
             // Don't bother recursing too deeply in the case of pathological trees.
@@ -123,8 +123,8 @@ namespace Roslyn.Utilities
             // in the tree.
             var characterSpan = currentNode.WordSpan;
             var editDistance = EditDistance.GetEditDistance(
-                new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan),
-                new ArraySlice<char>(queryCharacters, 0, queryLength));
+                _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length),
+                queryCharacters.AsSpan(0, queryLength));
 
             if (editDistance <= threshold)
             {

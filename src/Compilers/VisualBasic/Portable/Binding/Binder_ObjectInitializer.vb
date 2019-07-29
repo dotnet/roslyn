@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorReported As Boolean = False        ' was an error already reported?
             Dim type As NamedTypeSymbol = Nothing
 
-            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse objectInitializerExpressionOpt.Type = type0)
+            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse TypeSymbol.Equals(objectInitializerExpressionOpt.Type, type0, TypeCompareKind.ConsiderEverything))
 
             Select Case type0.TypeKind
                 Case TypeKind.Class
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(type.Equals(DirectCast(type0, NamedTypeSymbol).CoClassType))
                         ApplyImplicitConversion(node, type0, New BoundRValuePlaceholder(node, type), diagnostics)
                     Else
-                        Debug.Assert(type = type0)
+                        Debug.Assert(TypeSymbol.Equals(type, type0, TypeCompareKind.ConsiderEverything))
                     End If
 
                     ' If the type was not creatable, create a bad expression so that semantic model results can reflect that.
@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberAssignments.Add(assignmentOperator)
 
                 ' assert that the conversion really happened.
-                Debug.Assert(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type = DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type)
+                Debug.Assert(TypeSymbol.Equals(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type, DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type, TypeCompareKind.ConsiderEverything))
 
                 memberBindingDiagnostics.Clear()
             Next

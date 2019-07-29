@@ -185,12 +185,12 @@ Friend Module CompilationUtils
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If references Is Nothing Then references = {}
-        Dim allRefereces = {MscorlibRef, SystemRef, MsvbRef}.Concat(references)
+        Dim allReferences = {MscorlibRef, SystemRef, MsvbRef}.Concat(references)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
         End If
 
-        Return CreateEmptyCompilationWithReferences(source, allRefereces, options, parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, allReferences, options, parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -826,8 +826,8 @@ Friend Module CompilationUtils
 
                     Assert.True(False, .ToString())
                 Else
-                    Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                    Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim expectedLines = expectedText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim actualLines = actualText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
 
                     Dim appendedLines As Integer = 0
 
@@ -942,16 +942,16 @@ Friend Module CompilationUtils
             Dim sourceLocation = e.Location
             Dim offsetInLine As Integer = 0
             Dim lineText As String = GetLineText(sourceLocation.SourceTree.GetText(), sourceLocation.SourceSpan.Start, offsetInLine)
-            Return message + vbCrLf +
-                lineText + vbCrLf +
+            Return message + Environment.NewLine +
+                lineText + Environment.NewLine +
                 New String(" "c, offsetInLine) +
-                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + vbCrLf
+                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + Environment.NewLine
         ElseIf e.Location.IsInMetadata Then
-            Return message + vbCrLf +
-                String.Format("in metadata assembly '{0}'" + vbCrLf,
+            Return message + Environment.NewLine +
+                String.Format("in metadata assembly '{0}'" + Environment.NewLine,
                               e.Location.MetadataModule.ContainingAssembly.Identity.Name)
         Else
-            Return message + vbCrLf
+            Return message + Environment.NewLine
         End If
     End Function
 

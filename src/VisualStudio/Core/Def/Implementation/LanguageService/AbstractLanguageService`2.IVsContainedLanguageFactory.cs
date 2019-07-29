@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsContainedLanguageFactory
     {
-        private AbstractProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
+        private VisualStudioProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
-                    IntPtr service = IntPtr.Zero;
+                    var service = IntPtr.Zero;
                     if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out service) >= 0)
                     {
                         try
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            if (projectName == null)
+            if (string.IsNullOrEmpty(projectName))
             {
                 if (hierarchy is IVsContainedLanguageProjectNameProvider containedLanguageProjectNameProvider)
                 {
@@ -60,10 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.DeferredState.ProjectTracker.ImmutableProjects
-                .Where(p => p.Hierarchy == hierarchy)
-                .Where(p => p.ProjectSystemName == projectName)
-                .SingleOrDefault();
+            return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
         }
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

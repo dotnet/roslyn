@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Stream pdbStream = null,
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
-            IEnumerable<EmbeddedText> embeddedTexts = null)
+            IEnumerable<EmbeddedText> embeddedTexts = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            Stream metadataPEStream = null)
         {
             var peStream = new MemoryStream();
 
@@ -46,16 +48,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
                 }
 
-                pdbStream = new MemoryStream();
+                var discretePdb = (object)options != null && options.DebugInformationFormat != DebugInformationFormat.Embedded;
+                pdbStream = discretePdb ? new MemoryStream() : null;
             }
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
-                metadataPEStream: null,
+                metadataPEStream: metadataPEStream,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
-                manifestResources: null,
+                manifestResources: manifestResources,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,

@@ -7,8 +7,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -40,7 +41,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
-                RemoteFeatureOptions.DocumentHighlightingEnabled,
                 nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                 new object[]
                 {
@@ -61,6 +61,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
+            var result = await TryGetEmbeddedLanguageHighlightsAsync(
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefaultOrEmpty)
+            {
+                return result;
+            }
+
             // use speculative semantic model to see whether we are on a symbol we can do HR
             var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
@@ -83,6 +90,31 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return await GetTagsForReferencedSymbolAsync(
                 new SymbolAndProjectId(symbol, document.Project.Id),
                 document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+        {
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            if (languagesProvider != null)
+            {
+                foreach (var language in languagesProvider.Languages)
+                {
+                    var highlighter = (language as IEmbeddedLanguageFeatures)?.DocumentHighlightsService;
+                    if (highlighter != null)
+                    {
+                        var highlights = await highlighter.GetDocumentHighlightsAsync(
+                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+                        if (!highlights.IsDefaultOrEmpty)
+                        {
+                            return highlights;
+                        }
+                    }
+                }
+            }
+
+            return default;
         }
 
         private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
@@ -199,7 +231,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             var spanSet = new HashSet<DocumentSpan>();
             var tagMap = new MultiDictionary<Document, HighlightSpan>();
-            bool addAllDefinitions = true;
+            var addAllDefinitions = true;
 
             // Add definitions
             // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.

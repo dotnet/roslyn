@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
-            Dim currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers()
+            Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()

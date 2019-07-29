@@ -5,11 +5,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
     internal abstract class AbstractUseAutoPropertyAnalyzer<
-        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
@@ -20,11 +21,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions.PreferAutoProperties, s_title, s_title)
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract void AnalyzeCompilationUnit(SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults);
@@ -159,6 +159,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Property and field have to agree on type.
             if (!property.Type.Equals(getterField.Type))
+            {
+                return;
+            }
+
+            // Mutable value type fields are mutable unless they are marked read-only
+            if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
             {
                 return;
             }

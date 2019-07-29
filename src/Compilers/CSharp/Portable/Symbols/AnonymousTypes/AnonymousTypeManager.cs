@@ -46,24 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Retrieves anonymous type properties types
         /// </summary>
-        internal static ImmutableArray<TypeSymbol> GetAnonymousTypePropertyTypes(NamedTypeSymbol type)
+        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypePropertyTypesWithAnnotations(NamedTypeSymbol type)
         {
             Debug.Assert(type.IsAnonymousType);
             var anonymous = (AnonymousTypePublicSymbol)type;
             var fields = anonymous.TypeDescriptor.Fields;
-            TypeSymbol[] types = new TypeSymbol[fields.Length];
-            for (int i = 0; i < fields.Length; i++)
-            {
-                types[i] = fields[i].Type;
-            }
-            return types.AsImmutableOrNull();
+            return fields.SelectAsArray(f => f.TypeWithAnnotations);
         }
 
         /// <summary>
         /// Given an anonymous type and new field types construct a new anonymous type symbol; 
         /// a new type symbol will reuse type descriptor from the constructed type with new type arguments.
         /// </summary>
-        public static NamedTypeSymbol ConstructAnonymousTypeSymbol(NamedTypeSymbol type, ImmutableArray<TypeSymbol> newFieldTypes)
+        public static NamedTypeSymbol ConstructAnonymousTypeSymbol(NamedTypeSymbol type, ImmutableArray<TypeWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(type.IsAnonymousType);

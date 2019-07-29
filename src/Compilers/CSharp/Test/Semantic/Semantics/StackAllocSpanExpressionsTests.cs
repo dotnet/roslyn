@@ -298,9 +298,10 @@ class Test
         var x = true ? stackalloc int [10] : a;
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc int[10]' and 'Span<short>'
+                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'System.Span<int>' and 'System.Span<short>'
                 //         var x = true ? stackalloc int [10] : a;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : a").WithArguments("stackalloc int[10]", "System.Span<short>").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : a").WithArguments("System.Span<int>", "System.Span<short>").WithLocation(8, 17)
+            );
         }
 
         [Fact]
@@ -329,20 +330,26 @@ class Test
         [Fact]
         public void BooleanOperatorOnSpan_NoTargetTyping()
         {
-            CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 class Test
 {
     void M()
     {
         if(stackalloc int[10] == stackalloc int[10]) { }
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,12): error CS1525: Invalid expression term 'stackalloc'
+}";
+            CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,12): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         if(stackalloc int[10] == stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 12),
-                // (6,34): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 12),
+                // (6,34): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         if(stackalloc int[10] == stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 34)
+                );
+            CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,12): error CS0019: Operator '==' cannot be applied to operands of type 'Span<int>' and 'Span<int>'
+                //         if(stackalloc int[10] == stackalloc int[10]) { }
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == stackalloc int[10]").WithArguments("==", "System.Span<int>", "System.Span<int>").WithLocation(6, 12)
             );
         }
 
@@ -419,9 +426,10 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 16)
+            );
         }
 
         [Fact]
@@ -497,10 +505,15 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (7,31): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,31): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         ref Span<int> p = ref stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(7, 31)
+                );
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (7,31): error CS1510: A ref or out value must be an assignable variable
+                //         ref Span<int> p = ref stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "stackalloc int[1]").WithLocation(7, 31)
             );
         }
 
@@ -520,10 +533,12 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (7,11): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,11): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         N(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 11)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(7, 11)
+                );
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
             );
         }
 
@@ -539,10 +554,12 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(test, TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,23): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,23): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         int length = (stackalloc int [10]).Length;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 23)
+                );
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
             );
         }
 
@@ -564,10 +581,15 @@ unsafe public class Test
     static void Invoke(void* voidPointer) => Console.WriteLine(""voidPointer"");
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (7,16): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,16): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         Invoke(stackalloc int [10]);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(7, 16)
+                );
+            CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+                // (7,16): error CS1503: Argument 1: cannot convert from 'System.Span<int>' to 'System.Span<short>'
+                //         Invoke(stackalloc int [10]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "stackalloc int [10]").WithArguments("1", "System.Span<int>", "System.Span<short>").WithLocation(7, 16)
             );
         }
 
@@ -607,7 +629,7 @@ class Program
         [Fact]
         public void StackAllocAsArgument()
         {
-            CreateCompilation(@"
+            var source = @"
 class Program
 {
     static void N(object p) { }
@@ -616,45 +638,63 @@ class Program
     {
         N(stackalloc int[10]);
     }
-}").VerifyDiagnostics(
-                // (8,11): error CS1525: Invalid expression term 'stackalloc'
+}";
+            CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,11): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         N(stackalloc int[10]);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(8, 11)
+                );
+            CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (8,11): error CS1503: Argument 1: cannot convert from 'System.Span<int>' to 'object'
+                //         N(stackalloc int[10]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "stackalloc int[10]").WithArguments("1", "System.Span<int>", "object").WithLocation(8, 11)
+            );
         }
 
         [Fact]
         public void StackAllocInParenthesis()
         {
-            CreateCompilation(@"
+            var source = @"
 class Program
 {
     static void Main()
     {
         var x = (stackalloc int[10]);
     }
-}").VerifyDiagnostics(
-                // (6,18): error CS1525: Invalid expression term 'stackalloc'
+}";
+            CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,18): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = (stackalloc int[10]);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 18));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 18)
+                );
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                );
         }
 
         [Fact]
         public void StackAllocInNullConditionalOperator()
         {
-            CreateCompilation(@"
+            var source = @"
 class Program
 {
     static void Main()
     {
         var x = stackalloc int[1] ?? stackalloc int[2];
     }
-}").VerifyDiagnostics(
-                // (6,17): error CS1525: Invalid expression term 'stackalloc'
+}";
+            CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,17): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = stackalloc int[1] ?? stackalloc int[2];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 17),
-                // (6,38): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 17),
+                // (6,38): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = stackalloc int[1] ?? stackalloc int[2];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 38));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 38)
+                );
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (6,17): error CS0019: Operator '??' cannot be applied to operands of type 'Span<int>' and 'Span<int>'
+                //         var x = stackalloc int[1] ?? stackalloc int[2];
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[1] ?? stackalloc int[2]").WithArguments("??", "System.Span<int>", "System.Span<int>").WithLocation(6, 17)
+                );
         }
 
         [Fact]
@@ -699,7 +739,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[10]").WithArguments("S").WithLocation(9, 67),
                 // (9,86): error CS0306: The type 'S' may not be used as a type argument
                 //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86)
+                );
         }
 
         [Fact]

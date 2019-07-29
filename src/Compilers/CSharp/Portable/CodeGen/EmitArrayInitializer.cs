@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // NOTE: default values do not need to be initialized. 
-                    //       .Net arrays are always zero-inited.
+                    //       .NET arrays are always zero-inited.
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             if (elementCount < 0)
-            { 
+            {
                 return false;
             }
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // emitting a value that no one will see
                 return true;
             }
-            
+
             if (elementCount == 0)
             {
                 if (inPlace)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (EnablePEVerifyCompat())
+                if (IsPeVerifyCompatEnabled())
                 {
                     return false;
                 }

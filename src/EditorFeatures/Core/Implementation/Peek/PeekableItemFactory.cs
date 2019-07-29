@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         [ImportingConstructor]
-        private PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
             ISymbol symbol, Project project,
-            IPeekResultFactory peekResultFactory, 
+            IPeekResultFactory peekResultFactory,
             CancellationToken cancellationToken)
         {
             if (symbol == null)

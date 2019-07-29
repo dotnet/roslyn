@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return null;
             }
 
-            int end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
+            var end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
             if (end < 0 || end > snapshot.Length)
             {
                 return null;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
         public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
         {
-            int result = 0;
+            var result = 0;
             position = new SnapshotPoint();
 
             if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan());
         }
 
-        public static void GetLineAndColumn(this ITextSnapshot snapshot, int position, out int lineNumber, out int columnIndex)
+        public static void GetLineAndCharacter(this ITextSnapshot snapshot, int position, out int lineNumber, out int characterIndex)
         {
             var line = snapshot.GetLineFromPosition(position);
 
             lineNumber = line.LineNumber;
-            columnIndex = position - line.Start.Position;
+            characterIndex = position - line.Start.Position;
         }
 
         /// <summary>

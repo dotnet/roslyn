@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                 bool initializeLazily,
                  Registration registration)
             {
                 _logAggregator = new LogAggregator();
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
-                    listener, analyzerProviders, _registration,
+                    listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
 
                 var semanticBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
@@ -248,6 +249,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         ProcessDocumentEvent(args, asyncToken);
                         break;
                     default:
@@ -288,7 +293,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                        // If an additional file has changed we need to reanalyze the entire project.
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                        // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.AdditionalDocumentChanged, asyncToken);
                         break;
 
@@ -505,7 +514,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                     !object.Equals(oldProject.Name, newProject.Name) ||
-                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
@@ -597,7 +609,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private struct ReanalyzeScope
+        private readonly struct ReanalyzeScope
         {
             private readonly SolutionId _solutionId;
             private readonly ISet<object> _projectOrDocumentIds;
@@ -610,8 +622,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public ReanalyzeScope(IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
             {
-                projectIds = projectIds ?? SpecializedCollections.EmptyEnumerable<ProjectId>();
-                documentIds = documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
+                documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
 
                 _solutionId = null;
                 _projectOrDocumentIds = new HashSet<object>(projectIds);
@@ -735,26 +747,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     switch (projectOrDocumentId)
                     {
                         case ProjectId projectId:
-                        {
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
                             {
-                                foreach (var document in project.Documents)
+                                var project = solution.GetProject(projectId);
+                                if (project != null)
+                                {
+                                    foreach (var document in project.Documents)
+                                    {
+                                        yield return document;
+                                    }
+                                }
+                                break;
+                            }
+                        case DocumentId documentId:
+                            {
+                                var document = solution.GetDocument(documentId);
+                                if (document != null)
                                 {
                                     yield return document;
                                 }
+                                break;
                             }
-                            break;
-                        }
-                        case DocumentId documentId:
-                        {
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                yield return document;
-                            }
-                            break;
-                        }
                     }
                 }
             }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,10 +31,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   CodeStyleOptions.PreferThrowExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -44,8 +43,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected abstract bool IsSupported(ParseOptions options);
 

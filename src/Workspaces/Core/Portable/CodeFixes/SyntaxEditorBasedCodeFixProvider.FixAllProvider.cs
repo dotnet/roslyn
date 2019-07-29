@@ -58,15 +58,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
             }
 
-            private Task<Document> FixDocumentAsync(
+            private async Task<Document> FixDocumentAsync(
                 FixAllState fixAllState, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
                 // that want to update a document.
-                var filteredDiagnostics = diagnostics.WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(fixAllState, d))
+                // Also ensure that we do not pass in duplicates by invoking Distinct.
+                // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
+                var filteredDiagnostics = diagnostics.Distinct()
+                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(fixAllState, d, cancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
-                return _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
+
+                // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.
+                if (filteredDiagnostics.Length == 0)
+                {
+                    return document;
+                }
+
+                return await _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken).ConfigureAwait(false);
             }
         }
     }

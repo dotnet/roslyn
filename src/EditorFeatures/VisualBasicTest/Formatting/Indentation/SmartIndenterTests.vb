@@ -1,25 +1,17 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Text.Projection
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
     Public Class SmartIndenterTests
+        Inherits VisualBasicFormatterTestBase
+
         Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
@@ -110,7 +102,7 @@ $$WriteLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            ' Again, it doesn't matter where Console _is_ in this case - we format based on 
+            ' Again, it doesn't matter where Console _is_ in this case - we format based on
             ' where we think it _should_ be.  So the position is one indent level past the base
             ' for the nugget (where we think the statement should be), plus one more since it is
             ' a continuation
@@ -1261,6 +1253,7 @@ End Class</Code>.Value
                 expectedIndentation:=14)
         End Sub
 
+        <WpfFact>
         Public Sub TestQueryExpressionExplicitLineContinued()
             ' This should still follow indent of 'From', as in Dev10
 
@@ -1275,6 +1268,21 @@ End Class</Code>.Value
                 expectedIndentation:=26)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestQueryExpressionExplicitLineContinuedCommentsAfterLineContinuation()
+            ' This should still follow indent of 'From', as in Dev10
+
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = From c In From c2 in b _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=26)
+        End Sub
 #End Region
 
 #Region "Implicit line-continuation"
@@ -1355,7 +1363,7 @@ End Class</Code>.Value
         Public Sub TestImplicitLineContinuationExpression()
             Dim code = <Code>Class C
     Sub Method()
-        Dim a = 
+        Dim a =
 </Code>.Value
 
             AssertSmartIndent(
@@ -1420,12 +1428,42 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=12)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestMultipleExplicitLineContinuationsInExpression()
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
                     2 + _
                         3 + _
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=5,
+                expectedIndentation:=24)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestMultipleExplicitLineContinuationsInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+                    2 + _ ' Test
+                        3 + _ ' Test
 </Code>.Value
 
             AssertSmartIndent(
@@ -1449,9 +1487,35 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInFieldDeclarationCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Dim q _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=8)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInNamespaceCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute()> _ ' Test" & vbCrLf &
                        ""
 
             AssertSmartIndent(
@@ -1476,6 +1540,20 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationWithMultipleAttributesCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute1()> _ ' Test" & vbCrLf &
+                       "    <SomeAttribute2()> _ ' Test 1" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInClass()
             Dim code = "Namespace goo" & vbCrLf &
                        "    Class C" & vbCrLf &
@@ -1488,6 +1566,19 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInClassCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    Class C" & vbCrLf &
+                       "        <SomeAttribute()> _ ' Test" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=8)
+        End Sub
 #End Region
 
 #Region "Statement Separators"
@@ -1965,7 +2056,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        : 'comment   
+        : 'comment
         : Console.WriteLine("TEST")
 
     End Sub
@@ -2039,7 +2130,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter_LineContinuation()
             Dim code = <code>Class CL
-    Sub Method(Arg1 _ 
+    Sub Method(Arg1 _
 As Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
@@ -2054,7 +2145,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter_LineContinuation2()
             Dim code = <code>Class CL
-    Sub Method(Arg1 As _ 
+    Sub Method(Arg1 As _
 Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
@@ -2084,7 +2175,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestTypeParameter()
             Dim code = <code>Class CL
-    Sub Method(Of 
+    Sub Method(Of
 T, T2)()
     End Sub
 End Class</code>.Value
@@ -2131,7 +2222,7 @@ End Class</code>.Value
         Public Sub TestTypeArgument2()
             Dim code = <code>Class CL
     Sub Method(Of T, T2)()
-        Method(Of Integer, 
+        Method(Of Integer,
 Integer)()
     End Sub
 End Class</code>.Value
@@ -2342,7 +2433,7 @@ End Module
         Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
             Dim markup = <code>Option Strict Off
 Option Explicit On
- 
+
 Imports System
 Imports System.Collections.Generic
 Imports System.IO
@@ -2360,7 +2451,7 @@ Imports System.Web.UI
 Imports System.Web.WebPages
 Imports Szs.IssueTracking.Web
 Imports Zyxat.Util.Web.Mvc
- 
+
 Namespace ASP
 Public Class _Page_Views_Shared__DeleteModel_vbhtml
 Inherits System.Web.Mvc.WebViewPage(Of Zyxat.Util.Web.Mvc.IModelViewModel)
@@ -2374,54 +2465,54 @@ Return CType(Context.ApplicationInstance,System.Web.HttpApplication)
 End Get
 End Property
 Private Sub __RazorDesignTimeHelpers__()
- 
- 
+
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",1)
 Dim __inheritsHelper As Zyxat.Util.Web.Mvc.IModelViewModel = Nothing
- 
- 
+
+
 #End ExternalSource
- 
+
 End Sub
 Public Overrides Sub Execute()
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",2)
 If (Me.Model.ID > 0) Then
-  
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",3)
 __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",4)
-      
+
 Else
-  
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",5)
 __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",6)
-      
+
 End If
- 
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",7)
      __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",8)
    __o = {|S1:[|US.CS("ReallyDelete)
         @Me.Model.DisplayName
@@ -2437,8 +2528,8 @@ End If
     &lt;/div&gt;&lt;!-- /.modal-content --&gt;
   &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
 &lt;/div&gt;&lt;!-- /.modal --&gt;
- 
- 
+
+
 #End ExternalSource
 End Sub
 End Class
@@ -2490,7 +2581,8 @@ End Namespace
             AssertSmartIndent(
                 code,
                 indentationLine:=3,
-                expectedIndentation:=Nothing,
+                expectedIndentation:=0,
+                expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
@@ -2503,7 +2595,7 @@ End Namespace
     B
     C
 End Enum
- 
+
 Module Module1
     Function F(value As E) As Integer
         Select Case value
@@ -2878,8 +2970,9 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
-        Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
-                                                                    expectedIndentation As Integer)
+        Private Sub AssertSmartIndentIndentationInProjection(
+                markup As String,
+                expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
@@ -2894,88 +2987,22 @@ End Class
                 Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
-                TestIndentation(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
+                TestIndentation(
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
-        End Sub
-
-        Friend Shared Sub TestIndentation(point As Integer, expectedIndentation As Integer?, textView As ITextView, subjectDocument As TestHostDocument)
-            Dim snapshot = subjectDocument.TextBuffer.CurrentSnapshot
-            Dim indentationLineFromBuffer = snapshot.GetLineFromPosition(point)
-            Dim lineNumber = indentationLineFromBuffer.LineNumber
-
-            Dim textUndoHistory = New Mock(Of ITextUndoHistoryRegistry)
-            Dim editorOperationsFactory = New Mock(Of IEditorOperationsFactoryService)
-            Dim editorOperations = New Mock(Of IEditorOperations)
-            editorOperationsFactory.Setup(Function(x) x.GetEditorOperations(textView)).Returns(editorOperations.Object)
-
-            Dim commandHandler = New SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object)
-            commandHandler.ExecuteCommandWorker(New ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), CancellationToken.None)
-            Dim newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot
-
-            Dim actualIndentation As Integer?
-            If newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber Then
-                actualIndentation = newSnapshot.GetLineFromLineNumber(lineNumber).GetFirstNonWhitespaceOffset()
-            Else
-                Dim provider = New SmartIndent(textView)
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer)
-            End If
-
-            If actualIndentation Is Nothing Then
-                Dim x = 0
-            End If
-
-            Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Shared Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+        Private Sub AssertSmartIndent(
+                code As String, indentationLine As Integer,
+                expectedIndentation As Integer?,
+                Optional expectedBlankLineIndentation As Integer? = Nothing,
+                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                Dim buffer = workspace.Documents.First().GetTextBuffer()
+                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                SetIndentStyle(buffer, indentStyle)
-
-                Dim bufferGraph = New Mock(Of IBufferGraph)(MockBehavior.Strict)
-                bufferGraph.Setup(Function(x) x.MapUpToSnapshot(It.IsAny(Of SnapshotPoint)(),
-                                                                It.IsAny(Of PointTrackingMode)(),
-                                                                It.IsAny(Of PositionAffinity)(),
-                                                                It.IsAny(Of ITextSnapshot))).
-                    Returns(Of SnapshotPoint, PointTrackingMode, PositionAffinity, ITextSnapshot)(
-                        Function(p, m, a, s)
-                            Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
-                                            TestFormattingRuleFactoryServiceFactory.Factory)
-
-                            If factory IsNot Nothing AndAlso factory.BaseIndentation <> 0 AndAlso factory.TextSpan.Contains(p.Position) Then
-                                Dim line = p.GetContainingLine()
-                                Dim projectedOffset = line.GetFirstNonWhitespaceOffset().Value - factory.BaseIndentation
-                                Return New SnapshotPoint(p.Snapshot, p.Position - projectedOffset)
-                            End If
-
-                            Return p
-                        End Function)
-
-                WpfTestRunner.RequireWpfFact($"Test helper creates mocks of {NameOf(ITextView)}")
-
-                Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
-                textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)
-                textView.Setup(Function(x) x.BufferGraph).Returns(bufferGraph.Object)
-                textView.SetupGet(Function(x) x.TextSnapshot).Returns(buffer.CurrentSnapshot)
-
-                Using indenter = New SmartIndent(textView.Object)
-                    Dim indentationLineFromBuffer = buffer.CurrentSnapshot.GetLineFromLineNumber(indentationLine)
-                    Dim actualIndentation = indenter.GetDesiredIndentation(indentationLineFromBuffer)
-
-                    If expectedIndentation.HasValue Then
-                        Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
-                    Else
-                        Assert.Null(actualIndentation)
-                    End If
-                End Using
+                TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using
-        End Sub
-
-        Friend Shared Sub SetIndentStyle(buffer As ITextBuffer, indentStyle As FormattingOptions.IndentStyle)
-            Dim workspace = buffer.GetWorkspace()
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
         End Sub
     End Class
 End Namespace

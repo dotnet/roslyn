@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -129,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return new TodoItem(
                 comment.Descriptor.Priority,
                 comment.Message,
-                document.Project.Solution.Workspace,
                 document.Id,
                 mappedLine: mappedLineInfo.StartLinePosition.Line,
                 originalLine: originalLineInfo.StartLinePosition.Line,

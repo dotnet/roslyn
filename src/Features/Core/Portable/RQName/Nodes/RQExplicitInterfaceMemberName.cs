@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public RQExplicitInterfaceMemberName(RQType interfaceType, RQOrdinaryMethodPropertyOrEventName name)
         {
-            this.InterfaceType = interfaceType;
-            this.Name = name;
+            InterfaceType = interfaceType;
+            Name = name;
         }
 
         public override string OrdinaryNameValue

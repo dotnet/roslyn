@@ -75,15 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.StructDeclaration,
         };
 
+        public static readonly ISet<SyntaxKind> ClassInterfaceTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InterfaceDeclaration,
+            SyntaxKind.ClassDeclaration,
+        };
+
         public static readonly ISet<SyntaxKind> ClassStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
             SyntaxKind.StructDeclaration,
-        };
-
-        public static readonly ISet<SyntaxKind> ClassOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.ClassDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

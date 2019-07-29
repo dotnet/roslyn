@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract ISyntaxFactsService SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
+        internal abstract SyntaxTrivia Whitespace(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -863,11 +864,25 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
             => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
-        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        /// <summary>
+        /// Removes comments from leading and trailing trivia, as well
+        /// as potentially removing comments from opening and closing tokens.
+        /// </summary>
+        internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
+
+        internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
         {
-            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
-                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+            return node.WithLeadingTrivia(RemoveCommentLines(node.GetLeadingTrivia()))
+                .WithTrailingTrivia(RemoveCommentLines(node.GetTrailingTrivia()));
         }
+
+        internal SyntaxToken RemoveLeadingAndTrailingComments(SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(RemoveCommentLines(token.LeadingTrivia))
+                .WithTrailingTrivia(RemoveCommentLines(token.TrailingTrivia));
+        }
+
+        internal abstract SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList);
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
 
@@ -1081,6 +1096,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the list of parameters for the declaration.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
+
+        internal abstract SyntaxNode GetParameterListNode(SyntaxNode declaration);
 
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
@@ -1418,6 +1435,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
 
         /// <summary>
+        /// True if <see cref="ThrowExpression"/> can be used
+        /// </summary>
+        internal abstract bool SupportsThrowExpression();
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(
@@ -1567,6 +1589,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a while-loop statement
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Creates a block of statements. Not supported in VB.
+        /// </summary>
+        internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
 
         #endregion
 
@@ -2216,6 +2243,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
         /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression);
+
+        /// <summary>
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
@@ -2224,6 +2256,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        #endregion
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
 
         #endregion
     }

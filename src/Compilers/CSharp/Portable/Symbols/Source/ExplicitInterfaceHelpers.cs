@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -42,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return name;
             }
 
-            // Avoid checking constraints when binding explicit interface type since
+            // Avoid checking constraints context when binding explicit interface type since
             // that might result in a recursive attempt to bind the containing class.
             binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
-            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics);
+            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).Type;
             aliasQualifierOpt = explicitInterfaceName.GetAliasQualifierOpt();
             return GetMemberName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
         }
@@ -176,12 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var memberLocation = implementingMember.Locations[0];
             var containingType = implementingMember.ContainingType;
-            var containingTypeKind = containingType.TypeKind;
 
-            if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
+            switch (containingType.TypeKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
-                return null;
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Interface:
+                    break;
+
+                default:
+                    diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
+                    return null;
             }
 
             if (!explicitInterfaceType.IsInterfaceType())
@@ -198,13 +205,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // 13.4.1: "For an explicit interface member implementation to be valid, the class or struct must name an
             // interface in its base class list that contains a member ..."
-            if (!containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(explicitInterfaceNamedType))
+            MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
+            int setCount = set.Count;
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);
+                }
+
                 //do a lookup anyway
             }
 
@@ -218,10 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
-                // At this point, we know that explicitInterfaceNamedType is an interface, so candidate must be public
-                // and, therefore, accessible.  So we don't need to check that.
+                // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || interfaceMember.IsStatic)
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;
                 }
@@ -261,9 +277,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
+            // Make sure implemented member is accessible
+            if ((object)implementedMember != null)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
+                }
+                else
+                {
+                    switch (implementedMember.Kind)
+                    {
+                        case SymbolKind.Property:
+                            var propertySymbol = (PropertySymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.GetMethod);
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.SetMethod);
+                            break;
+
+                        case SymbolKind.Event:
+                            var eventSymbol = (EventSymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.AddMethod);
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.RemoveMethod);
+                            break;
+                    }
+
+                    void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
+                    {
+                        if (accessor.IsImplementable() &&
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
+                        }
+                    }
+                }
+
+                diagnostics.Add(memberLocation, useSiteDiagnostics);
+            }
+
+            return implementedMember;
+        }
+
+        internal static void FindExplicitlyImplementedMemberVerification(
+            this Symbol implementingMember,
+            Symbol implementedMember,
+            DiagnosticBag diagnostics)
+        {
+            if ((object)implementedMember == null)
+            {
+                return;
+            }
+
             if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
                 // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
+                var memberLocation = implementingMember.Locations[0];
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
 
@@ -272,8 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // tried to implement the ambiguous interface implicitly, we would separately raise an error about
             // the implicit implementation methods differing by only ref/out.
             FindExplicitImplementationCollisions(implementingMember, implementedMember, diagnostics);
-
-            return implementedMember;
         }
 
         /// <summary>

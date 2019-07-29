@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -9,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
 {
-    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind> 
+    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind>
         : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             FeaturesResources.ResourceManager,
             typeof(FeaturesResources));
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticID,
             Title,
             MessageFormat,
@@ -46,13 +45,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         /// this regex is used to remove escaped brackets from
         /// the format string before looking for valid {} pairs
         /// </summary>
-        private static Regex s_removeEscapedBracketsRegex = new Regex("{{");
+        private static readonly Regex s_removeEscapedBracketsRegex = new Regex("{{");
 
         /// <summary>
         /// this regex is used to extract the text between the
         /// brackets and save the contents in a MatchCollection
         /// </summary>
-        private static Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private static readonly Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
@@ -65,6 +64,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             context.RegisterCompilationStartAction(startContext =>
             {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 syntaxFacts);
 
             if (formatStringLiteralExpressionSyntax == null)
-            { 
+            {
                 return;
             }
 
@@ -298,7 +298,16 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var containingType = (INamedTypeSymbol)symbolInfo.Symbol.ContainingSymbol;
+            if (((IMethodSymbol)symbolInfo.Symbol).MethodKind == MethodKind.LocalFunction)
+            {
+                return null;
+            }
+
+            var containingType = symbolInfo.Symbol.ContainingType;
+            if (containingType == null)
+            {
+                return null;
+            }
 
             if (containingType.SpecialType != SpecialType.System_String)
             {
@@ -350,11 +359,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     var invalidPlaceholderLocation = Location.Create(
                         context.Node.SyntaxTree,
                         new Text.TextSpan(
-                            formatStringPosition + match.Index, 
+                            formatStringPosition + match.Index,
                             invalidPlaceholderText.Length));
                     var diagnostic = Diagnostic.Create(
                         Rule,
-                        invalidPlaceholderLocation, 
+                        invalidPlaceholderLocation,
                         invalidPlaceholderText);
                     context.ReportDiagnostic(diagnostic);
                 }
@@ -372,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             => s_removeEscapedBracketsRegex.Replace(formatString, "  ");
 
         private static bool PlaceholderIndexIsValid(
-            string textInsideBrackets, 
+            string textInsideBrackets,
             int numberOfPlaceholderArguments)
         {
             var placeholderIndexText = textInsideBrackets.IndexOf(",") > 0

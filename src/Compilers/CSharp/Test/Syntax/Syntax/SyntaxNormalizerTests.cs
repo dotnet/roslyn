@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+
+            TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
 
         private void TestNormalizeExpression(string text, string expected)
@@ -547,6 +549,18 @@ $"  ///  </summary>{Environment.NewLine}" +
             var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
             var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(29390, "https://github.com/dotnet/roslyn/issues/29390")]
+        public void TestNormalizeTuples()
+        {
+            TestNormalizeDeclaration("new(string prefix,string uri)[10]", "new (string prefix, string uri)[10]");
+            TestNormalizeDeclaration("(string prefix,string uri)[]ns", "(string prefix, string uri)[] ns");
+            TestNormalizeDeclaration("(string prefix,(string uri,string help))ns", "(string prefix, (string uri, string help)) ns");
+            TestNormalizeDeclaration("(string prefix,string uri)ns", "(string prefix, string uri) ns");
+            TestNormalizeDeclaration("public void Foo((string prefix,string uri)ns)", "public void Foo((string prefix, string uri) ns)");
+            TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

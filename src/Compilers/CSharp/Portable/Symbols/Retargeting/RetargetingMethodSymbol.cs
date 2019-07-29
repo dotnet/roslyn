@@ -4,13 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -36,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -51,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbol _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -108,17 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
                 if (IsGenericMethod)
                 {
-                    return StaticCast<TypeSymbol>.From(this.TypeParameters);
+                    return GetTypeParametersAsTypeArguments();
                 }
                 else
                 {
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeWithAnnotations>.Empty;
                 }
             }
         }
@@ -131,24 +126,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                if ((object)_lazyReturnType == null)
+                if (_lazyReturnType.IsDefault)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    _lazyReturnType = type.AsDynamicIfNoPia(this.ContainingType);
+                    _lazyReturnType = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType);
                 }
                 return _lazyReturnType;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return CustomModifiersTuple.TypeCustomModifiers;
             }
         }
 
@@ -156,17 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return CustomModifiersTuple.RefCustomModifiers;
-            }
-        }
-
-        private CustomModifiersTuple CustomModifiersTuple
-        {
-            get
-            {
-                return RetargetingTranslator.RetargetModifiers(
-                    _underlyingMethod.ReturnTypeCustomModifiers, _underlyingMethod.RefCustomModifiers,
-                    ref _lazyCustomModifiers);
+                return RetargetingTranslator.RetargetModifiers(_underlyingMethod.RefCustomModifiers, ref _lazyRefCustomModifiers);
             }
         }
 

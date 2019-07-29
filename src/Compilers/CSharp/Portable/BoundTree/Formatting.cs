@@ -150,7 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundStackAllocArrayCreation
     {
         public override object Display
-            => FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString());
+            => (Type is null) ? FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString()) : base.Display;
+    }
+
+    internal partial class BoundUnconvertedSwitchExpression
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureSwitchExpression.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

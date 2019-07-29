@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public static bool ContainPreprocessorCrossOver(this IEnumerable<SyntaxToken> tokens, TextSpan textSpan)
         {
-            int activeRegions = 0;
-            int activeIfs = 0;
+            var activeRegions = 0;
+            var activeIfs = 0;
 
             foreach (var trivia in tokens.GetAllTrivia())
             {
@@ -261,11 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public static bool IsExpression(this SyntaxNode node)
         {
             return node is ExpressionSyntax;
-        }
-
-        public static bool IsErrorType(this ITypeSymbol type)
-        {
-            return type == null || type.Kind == SymbolKind.ErrorType;
         }
 
         public static bool IsObjectType(this ITypeSymbol type)

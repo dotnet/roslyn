@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("AttributeSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public AttributeSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
+                GetPostambleParts(),
                 GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken));
             return item;
         }
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
-            for (int i = 0; i < namedParameters.Count; i++)
+            for (var i = 0; i < namedParameters.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

@@ -84,6 +84,48 @@ class goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task PrivateNullableFieldToPropertyIgnoringReferences()
+        {
+            var text = @"#nullable enable
+class goo
+{
+    private string? b[|a|]r;
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+
+            var expected = @"#nullable enable
+class goo
+{
+    private string? bar;
+
+    public string? Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+            await TestAllOptionsOffAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyUpdatingReferences()
         {
             var text = @"
@@ -164,7 +206,7 @@ class goo
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected,
                 options: OptionsSet(
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
@@ -1112,7 +1154,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|iyi|];
-}", 
+}",
 @"class C
 {
     int iyi;
@@ -1143,7 +1185,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|ırak|];
-}", 
+}",
 @"class C
 {
     int ırak;
@@ -1174,7 +1216,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|بيت|];
-}", 
+}",
 @"class C
 {
     int بيت;
@@ -1205,7 +1247,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|árbol|];
-}", 
+}",
 @"class C
 {
     int árbol;
@@ -1236,7 +1278,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|σκύλος|];
-}", 
+}",
 @"class C
 {
     int σκύλος;
@@ -1323,7 +1365,7 @@ class C
 @"class C
 {
     int [|i|];
-}", 
+}",
 @"class C
 {
     int i;

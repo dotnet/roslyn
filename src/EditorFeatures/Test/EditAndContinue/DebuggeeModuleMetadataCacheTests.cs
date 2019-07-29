@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
         {
             var cache = new DebuggeeModuleInfoCache();
             Assert.False(cache.Remove(Guid.NewGuid()));
-            
+
             var mvid1 = Guid.NewGuid();
 
             var metadata1 = ModuleMetadata.CreateFromImage((IntPtr)1, 1);

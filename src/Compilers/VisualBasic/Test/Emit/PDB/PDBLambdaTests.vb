@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBLambdaTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleLambda()
             Dim source =
 <compilation>
@@ -73,7 +73,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LambdaMethod()
             Dim source =
 <compilation>
@@ -156,7 +156,69 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        Public Sub NestedLambdaFunction()
+            Dim source = "
+Class C
+    Sub F()
+        Dim f = Function(a) Function(b) b + 1
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll)
+
+            ' Notice the that breakpoint spans of the inner function overlap with the breakpoint span of the outer function body
+            ' and that the two sequence points have the same start position.
+            ' Dim f = Function(a) [|[|Function(b)|] b + 1|]
+
+            compilation.VerifyPdb("C+_Closure$__._Lambda$__1-0",
+ <symbols>
+     <files>
+         <file id="1" name="" language="VB"/>
+     </files>
+     <methods>
+         <method containingType="C+_Closure$__" name="_Lambda$__1-0" parameterNames="a">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="21" offset="8"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="4" startColumn="17" endLine="4" endColumn="28" document="1"/>
+                 <entry offset="0x1" startLine="4" startColumn="29" endLine="4" endColumn="46" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x2a">
+                 <importsforward declaringType="C" methodName="F"/>
+             </scope>
+         </method>
+     </methods>
+ </symbols>)
+
+            compilation.VerifyPdb("C+_Closure$__._Lambda$__1-1",
+<symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
+    <methods>
+        <method containingType="C+_Closure$__" name="_Lambda$__1-1" parameterNames="b">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="20"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="29" endLine="4" endColumn="40" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="41" endLine="4" endColumn="46" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x12">
+                <importsforward declaringType="C" methodName="F"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(544000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544000")>
         Public Sub TestLambdaNameStability()
             Dim source =
@@ -183,7 +245,7 @@ end class
             AssertXml.Equal(actual1, actual2)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestFunctionValueLocalOfLambdas()
             Dim source =
             <compilation>
@@ -231,7 +293,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartiallyDefinedClass_1()
             Dim source =
 <compilation>
@@ -323,7 +385,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartiallyDefinedClass_2()
             Dim source =
 <compilation>
@@ -412,7 +474,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartiallyDefinedClass_3()
             Dim source =
 <compilation>
@@ -478,7 +540,7 @@ End Class
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery()
             Dim source =
 <compilation>
@@ -641,7 +703,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_01()
             Dim source =
 <compilation>
@@ -722,7 +784,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_02()
             Dim source =
 <compilation>
@@ -830,7 +892,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_03()
             Dim source =
 <compilation>
@@ -920,7 +982,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_04()
             Dim source =
 <compilation>
@@ -1019,7 +1081,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_05()
             Dim source =
 <compilation>
@@ -1109,7 +1171,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_06()
             Dim source =
 <compilation>
@@ -1199,7 +1261,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_07()
             Dim source =
 <compilation>
@@ -1290,7 +1352,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_08()
             Dim source =
 <compilation>
@@ -1399,7 +1461,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_09()
             Dim source =
 <compilation>
@@ -1522,7 +1584,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_10()
             Dim source =
 <compilation>
@@ -1632,7 +1694,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_11()
             Dim source =
 <compilation>
@@ -1809,7 +1871,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_12()
             Dim source =
 <compilation>
@@ -1931,7 +1993,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_13()
             Dim source =
 <compilation>
@@ -2031,7 +2093,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_14()
             Dim source =
 <compilation>
@@ -2131,7 +2193,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_15()
             Dim source =
 <compilation>
@@ -2231,7 +2293,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_16()
             Dim source =
 <compilation>
@@ -2309,7 +2371,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_17()
             Dim source =
 <compilation>
@@ -2387,7 +2449,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_18()
             Dim source =
 <compilation>
@@ -2489,7 +2551,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_19()
             Dim source =
 <compilation>
@@ -2609,7 +2671,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_20()
             Dim source =
 <compilation>
@@ -2731,7 +2793,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_21()
             Dim source =
 <compilation>
@@ -2840,7 +2902,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_22()
             Dim source =
 <compilation>
@@ -2959,7 +3021,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_23()
             Dim source =
 <compilation>
@@ -3078,7 +3140,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_24()
             Dim source =
 <compilation>
@@ -3189,7 +3251,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_25()
             Dim source =
 <compilation>
@@ -3319,7 +3381,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_26()
             Dim source =
 <compilation>
@@ -3458,7 +3520,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_27()
             Dim source =
 <compilation>
@@ -3492,7 +3554,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3578,7 +3640,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_28()
             Dim source =
 <compilation>
@@ -3612,7 +3674,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3717,7 +3779,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_29()
             Dim source =
 <compilation>
@@ -3751,7 +3813,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3865,7 +3927,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_30()
             Dim source =
 <compilation>
@@ -3894,7 +3956,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3958,7 +4020,7 @@ End Module
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_31()
             Dim source =
 <compilation>
@@ -3987,7 +4049,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -4062,7 +4124,7 @@ End Module
         End Sub
 
         <WorkItem(841361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_32()
             Dim source =
 <compilation>
@@ -4087,7 +4149,7 @@ End Module
             compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-0",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+_Closure$__" name="_Lambda$__0-0" parameterNames="a">

@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Dim newArg = New TypeWithModifiers(DirectCast(arg.Type.Accept(Me, RetargetOptions.RetargetPrimitiveTypesByTypeCode), TypeSymbol),
                                                        RetargetModifiers(arg.CustomModifiers, modifiersHaveChanged))
 
-                    If Not anythingRetargeted AndAlso (modifiersHaveChanged OrElse newArg.Type <> arg.Type) Then
+                    If Not anythingRetargeted AndAlso (modifiersHaveChanged OrElse Not TypeSymbol.Equals(newArg.Type, arg.Type, TypeCompareKind.ConsiderEverything)) Then
                         anythingRetargeted = True
                     End If
 
@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     If retargetedMember.Kind = SymbolKind.Event Then
                         Dim retargetedEvent = DirectCast(retargetedMember, EventSymbol)
 
-                        If retargetedEvent.Type = retargetedEventType Then
+                        If TypeSymbol.Equals(retargetedEvent.Type, retargetedEventType, TypeCompareKind.ConsiderEverything) Then
                             Return retargetedEvent
                         End If
                     End If

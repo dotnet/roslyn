@@ -1,0 +1,8 @@
+Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll
+Microsoft.Internal.Performance.CodeMarkers.DesignTime.dll
+Progression\Microsoft.VisualStudio.Progression.CodeSchema.dll
+Progression\Microsoft.VisualStudio.Progression.Common.dll
+Progression\Microsoft.VisualStudio.Progression.Interfaces.dll
+StaticAnalysis\Microsoft.VisualStudio.CodeAnalysis.Sdk.UI.dll
+VMP\Microsoft.VisualStudio.GraphModel.dll
+VSTelemetryPackage\Microsoft.VisualStudio.Telemetry.dll

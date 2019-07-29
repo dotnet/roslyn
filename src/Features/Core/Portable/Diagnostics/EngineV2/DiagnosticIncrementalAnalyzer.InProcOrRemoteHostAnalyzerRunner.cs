@@ -46,13 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var workspace = project.Solution.Workspace;
-                if (!workspace.Options.GetOption(RemoteFeatureOptions.DiagnosticsEnabled))
-                {
-                    // diagnostic service running on remote host is disabled. just run things in in proc
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-                }
-
-                var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
+                var service = workspace.Services.GetService<IRemoteHostClientService>();
                 if (service == null)
                 {
                     // host doesn't support RemoteHostService such as under unit test
@@ -66,20 +60,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, remoteHostClient, cancellationToken);
-                var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
-
-                // run them concurrently in vs and remote host
-                await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
-
-                // make sure things are not cancelled
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // merge 2 results
-                return DiagnosticAnalysisResultMap.Create(
-                    inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                    inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
+                // that are not part of roslyn solution. these host analyzers must be sync to OOP before hand by the Host. 
+                return await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
@@ -110,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
 
-                return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
+                return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
             }
 
             private async Task FireAndForgetReportAnalyzerPerformanceAsync(Project project, RemoteHostClient client, AnalysisResult analysisResult, CancellationToken cancellationToken)
@@ -148,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
-                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
+                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -180,18 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return result;
                     }
                 }
-            }
-
-            private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
-            {
-                var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
-                if (analyzers.Length == 0)
-                {
-                    // return null since we can't create CompilationWithAnalyzers with 0 analyzers
-                    return null;
-                }
-
-                return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
             }
 
             private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
@@ -231,10 +202,9 @@ This data should always be correct as we're never persisting the data between se
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
             {
-                foreach (var kv in exceptions)
+                foreach (var (analyzer, diagnostics) in exceptions)
                 {
-                    var analyzer = kv.Key;
-                    foreach (var diagnostic in kv.Value)
+                    foreach (var diagnostic in diagnostics)
                     {
                         _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }

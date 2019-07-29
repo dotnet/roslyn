@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If propertySym IsNot Nothing Then
                     lValue = New BoundPropertyAccess(identifierName, propertySym, Nothing, PropertyAccessKind.Set, Not isReadOnly, Nothing, ImmutableArray(Of BoundExpression).Empty, defaultArguments:=BitVector.Null, hasErrors)
-                    Debug.Assert(lValue.Type = fieldOrPropType)
+                    Debug.Assert(TypeSymbol.Equals(lValue.Type, fieldOrPropType, TypeCompareKind.ConsiderEverything))
                 ElseIf fieldSym IsNot Nothing Then
                     lValue = New BoundFieldAccess(identifierName, Nothing, fieldSym, True, fieldOrPropType, hasErrors)
                 Else

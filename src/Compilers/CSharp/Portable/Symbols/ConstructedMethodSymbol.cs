@@ -9,22 +9,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
     {
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
 
-        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeSymbol> typeArguments)
+        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
             : base(containingSymbol: constructedFrom.ContainingType,
-                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)),
+                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
                    originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom)
         {
-            _typeArguments = typeArguments;
+            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return _typeArguments;
+                return _typeArgumentsWithAnnotations;
             }
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ConstructedFrom.TupleUnderlyingMethod?.Construct(_typeArguments);
+                return ConstructedFrom.TupleUnderlyingMethod?.Construct(_typeArgumentsWithAnnotations);
             }
         }
     }

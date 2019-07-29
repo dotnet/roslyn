@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -49,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
+        internal abstract CodeFixCategory CodeFixCategory { get; }
+
         protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
 
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Only one of these two overloads needs to be overridden if you want to customize
         /// behavior.
         /// </summary>
-        protected virtual bool IncludeDiagnosticDuringFixAll(FixAllState fixAllState, Diagnostic diagnostic)
+        protected virtual bool IncludeDiagnosticDuringFixAll(FixAllState fixAllState, Diagnostic diagnostic, CancellationToken cancellationToken)
             => IncludeDiagnosticDuringFixAll(diagnostic);
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// here. If only the diagnostic needs to be queried to make this determination, only this
         /// overload needs to be overridden.  However, if information from <see cref="FixAllState"/>
         /// is needed (for example <see cref="FixAllState.CodeActionEquivalenceKey"/>), then <see
-        /// cref="IncludeDiagnosticDuringFixAll(FixAllState, Diagnostic)"/>
+        /// cref="IncludeDiagnosticDuringFixAll(FixAllState, Diagnostic, CancellationToken)"/>
         /// should be overridden instead.
         ///
         /// Only one of these two overloads needs to be overridden if you want to customize

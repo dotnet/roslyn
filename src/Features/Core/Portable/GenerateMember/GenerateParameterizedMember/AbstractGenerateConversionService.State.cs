@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     }
                 }
 
-                return TryFinishInitializingState(service, document, cancellationToken);
+                return TryFinishInitializingStateAsync(service, document, cancellationToken);
             }
 
             private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
@@ -60,17 +60,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.location = node.GetLocation();
-                this.MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                location = node.GetLocation();
+                MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
                 return true;
             }
 
@@ -84,16 +84,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
                 return true;
             }
         }

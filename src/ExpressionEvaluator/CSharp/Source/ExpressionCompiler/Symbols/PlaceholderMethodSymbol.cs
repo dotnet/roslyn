@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly NamedTypeSymbol _container;
         private readonly string _name;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly TypeSymbol _returnType;
+        private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal PlaceholderMethodSymbol(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _container = container;
             _name = name;
             _typeParameters = getTypeParameters(this);
-            _returnType = getReturnType(this);
+            _returnType = TypeWithAnnotations.Create(getReturnType(this));
             _parameters = getParameters(this);
         }
 
@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override bool IsDeclaredReadOnly => false;
+
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }
@@ -148,19 +150,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return _returnType; }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return true; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -168,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

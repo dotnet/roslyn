@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -886,6 +888,22 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
                      expected: Diagnostic("AD0001")
                      .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        public void TestAnalyzerWithNullDescriptor()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
+            var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
 
@@ -2439,7 +2457,7 @@ internal class Derived : Base
         {
             string source = @"class C { void M(int p = 0) { int x = 1 + 2; } }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (1,35): warning CS0219: The variable 'x' is assigned but its value is never used
                 // class C { void M(int p = 0) { int x = 1 + 2; } }
@@ -2464,7 +2482,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
                   Left: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: 
@@ -2750,7 +2768,7 @@ namespace N5
         }
 
         [Fact]
-        private void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
         {
             testCore("SymbolStartTopLevelRuleId", topLevel: true);
             testCore("SymbolStartRuleId", topLevel: false);
@@ -2896,6 +2914,111 @@ namespace N5
                 Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer5").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestInvocationInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        M();
+    }
+
+    private static void M() { }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.Invocation) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "M()", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestFieldReferenceInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        var x = _field;
+    }
+
+    private static int _field = 0;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.NamedType, OperationKind.FieldReference) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "_field", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(922802, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/922802")]
+        public async Task TestAnalysisScopeForGetAnalyzerSemanticDiagnosticsAsync()
+        {
+            string source1 = @"
+partial class B
+{
+    private int _field1 = 1;
+}";
+            string source2 = @"
+partial class B
+{
+    private int _field2 = 2;
+}";
+            string source3 = @"
+class C
+{
+    private int _field3 = 3;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Field, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Field, analyzerId: 2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2));
+
+            // Invoke "GetAnalyzerSemanticDiagnosticsAsync" for a single analyzer on a single tree and
+            // ensure that the API respects the requested analysis scope:
+            // 1. It should never force analyze the non-requested analyzer.
+            // 2. It should only analyze the requested tree. If the requested tree has partial type declaration(s),
+            //    then it should also analyze additional trees with other partial declarations for partial types in the original tree,
+            //    but not other tree.
+            var tree1SemanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel1, filterSpan: null, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1), CancellationToken.None);
+            Assert.Equal(2, analyzer1.SymbolsStarted.Count);
+            var sortedSymbolNames = analyzer1.SymbolsStarted.Select(s => s.Name).ToImmutableSortedSet();
+            Assert.Equal("_field1", sortedSymbolNames[0]);
+            Assert.Equal("_field2", sortedSymbolNames[1]);
+            Assert.Empty(analyzer2.SymbolsStarted);
+            Assert.Empty(tree1SemanticDiagnostics);
         }
     }
 }

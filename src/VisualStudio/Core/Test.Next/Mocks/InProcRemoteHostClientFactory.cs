@@ -13,9 +13,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
+        [ImportingConstructor]
+        public InProcRemoteHostClientFactory()
+        {
+        }
+
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: cancellationToken);
+            return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
         }
     }
 }

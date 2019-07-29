@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,8 +36,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo info)
-            : this(new SolutionState(workspace, info))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
+            : this(new SolutionState(workspace, solutionAttributes))
         {
         }
 
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis
 
         internal BranchId BranchId => _state.BranchId;
 
-        internal ProjectState GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
+        internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string FilePath => _state.FilePath;
+        public string? FilePath => _state.FilePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A list of all the projects contained by the solution.
         /// </summary>
-        public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id));
+        public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
 
         /// <summary>
         /// The version of the most recently modified project.
@@ -85,16 +89,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the solution contains a project with the specified project ID.
         /// </summary>
-        public bool ContainsProject(ProjectId projectId) => _state.ContainsProject(projectId);
+        public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => _state.ContainsProject(projectId);
 
         /// <summary>
         /// Gets the project in this solution with the specified project ID. 
         /// 
         /// If the id is not an id of a project that is part of this solution the method returns null.
         /// </summary>
-        public Project GetProject(ProjectId projectId)
+        public Project? GetProject(ProjectId? projectId)
         {
-            // ContainsProject checks projectId being null
             if (this.ContainsProject(projectId))
             {
                 return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public Project GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
+        public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
         {
             var projectState = _state.GetProjectState(assemblySymbol, cancellationToken);
 
@@ -122,22 +125,27 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the solution contains the document in one of its projects
         /// </summary>
-        public bool ContainsDocument(DocumentId documentId) => _state.ContainsDocument(documentId);
+        public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsDocument(documentId);
 
         /// <summary>
         /// True if the solution contains the additional document in one of its projects
         /// </summary>
-        public bool ContainsAdditionalDocument(DocumentId documentId) => _state.ContainsAdditionalDocument(documentId);
+        public bool ContainsAdditionalDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAdditionalDocument(documentId);
+
+        /// <summary>
+        /// True if the solution contains the analyzer config document in one of its projects
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
 
         /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
-        public DocumentId GetDocumentId(SyntaxTree syntaxTree) => GetDocumentId(syntaxTree, projectId: null);
+        public DocumentId? GetDocumentId(SyntaxTree? syntaxTree) => GetDocumentId(syntaxTree, projectId: null);
 
         /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
-        public DocumentId GetDocumentId(SyntaxTree syntaxTree, ProjectId projectId)
+        public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
             if (syntaxTree != null)
             {
@@ -159,12 +167,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
-        public Document GetDocument(DocumentId documentId)
+        public Document? GetDocument(DocumentId? documentId)
         {
-            // ContainsDocument checks documentId being null
             if (this.ContainsDocument(documentId))
             {
-                return this.GetProject(documentId.ProjectId).GetDocument(documentId);
+                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
             }
 
             return null;
@@ -173,11 +180,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the additional document in this solution with the specified document ID.
         /// </summary>
-        public TextDocument GetAdditionalDocument(DocumentId documentId)
+        public TextDocument? GetAdditionalDocument(DocumentId? documentId)
         {
-            if (documentId != null && this.ContainsAdditionalDocument(documentId))
+            if (this.ContainsAdditionalDocument(documentId))
             {
-                return this.GetProject(documentId.ProjectId).GetAdditionalDocument(documentId);
+                return this.GetProject(documentId.ProjectId)!.GetAdditionalDocument(documentId);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId? documentId)
+        {
+            if (this.ContainsAnalyzerConfigDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId)!.GetAnalyzerConfigDocument(documentId);
             }
 
             return null;
@@ -186,12 +206,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
-        public Document GetDocument(SyntaxTree syntaxTree)
+        public Document? GetDocument(SyntaxTree? syntaxTree)
         {
             return this.GetDocument(syntaxTree, projectId: null);
         }
 
-        internal Document GetDocument(SyntaxTree syntaxTree, ProjectId projectId)
+        internal Document? GetDocument(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
             if (syntaxTree != null)
             {
@@ -222,7 +242,7 @@ namespace Microsoft.CodeAnalysis
         public Project AddProject(string name, string assemblyName, string language)
         {
             var id = ProjectId.CreateNewId(debugName: name);
-            return this.AddProject(id, name, assemblyName, language).GetProject(id);
+            return this.AddProject(id, name, assemblyName, language).GetProject(id)!;
         }
 
         /// <summary>
@@ -279,7 +299,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public Solution WithProjectOutputFilePath(ProjectId projectId, string outputFilePath)
+        public Solution WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
         {
             var newState = _state.WithProjectOutputFilePath(projectId, outputFilePath);
             if (newState == _state)
@@ -293,7 +313,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the reference assembly output file path.
         /// </summary>
-        public Solution WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        public Solution WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
             var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
             if (newState == _state)
@@ -305,8 +325,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        public Solution WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
+        {
+            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
+        // TODO (https://github.com/dotnet/roslyn/issues/37124): decide if we want to allow "name" to be nullable.
+        // As of this writing you can pass null, but rather than updating the project to null it seems it does nothing.
+        // I'm leaving this marked as "non-null" so as not to say we actually support that behavior. The underlying
+        // requirement is ProjectInfo.ProjectAttributes holds a non-null name, so you can't get a null into this even if you tried.
         public Solution WithProjectName(ProjectId projectId, string name)
         {
             var newState = _state.WithProjectName(projectId, name);
@@ -321,7 +359,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the project file path.
         /// </summary>
-        public Solution WithProjectFilePath(ProjectId projectId, string filePath)
+        public Solution WithProjectFilePath(ProjectId projectId, string? filePath)
         {
             var newState = _state.WithProjectFilePath(projectId, filePath);
             if (newState == _state)
@@ -401,7 +439,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
-            var newState = _state.AddProjectReference(projectId, projectReference);
+            var newState = _state.AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(projectReference));
             if (newState == _state)
             {
                 return this;
@@ -447,6 +485,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
         {
             var newState = _state.WithProjectReferences(projectId, projectReferences);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project documents in the order by the specified document ids.
+        /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
+        /// </summary>
+        public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        {
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;
@@ -584,7 +637,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and text.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string> folders = null, string filePath = null)
+        public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
         {
             return this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
         }
@@ -593,7 +646,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and text.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null, bool isGenerated = false)
+        public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false)
         {
             if (documentId == null)
             {
@@ -611,6 +664,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             var project = _state.GetProjectState(documentId.ProjectId);
+
+            if (project == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
+            }
 
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
@@ -631,7 +689,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and root <see cref="SyntaxNode"/>.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string> folders = null, string filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
+        public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
         {
             return this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
         }
@@ -640,7 +698,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project updated to include a new document with
         /// the arguments specified.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string> folders = null)
+        public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string>? folders = null)
         {
             if (documentId == null)
             {
@@ -659,6 +717,11 @@ namespace Microsoft.CodeAnalysis
 
             var project = _state.GetProjectState(documentId.ProjectId);
 
+            if (project == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
+            }
+
             var info = DocumentInfo.Create(
                 documentId,
                 name: name,
@@ -675,7 +738,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddDocument(documentInfo);
+            return AddDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        /// <summary>
+        /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
+        /// the documents specified by <paramref name="documentInfos"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
+        public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
@@ -688,7 +761,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// additional document instance defined by its name and text.
         /// </summary>
-        public Solution AddAdditionalDocument(DocumentId documentId, string name, string text, IEnumerable<string> folders = null, string filePath = null)
+        public Solution AddAdditionalDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
         {
             return this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
         }
@@ -697,7 +770,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// additional document instance defined by its name and text.
         /// </summary>
-        public Solution AddAdditionalDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        public Solution AddAdditionalDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders = null, string? filePath = null)
         {
             if (documentId == null)
             {
@@ -714,25 +787,78 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(text));
             }
 
+            var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
+            return this.AddAdditionalDocument(info);
+        }
+
+        public Solution AddAdditionalDocument(DocumentInfo documentInfo)
+        {
+            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAdditionalDocuments(documentInfos);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the corresponding project updated to include a new
+        /// analyzer config document instance defined by its name and text.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders = null, string? filePath = null)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
+            return this.AddAnalyzerConfigDocuments(ImmutableArray.Create(info));
+        }
+
+        private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders, string? filePath)
+        {
             var project = _state.GetProjectState(documentId.ProjectId);
+
+            if (project is null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
+            }
 
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
 
-            var info = DocumentInfo.Create(
+            return DocumentInfo.Create(
                 documentId,
                 name: name,
                 folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath);
-
-            return this.AddAdditionalDocument(info);
         }
 
-        public Solution AddAdditionalDocument(DocumentInfo documentInfo)
+        /// <summary>
+        /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newState = _state.AddAdditionalDocument(documentInfo);
+            var newState = _state.AddAnalyzerConfigDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
@@ -761,6 +887,17 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             var newState = _state.RemoveAdditionalDocument(documentId);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
             if (newState == _state)
             {
                 return this;
@@ -801,6 +938,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified file path.
         /// </summary>
+        // TODO (https://github.com/dotnet/roslyn/issues/37125): SolutionState.WithDocumentFilePath will throw if
+        // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
+        // document back to null?
         public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
         {
             var newState = _state.WithDocumentFilePath(documentId, filePath);
@@ -842,6 +982,23 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
@@ -864,6 +1021,23 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var newState = _state.WithAdditionalDocumentText(documentId, textAndVersion, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// and version specified.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
                 return this;
@@ -908,12 +1082,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
-            return WithDocumentTextLoader(documentId, loader, textOpt: null, mode: mode);
+            return WithDocumentTextLoader(documentId, loader, text: null, mode: mode);
         }
 
-        internal Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText textOpt, PreservationMode mode)
+        internal Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
         {
-            var newState = _state.WithDocumentTextLoader(documentId, loader, textOpt, mode);
+            var newState = _state.WithDocumentTextLoader(documentId, loader, text, mode);
             if (newState == _state)
             {
                 return this;
@@ -929,6 +1103,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var newState = _state.WithAdditionalDocumentTextLoader(documentId, loader, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
             if (newState == _state)
             {
                 return this;
@@ -954,7 +1143,7 @@ namespace Microsoft.CodeAnalysis
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
             Solution oldSolution,
             SolutionChanges? solutionChanges = null,
-            IMergeConflictHandler mergeConflictHandler = null,
+            IMergeConflictHandler? mergeConflictHandler = null,
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
@@ -1046,7 +1235,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
         /// <see cref="TextDocument.FilePath"/> that matches the given file path.
         /// </summary>
-        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string filePath) => _state.GetDocumentIdsWithFilePath(filePath);
+        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => _state.GetDocumentIdsWithFilePath(filePath);
 
         /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
 
         Private Shared ReadOnly s_diagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC42356)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return s_diagnosticIds
@@ -26,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode
+        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, knownTypes As KnownTypes) As SyntaxNode
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                 node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
 
@@ -38,21 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(DirectCast(node, MethodBlockSyntax))
             Else
-                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType)
+                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTypes)
             End If
         End Function
 
-        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode
+        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
 
             ' if this returns Task(of T), then we want to convert this to a T returning function.
             ' if this returns Task, then we want to convert it to a Sub method.
-            If methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType) Then
+            If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._taskOfTType) Then
                 Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
                 newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf methodSymbol.ReturnType.OriginalDefinition Is taskType Then
+            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
                 ' Convert this to a 'Sub' method.
                 Dim subStatement = SyntaxFactory.SubStatement(
                     functionStatement.AttributeLists,

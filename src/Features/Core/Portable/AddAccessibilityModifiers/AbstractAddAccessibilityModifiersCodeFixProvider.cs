@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         }
 
         protected sealed override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -61,10 +63,10 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_accessibility_modifiers, createChangedDocument, FeaturesResources.Add_accessibility_modifiers)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

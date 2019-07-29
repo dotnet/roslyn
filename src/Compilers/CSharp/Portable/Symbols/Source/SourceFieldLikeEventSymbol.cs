@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceFieldLikeEventSymbol : SourceEventSymbol
     {
         private readonly string _name;
-        private readonly TypeSymbol _type;
-        private readonly SourceEventFieldSymbol _associatedField;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
+        private readonly TypeWithAnnotations _type;
+        private readonly SynthesizedEventAccessorSymbol _addMethod;
+        private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
-            : base(containingType, declaratorSyntax, modifiers, null, declaratorSyntax.Identifier, diagnostics)
+            : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
+                   nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
             _name = declaratorSyntax.Identifier.ValueText;
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // overridden/implemented event, so there are no conflicts.)  This is unnecessary for implicit 
             // implementations because, if the custom modifiers don't match, we'll insert bridge methods 
             // for the accessors (explicit implementations that delegate to the implicit implementations) 
-            // with the correct custom modifiers (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // with the correct custom modifiers (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // If this event is an override, we may need to copy custom modifiers from
             // the overridden event (so that the runtime will recognize it as an override).
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                if (inInterfaceType)
+                if (inInterfaceType && !this.IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.Locations[0], this);
                 }
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // NOTE: if there's an initializer in source, we'd better create a backing field, regardless of
             // whether or not the initializer is legal.
-            if (hasInitializer || !(inInterfaceType || this.IsExtern || this.IsAbstract))
+            if (hasInitializer || !(this.IsExtern || this.IsAbstract))
             {
-                _associatedField = MakeAssociatedField(declaratorSyntax);
+                AssociatedEventField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
@@ -83,9 +83,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
             }
 
+            if (inInterfaceType)
+            {
+                if (this.IsExtern || this.IsStatic)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                    }
+                }
+                else if (!this.IsAbstract)
+                {
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                }
+            }
+
             // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -100,17 +115,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for field-like event. Will be null if the event
         /// has no initializer and is either extern or inside an interface.
         /// </summary>
-        internal override FieldSymbol AssociatedField
-        {
-            get { return _associatedField; }
-        }
+        internal override FieldSymbol AssociatedField => AssociatedEventField;
+
+        internal SourceEventFieldSymbol AssociatedEventField { get; }
 
         public override string Name
         {
             get { return _name; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -134,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)_associatedField != null ?
+                return (object)AssociatedEventField != null ?
                     AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
                     AttributeLocation.Event | AttributeLocation.Method;
             }

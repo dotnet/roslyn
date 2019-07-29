@@ -183,15 +183,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var compilation = semanticModel.Compilation;
             field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
-            var solutionNeedingProperty = solution;
-
             // We couldn't resolve field after annotating its declaration. Bail
             if (field == null)
             {
                 return null;
             }
 
-            solutionNeedingProperty = await UpdateReferencesAsync(
+            var solutionNeedingProperty = await UpdateReferencesAsync(
                 updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
             document = solutionNeedingProperty.GetDocument(document.Id);
 
@@ -218,9 +216,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
-            var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
+            var generatedProperty = GenerateProperty(
+                generatedPropertyName,
+                finalFieldName,
+                originalField.DeclaredAccessibility,
+                originalField,
+                field.ContainingType,
+                new SyntaxAnnotation(),
+                document);
 
-            var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
@@ -243,7 +247,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
                     solution = await Renamer.RenameSymbolAsync(solution,
-                        SymbolAndProjectId.Create(field, projectId), 
+                        SymbolAndProjectId.Create(field, projectId),
                         finalFieldName, solution.Options,
                         location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
                         cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -265,7 +269,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), 
+                    solution, SymbolAndProjectId.Create(field, projectId),
                     generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -292,13 +296,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         protected IPropertySymbol GenerateProperty(
-            string propertyName, string fieldName, 
-            Accessibility accessibility, 
-            IFieldSymbol field, 
-            INamedTypeSymbol containingSymbol, 
-            SyntaxAnnotation annotation, 
-            Document document, 
-            CancellationToken cancellationToken)
+            string propertyName, string fieldName,
+            Accessibility accessibility,
+            IFieldSymbol field,
+            INamedTypeSymbol containingSymbol,
+            SyntaxAnnotation annotation,
+            Document document)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
@@ -306,7 +309,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
-                type: field.Type,
+                type: field.GetSymbolType(),
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
@@ -403,21 +406,21 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             public Result(Solution solutionWithProperty, string name, Glyph glyph)
             {
-                this.Solution = solutionWithProperty;
-                this.Name = name;
-                this.Glyph = glyph;
+                Solution = solutionWithProperty;
+                Name = name;
+                Glyph = glyph;
             }
 
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols) :
-                this(solutionWithProperty, name, glyph)
+            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
+                : this(solutionWithProperty, name, glyph)
             {
-                this.FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
+                FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
             }
 
-            public Result(Solution originalSolution, params IFieldSymbol[] fields) :
-                this(originalSolution, string.Empty, Glyph.Error)
+            public Result(Solution originalSolution, params IFieldSymbol[] fields)
+                : this(originalSolution, string.Empty, Glyph.Error)
             {
-                this.FailedFields = fields.ToImmutableArrayOrEmpty();
+                FailedFields = fields.ToImmutableArrayOrEmpty();
             }
 
             public Solution Solution { get; }

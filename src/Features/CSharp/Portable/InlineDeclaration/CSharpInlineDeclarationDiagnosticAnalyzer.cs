@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -26,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     /// 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
 
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                   CodeStyleOptions.PreferInlinedVariableDeclaration,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_inlined), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
-            
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferInlinedVariableDeclaration, argumentNode.Language);
             if (!option.Value)
             {
@@ -212,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             // Make sure the variable isn't ever accessed before the usage in this out-var.
-            if (IsAccessed(semanticModel, outLocalSymbol, enclosingBlockOfLocalStatement, 
+            if (IsAccessed(semanticModel, outLocalSymbol, enclosingBlockOfLocalStatement,
                            localStatement, argumentNode, cancellationToken))
             {
                 return;
@@ -220,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // See if inlining this variable would make it so that some variables were no
             // longer definitely assigned.
-            if (WouldCauseDefiniteAssignmentErrors(semanticModel, localStatement, 
+            if (WouldCauseDefiniteAssignmentErrors(semanticModel, localStatement,
                                                    enclosingBlockOfLocalStatement, outLocalSymbol))
             {
                 return;
@@ -325,9 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private bool IsAccessed(
             SemanticModel semanticModel,
-            ISymbol outSymbol, 
+            ISymbol outSymbol,
             BlockSyntax enclosingBlockOfLocalStatement,
-            LocalDeclarationStatementSyntax localStatement, 
+            LocalDeclarationStatementSyntax localStatement,
             ArgumentSyntax argumentNode,
             CancellationToken cancellationToken)
         {

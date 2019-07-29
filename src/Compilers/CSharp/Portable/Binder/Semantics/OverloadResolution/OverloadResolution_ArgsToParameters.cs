@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Find the first named argument which is used out-of-position
             int foundPosition = -1;
             int length = arguments.Arguments.Count;
-            for (int i = 0; i < length;  i++)
+            for (int i = 0; i < length; i++)
             {
                 int parameter = argsToParameters[i];
                 if (parameter != -1 && parameter != i && arguments.Name(i) != null)

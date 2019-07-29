@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -145,7 +144,6 @@ a
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
-
         }
 
         [Fact]
@@ -351,12 +349,12 @@ class C
           <slot kind=""0"" offset=""98"" />
           <slot kind=""4"" offset=""151"" />
           <slot kind=""4"" offset=""220"" />
-          <slot kind=""28"" offset=""261"" />
-          <slot kind=""28"" offset=""261"" ordinal=""1"" />
           <slot kind=""28"" offset=""281"" />
           <slot kind=""28"" offset=""281"" ordinal=""1"" />
           <slot kind=""28"" offset=""281"" ordinal=""2"" />
-          <slot kind=""28"" offset=""261"" ordinal=""2"" />
+          <slot kind=""28"" offset=""281"" ordinal=""3"" />
+          <slot kind=""28"" offset=""281"" ordinal=""4"" />
+          <slot kind=""28"" offset=""281"" ordinal=""5"" />
           <slot kind=""4"" offset=""307"" />
           <slot kind=""4"" offset=""376"" />
           <slot kind=""3"" offset=""410"" />
@@ -592,7 +590,6 @@ class Test
   IL_00be:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -880,7 +877,6 @@ class Test
   IL_0263:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -960,7 +956,7 @@ class Test
             IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type);
 
             Assert.Equal(1, spillFieldsByType.Count());
-            Assert.Equal(1, spillFieldsByType.Single(x => x.Key == comp.GetSpecialType(SpecialType.System_Int32)).Count());
+            Assert.Equal(1, spillFieldsByType.Single(x => TypeSymbol.Equals(x.Key, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything2)).Count());
         }
 
         [Fact]
@@ -1552,7 +1548,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1684,10 +1679,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1879,7 +1873,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2011,10 +2004,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2174,6 +2166,5 @@ class Test
   IL_014a:  ret
 }");
         }
-
     }
 }

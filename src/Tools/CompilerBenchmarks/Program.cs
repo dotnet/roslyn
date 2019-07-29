@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
@@ -20,7 +21,8 @@ namespace CompilerBenchmarks
                 Add(DefaultConfig.Instance.GetLoggers().ToArray());
                 Add(DefaultConfig.Instance.GetExporters().ToArray());
                 Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
-                Add(new Job { Infrastructure = { Toolchain = FixedCsProjGenerator.Default } });
+                Add(MemoryDiagnoser.Default);
+                Add(Job.Core.WithGcServer(true));
             }
         }
 
@@ -36,7 +38,8 @@ namespace CompilerBenchmarks
             // Benchmark.NET creates a new process to run the benchmark, so the easiest way
             // to communicate information is pass by environment variable
             Environment.SetEnvironmentVariable(Helpers.TestProjectEnvVarName, projectPath);
-            _ = BenchmarkRunner.Run<EmitBenchmark>(config);
+
+            _ = BenchmarkRunner.Run<StageBenchmarks>(config);
         }
     }
 }

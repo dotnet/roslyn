@@ -29,16 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private EnvDTE.CodeModel _rootCodeModel;
         private bool _zombied;
 
-        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
         {
-            _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace);
+            _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
-        }
-
-        private bool IsZombied
-        {
-            get { return _zombied; }
         }
 
         /// <summary>
@@ -83,9 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var cacheEntry = GetCacheEntry(filePath);
 
-            return cacheEntry != null
-                ? cacheEntry.Value.ComHandle
-                : null;
+            return cacheEntry?.ComHandle;
         }
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
@@ -138,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
         {
-            if (this.IsZombied)
+            if (_zombied)
             {
                 Debug.Fail("Cannot access root code model after code model was shutdown!");
                 throw Exceptions.ThrowEUnexpected();
@@ -185,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 instance.Object.Shutdown();
             }
 
-            _zombied = false;
+            _zombied = true;
         }
 
         public void OnSourceFileRemoved(string fileName)

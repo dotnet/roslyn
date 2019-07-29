@@ -239,12 +239,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
                         }
 
-                        var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
+                        var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
                         for (i = 0; i < count; i++)
                         {
-                            if (IsOrClosedOverATypeFromAssemblies(arguments[i], assemblies))
+                            if (IsOrClosedOverATypeFromAssemblies(arguments[i].Type, assemblies))
                             {
                                 return true;
                             }
@@ -507,19 +507,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             TypeSymbol targetTypeSymbol = GetMemberRefTypeSymbol(memberRef);
 
+            if (targetTypeSymbol is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!targetTypeSymbol.IsTupleType);
+
             if ((object)scope != null)
             {
                 Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
 
                 // We only want to consider members that are at or above "scope" in the type hierarchy.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (scope != targetTypeSymbol &&
+                if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)targetTypeSymbol)
-                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsCLRSignatureComparer) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }
+            }
+
+            if (!targetTypeSymbol.IsTupleCompatible())
+            {
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }
 
             // We're going to use a special decoder that can generate usable symbols for type parameters without full context.

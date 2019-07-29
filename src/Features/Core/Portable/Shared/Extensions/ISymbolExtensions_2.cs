@@ -93,11 +93,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         var methodSymbol = (IMethodSymbol)symbol;
 
-                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator || methodSymbol.MethodKind == MethodKind.Conversion)
+                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
+                            methodSymbol.MethodKind == MethodKind.Conversion ||
+                            methodSymbol.MethodKind == MethodKind.BuiltinOperator)
                         {
                             return Glyph.Operator;
                         }
-                        else if (methodSymbol.IsExtensionMethod || methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                        else if (methodSymbol.IsExtensionMethod ||
+                                 methodSymbol.MethodKind == MethodKind.ReducedExtension)
                         {
                             publicIcon = Glyph.ExtensionMethodPublic;
                         }
@@ -171,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            string documentation = GetDocumentation(symbol, cancellationToken);
+            var documentation = GetDocumentation(symbol, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
@@ -246,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
-                    return method.ContainingSymbol.GetDocumentationComment().SummaryText;
+                    return method.AssociatedSymbol.GetDocumentationComment().SummaryText;
                 default:
                     return method.GetDocumentationComment().SummaryText;
             }
@@ -257,7 +260,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             var parts = new List<SymbolDisplayPart>();
 
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage_colon}\r\n  "));
+            parts.AddLineBreak();
+            parts.AddText(WorkspacesResources.Usage_colon);
+            parts.AddLineBreak();
+            parts.AddText("  ");
 
             var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
             returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;

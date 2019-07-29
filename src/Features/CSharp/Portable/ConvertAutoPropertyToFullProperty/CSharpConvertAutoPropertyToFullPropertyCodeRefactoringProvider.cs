@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -16,84 +15,26 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), Shared]
-    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax>
     {
-        internal override SyntaxNode GetProperty(SyntaxToken token)
+        [ImportingConstructor]
+        public CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
         {
-            var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (containingProperty == null)
-            {
-                return null;
-            }
-
-            if (!(containingProperty.Parent is TypeDeclarationSyntax))
-            {
-                return null;
-            }
-
-            var start = containingProperty.AttributeLists.Count > 0
-                ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingProperty.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the property
-            var position = token.SpanStart;
-            if (position < start || position > containingProperty.Identifier.Span.End)
-            {
-                return null;
-            }
-
-            return containingProperty;
         }
 
         internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
         {
-            var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
             return GenerateFieldName(propertySymbol, rules);
-        }
-
-        /// <summary>
-        /// Get the user-specified naming rules, then add standard default naming rules 
-        /// for both static and non-static fields.  The standard naming rules are added at the end 
-        /// so they will only be used if the user hasn't specified a preference.
-        /// </summary>
-        private static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            const string defaultStaticFieldPrefix = "s_";
-            const string defaultFieldPrefix = "_";
-
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingPreferencesOption = optionSet.GetOption(SimplificationOptions.NamingPreferences);
-            var rules = namingPreferencesOption.CreateRules().NamingRules
-                .AddRange(CreateNewRule(ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsStatic)), defaultStaticFieldPrefix))
-                .AddRange(CreateNewRule(modifiers: default, defaultFieldPrefix));
-            return rules;
-        }
-
-        private static ImmutableArray<NamingRule> CreateNewRule(
-            ImmutableArray<ModifierKind> modifiers,
-            string prefix)
-        {
-            return ImmutableArray.Create(
-                new NamingRule(
-                    new SymbolSpecification(
-                        Guid.NewGuid(),
-                        "Field",
-                        ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                        modifiers: modifiers),
-                    new NamingStyles.NamingStyle(
-                        Guid.NewGuid(),
-                        prefix: prefix,
-                        capitalizationScheme: Capitalization.CamelCase),
-                    ReportDiagnostic.Hidden));
         }
 
         private string GenerateFieldName(IPropertySymbol property, ImmutableArray<NamingRule> rules)
@@ -196,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 return propertyDeclaration.WithSemicolonToken(default);
             }
 
-            // if there is a get accessor only, we can move the expression body to the property
+            // if there is a get accessors only, we can move the expression body to the property
             if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
                 propertyDeclaration.AccessorList.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
             {

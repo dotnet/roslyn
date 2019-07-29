@@ -139,11 +139,28 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             if (name.Length <= Prefix.Length + Suffix.Length)
             {
+                // name consists of Prefix and Suffix and no base name
+                // Prefix and Suffix can overlap
+                // Example: Prefix = "s_", Suffix = "_t", name "s_t"
                 failureReason = null;
                 return true;
             }
 
-            var spanToCheck = TextSpan.FromBounds(Prefix.Length, name.Length - Suffix.Length);
+            // remove specified Prefix, then look for any other common prefixes
+            name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
+
+            if (prefix != string.Empty)
+            {
+                // name started with specified prefix, but has at least one additional common prefix 
+                // Example: specified prefix "test_", actual prefix "test_m_"
+                failureReason = Prefix == string.Empty ?
+                    string.Format(WorkspacesResources.Prefix_0_is_not_expected, prefix) :
+                    string.Format(WorkspacesResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                return false;
+            }
+
+            // specified and common prefixes have been removed. Now see that the base name has correct capitalization
+            var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
             Debug.Assert(spanToCheck.Length > 0);
 
             switch (CapitalizationScheme)
@@ -295,6 +312,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameDirectly(string name)
         {
+            // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
+            // "Test_" will be added back later in this method
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
 
@@ -318,14 +339,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
         {
-            name = StripCommonPrefixes(name);
+            name = StripCommonPrefixes(name, out _);
             name = EnsurePrefix(name);
             name = EnsureSuffix(name);
 
             return FinishFixingName(name);
         }
 
-        private static string StripCommonPrefixes(string name)
+        public static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)
@@ -355,6 +376,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 break;
             }
 
+            prefix = name.Substring(0, index);
             return name.Substring(index);
         }
 
@@ -368,16 +390,23 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             name = name.Substring(Prefix.Length, name.Length - Suffix.Length - Prefix.Length);
             IEnumerable<string> words = new[] { name };
+
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
+                // Edge case: the only character(s) in the name is(are) the WordSeparator
+                if (words.Count() == 0)
+                {
+                    return name;
+                }
+
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
-                    bool isWord = true;
+                    var isWord = true;
                     var parts = StringBreaker.GetParts(name, isWord);
-                    string[] newWords = new string[parts.Count];
-                    for(int i = 0; i < parts.Count; i++)
+                    var newWords = new string[parts.Count];
+                    for (var i = 0; i < parts.Count; i++)
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
@@ -395,7 +424,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // If the name already ends with any prefix of the Suffix, only append the suffix of
             // the Suffix not contained in the longest such Suffix prefix. For example, if the 
             // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
-            for (int i = Suffix.Length; i > 0; i--)
+            for (var i = Suffix.Length; i > 0; i--)
             {
                 if (name.EndsWith(Suffix.Substring(0, i)))
                 {
@@ -411,7 +440,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // If the name already starts with any suffix of the Prefix, only prepend the prefix of
             // the Prefix not contained in the longest such Prefix suffix. For example, if the 
             // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
-            for (int i = 0; i < Prefix.Length; i++)
+            for (var i = 0; i < Prefix.Length; i++)
             {
                 if (name.StartsWith(Prefix.Substring(i)))
                 {

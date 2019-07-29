@@ -61,12 +61,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var forEachStatement = root.FindNode(context.Span) as TForEachStatement;
-            if (forEachStatement == null)
+            if (!(root.FindNode(textSpan) is TForEachStatement forEachStatement))
             {
                 return;
             }
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             //
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
-                    FeaturesResources.Convert_to_linq, 
+                    FeaturesResources.Convert_to_linq,
                     c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:

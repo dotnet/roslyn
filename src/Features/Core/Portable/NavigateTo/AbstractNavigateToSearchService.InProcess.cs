@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
+        private static readonly ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument, 
+            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             // Would like to use CWT.AddOrUpdate. But that is not available on the 
-            // version of .Net that we're using.  So we need to take lock as we're
+            // version of .NET that we're using.  So we need to take lock as we're
             // making multiple mutations.
             lock (s_lastProjectSearchCache)
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument, 
+            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         document, declaredSymbolInfo,
                         nameMatcher, containerMatcherOpt,
                         kinds,
-                        nameMatches, containerMatches, 
+                        nameMatches, containerMatches,
                         result, cancellationToken);
                 }
             }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches, 
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
         {
             nameMatches.Clear();
@@ -339,60 +339,60 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     switch (navigateToItemKind)
                     {
-                    case NavigateToItemKind.Class:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
-                        break;
+                        case NavigateToItemKind.Class:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
+                            break;
 
-                    case NavigateToItemKind.Constant:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
-                        break;
+                        case NavigateToItemKind.Constant:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
+                            break;
 
-                    case NavigateToItemKind.Delegate:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
-                        break;
+                        case NavigateToItemKind.Delegate:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
+                            break;
 
-                    case NavigateToItemKind.Enum:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
-                        break;
+                        case NavigateToItemKind.Enum:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
+                            break;
 
-                    case NavigateToItemKind.EnumItem:
-                        lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
-                        break;
+                        case NavigateToItemKind.EnumItem:
+                            lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
+                            break;
 
-                    case NavigateToItemKind.Event:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
-                        break;
+                        case NavigateToItemKind.Event:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
+                            break;
 
-                    case NavigateToItemKind.Field:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
-                        break;
+                        case NavigateToItemKind.Field:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
+                            break;
 
-                    case NavigateToItemKind.Interface:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
-                        break;
+                        case NavigateToItemKind.Interface:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
+                            break;
 
-                    case NavigateToItemKind.Method:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
-                        break;
+                        case NavigateToItemKind.Method:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
+                            break;
 
-                    case NavigateToItemKind.Module:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
-                        break;
+                        case NavigateToItemKind.Module:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
+                            break;
 
-                    case NavigateToItemKind.Property:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
-                        break;
+                        case NavigateToItemKind.Property:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
+                            break;
 
-                    case NavigateToItemKind.Structure:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
-                        break;
+                        case NavigateToItemKind.Structure:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
+                            break;
 
-                    default:
-                        // Not a recognized symbol info kind
-                        break;
+                        default:
+                            // Not a recognized symbol info kind
+                            break;
                     }
                 }
 

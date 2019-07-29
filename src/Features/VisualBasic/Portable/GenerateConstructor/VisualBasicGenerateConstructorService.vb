@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Utilities
@@ -14,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
@@ -22,8 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
                 reservedNames As IList(Of String),
+                parameterNamingRule As NamingRule,
                 cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, cancellationToken)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(
@@ -209,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then

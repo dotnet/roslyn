@@ -341,7 +341,7 @@ class Program
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
         }
-    
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PrivateOrProtectedModifiers()
         {
@@ -377,6 +377,42 @@ class C
 }";
 
             await VerifyItemExistsAsync(text, "private");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInClass()
+        {
+            var markup =
+@"class C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInInterface()
+        {
+            var markup =
+@"interface C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task SuggestEventAfterReadonlyInStruct()
+        {
+            var markup =
+@"struct C {
+    readonly $$
+}
+";
+            await VerifyItemExistsAsync(markup, "event");
         }
     }
 }

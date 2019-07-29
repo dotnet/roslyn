@@ -128,21 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return ContainingAssembly.GetSpecialType(SpecialType.System_Void);
+                return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void));
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -152,11 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -285,6 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => false;
 
         public sealed override bool IsImplicitlyDeclared
         {

@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Given a member from the original type of this type, substitute into it and get the corresponding member in this type.
         Friend Function GetMemberForDefinition(member As Symbol) As Symbol
             Debug.Assert(member.IsDefinition)
-            Debug.Assert(member.ContainingType = Me.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(member.ContainingType, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything))
 
             Return SubstituteTypeParametersInMember(member)
         End Function
@@ -491,6 +491,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function GetHashCode() As Integer
             Dim _hash As Integer = OriginalDefinition.GetHashCode()
+            If Me._substitution.WasConstructedForModifiers() Then
+                Return _hash
+            End If
+
             _hash = Hash.Combine(ContainingType, _hash)
 
             ' There is a circularity problem here with alpha-renamed type parameters.
@@ -978,6 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function GetHashCode() As Integer
+                If Me._substitution.WasConstructedForModifiers() Then
+                    Return OriginalDefinition.GetHashCode()
+                End If
+
                 Dim _hash As Integer = MyBase.GetHashCode()
 
                 For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
@@ -1200,7 +1208,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' No effect
                 Return Me
             End Function
-
 
         End Class
 

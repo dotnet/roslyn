@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
-    public struct TaggedText
+    public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -28,14 +27,47 @@ namespace Microsoft.CodeAnalysis
         public string Text { get; }
 
         /// <summary>
+        /// Gets the style(s) to apply to the text.
+        /// </summary>
+        internal TaggedTextStyle Style { get; }
+
+        /// <summary>
+        /// Gets the navigation target for the text, or <see langword="null"/> if the text does not have a navigation
+        /// target.
+        /// </summary>
+        internal string NavigationTarget { get; }
+
+        /// <summary>
+        /// Gets the navigation hint for the text, or <see langword="null"/> if the text does not have a navigation
+        /// hint.
+        /// </summary>
+        internal string NavigationHint { get; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="TaggedText"/>
         /// </summary>
         /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
         /// <param name="text">The actual text to be displayed.</param>
         public TaggedText(string tag, string text)
+            : this(tag, text, TaggedTextStyle.None, navigationTarget: null, navigationHint: null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="TaggedText"/>
+        /// </summary>
+        /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
+        /// <param name="text">The actual text to be displayed.</param>
+        /// <param name="style">The style(s) to apply to the text.</param>
+        /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
+        /// <param name="navigationHint">The navigation hint for the text, or <see langword="null"/> if the text does not have a navigation hint.</param>
+        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget, string navigationHint)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             Text = text ?? throw new ArgumentNullException(nameof(text));
+            Style = style;
+            NavigationTarget = navigationTarget;
+            NavigationHint = navigationHint;
         }
 
         public override string ToString()
@@ -47,19 +79,40 @@ namespace Microsoft.CodeAnalysis
     internal static class TaggedTextExtensions
     {
         public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts)
+            => displayParts.ToTaggedText(TaggedTextStyle.None);
+
+        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style)
         {
             if (displayParts == null)
             {
                 return ImmutableArray<TaggedText>.Empty;
             }
 
-            return displayParts.Select(d =>
-                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray();
+            return displayParts.SelectAsArray(d =>
+                new TaggedText(
+                    SymbolDisplayPartKindTags.GetTag(d.Kind),
+                    d.ToString(),
+                    style,
+                    GetNavigationTarget(d.Symbol),
+                    GetNavigationHint(d.Symbol)));
+
+            static string GetNavigationTarget(ISymbol symbol)
+            {
+                if (symbol is null)
+                {
+                    return null;
+                }
+
+                return SymbolKey.CreateString(symbol);
+            }
+
+            static string GetNavigationHint(ISymbol symbol)
+                => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         }
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
-            
+
             return values.IsDefault
                 ? null
                 : Join(values);
@@ -105,17 +158,42 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.TypeParameter:
                     return ClassificationTypeNames.TypeParameterName;
 
+                case TextTags.Field:
+                    return ClassificationTypeNames.FieldName;
+
+                case TextTags.Event:
+                    return ClassificationTypeNames.EventName;
+
+                case TextTags.Label:
+                    return ClassificationTypeNames.LabelName;
+
+                case TextTags.Local:
+                    return ClassificationTypeNames.LocalName;
+
+                case TextTags.Method:
+                    return ClassificationTypeNames.MethodName;
+
+                case TextTags.Namespace:
+                    return ClassificationTypeNames.NamespaceName;
+
+                case TextTags.Parameter:
+                    return ClassificationTypeNames.ParameterName;
+
+                case TextTags.Property:
+                    return ClassificationTypeNames.PropertyName;
+
+                case TextTags.ExtensionMethod:
+                    return ClassificationTypeNames.ExtensionMethodName;
+
+                case TextTags.EnumMember:
+                    return ClassificationTypeNames.EnumMemberName;
+
+                case TextTags.Constant:
+                    return ClassificationTypeNames.ConstantName;
+
                 case TextTags.Alias:
                 case TextTags.Assembly:
-                case TextTags.Field:
                 case TextTags.ErrorType:
-                case TextTags.Event:
-                case TextTags.Label:
-                case TextTags.Local:
-                case TextTags.Method:
-                case TextTags.Namespace:
-                case TextTags.Parameter:
-                case TextTags.Property:
                 case TextTags.RangeVariable:
                     return ClassificationTypeNames.Identifier;
 

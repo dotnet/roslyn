@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
@@ -12,8 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             private const char QuoteCharacter = '"';
             private readonly SyntaxToken _token;
 
-            public SimpleStringSplitter(Document document, int position, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, cancellationToken)
+            public SimpleStringSplitter(
+                Document document, int position,
+                SyntaxNode root, SourceText sourceText, SyntaxToken token,
+                bool useTabs, int tabSize, IndentStyle indentStyle, CancellationToken cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
             {
                 _token = token;
             }
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
 
                 var secondToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     _token.Kind(),
                     text: QuoteCharacter + suffix,
                     valueText: "",
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     leftExpression,
-                    GetPlusToken(),
+                    PlusNewLineToken,
                     rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
             }
 

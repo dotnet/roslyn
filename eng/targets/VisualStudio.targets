@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+    
+    <!-- 
+      Transitive references get passed to all VS command line tools related to VSIX, VSCT, etc ... processsing. 
+      These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
+      command line length for Windows. These projects must manually specify references to avoid this overflow.
+    -->
+    <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <VSIXSourceItem>
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+    
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+  
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <None Include="@(VSCTCompile)" />
+  </ItemGroup>
+
+  <Target Name="IncludeVsixLocalOnlyItems">
+    <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
+    <ItemGroup>
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' == ''">
+        <!-- Sets VSIXSubPath for content items that are nonlinked files -->
+        <VSIXSubPath Condition="'%(Content.Link)' == ''">%(Content.RelativeDir)</VSIXSubPath>
+        <!-- Sets VSIXSubPath for content items that are linked files -->
+        <VSIXSubPath Condition="'%(Content.Link)' != ''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
+      </VSIXSourceItemLocalOnly>
+
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Include some of our NuGet-consumed assets into VSIX projects
+
+       This exists for two reasons:
+
+       1) In some cases, we need to include the contents of a NuGet package that is otherwise
+          contained within the SuppressFromVsix list, because we're actually the component
+          inside Visual Studio that ships that component
+
+       2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+          by the NuGet build task. -->
+
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+
+    <!-- Calculate a list of packages ReferenceCopyLocalPaths originate from whose content should not be included in the VSIX -->
+    <ItemGroup>
+      <_ExcludedPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')" />
+      <_ExcludedPackageId Remove="@(NuGetPackageToIncludeInVsix)"/>
+    </ItemGroup>
+
+    <!-- Build a list assets to include in the VSIX keyed by package id -->
+    <ItemGroup>
+      <_AssetsByPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')">
+        <Path>%(ReferenceCopyLocalPaths.Identity)</Path>
+      </_AssetsByPackageId>
+
+      <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <_PackageToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' == 'true'" />
+      <_PackageNotToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' != 'true'" />
+
+      <_AssetsToOptimize Include="@(_AssetsByPackageId)" />
+      <_AssetsToOptimize Remove="@(_PackageNotToOptimize)" />
+
+      <_AssetsNotToOptimize Include="@(_AssetsByPackageId)" />
+      <_AssetsNotToOptimize Remove="@(_PackageToOptimize)" />
+
+      <_AllAssetsToInclude Include="@(_AssetsToOptimize)">
+        <Optimization>true</Optimization>
+      </_AllAssetsToInclude>
+
+      <_AllAssetsToInclude Include="@(_AssetsNotToOptimize)">
+        <Optimization>false</Optimization>
+      </_AllAssetsToInclude>
+    </ItemGroup>
+
+    <!-- Include the assets in the VSIX -->
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AllAssetsToInclude->'%(Path)')">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+        <Ngen Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">3</NgenPriority>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
+
+  <!-- Microsoft.VisualStudio.SDK.EmbedInteropTypes sets a bunch of EmbedInteropTypes attributes, but Roslyn is somewhat special
+       and has to do things differently. After the NuGet package does its thing, do further changes. -->
+  <Target Name="FixVSSDKEmbeddableAssemblies" AfterTargets="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <!-- The official NuGet package tries to embed EnvDTE, which is problematic because we implement the interfaces and use
+           them in generic type parameters. Because of this, we can't embed them. -->
+      <ReferencePath Condition="'%(FileName)' == 'EnvDTE80'
+                             or '%(FileName)' == 'EnvDTE90'
+                             or '%(FileName)' == 'EnvDTE100'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+
+      <!-- The official NuGet package for Microsoft.VisualStudio.Shell.Design references this DLL in non-NoPIA way, so we can't embed it either -->
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Designer.Interfaces'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+
+      <!-- We reference Microsoft.VisualStudio.CodeAnalysis.Sdk.UI, which requires us to reference these DLLs non-NoPIA way -->
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.10.0'
+                             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+</Project>

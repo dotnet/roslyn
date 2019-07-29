@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> overriddenMembers;
             ImmutableArray<Symbol> runtimeOverriddenMembers;
             FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, out runtimeOverriddenMembers, ref hiddenBuilder);
-            
+
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
         }
@@ -492,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IEqualityComparer<Symbol> exactMatchComparer = memberIsFromSomeCompilation
                 ? MemberSignatureComparer.CSharpCustomModifierOverrideComparer
                 : MemberSignatureComparer.RuntimePlusRefOutSignatureComparer;
+
             IEqualityComparer<Symbol> fallbackComparer = memberIsFromSomeCompilation
                 ? MemberSignatureComparer.CSharpOverrideComparer
                 : MemberSignatureComparer.RuntimeSignatureComparer;
@@ -571,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // exact and so we would already have applied the custom modifier count as a tie-breaker.
                 foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
                 {
-                    Debug.Assert(!(param.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
+                    Debug.Assert(!(param.TypeWithAnnotations.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
                     Debug.Assert(!param.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
                 }
 #endif
@@ -824,12 +825,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
-                    return method.ReturnTypeCustomModifiers.Any() || method.RefCustomModifiers.Any() || 
-                           method.ReturnType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                    var methodReturnType = method.ReturnTypeWithAnnotations;
+                    return methodReturnType.CustomModifiers.Any() || method.RefCustomModifiers.Any() ||
+                           methodReturnType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
-                    return property.TypeCustomModifiers.Any() || property.RefCustomModifiers.Any() || 
-                           property.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                    var propertyType = property.TypeWithAnnotations;
+                    return propertyType.CustomModifiers.Any() || property.RefCustomModifiers.Any() ||
+                           propertyType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type

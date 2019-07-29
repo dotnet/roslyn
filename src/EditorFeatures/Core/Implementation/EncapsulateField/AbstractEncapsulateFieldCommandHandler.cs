@@ -37,119 +37,86 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            if (!args.SubjectBuffer.SupportsRefactorings())
             {
                 return false;
             }
 
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return false;
-            }
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
 
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
-            {
-                return Execute(args, waitScope);
-            }
+            return Execute(args, waitScope);
         }
 
         private bool Execute(EncapsulateFieldCommandArgs args, IUIThreadOperationScope waitScope)
         {
-            using (var token = _listener.BeginAsyncOperation("EncapsulateField"))
+            using var token = _listener.BeginAsyncOperation("EncapsulateField");
+
+            var cancellationToken = waitScope.Context.UserCancellationToken;
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                waitScope.Context).WaitAndGetResult(cancellationToken);
+            if (document == null)
             {
-                var text = args.TextView.TextBuffer.CurrentSnapshot.AsText();
-                var cancellationToken = waitScope.Context.UserCancellationToken;
-                if (!Workspace.TryGetWorkspace(text.Container, out var workspace))
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (documentId == null)
-                {
-                    return false;
-                }
+            var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-                if (document == null)
-                {
-                    return false;
-                }
+            var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-                var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+            // We are about to show a modal UI dialog so we should take over the command execution
+            // wait context. That means the command system won't attempt to show its own wait dialog 
+            // and also will take it into consideration when measuring command handling duration.
+            waitScope.Context.TakeOwnership();
 
-                var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var workspace = document.Project.Solution.Workspace;
+            if (result == null)
+            {
+                var notificationService = workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
+                return false;
+            }
 
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                waitScope.Context.TakeOwnership();
+            waitScope.AllowCancellation = false;
+            cancellationToken = waitScope.Context.UserCancellationToken;
 
-                if (result == null)
-                {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
-                    return false;
-                }
+            var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                waitScope.AllowCancellation = false;
+            var previewService = workspace.Services.GetService<IPreviewDialogService>();
+            if (previewService != null)
+            {
+                finalSolution = previewService.PreviewChanges(
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
+                     "vs.csharp.refactoring.preview",
+                    EditorFeaturesResources.Encapsulate_Field_colon,
+                    result.GetNameAsync(cancellationToken).WaitAndGetResult(cancellationToken),
+                    result.GetGlyphAsync(cancellationToken).WaitAndGetResult(cancellationToken),
+                    finalSolution,
+                    document.Project.Solution);
+            }
 
-                var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
-                if (previewService != null)
-                {
-                    finalSolution = previewService.PreviewChanges(
-                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
-                         "vs.csharp.refactoring.preview",
-                        EditorFeaturesResources.Encapsulate_Field_colon,
-                        result.GetNameAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                        result.GetGlyphAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                        finalSolution,
-                        document.Project.Solution);
-                }
-
-                if (finalSolution == null)
-                {
-                    // User clicked cancel.
-                    return true;
-                }
-
-                using (var undoTransaction = _undoManager.GetTextBufferUndoManager(args.SubjectBuffer).TextBufferUndoHistory.CreateTransaction(EditorFeaturesResources.Encapsulate_Field))
-                {
-                    if (!workspace.TryApplyChanges(finalSolution))
-                    {
-                        undoTransaction.Cancel();
-                        return false;
-                    }
-
-                    undoTransaction.Complete();
-                }
-
+            if (finalSolution == null)
+            {
+                // User clicked cancel.
                 return true;
             }
+
+            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(args.SubjectBuffer).TextBufferUndoHistory.CreateTransaction(EditorFeaturesResources.Encapsulate_Field))
+            {
+                if (!workspace.TryApplyChanges(finalSolution))
+                {
+                    undoTransaction.Cancel();
+                    return false;
+                }
+
+                undoTransaction.Complete();
+            }
+
+            return true;
         }
 
         public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-        {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
-        }
+            => args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
     }
 }

@@ -4,32 +4,77 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">Değişiklikler uygulanıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Değiştir yapılandırma</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="new">Code cleanup is not configured</target>
+        <target state="translated">Kod temizleme yapılandırılmadı</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
-        <target state="new">Configure it now</target>
+        <target state="translated">Hemen yapılandırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="new">Do not show this message again</target>
+        <target state="translated">Bu iletiyi bir daha gösterme</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">Yine de devam etmek istiyor musunuz? Bu işlem sonucunda bozuk kod oluşturulabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">Ayıklama metodu aşağıdaki sorunlarla karşılaştı:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Filtre</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Biçimi belge ek temizleme işlemi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">Geçersiz derleme adı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Derleme adında geçersiz karakterler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">Anahtar Sözcük - Denetim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">İşleç - Aşırı Yüklenmiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">İzleme Yapıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -42,9 +87,89 @@
         <target state="translated">Noktalama İşareti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_file">
+        <source>Rename _file</source>
+        <target state="new">Rename _file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="new">Rename _file (type does not match file name)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="new">Rename _file (not allowed on partial types)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">Dize - Kaçış Karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">Sembol - statik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">Kullanıcı Üyeler - Sabitler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">Kullanıcı Üyeleri - Sabit Liste Üyeleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">Kullanıcı Üyeler - Olaylar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">Kullanıcı Üyeler - Uzantı Metotları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">Kullanıcı Üyeler - Alanlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">Kullanıcı Üyeler - Etiketler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">Kullanıcı Üyeler - Yereller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">Kullanıcı Üyeler - Metotlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">Kullanıcı Üyeleri - Ad Alanları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">Kullanıcı Üyeler - Parametreler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">Kullanıcı Üyeler - Özellikler</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -81,6 +206,11 @@
         <source>String - Verbatim</source>
         <target state="translated">Dize - Verbatim</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Uyarı</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -200,6 +330,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">Yeniden adlandırma işlemi {1} dosyadaki {0} başvuruyu güncelleştirecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -574,7 +709,7 @@
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Yeni satır ekle</target>
+        <target state="translated">Yeni Satır Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Documentation_Comment">
@@ -882,20 +1017,10 @@
         <target state="translated">Otomatik Biçimlendirme</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Yöntemi ayıklama aşağıdaki nedenlerle başarısız oldu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Yine de devam etmek istiyor musunuz? Bozuk kod üretilecek.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="needs-review-translation">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
+        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
@@ -1136,7 +1261,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
         <source>Execute In Interactive</source>
-        <target state="translated">Etkileşimli Pencerede Yürüt</target>
+        <target state="translated">Etkileşimli içinde Yürüt</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Interface">
@@ -1152,6 +1277,11 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Interactive">
         <source>Interactive</source>
         <target state="translated">Etkileşimli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Etkileşimli Pencereye Yapıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
@@ -1177,11 +1307,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Akıllı Belirteç Biçimlendirici</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Etkileşimli Pencereye Yapıştır</target>
         <note />
       </trans-unit>
     </body>

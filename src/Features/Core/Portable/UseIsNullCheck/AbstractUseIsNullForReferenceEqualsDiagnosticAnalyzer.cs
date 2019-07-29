@@ -11,11 +11,12 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
     internal abstract class AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer<
         TLanguageKindEnum>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -23,9 +24,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationContext =>

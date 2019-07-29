@@ -6,13 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class PEParameterSymbolTests : CSharpTestBase
     {
+#if !NETCOREAPP2_1
         [Fact]
         public void NoParameterNames()
         {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // {
             //   void M(object, object);
             // }
-            var reference = DesktopRuntimeUtil.CreateReflectionEmitAssembly(moduleBuilder =>
+            var reference = Roslyn.Test.Utilities.Desktop.DesktopRuntimeUtil.CreateReflectionEmitAssembly(moduleBuilder =>
                 {
                     var typeBuilder = moduleBuilder.DefineType(
                         "I",
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (5,16): error CS1744: Named argument 'value' specifies a parameter for which a positional argument has already been given
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "value").WithArguments("value").WithLocation(5, 16));
         }
+#endif
 
         [Fact]
         [WorkItem(8018, "https://github.com/dotnet/roslyn/issues/8018")]

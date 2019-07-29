@@ -14,12 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            // # pragma warning |
-            // # pragma warning d|
             var previousToken1 = context.TargetToken;
             var previousToken2 = previousToken1.GetPreviousToken(includeSkipped: true);
             var previousToken3 = previousToken2.GetPreviousToken(includeSkipped: true);
 
+            if (previousToken1.Kind() == SyntaxKind.NullableKeyword &&
+                previousToken2.Kind() == SyntaxKind.HashToken)
+            {
+                // # nullable |
+                // # nullable d|
+                return true;
+            }
+
+            // # pragma warning |
+            // # pragma warning d|
             return
                 previousToken1.Kind() == SyntaxKind.WarningKeyword &&
                 previousToken2.Kind() == SyntaxKind.PragmaKeyword &&

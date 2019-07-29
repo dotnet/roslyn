@@ -1895,7 +1895,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -1992,7 +1992,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[

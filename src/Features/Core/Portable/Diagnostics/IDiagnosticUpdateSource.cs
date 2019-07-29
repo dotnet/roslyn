@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
         /// <summary>
+        /// Raise this when all diagnostics reported from this update source has cleared
+        /// </summary>
+        event EventHandler DiagnosticsCleared;
+
+        /// <summary>
         /// Return true if the source supports GetDiagnostics API otherwise, return false so that the engine can cache data from DiagnosticsUpdated in memory
         /// </summary>
         bool SupportGetDiagnostics { get; }

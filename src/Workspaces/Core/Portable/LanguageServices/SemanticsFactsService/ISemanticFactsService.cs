@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -99,15 +100,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
+        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
+
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
-            SemanticModel semanticModel, SyntaxNode location, 
+            SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt, string baseName,
+            Func<ISymbol, bool> filter, IEnumerable<string> usedNames, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,

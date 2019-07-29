@@ -65,19 +65,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
             bool addNullChecks,
-            bool preferThrowExpression,
-            CancellationToken cancellationToken)
+            bool preferThrowExpression)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -88,35 +87,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingFieldMap)
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : default);
 
             return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
-        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
+        private static bool ShouldGenerateThisConstructorCall(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
             if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
-                // to initialize all fields in the struct, not just the ones we're creating.  To
-                // do that, we call the default constructor.
-                var realFields = containingTypeOpt.GetMembers()
-                                     .OfType<IFieldSymbol>()
-                                     .Where(f => !f.IsStatic);
-                var initializedFields = parameterToExistingFieldMap.Values
-                                            .OfType<IFieldSymbol>()
-                                            .Where(f => !f.IsImplicitlyDeclared && !f.IsStatic);
-                if (initializedFields.Count() < realFields.Count())
-                {
-                    // We have less field assignments than actual fields.  Generate a call to the
-                    // default constructor as well.
-                    return ImmutableArray<SyntaxNode>.Empty;
-                }
+                // to initialize all fields in the struct, not just the ones we're creating.
+                // If there is any field or auto-property not being set by a parameter, we
+                // call the default constructor.
+
+                return containingTypeOpt.GetMembers()
+                    .OfType<IFieldSymbol>()
+                    .Where(field => !field.IsStatic)
+                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Except(parameterToExistingFieldMap.Values)
+                    .Any();
             }
 
-            return default;
+            return false;
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
@@ -133,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (refKind != RefKind.Out)
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -170,35 +167,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static SyntaxNode CreateThrowArgumentNullExpression(
-            this SyntaxGenerator factory,
-            Compilation compilation,
-            IParameterSymbol parameter)
-        {
-            return factory.ThrowExpression(
-                factory.ObjectCreationExpression(
-                    compilation.GetTypeByMetadataName("System.ArgumentNullException"),
-                    factory.NameOfExpression(
-                        factory.IdentifierName(parameter.Name))));
-        }
+        public static SyntaxNode CreateThrowArgumentNullExpression(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
 
-        public static SyntaxNode CreateIfNullThrowStatement(
+        private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ObjectCreationExpression(
+                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                factory.NameOfExpression(
+                    factory.IdentifierName(parameter.Name)));
+
+        public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             IParameterSymbol parameter)
         {
+            var identifier = factory.IdentifierName(parameter.Name);
+            var nullExpr = factory.NullLiteralExpression();
+            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+
+            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
             return factory.IfStatement(
-                factory.ReferenceEqualsExpression(
-                    factory.IdentifierName(parameter.Name),
-                    factory.NullLiteralExpression()),
+               condition,
                 SpecializedCollections.SingletonEnumerable(
-                    factory.ExpressionStatement(
-                        factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+                    factory.ThrowStatement(CreateNewArgumentNullException(
+                        factory, semanticModel.Compilation, parameter))));
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
@@ -226,8 +225,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
@@ -235,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
-                            compilation, parameter, fieldAccess,
+                            semanticModel, parameter, fieldAccess,
                             addNullChecks, preferThrowExpression,
                             nullCheckStatements, assignStatements);
                     }
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static void AddAssignmentStatements(
              this SyntaxGenerator factory,
-             Compilation compilation,
+             SemanticModel semanticModel,
              IParameterSymbol parameter,
              SyntaxNode fieldAccess,
              bool addNullChecks,
@@ -255,12 +254,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
              ArrayBuilder<SyntaxNode> nullCheckStatements,
              ArrayBuilder<SyntaxNode> assignStatements)
         {
-            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck();
-            if (shouldAddNullCheck && preferThrowExpression)
+            // Don't want to add a null check for something of the form `int?`.  The type was
+            // already declared as nullable to indicate that null is ok.  Adding a null check
+            // just disallows something that should be allowed.
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
+
+            if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
-                    factory, compilation, parameter, fieldAccess));
+                    factory, semanticModel.Compilation, parameter, fieldAccess));
             }
             else
             {
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // generate: if (x == null) throw ...
                     nullCheckStatements.Add(
-                        factory.CreateIfNullThrowStatement(compilation, parameter));
+                        factory.CreateNullCheckAndThrowStatement(semanticModel, parameter));
                 }
 
                 // generate: this.x = x;
@@ -423,6 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
+                parameters: overriddenProperty.Parameters.WithAttributesToBeCopied(containingType),
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -524,6 +528,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
+                    parameters: overriddenMethod.Parameters.WithAttributesToBeCopied(newContainingType),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

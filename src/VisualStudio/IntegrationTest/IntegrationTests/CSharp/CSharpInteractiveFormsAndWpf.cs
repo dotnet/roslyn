@@ -4,14 +4,15 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -40,8 +41,8 @@ Window wind = new Window();
 wind.Title = ""wpf window text"";
 wind.Show();");
 
-            var form =  AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
-            var  wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
+            var form = AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
+            var wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
 
             // 3) Add UI elements to windows and verify
             VisualStudio.InteractiveWindow.SubmitText(@"// add a label to the form

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -17,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFindReferences))
+        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpFindReferences))
         {
         }
 
@@ -149,6 +150,20 @@ class Program
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public void VerifyWorkingFolder()
+        {
+            SetUpEditor(@"class EmptyContent {$$}");
+
+            // verify working folder has set
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
+
+            VisualStudio.SolutionExplorer.CloseSolution();
+
+            // verify working folder has not set
+            Assert.Null(VisualStudio.Workspace.GetWorkingFolder());
         }
     }
 }

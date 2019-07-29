@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -1452,5 +1453,93 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
         /// </summary>
         public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt, _cancellationToken);
+    }
+
+    /// <summary>
+    /// Context for suppressing analyzer and/or compiler non-error diagnostics reported for the compilation.
+    /// </summary>
+    public struct SuppressionAnalysisContext
+    {
+        private readonly Action<Suppression> _addSuppression;
+        private readonly Func<SuppressionDescriptor, bool> _isSupportedSuppressionDescriptor;
+        private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
+
+        /// <summary>
+        /// Analyzer and/or compiler non-error diagnostics reported for the compilation.
+        /// Each <see cref="DiagnosticSuppressor"/> only receives diagnostics whose IDs were declared suppressible in its <see cref="DiagnosticSuppressor.SupportedSuppressions"/>.
+        /// This may be a subset of the full set of reported diagnostics, as an optimization for
+        /// supporting incremental and partial analysis scenarios.
+        /// A diagnostic is considered suppressible by a DiagnosticSuppressor if *all* of the following conditions are met:
+        ///     1. Diagnostic is not already suppressed in source via pragma/suppress message attribute.
+        ///     2. Diagnostic's <see cref="Diagnostic.DefaultSeverity"/> is not <see cref="DiagnosticSeverity.Error"/>.
+        ///     3. Diagnostic is not tagged with <see cref="WellKnownDiagnosticTags.NotConfigurable"/> custom tag.
+        /// </summary>
+        public ImmutableArray<Diagnostic> ReportedDiagnostics { get; }
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> for the context.
+        /// </summary>
+        public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get; }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        internal SuppressionAnalysisContext(
+            Compilation compilation,
+            AnalyzerOptions options,
+            ImmutableArray<Diagnostic> reportedDiagnostics,
+            Action<Suppression> suppressDiagnostic,
+            Func<SuppressionDescriptor, bool> isSupportedSuppressionDescriptor,
+            Func<SyntaxTree, SemanticModel> getSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            Compilation = compilation;
+            Options = options;
+            ReportedDiagnostics = reportedDiagnostics;
+            _addSuppression = suppressDiagnostic;
+            _isSupportedSuppressionDescriptor = isSupportedSuppressionDescriptor;
+            _getSemanticModel = getSemanticModel;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a <see cref="Suppression"/> for a reported diagnostic.
+        /// </summary>
+        public void ReportSuppression(Suppression suppression)
+        {
+            if (!ReportedDiagnostics.Contains(suppression.SuppressedDiagnostic))
+            {
+                // Non-reported diagnostic with ID '{0}' cannot be suppressed.
+                var message = string.Format(CodeAnalysisResources.NonReportedDiagnosticCannotBeSuppressed, suppression.SuppressedDiagnostic.Id);
+                throw new ArgumentException(message);
+            }
+
+            if (!_isSupportedSuppressionDescriptor(suppression.Descriptor))
+            {
+                // Reported suppression with ID '{0}' is not supported by the suppressor.
+                var message = string.Format(CodeAnalysisResources.UnsupportedSuppressionReported, suppression.Descriptor.Id);
+                throw new ArgumentException(message);
+            }
+
+            if (suppression.Descriptor.IsDisabled(Compilation.Options))
+            {
+                // Suppression has been disabled by the end user through compilation options.
+                return;
+            }
+
+            _addSuppression(suppression);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="SemanticModel"/> for the given <see cref="SyntaxTree"/>, which is shared across all analyzers.
+        /// </summary>
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => _getSemanticModel(syntaxTree);
     }
 }

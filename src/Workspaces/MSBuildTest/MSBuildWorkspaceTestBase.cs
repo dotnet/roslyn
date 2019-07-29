@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +19,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     public class MSBuildWorkspaceTestBase : WorkspaceTestBase
     {
         protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
+
+        protected void AssertFailures(MSBuildWorkspace workspace, params string[] expectedFailures)
+        {
+            AssertEx.Equal(expectedFailures, workspace.Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message));
+        }
 
         protected async Task AssertCSCompilationOptionsAsync<T>(T expected, Func<CS.CSharpCompilationOptions, T> actual)
         {

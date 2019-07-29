@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 PointTrackingMode.Positive);
         }
 
-        private static CompletionItem CreateDefaultSuggestionModeItem() => CompletionItem.Create(displayText: "");
+        private static CompletionItem CreateDefaultSuggestionModeItem()
+            => CompletionItem.Create(displayText: "");
 
         public bool IsSoftSelection
         {
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var currentSpan = GetCurrentSpanInSnapshot(originalSpan, textSnapshot);
 
             var startPosition = currentSpan.Start;
-            var endPosition = endPoint.HasValue ? endPoint.Value : currentSpan.End;
+            var endPosition = endPoint ?? currentSpan.End;
 
             // TODO(cyrusn): What to do if the span is empty, or the end comes before the start.
             // Can that even happen?  Not sure, so we'll just be resilient just in case.

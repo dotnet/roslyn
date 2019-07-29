@@ -20,8 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseDefaultLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDefaultLiteralCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -56,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 document, originalNodes,
                 (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken),
                 (_, currentRoot, defaultExpression) => currentRoot.ReplaceNode(
-                    defaultExpression, 
+                    defaultExpression,
                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
                 cancellationToken).ConfigureAwait(false);
         }

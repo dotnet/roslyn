@@ -23,5 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public abstract Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+        public abstract Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
     }
 }

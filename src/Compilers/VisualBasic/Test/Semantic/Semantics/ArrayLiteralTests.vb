@@ -889,16 +889,16 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             comp.VerifyDiagnostics(
-                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
-            "    'Public Sub Test2(x As Integer(), y As Integer)': Argument matching parameter 'x' narrows to 'Integer()'." & vbCrLf &
+                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", Environment.NewLine &
+            "    'Public Sub Test2(x As Integer(), y As Integer)': Argument matching parameter 'x' narrows to 'Integer()'." & Environment.NewLine &
             "    'Public Sub Test2(x As Short(), y As Byte)': Argument matching parameter 'x' narrows to 'Short()'."))
 
             Dim strictOnOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             comp.VerifyDiagnostics(
-                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
-          "    'Public Sub Test2(x As Integer(), y As Integer)': Option Strict On disallows implicit conversions from 'Double' to 'Integer'." & vbCrLf &
+                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", Environment.NewLine &
+          "    'Public Sub Test2(x As Integer(), y As Integer)': Option Strict On disallows implicit conversions from 'Double' to 'Integer'." & Environment.NewLine &
           "    'Public Sub Test2(x As Short(), y As Byte)': Option Strict On disallows implicit conversions from 'Double' to 'Short'."))
         End Sub
 
@@ -1064,14 +1064,14 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, options:=_strictOff)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
-     "    'Public Sub Test2(x As m.B1, y As Integer)': Argument matching parameter 'x' narrows to 'm.B1'." & vbCrLf &
+            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", Environment.NewLine &
+     "    'Public Sub Test2(x As m.B1, y As Integer)': Argument matching parameter 'x' narrows to 'm.B1'." & Environment.NewLine &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Argument matching parameter 'x' narrows to 'm.B2'."))
 
             comp = comp.WithOptions(_strictOn)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
-     "    'Public Sub Test2(x As m.B1, y As Integer)': Option Strict On disallows implicit conversions from 'Integer' to 'Short'." & vbCrLf &
+            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", Environment.NewLine &
+     "    'Public Sub Test2(x As m.B1, y As Integer)': Option Strict On disallows implicit conversions from 'Integer' to 'Short'." & Environment.NewLine &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'."))
         End Sub
 
@@ -1884,7 +1884,7 @@ Module M
         Validate(x5)
         Validate({CType(New Bar(1), Goo)}, {Nothing})
 
-        System.Console.WriteLine("======================" & vbCrLf)
+        System.Console.WriteLine("======================" & Environment.NewLine)
         Dim obj2 = If(True, {Nothing}, {Nothing, New With {.a = 1}})
         Validate(obj2)
         Validate({Nothing}, {Nothing, New With {.a = 1}})

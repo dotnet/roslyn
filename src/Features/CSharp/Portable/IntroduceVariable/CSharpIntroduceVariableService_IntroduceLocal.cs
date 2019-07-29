@@ -8,13 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
@@ -28,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var containerToGenerateInto = GetContainerToGenerateInto(document, expression, cancellationToken);
+            var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
+                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
-                    bool createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -67,35 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 case LambdaExpressionSyntax lambda:
                     return IntroduceLocalDeclarationIntoLambda(
-                        document, lambda, expression, newLocalName, declarationStatement, 
+                        document, lambda, expression, newLocalName, declarationStatement,
                         allOccurrences, cancellationToken);
             }
 
             throw new InvalidOperationException();
-        }
-
-        private SyntaxNode GetContainerToGenerateInto(
-            SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
-        {
-            var anonymousMethodParameters = GetAnonymousMethodParameters(document, expression, cancellationToken);
-            var lambdas = anonymousMethodParameters.SelectMany(p => p.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).AsEnumerable())
-                                                   .OfType<LambdaExpressionSyntax>()
-                                                   .ToSet();
-
-            var parentLambda = GetParentLambda(expression, lambdas);
-
-            if (parentLambda != null)
-            {
-                return parentLambda;
-            }
-            else if (IsInExpressionBodiedMember(expression))
-            {
-                return expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
-            }
-            else
-            {
-                return expression.GetAncestorsOrThis<BlockSyntax>().LastOrDefault();
-            }
         }
 
         private Document IntroduceLocalDeclarationIntoLambda(
@@ -126,22 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
             return document.Document.WithSyntaxRoot(newRoot);
-        }
-
-        private LambdaExpressionSyntax GetParentLambda(ExpressionSyntax expression, ISet<LambdaExpressionSyntax> lambdas)
-        {
-            var current = expression;
-            while (current != null)
-            {
-                if (lambdas.Contains(current.Parent))
-                {
-                    return (LambdaExpressionSyntax)current.Parent;
-                }
-
-                current = current.Parent as ExpressionSyntax;
-            }
-
-            return null;
         }
 
         private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
@@ -246,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // of complexification, so we can retrieve the latest version of the expression here.
             expression = document.Root.GetCurrentNode(expression);
 
-            SyntaxNode root = document.Root;
+            var root = document.Root;
             ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
 
             SyntaxNode innermostCommonBlock;

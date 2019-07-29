@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         Inherits CommonCompletionProvider
 
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim item = CommonCompletionItem.Create("DisplayText", rules:=CompletionItemRules.Default)
+            Dim item = CommonCompletionItem.Create("DisplayText", "", rules:=CompletionItemRules.Default)
             context.AddItem(item)
 
             Return Task.CompletedTask

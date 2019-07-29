@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -44,8 +43,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 options,
                 cancellationToken).ConfigureAwait(false);
 
-            // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
+            // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also ignore nullability for purposes of preselection
+            // -- if a method is returning a string? but we've inferred we're assigning to a string or vice versa we'll still count those as the same.
+            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s), AllNullabilityIgnoringSymbolComparer.Instance) && !IsInstrinsic(s));
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)
@@ -58,19 +58,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            string displayText, string displayTextSuffix, string insertionText,
+            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
-            if (preselect)
+            if (context.IsRightSideOfNumericType)
+            {
+                rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
+            }
+            else if (preselect)
             {
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 symbols: symbols,
                 rules: rules,
                 contextPosition: context.Position,
@@ -114,12 +121,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var info in totalSymbols)
+            foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = info.symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
                 if (bestSymbols.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 

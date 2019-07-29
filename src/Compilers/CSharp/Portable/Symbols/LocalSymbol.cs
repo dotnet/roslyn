@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -46,12 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this local.
+        /// Gets the type of this local along with its annotations.
         /// </summary>
-        public abstract TypeSymbol Type
+        public abstract TypeWithAnnotations TypeWithAnnotations
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the type of this local.
+        /// </summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// WARN WARN WARN: If you access this via the semantic model, things will break (since the initializer may not have been bound).
@@ -365,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Type;
             }
         }
+
+        CodeAnalysis.NullableAnnotation ILocalSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         bool ILocalSymbol.IsFunctionValue
         {

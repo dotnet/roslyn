@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -10,8 +11,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     internal interface IEmbeddedLanguage
     {
         /// <summary>
-        /// An optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
+        /// A optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
         /// </summary>
-        IEmbeddedClassifier Classifier { get; }
+        ISyntaxClassifier Classifier { get; }
     }
 }

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 {
                     var blockTag = blockTags[i];
                     var fullStatementSpan = blockTag.StatementSpan;
-                    
+
                     if (blockTag.Parent != null &&
                         textSnapshot.AreOnSameLine(fullStatementSpan.Start, blockTag.Parent.StatementSpan.Start))
                     {

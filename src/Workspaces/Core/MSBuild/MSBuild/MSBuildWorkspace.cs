@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -281,11 +282,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
-                    if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
+                    if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
                     {
                         try
                         {
-                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, _loader.Properties, _loader.BuildManager, CancellationToken.None).Result;
+                            var buildManager = new ProjectBuildManager(_loader.Properties);
+                            _applyChangesProjectFile = fileLoader.LoadProjectFileAsync(projectPath, buildManager, CancellationToken.None).Result;
                         }
                         catch (IOException exception)
                         {
@@ -337,14 +339,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
-                using (ExceptionHelpers.SuppressFailFast())
-                {
-                    using (var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        var onDiskText = EncodedStringText.Create(stream);
-                        return onDiskText.Encoding;
-                    }
-                }
+                using var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                var onDiskText = EncodedStringText.Create(stream);
+                return onDiskText.Encoding;
             }
             catch (IOException)
             {
@@ -394,20 +391,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             try
             {
-                using (ExceptionHelpers.SuppressFailFast())
+                var dir = Path.GetDirectoryName(fullPath);
+                if (!Directory.Exists(dir))
                 {
-                    var dir = Path.GetDirectoryName(fullPath);
-                    if (!Directory.Exists(dir))
-                    {
-                        Directory.CreateDirectory(dir);
-                    }
-
-                    Debug.Assert(encoding != null);
-                    using (var writer = new StreamWriter(fullPath, append: false, encoding: encoding))
-                    {
-                        newText.Write(writer);
-                    }
+                    Directory.CreateDirectory(dir);
                 }
+
+                Debug.Assert(encoding != null);
+                using var writer = new StreamWriter(fullPath, append: false, encoding: encoding);
+                newText.Write(writer);
             }
             catch (IOException exception)
             {
@@ -477,7 +469,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
-            return symbol != null ? symbol.Identity : null;
+            return symbol?.Identity;
         }
 
         protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)

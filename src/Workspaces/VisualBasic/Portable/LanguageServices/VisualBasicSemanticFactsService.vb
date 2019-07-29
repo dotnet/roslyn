@@ -16,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSemanticFactsServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSemanticFactsService.Instance
         End Function
@@ -297,6 +301,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
         End Function
 
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument
+            Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        End Function
+
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
             Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
         End Function
@@ -318,6 +326,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+            Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, filter, usedNames, cancellationToken)
         End Function
     End Class
 End Namespace

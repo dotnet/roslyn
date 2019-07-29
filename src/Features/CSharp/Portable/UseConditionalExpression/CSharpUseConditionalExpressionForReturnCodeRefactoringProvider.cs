@@ -14,11 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     internal partial class CSharpUseConditionalExpressionForReturnCodeRefactoringProvider
         : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseConditionalExpressionForReturnCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsRef(IReturnOperation returnOperation)
             => returnOperation.Syntax is ReturnStatementSyntax statement &&
                statement.Expression is RefExpressionSyntax;
 
-        protected override IFormattingRule GetMultiLineFormattingRule()
+        protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 
         protected override StatementSyntax WrapWithBlockIfAppropriate(

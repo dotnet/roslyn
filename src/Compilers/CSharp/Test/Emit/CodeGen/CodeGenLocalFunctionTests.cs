@@ -34,6 +34,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(37459, "https://github.com/dotnet/roslyn/pull/37459")]
+        public void StaticLocalFunctionCaptureConstants()
+        {
+            var src = @"
+using System;
+class C
+{
+    const int X = 1;
+
+    void M()
+    {
+        const int Y = 5;
+
+        local();
+        return;
+        static void local()
+        {
+            Console.WriteLine(X);
+            Console.WriteLine(Y);
+        }
+    }
+
+    public static void Main()
+    {
+        (new C()).M();
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+5");
+            verifier.VerifyIL("C.<M>g__local|1_0", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  ldc.i4.5
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
@@ -810,7 +854,7 @@ class C
         L1();
         Console.WriteLine(_x);
     }
-}", expectedOutput: 
+}", expectedOutput:
 @"0
 1");
             verifier.VerifyIL("C.M()", @"
@@ -4692,7 +4736,7 @@ while (i < 10)
 8
 9");
         }
-        
+
         [Fact]
         [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()

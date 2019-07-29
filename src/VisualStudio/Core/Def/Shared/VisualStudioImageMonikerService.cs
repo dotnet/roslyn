@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Editor.Wpf;
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
 
         private ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
         {
-            var glyph = tags.GetGlyph();
+            var glyph = tags.GetFirstGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:
@@ -73,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
 
         private ImageCompositionLayer CreateLayer(
-            ImageMoniker imageMoniker, 
+            ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,
             int virtualXOffset = 0)

@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 return thisStart < otherStart && otherStart < thisEnd;
             }
 
-            int overlapStart = Math.Max(thisStart, otherStart);
-            int overlapEnd = Math.Min(thisEnd, otherEnd);
+            var overlapStart = Math.Max(thisStart, otherStart);
+            var overlapEnd = Math.Min(thisEnd, otherEnd);
 
             return overlapStart < overlapEnd;
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                builder, introspector, 
+                builder, introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
@@ -255,10 +255,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private static Node Balance(Node node, IIntervalIntrospector<T> introspector)
         {
-            int balanceFactor = BalanceFactor(node);
+            var balanceFactor = BalanceFactor(node);
             if (balanceFactor == -2)
             {
-                int rightBalance = BalanceFactor(node.Right);
+                var rightBalance = BalanceFactor(node.Right);
                 if (rightBalance == -1)
                 {
                     return node.LeftRotation(introspector);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
             else if (balanceFactor == 2)
             {
-                int leftBalance = BalanceFactor(node.Left);
+                var leftBalance = BalanceFactor(node.Left);
                 if (leftBalance == 1)
                 {
                     return node.RightRotation(introspector);

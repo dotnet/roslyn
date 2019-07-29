@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// This contains vsix info on where <see cref="HostDiagnosticAnalyzerPackage"/> comes from.
         /// </summary>
-        private readonly ImmutableArray<HostDiagnosticAnalyzerPackage> _hostDiagnosticAnalyzerPackages;
+        private readonly Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> _hostDiagnosticAnalyzerPackages;
 
         /// <summary>
         /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
@@ -76,24 +76,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
-        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader),
-                 hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
-        {
-        }
-
-        public HostAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(hostAnalyzerReferences, ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty, hostDiagnosticUpdateSource)
+        public HostAnalyzerManager(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
+            : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true),
+                   hostAnalyzerPackages, hostDiagnosticUpdateSource)
         {
         }
 
         private HostAnalyzerManager(
-            ImmutableArray<AnalyzerReference> hostAnalyzerReferences, ImmutableArray<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            Lazy<ImmutableArray<AnalyzerReference>> hostAnalyzerReferences, Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _hostDiagnosticAnalyzerPackages = hostAnalyzerPackages;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.IsDefault ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences));
+            _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.Value.IsDefaultOrEmpty ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences.Value), isThreadSafe: true);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap.Value), isThreadSafe: true);
 
@@ -101,8 +96,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
             _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>>();
+        }
 
-            DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
+        // this is for testing
+        internal HostAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => hostAnalyzerReferences), new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty), hostDiagnosticUpdateSource)
+        {
         }
 
         /// <summary>
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> GetHostDiagnosticDescriptorsPerReference()
         {
-            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value, projectOpt: null);
+            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value);
         }
 
         /// <summary>
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project project)
         {
-            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project), project);
+            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
         }
 
         /// <summary>
@@ -280,8 +279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
-            Project projectOpt)
+            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
             foreach (var kv in analyzersMap)
@@ -337,8 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerReference reference,
             ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            var fileReference = reference as AnalyzerFileReference;
-            if (fileReference == null)
+            if (!(reference is AnalyzerFileReference fileReference))
             {
                 return;
             }
@@ -357,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<string, string> CreateAnalyzerPathToPackageNameMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var package in _hostDiagnosticAnalyzerPackages)
+            foreach (var package in _hostDiagnosticAnalyzerPackages.Value)
             {
                 if (string.IsNullOrEmpty(package.Name))
                 {
@@ -444,11 +441,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(
-            IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages,
+            ImmutableArray<HostDiagnosticAnalyzerPackage> analyzerPackages,
             HostAnalyzerReferenceDiagnosticReporter reporter,
             IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader)
         {
-            if (analyzerPackages == null || analyzerPackages.IsEmpty())
+            if (analyzerPackages.IsEmpty)
             {
                 return ImmutableArray<AnalyzerReference>.Empty;
             }
@@ -466,7 +463,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(reference);
             }
 
-            return builder.ToImmutable();
+            var references = builder.ToImmutable();
+            DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(references);
+
+            return references;
         }
 
         private static ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MergeDiagnosticAnalyzerMap(

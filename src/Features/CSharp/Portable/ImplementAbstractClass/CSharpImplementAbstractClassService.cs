@@ -10,9 +10,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
 {
     [ExportLanguageService(typeof(IImplementAbstractClassService), LanguageNames.CSharp), Shared]
-    internal class CSharpImplementAbstractClassService : 
+    internal class CSharpImplementAbstractClassService :
         AbstractImplementAbstractClassService<ClassDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpImplementAbstractClassService()
+        {
+        }
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, ClassDeclarationSyntax classNode, CancellationToken cancellationToken,
             out INamedTypeSymbol classType, out INamedTypeSymbol abstractClassType)

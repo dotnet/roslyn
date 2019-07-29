@@ -55,5 +55,15 @@ namespace Microsoft.CodeAnalysis
         /// the special question mark syntax.
         /// </summary>
         ExpandNullable = 1 << 5,
+
+        /// <summary>
+        /// Append '?' to nullable reference types.
+        /// </summary>
+        IncludeNullableReferenceTypeModifier = 1 << 6,
+
+        /// <summary>
+        /// Allow the use of <c>default</c> instead of <c>default(T)</c> where applicable.
+        /// </summary>
+        AllowDefaultLiteral = 1 << 7,
     }
 }

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
-        private IEnumerable<string> _renameAccessKeys = new[]
+        private readonly IEnumerable<string> _renameAccessKeys = new[]
             {
                 RenameShortcutKey.RenameOverloads,
                 RenameShortcutKey.SearchInComments,
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _model = model;
             InitializeComponent();
 
-            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
+            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
 
             _textView = textView;
             this.DataContext = model;
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (_rootDependencyObject != null && _rootInputElement != null)
             {
-                foreach (string accessKey in _renameAccessKeys)
+                foreach (var accessKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Register(accessKey, _rootInputElement);
                 }
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnAccessKeyPressed(object sender, AccessKeyPressedEventArgs args)
         {
-            foreach (string accessKey in _renameAccessKeys)
+            foreach (var accessKey in _renameAccessKeys)
             {
                 if (string.Compare(accessKey, args.Key, StringComparison.OrdinalIgnoreCase) == 0)
                 {
@@ -226,6 +227,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     this.PreviewChangesCheckbox.IsChecked = !this.PreviewChangesCheckbox.IsChecked;
                 }
+                else if (string.Equals(e.Key, RenameShortcutKey.RenameFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.FileRenameCheckbox.IsChecked = !this.FileRenameCheckbox.IsChecked;
+                }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Commit();
@@ -242,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_rootInputElement != null)
             {
-                foreach (string registeredKey in _renameAccessKeys)
+                foreach (var registeredKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Unregister(registeredKey, _rootInputElement);
                 }
@@ -316,8 +321,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void Commit()
         {
-            _model.Session.Commit();
-            _textView.VisualElement.Focus();
+            try
+            {
+                _model.Session.Commit();
+                _textView.VisualElement.Focus();
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
         }
 
         public void Dispose()

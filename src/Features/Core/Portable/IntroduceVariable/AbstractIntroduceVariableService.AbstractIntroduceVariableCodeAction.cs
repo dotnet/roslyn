@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -79,10 +78,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return CreateDisplayText(nodeString);
             }
 
-            private string CreateDisplayText(string nodeString)
-            {
-                // Indexed by: allOccurrences, isConstant, isLocal
-                var formatStrings = new string[2, 2, 2]
+            // Indexed by: allOccurrences, isConstant, isLocal
+            private static readonly string[,,] formatStrings = new string[2, 2, 2]
                 {
                   {
                     { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },
@@ -94,6 +91,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                   }
                 };
 
+            private string CreateDisplayText(string nodeString)
+            {
                 var formatString = _isQueryLocal
                     ? _allOccurrences
                         ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0

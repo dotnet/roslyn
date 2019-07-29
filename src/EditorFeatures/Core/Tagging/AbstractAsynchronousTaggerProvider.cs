@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 ProduceTagsSynchronously(
-                    context, spanToTag, 
+                    context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }
@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
-                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
             {
             }
 

@@ -532,7 +532,7 @@ class C
             var options = document.Project.Solution.Workspace.Options;
 
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
-            ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
+            var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
             Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
 
             var attribute = compilation.GetTypeByMetadataName("N.M.A");
@@ -542,13 +542,13 @@ class C
 
             // Add N.M.A attribute to p1.
             var editor = await DocumentEditor.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
-            SyntaxNode attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
+            var attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
 
             editor.AddAttribute(p1SyntaxNode, attributeSyntax);
-            Document documentWithAttribute = editor.GetChangedDocument();
+            var documentWithAttribute = editor.GetChangedDocument();
 
             // Add namespace import.
-            Document imported = await ImportAdder.AddImportsAsync(documentWithAttribute, null,
+            var imported = await ImportAdder.AddImportsAsync(documentWithAttribute, null,
                 CancellationToken.None).ConfigureAwait(false);
 
             var formatted = await Formatter.FormatAsync(imported, options);
@@ -568,9 +568,9 @@ class C
 
         private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)
         {
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+            var tree = CSharpSyntaxTree.ParseText(code);
 
-            CSharpCompilation compilation = CSharpCompilation
+            var compilation = CSharpCompilation
                 .Create("test.dll", new[] { tree })
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib);

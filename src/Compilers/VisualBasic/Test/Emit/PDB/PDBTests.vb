@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
 #Region "General"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding1()
             Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Goo.vb", encoding:=Nothing)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B : End Class", path:="", encoding:=Nothing)
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             Assert.False(result.Success)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding2()
             Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Goo.vb", encoding:=Encoding.Unicode)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B" & vbCrLf & "Sub F() : End Sub : End Class", path:="", encoding:=Nothing)
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_DLL()
             Dim source = "
 Class C 
@@ -88,7 +88,7 @@ End Class
             Assert.Equal(0, peEntryPointToken)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_EXE()
             Dim source = "
 Class M 
@@ -122,7 +122,7 @@ End Class
             Assert.Equal("Main", mdReader.GetString(methodDef.Name))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_Errors()
             Dim source1 = "
 Class C 
@@ -175,7 +175,7 @@ End Class
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasic()
             Dim source =
 <compilation>
@@ -435,7 +435,7 @@ End Class
 </symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstructorsWithoutInitializers()
             Dim source =
 <compilation>
@@ -492,7 +492,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstructorsWithInitializers()
             Dim source =
 <compilation>
@@ -553,7 +553,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchFinally()
             Dim source =
 <compilation>
@@ -655,7 +655,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchWhen_Debug()
             Dim source =
 <compilation>
@@ -835,7 +835,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchWhen_Release()
             Dim source =
 <compilation>
@@ -927,7 +927,7 @@ End Module
 ", sequencePoints:="M1.Main")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasic1()
             Dim source =
 <compilation>
@@ -988,7 +988,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasicCtor()
             Dim source =
 <compilation>
@@ -1023,7 +1023,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestLabels()
             Dim source =
 <compilation>
@@ -1064,7 +1064,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IfStatement()
             Dim source =
 <compilation>
@@ -1155,7 +1155,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DoWhileStatement()
             Dim source =
 <compilation>
@@ -1232,7 +1232,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DoLoopWhileStatement()
             Dim source =
 <compilation>
@@ -1308,7 +1308,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForStatement()
             Dim source =
 <compilation>
@@ -1414,7 +1414,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForStatement_LateBound()
             Dim v = CompileAndVerify(
 <compilation>
@@ -1525,7 +1525,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCaseStatement()
             Dim source =
 <compilation>
@@ -1629,7 +1629,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestIfThenAndBlocks()
             Dim source =
 <compilation>
@@ -1768,7 +1768,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestTopConditionDoLoop()
             Dim source =
 <compilation>
@@ -1876,7 +1876,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBottomConditionDoLoop()
             Dim source =
 <compilation>
@@ -1986,7 +1986,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestInfiniteLoop()
             Dim source =
 <compilation>
@@ -2046,7 +2046,7 @@ End Module
         End Sub
 
         <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
 <compilation>
@@ -2106,7 +2106,7 @@ End Module
         End Sub
 
         <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
 <compilation>
@@ -2193,7 +2193,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingSequencePointForTrivialIfThen()
             Dim source =
 <compilation>
@@ -2284,7 +2284,7 @@ End Module
         End Sub
 
         <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
 <compilation>
@@ -2412,7 +2412,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestImplicitLocals()
             Dim source =
 <compilation>
@@ -2486,7 +2486,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddRemoveHandler()
             Dim source =
 <compilation>
@@ -2551,7 +2551,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_NoCaseBlocks()
             Dim source =
 <compilation>
@@ -2601,7 +2601,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SingleCaseStatement()
             Dim source =
 <compilation>
@@ -2660,7 +2660,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_OnlyCaseStatements()
             Dim source =
 <compilation>
@@ -2773,7 +2773,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SwitchTable()
             Dim source =
 <compilation>
@@ -2837,7 +2837,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SwitchTable_TempUsed()
             Dim source =
 <compilation>
@@ -2904,7 +2904,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_IfList()
             Dim source =
 <compilation>
@@ -2972,7 +2972,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_IfList_TempUsed()
             Dim source =
 <compilation>
@@ -3042,7 +3042,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_SwitchTable_Hash()
             Dim source =
 <compilation>
@@ -3107,7 +3107,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_SwitchTable_NonHash()
             Dim source =
 <compilation>
@@ -3169,7 +3169,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_IfList()
             Dim source =
 <compilation>
@@ -3235,7 +3235,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontEmit_AnonymousType_NoKeys()
             Dim source =
 <compilation>
@@ -3276,7 +3276,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontEmit_AnonymousType_WithKeys()
             Dim source =
 <compilation>
@@ -3318,7 +3318,7 @@ End Class
         End Sub
 
         <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug727419()
             Dim source =
 <compilation>
@@ -3411,7 +3411,7 @@ End Module
         End Sub
 
         <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug722627()
             Dim source =
 <compilation>
@@ -3462,7 +3462,7 @@ End Module
         End Sub
 
         <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
 <compilation>
@@ -3514,7 +3514,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
+        <WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -3601,7 +3602,7 @@ End Module
         End Sub
 
         <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug760994()
             Dim source =
 <compilation>
@@ -3654,7 +3655,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub WRN_PDBConstantStringValueTooLong()
             Dim longStringValue = New String("a"c, 2050)
 
@@ -3702,7 +3703,7 @@ End Module
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoDebugInfoForEmbeddedSymbols()
             Dim source =
 <compilation>
@@ -3747,7 +3748,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
+        <WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -3809,7 +3811,7 @@ End Module
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
         <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
 <compilation>
@@ -3846,7 +3848,7 @@ End Class
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointAtOffset0()
             Dim source =
 <compilation>
@@ -3960,7 +3962,7 @@ End Module
 
         <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
         <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RaiseEvent001()
             Dim source =
 <compilation>
@@ -4254,7 +4256,7 @@ End Class
         End Sub
 
         <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub WinFormMain()
             Dim source =
 <compilation>
@@ -4334,7 +4336,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SynthesizedVariableForSelectCastValue()
             Dim source =
 <compilation>
@@ -4391,7 +4393,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Constant_AllTypes()
             Dim source =
 <compilation>
@@ -4496,7 +4498,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportsInAsync()
             Dim source =
 "Imports System.Linq
@@ -4547,7 +4549,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportsInAsyncLambda()
             Dim source =
 "Imports System.Linq
@@ -4600,7 +4602,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
         Public Sub InvalidCharacterInPdbPath()
             Using outStream = Temp.CreateFile().Open()

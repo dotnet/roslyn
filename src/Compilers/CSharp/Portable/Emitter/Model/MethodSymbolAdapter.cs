@@ -69,15 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            if (!this.IsDefinition)
-            {
-                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
+            NamedTypeSymbol containingType = this.ContainingType;
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(containingType,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                diagnostics: context.Diagnostics,
+                needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -244,9 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArguments)
+            foreach (var arg in this.TypeArgumentsWithAnnotations)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.Type,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -82,8 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
-            return MakeIndexerAccess(node.Syntax, rewrittenReceiver, indexer, rewrittenArguments, node.ArgumentNamesOpt,
-                 node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.Type, node, isLeftOfAssignment);
+            return MakeIndexerAccess(
+                node.Syntax,
+                rewrittenReceiver,
+                indexer,
+                rewrittenArguments,
+                node.ArgumentNamesOpt,
+                node.ArgumentRefKindsOpt,
+                node.Expanded,
+                node.ArgsToParamsOpt,
+                node.Type,
+                node,
+                isLeftOfAssignment);
         }
 
         private BoundExpression MakeIndexerAccess(
@@ -116,7 +129,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,
                 // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
                 ImmutableArray<LocalSymbol> temps;
-                rewrittenArguments = MakeArguments(syntax, rewrittenArguments, indexer, getMethod, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+                rewrittenArguments = MakeArguments(
+                    syntax,
+                    rewrittenArguments,
+                    indexer,
+                    getMethod,
+                    expanded,
+                    argsToParamsOpt,
+                    ref argumentRefKindsOpt,
+                    out temps,
+                    enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 
@@ -134,6 +156,273 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type);
                 }
             }
+        }
+
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        {
+            if (TypeSymbol.Equals(
+                node.Argument.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything))
+            {
+                return VisitIndexPatternIndexerAccess(
+                    node.Syntax,
+                    node.Receiver,
+                    node.LengthOrCountProperty,
+                    (PropertySymbol)node.PatternSymbol,
+                    node.Argument,
+                    isLeftOfAssignment: isLeftOfAssignment);
+            }
+            else
+            {
+                Debug.Assert(TypeSymbol.Equals(
+                    node.Argument.Type,
+                    _compilation.GetWellKnownType(WellKnownType.System_Range),
+                    TypeCompareKind.ConsiderEverything));
+                return VisitRangePatternIndexerAccess(
+                    node.Receiver,
+                    node.LengthOrCountProperty,
+                    (MethodSymbol)node.PatternSymbol,
+                    node.Argument);
+            }
+        }
+
+        private BoundExpression VisitIndexPatternIndexerAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            PropertySymbol lengthOrCountProperty,
+            PropertySymbol intIndexer,
+            BoundExpression argument,
+            bool isLeftOfAssignment)
+        {
+            // Lowered code:
+            // ref var receiver = receiverExpr;
+            // int length = receiver.length;
+            // int index = argument.GetOffset(length);
+            // receiver[index];
+
+            var F = _factory;
+
+            var receiverLocal = F.StoreToTemp(
+                VisitExpression(receiver),
+                out var receiverStore,
+                // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+            var indexLocal = F.StoreToTemp(
+                MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
+                out var indexStore);
+
+            // Hint the array size here because the only case when the length is not needed is if the
+            // user writes code like receiver[(Index)offset], as opposed to just receiver[offset]
+            // and that will probably be very rare.
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance(3);
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(3);
+
+            locals.Add(receiverLocal.LocalSymbol);
+            sideEffects.Add(receiverStore);
+
+            if (usedLength)
+            {
+                locals.Add(lengthLocal.LocalSymbol);
+                sideEffects.Add(lengthStore);
+            }
+
+            locals.Add(indexLocal.LocalSymbol);
+            sideEffects.Add(indexStore);
+
+            return F.Sequence(
+                locals.ToImmutable(),
+                sideEffects.ToImmutable(),
+                MakeIndexerAccess(
+                    syntax,
+                    receiverLocal,
+                    intIndexer,
+                    ImmutableArray.Create<BoundExpression>(indexLocal),
+                    default,
+                    default,
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    intIndexer.Type,
+                    oldNodeOpt: null,
+                    isLeftOfAssignment));
+        }
+
+        private BoundExpression MakePatternIndexOffsetExpression(
+            BoundExpression unloweredExpr,
+            BoundLocal lengthAccess,
+            out bool usedLength)
+        {
+            Debug.Assert(TypeSymbol.Equals(
+                unloweredExpr.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything));
+
+            var F = _factory;
+
+            if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
+            {
+                // If the System.Index argument is `^index`, we can replace the
+                // `argument.GetOffset(length)` call with `length - index`
+                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                usedLength = true;
+                return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
+            }
+            else if (unloweredExpr is BoundConversion conversion && conversion.Operand.Type.SpecialType == SpecialType.System_Int32)
+            {
+                // If the System.Index argument is a conversion from int to Index we
+                // can return the int directly
+                usedLength = false;
+                return VisitExpression(conversion.Operand);
+            }
+            else
+            {
+                usedLength = true;
+                return F.Call(
+                    VisitExpression(unloweredExpr),
+                    WellKnownMember.System_Index__GetOffset,
+                    lengthAccess);
+            }
+        }
+
+        private BoundExpression VisitRangePatternIndexerAccess(
+            BoundExpression receiver,
+            PropertySymbol lengthOrCountProperty,
+            MethodSymbol sliceMethod,
+            BoundExpression rangeArg)
+        {
+            Debug.Assert(TypeSymbol.Equals(
+                rangeArg.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                TypeCompareKind.ConsiderEverything));
+
+            // Lowered code without optimizations:
+            // var receiver = receiverExpr;
+            // int length = receiver.length;
+            // Range range = argumentExpr;
+            // int start = range.Start.GetOffset(length)
+            // int rangeSize = range.End.GetOffset(length) - start
+            // receiver.Slice(start, rangeSize)
+
+            var F = _factory;
+
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+            var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
+            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+
+            localsBuilder.Add(receiverLocal.LocalSymbol);
+            sideEffectsBuilder.Add(receiverStore);
+
+            BoundExpression startExpr;
+            BoundExpression rangeSizeExpr;
+            if (rangeArg is BoundRangeExpression rangeExpr)
+            {
+                // If we know that the input is a range expression, we can
+                // optimize by pulling it apart inline, so
+                // 
+                // Range range = argumentExpr;
+                // int start = range.Start.GetOffset(length)
+                // int rangeSize = range.End.GetOffset(length) - start
+                //
+                // is, with `start..end`:
+                //
+                // int start = start.GetOffset(length)
+                // int rangeSize = end.GetOffset(length) - start
+
+                bool usedLength = false;
+
+                if (rangeExpr.LeftOperandOpt is BoundExpression left)
+                {
+                    var startLocal = F.StoreToTemp(
+                        MakePatternIndexOffsetExpression(rangeExpr.LeftOperandOpt, lengthLocal, out usedLength),
+                        out var startStore);
+
+                    localsBuilder.Add(startLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(startStore);
+                    startExpr = startLocal;
+                }
+                else
+                {
+                    startExpr = F.Literal(0);
+                }
+
+                BoundExpression endExpr;
+                if (rangeExpr.RightOperandOpt is BoundExpression right)
+                {
+                    endExpr = MakePatternIndexOffsetExpression(
+                        right,
+                        lengthLocal,
+                        out bool usedLengthTemp);
+                    usedLength |= usedLengthTemp;
+                }
+                else
+                {
+                    usedLength = true;
+                    endExpr = lengthLocal;
+                }
+
+                if (usedLength)
+                {
+                    // If we used the length, it needs to be calculated after the receiver (the
+                    // first bound node in the builder) and before the first use, which could be the
+                    // second or third node in the builder
+                    localsBuilder.Insert(1, lengthLocal.LocalSymbol);
+                    sideEffectsBuilder.Insert(1, lengthStore);
+                }
+
+                var rangeSizeLocal = F.StoreToTemp(
+                    F.IntSubtract(endExpr, startExpr),
+                    out var rangeStore);
+
+                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeStore);
+                rangeSizeExpr = rangeSizeLocal;
+            }
+            else
+            {
+                var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
+
+                localsBuilder.Add(lengthLocal.LocalSymbol);
+                sideEffectsBuilder.Add(lengthStore);
+                localsBuilder.Add(rangeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeStore);
+
+                var startLocal = F.StoreToTemp(
+                    F.Call(
+                        F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
+                        F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                        lengthLocal),
+                    out var startStore);
+
+                localsBuilder.Add(startLocal.LocalSymbol);
+                sideEffectsBuilder.Add(startStore);
+                startExpr = startLocal;
+
+                var rangeSizeLocal = F.StoreToTemp(
+                    F.IntSubtract(
+                        F.Call(
+                            F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
+                            F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                            lengthLocal),
+                        startExpr),
+                    out var rangeSizeStore);
+
+                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeSizeStore);
+                rangeSizeExpr = rangeSizeLocal;
+            }
+
+            return F.Sequence(
+                localsBuilder.ToImmutableAndFree(),
+                sideEffectsBuilder.ToImmutableAndFree(),
+                F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));
         }
     }
 }

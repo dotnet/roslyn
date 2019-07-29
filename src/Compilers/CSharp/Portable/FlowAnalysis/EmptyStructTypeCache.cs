@@ -31,9 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>());
+                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>(SymbolEqualityComparer.ConsiderEverything));
             }
         }
+
+        public static EmptyStructTypeCache CreateForDev12Compatibility(Compilation compilation)
+            => new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: true);
+
+        public static EmptyStructTypeCache CreatePrecise()
+            => new EmptyStructTypeCache(null, false);
+
+        public static EmptyStructTypeCache CreateNeverEmpty()
+            => new NeverEmptyStructTypeCache();
 
         /// <summary>
         /// Create a cache for computing whether or not a struct type is "empty".
@@ -42,11 +51,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  ignores inaccessible fields of reference type for structs loaded from metadata.</param>
         /// <param name="compilation">if <see cref="_dev12CompilerCompatibility"/> is true, set to the compilation from
         /// which to check accessibility.</param>
-        internal EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
+        private EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
         {
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             _dev12CompilerCompatibility = dev12CompilerCompatibility;
             _sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
+        }
+
+        /// <summary>
+        /// Specialized EmptyStructTypeCache that reports all structs as not empty
+        /// </summary>
+        private sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
+        {
+            public NeverEmptyStructTypeCache()
+               : base(null, false)
+            {
+            }
+
+            public override bool IsEmptyStructType(TypeSymbol type)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -114,8 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       unless necessary.
             foreach (var member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
-
+                if (member.IsStatic)
+                {
+                    continue;
+                }
+                var field = GetActualField(member, type);
                 if ((object)field != null)
                 {
                     var actualFieldType = field.Type;
@@ -141,17 +169,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<FieldSymbol>();
             }
 
-            return GetStructInstanceFields(nts);
+            return GetStructFields(nts, includeStatic: false);
         }
 
-        public IEnumerable<FieldSymbol> GetStructInstanceFields(NamedTypeSymbol type)
+        public IEnumerable<FieldSymbol> GetStructFields(NamedTypeSymbol type, bool includeStatic)
         {
             // PERF: we get members of the OriginalDefinition to not create substituted members/types 
             //       unless necessary.
             foreach (var member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
-
+                if (!includeStatic && member.IsStatic)
+                {
+                    continue;
+                }
+                var field = GetActualField(member, type);
                 if ((object)field != null)
                 {
                     yield return field;
@@ -159,30 +190,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private FieldSymbol GetActualInstanceField(Symbol member, NamedTypeSymbol type)
+        private FieldSymbol GetActualField(Symbol member, NamedTypeSymbol type)
         {
-            if (!member.IsStatic)
+            switch (member.Kind)
             {
-                switch (member.Kind)
-                {
-                    case SymbolKind.Field:
-                        var field = (FieldSymbol)member;
+                case SymbolKind.Field:
+                    var field = (FieldSymbol)member;
+                    // Do not report virtual tuple fields.
+                    // They are additional aliases to the fields of the underlying struct or nested extensions.
+                    // and as such are already accounted for via the nonvirtual fields.
+                    if (field.IsVirtualTupleField)
+                    {
+                        return null;
+                    }
 
-                        // Do not report virtual tuple fields.
-                        // They are additional aliases to the fields of the underlying struct or nested extensions.
-                        // and as such are already accounted for via the nonvirtual fields.
-                        if (field.IsVirtualTupleField)
-                        {
-                            return null;
-                        }
+                    return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
-                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
-
-                    case SymbolKind.Event:
-                        EventSymbol eventSymbol = (EventSymbol)member;
-                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
-                }
+                case SymbolKind.Event:
+                    var eventSymbol = (EventSymbol)member;
+                    return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
             }
+
             return null;
         }
 
@@ -240,22 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
-    }
-
-    /// <summary>
-    /// Specialized EmptyStructTypeCache that reports all structs as not empty
-    /// </summary>
-    internal sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
-    {
-        public NeverEmptyStructTypeCache()
-           : base(null, false)
-        {
-        }
-
-        public override bool IsEmptyStructType(TypeSymbol type)
-        {
-            return false;
         }
     }
 }

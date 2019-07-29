@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
+        /// <remarks>
+        /// This overload is required for compatibility with existing extensions.
+        /// </remarks>
+        protected static SignatureHelpItems CreateSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
+        }
+
         protected static SignatureHelpItems CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
         {
@@ -54,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            bool isEmpty = filteredList.Count == 0;
+            var isEmpty = filteredList.Count == 0;
             if (!selectedItem.HasValue || isEmpty)
             {
                 return (isEmpty ? items.ToList() : filteredList, selectedItem);

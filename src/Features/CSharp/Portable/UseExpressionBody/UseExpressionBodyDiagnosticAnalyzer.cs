@@ -1,37 +1,43 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string FixesError = nameof(FixesError);
 
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()
-            : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
+            : base(GetSupportedDescriptorsWithOptions(), LanguageNames.CSharp)
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
-            SupportedDiagnostics = _helpers.SelectAsArray(
-                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle));
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        private static ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> GetSupportedDescriptorsWithOptions()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ILanguageSpecificOption>();
+            foreach (var helper in _helpers)
+            {
+                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
+                builder.Add(descriptor, helper.Option);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)

@@ -219,7 +219,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -247,7 +247,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -272,7 +272,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialImplementation());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -293,7 +293,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -2288,6 +2288,32 @@ static class C
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
+        }
+
+        [Fact]
+        public void StaticMethodDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceMethodRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.RequiresInstanceReceiver);
         }
     }
 }

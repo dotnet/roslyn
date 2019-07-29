@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             AddRecord(
                 CustomDebugInfoKind.StateMachineTypeName,
                 typeName,
-                (name, builder) => 
+                (name, builder) =>
                 {
                     builder.WriteUTF16(name);
                     builder.WriteInt16(0);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         public void AddUsingGroups(IReadOnlyCollection<int> groupSizes)
         {
             Debug.Assert(groupSizes.Count <= ushort.MaxValue);
-           
+
             // This originally wrote (uint)12, (ushort)1, (ushort)0 in the
             // case where usingCounts was empty, but I'm not sure why.
             if (groupSizes.Count == 0)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 (uc, builder) =>
                 {
                     builder.WriteUInt16((ushort)uc.Count);
-                    foreach (int usingCount in uc)
+                    foreach (var usingCount in uc)
                     {
                         Debug.Assert(usingCount <= ushort.MaxValue);
                         builder.WriteUInt16((ushort)usingCount);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             T debugInfo,
             Action<T, BlobBuilder> recordSerializer)
         {
-            int startOffset = Builder.Count;
+            var startOffset = Builder.Count;
             Builder.WriteByte(CustomDebugInfoConstants.Version);
             Builder.WriteByte((byte)kind);
             Builder.WriteByte(0);
@@ -218,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             recordSerializer(debugInfo, Builder);
 
-            int length = Builder.Count - startOffset;
-            int alignedLength = 4 * ((length + 3) / 4);
-            byte alignmentSize = (byte)(alignedLength - length);
+            var length = Builder.Count - startOffset;
+            var alignedLength = 4 * ((length + 3) / 4);
+            var alignmentSize = (byte)(alignedLength - length);
             Builder.WriteBytes(0, alignmentSize);
 
             // Fill in alignment size and length. 

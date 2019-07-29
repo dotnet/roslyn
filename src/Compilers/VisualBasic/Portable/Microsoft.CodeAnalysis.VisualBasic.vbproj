@@ -2,27 +2,23 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
-    <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
-         reference Microsoft.NETCore.App to target the shared framework (bug
-         https://github.com/dotnet/sdk/issues/1159) and NETCore.App
-         contains a reference to C# + VB CodeAnalysis. This ensures that the project
-         reference is a higher version than the NuGet reference. -->
-    <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
     <RootNamespace></RootNamespace>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for Visual Basic, $(AssemblyName).dll.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Update="VBResources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -52,8 +48,8 @@
     </BoundTreeDefinition>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-    <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <Content Include="Syntax\Syntax.xml" />
+    <None Include="Symbols\SymbolsAndNoPia.docx" />
+    <None Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -63,12 +59,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="VBCSCompiler" />
-    <InternalsVisibleTo Include="VBCSCompilerPortable" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
@@ -77,11 +70,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Test.Utilities" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.Test.Utilities.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.Utilities" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.Desktop" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleTo Include="Roslyn.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
@@ -98,9 +88,6 @@
     <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
 </Project>

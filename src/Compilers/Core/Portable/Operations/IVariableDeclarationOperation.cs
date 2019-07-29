@@ -42,5 +42,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// In C#, this will always be null.
         /// </remarks>
         IVariableInitializerOperation Initializer { get; }
+
+        /// <summary>
+        /// Array dimensions supplied to an array declaration in error cases, ignored by the compiler. This is only used for the C# case of
+        /// RankSpecifierSyntax nodes on an ArrayTypeSyntax.
+        /// </summary>
+        ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
 }

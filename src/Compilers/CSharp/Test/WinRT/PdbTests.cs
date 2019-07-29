@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             r.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void EmitToStreamWithNonZeroPosition()
         {
             var pdbStream = new MemoryStream();

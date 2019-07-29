@@ -10,10 +10,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         private readonly Shell_InProc _inProc;
 
         public Shell_OutOfProc(VisualStudioInstance visualStudioInstance)
-            :base(visualStudioInstance)
+            : base(visualStudioInstance)
         {
             _inProc = CreateInProcComponent<Shell_InProc>(visualStudioInstance);
         }
+
+        public string GetVersion()
+            => _inProc.GetVersion();
 
         public string GetActiveWindowCaption()
             => _inProc.GetActiveWindowCaption();

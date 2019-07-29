@@ -268,7 +268,7 @@ public class B
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void CS0204_ERR_TooManyLocals()
         {
             var builder = new System.Text.StringBuilder();
@@ -331,6 +331,6 @@ public class A
                 );
         }
 
-#endregion
+        #endregion
     }
 }

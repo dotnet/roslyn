@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyLocations As ImmutableArray(Of Location)
 
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
 
         'Nothing if diags have never been computed. Initial binding diagnostics
         'are stashed here to optimize API usage patterns
@@ -806,13 +807,11 @@ lReportErrorOnTwoTokens:
         End Function
 
         Public NotOverridable Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         ''' <summary>

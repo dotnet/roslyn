@@ -349,7 +349,7 @@ Class A3
     End Operator
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             Dim model As VBSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax
             Dim op As MethodSymbol
@@ -1122,6 +1122,34 @@ BC30452: Operator '/' is not defined for types 'A14' and 'A14'.
         Dim x = Me / Me
                 ~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact(), WorkItem(34872, "https://github.com/dotnet/roslyn/issues/34872")>
+        Public Sub GenericOperatorVoidConversion()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Public Class C(Of T)
+    Public Shared Widening Operator CType(t As T) As C(Of T)
+        Return New C(Of T)
+	End Operator
+
+    Public Sub M()
+    End Sub
+
+    Public Function M2() As C(Of Object)
+		Return M()
+	End Function
+End Class
+    ]]></file>
+</compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30491: Expression does not produce a value.
+		Return M()
+         ~~~
+]]></expected>)
         End Sub
 
         <Fact()>

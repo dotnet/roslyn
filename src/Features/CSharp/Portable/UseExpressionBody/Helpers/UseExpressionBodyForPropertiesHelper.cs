@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -63,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
-            PropertyDeclarationSyntax declaration, ParseOptions options, 
-            ExpressionBodyPreference conversionPreference, 
-            out ArrowExpressionClauseSyntax arrowExpression, 
+            PropertyDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
             return this.TryConvertToExpressionBodyForBaseProperty(

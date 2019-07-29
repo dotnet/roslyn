@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
     internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<
-        TMemberAccessExpressionSyntax> 
+        TMemberAccessExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
@@ -30,14 +30,16 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
 
             context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(), 
-                c => this.FixAsync(document, diagnostic, c),
+                GetTitle(),
+                c => FixAsync(document, diagnostic, c),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;

@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// Code action we use when just adding a using, possibly with a project or
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
-            public sealed override string EquivalenceKey => this.Title;
+            public sealed override string EquivalenceKey => Title;
 
             /// <summary>
             /// The <see cref="Document"/> we started the add-import analysis in.

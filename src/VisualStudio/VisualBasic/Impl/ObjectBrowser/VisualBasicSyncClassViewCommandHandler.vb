@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Private Sub New(threadingContext As IThreadingContext, serviceProvider As SVsServiceProvider)
+        Public Sub New(threadingContext As IThreadingContext, serviceProvider As SVsServiceProvider)
             MyBase.New(threadingContext, serviceProvider)
         End Sub
     End Class

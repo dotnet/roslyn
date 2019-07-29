@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LoadDirectiveTrivia:
                     ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
                     break;
+                case SyntaxKind.NullableDirectiveTrivia:
+                    ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
+                    break;
             }
         }
 
@@ -267,6 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyNodeOrToken(nodeOrToken);
             }
+
+            if (node.ErrorCodes.Count == 0)
+            {
+                // When there are no error codes, we need to classify the directive's trivia.
+                // (When there are error codes, ClassifyNodeOrToken above takes care of that.)
+                ClassifyDirectiveTrivia(node);
+            }
         }
 
         private void ClassifyReferenceDirective(ReferenceDirectiveTriviaSyntax node)
@@ -282,6 +292,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.NullableKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.SettingToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.TargetToken, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
     }
