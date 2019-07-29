@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
@@ -25,6 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
@@ -41,6 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   wellKnownTypeProvider,
                   controlFlowGraph,
                   owningSymbol,
+                  analyzerOptions,
                   interproceduralAnalysisConfig,
                   pessimisticAnalysis,
                   predicateAnalysis: false,
@@ -65,6 +68,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
@@ -82,6 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 controlFlowGraph,
                 owningSymbol,
+                analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 copyAnalysisResultOpt,
@@ -109,6 +114,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.WellKnownTypeProvider,
                 invokedCfg,
                 invokedMethod,
+                this.AnalyzerOptions,
                 this.InterproceduralAnalysisConfiguration,
                 this.PessimisticAnalysis,
                 copyAnalysisResultOpt,
