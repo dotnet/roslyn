@@ -1584,86 +1584,84 @@ class C
         [Fact]
         public void RemoveRestoreNullableAtArrayElement()
         {
-            var source0 =
-@"
-using System;
-class C
-{
-    public static void M()
-    {
-        var arr = new int?[] { 0 };
-        foreach (var s in arr)
-        {
-            Console.WriteLine(1);
-        }
-    }
-}";
-            // Remove nullable
-            var source1 =
+            var source0 = MarkedSource(
 @"using System;
 class C
 {
     public static void M()
     {
-        var arr = new int[] { 0 };
-        foreach (var s in arr)
+        var <N:1>arr</N:1> = new string?[] { ""0"" };
+        <N:0>foreach</N:0> (var s in arr)
         {
             Console.WriteLine(1);
         }
     }
-}";
+}");
+            // Remove nullable
+            var source1 = MarkedSource(
+@"using System;
+class C
+{
+    public static void M()
+    {
+        var <N:1>arr</N:1> = new string[] { ""0"" };
+        <N:0>foreach</N:0> (var s in arr)
+        {
+            Console.WriteLine(1);
+        }
+    }
+}");
             // Restore nullable
             var source2 = source0;
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll);
 
             var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
             v0.VerifyIL("C.M", @"
 {
-  // Code size       56 (0x38)
+  // Code size       47 (0x2f)
   .maxstack  4
-  .locals init (int?[] V_0, //arr
-                int?[] V_1,
+  .locals init (string[] V_0, //arr
+                string[] V_1,
                 int V_2,
-                int? V_3) //s
+                string V_3) //s
   IL_0000:  nop
   IL_0001:  ldc.i4.1
-  IL_0002:  newarr     ""int?""
+  IL_0002:  newarr     ""string""
   IL_0007:  dup
   IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.0
-  IL_000a:  newobj     ""int?..ctor(int)""
-  IL_000f:  stelem     ""int?""
-  IL_0014:  stloc.0
-  IL_0015:  nop
-  IL_0016:  ldloc.0
-  IL_0017:  stloc.1
-  IL_0018:  ldc.i4.0
-  IL_0019:  stloc.2
-  IL_001a:  br.s       IL_0031
-  IL_001c:  ldloc.1
-  IL_001d:  ldloc.2
-  IL_001e:  ldelem     ""int?""
-  IL_0023:  stloc.3
-  IL_0024:  nop
+  IL_0009:  ldstr      ""0""
+  IL_000e:  stelem.ref
+  IL_000f:  stloc.0
+  IL_0010:  nop
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.1
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.2
+  IL_0015:  br.s       IL_0028
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.3
+  IL_001b:  nop
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+  IL_0023:  nop
+  IL_0024:  ldloc.2
   IL_0025:  ldc.i4.1
-  IL_0026:  call       ""void System.Console.WriteLine(int)""
-  IL_002b:  nop
-  IL_002c:  nop
-  IL_002d:  ldloc.2
-  IL_002e:  ldc.i4.1
-  IL_002f:  add
-  IL_0030:  stloc.2
-  IL_0031:  ldloc.2
-  IL_0032:  ldloc.1
-  IL_0033:  ldlen
-  IL_0034:  conv.i4
-  IL_0035:  blt.s      IL_001c
-  IL_0037:  ret
+  IL_0026:  add
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.1
+  IL_002a:  ldlen
+  IL_002b:  conv.i4
+  IL_002c:  blt.s      IL_0017
+  IL_002e:  ret
 }");
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
-            var compilation2 = compilation0.WithSource(source2);
+            var compilation1 = CreateCompilation(source1.Tree, options: TestOptions.DebugDll);
+            var compilation2 = compilation0.WithSource(source2.Tree);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -1672,106 +1670,97 @@ class C
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(MarkedSource(source0), MarkedSource(source1)), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       50 (0x32)
-  .maxstack  2
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                [int] V_2,
-                [unchanged] V_3,
-                int[] V_4, //arr
-                int[] V_5,
-                int V_6,
-                int V_7) //s
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (string[] V_0, //arr
+                string[] V_1,
+                int V_2,
+                string V_3) //s
   IL_0000:  nop
   IL_0001:  ldc.i4.1
-  IL_0002:  newarr     ""int""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  nop
-  IL_000a:  ldloc.s    V_4
-  IL_000c:  stloc.s    V_5
-  IL_000e:  ldc.i4.0
-  IL_000f:  stloc.s    V_6
-  IL_0011:  br.s       IL_0029
-  IL_0013:  ldloc.s    V_5
-  IL_0015:  ldloc.s    V_6
-  IL_0017:  ldelem.i4
-  IL_0018:  stloc.s    V_7
-  IL_001a:  nop
-  IL_001b:  ldc.i4.1
-  IL_001c:  call       ""void System.Console.WriteLine(int)""
-  IL_0021:  nop
+  IL_0002:  newarr     ""string""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldstr      ""0""
+  IL_000e:  stelem.ref
+  IL_000f:  stloc.0
+  IL_0010:  nop
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.1
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.2
+  IL_0015:  br.s       IL_0028
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.3
+  IL_001b:  nop
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
   IL_0022:  nop
-  IL_0023:  ldloc.s    V_6
+  IL_0023:  nop
+  IL_0024:  ldloc.2
   IL_0025:  ldc.i4.1
   IL_0026:  add
-  IL_0027:  stloc.s    V_6
-  IL_0029:  ldloc.s    V_6
-  IL_002b:  ldloc.s    V_5
-  IL_002d:  ldlen
-  IL_002e:  conv.i4
-  IL_002f:  blt.s      IL_0013
-  IL_0031:  ret
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.1
+  IL_002a:  ldlen
+  IL_002b:  conv.i4
+  IL_002c:  blt.s      IL_0017
+  IL_002e:  ret
 }");
 
             var method2 = compilation2.GetMember<MethodSymbol>("C.M");
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(MarkedSource(source1), MarkedSource(source2)), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M",
 @"{
-  // Code size       67 (0x43)
+  // Code size       47 (0x2f)
   .maxstack  4
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                [int] V_2,
-                [unchanged] V_3,
-                [unchanged] V_4,
-                [unchanged] V_5,
-                [int] V_6,
-                [int] V_7,
-                int?[] V_8, //arr
-                int?[] V_9,
-                int V_10,
-                int? V_11) //s
+  .locals init (string[] V_0, //arr
+                string[] V_1,
+                int V_2,
+                string V_3) //s
  -IL_0000:  nop
  -IL_0001:  ldc.i4.1
-  IL_0002:  newarr     ""int?""
+  IL_0002:  newarr     ""string""
   IL_0007:  dup
   IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.0
-  IL_000a:  newobj     ""int?..ctor(int)""
-  IL_000f:  stelem     ""int?""
-  IL_0014:  stloc.s    V_8
- -IL_0016:  nop
- -IL_0017:  ldloc.s    V_8
-  IL_0019:  stloc.s    V_9
-  IL_001b:  ldc.i4.0
-  IL_001c:  stloc.s    V_10
- ~IL_001e:  br.s       IL_003a
- -IL_0020:  ldloc.s    V_9
-  IL_0022:  ldloc.s    V_10
-  IL_0024:  ldelem     ""int?""
-  IL_0029:  stloc.s    V_11
- -IL_002b:  nop
- -IL_002c:  ldc.i4.1
-  IL_002d:  call       ""void System.Console.WriteLine(int)""
-  IL_0032:  nop
- -IL_0033:  nop
- ~IL_0034:  ldloc.s    V_10
-  IL_0036:  ldc.i4.1
-  IL_0037:  add
-  IL_0038:  stloc.s    V_10
- -IL_003a:  ldloc.s    V_10
-  IL_003c:  ldloc.s    V_9
-  IL_003e:  ldlen
-  IL_003f:  conv.i4
-  IL_0040:  blt.s      IL_0020
- -IL_0042:  ret
+  IL_0009:  ldstr      ""0""
+  IL_000e:  stelem.ref
+  IL_000f:  stloc.0
+ -IL_0010:  nop
+ -IL_0011:  ldloc.0
+  IL_0012:  stloc.1
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.2
+ ~IL_0015:  br.s       IL_0028
+ -IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.3
+ -IL_001b:  nop
+ -IL_001c:  ldc.i4.1
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+ -IL_0023:  nop
+ ~IL_0024:  ldloc.2
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  stloc.2
+ -IL_0028:  ldloc.2
+  IL_0029:  ldloc.1
+  IL_002a:  ldlen
+  IL_002b:  conv.i4
+  IL_002c:  blt.s      IL_0017
+ -IL_002e:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -4519,7 +4508,7 @@ class C
         ref int <N:4>d</N:4> = ref array[0];
         ref readonly int <N:5>e</N:5> = ref array[0];
         C1<(int, dynamic)>.E***[,,] <N:6>x</N:6> = null;
-        var <N:6>f</N:6> = new List<int?>();
+        var <N:7>f</N:7> = new List<string?>();
     }
 }
 ";
@@ -4548,7 +4537,7 @@ class C
                 int& V_4, //d
                 int& V_5, //e
                 C1<(int, dynamic)>.E***[,,] V_6, //x
-                System.Collections.Generic.List<int?> V_7) //f
+                System.Collections.Generic.List<string> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4581,7 +4570,7 @@ class C
   IL_004b:  stloc.s    V_5
   IL_004d:  ldnull
   IL_004e:  stloc.s    V_6
-  IL_0050:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
+  IL_0050:  newobj     ""System.Collections.Generic.List<string>..ctor()""
   IL_0055:  stloc.s    V_7
   IL_0057:  ret
 }
@@ -4605,10 +4594,8 @@ class C
                 int[] V_3, //array
                 int& V_4, //d
                 int& V_5, //e
-                [unchanged] V_6,
-                [unchanged] V_7,
-                C1<(int, dynamic)>.E***[,,] V_8, //x
-                System.Collections.Generic.List<int?> V_9) //f
+                C1<(int, dynamic)>.E***[,,] V_6, //x
+                System.Collections.Generic.List<string> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4649,9 +4636,9 @@ class C
   IL_0047:  ldelema    ""int""
   IL_004c:  stloc.s    V_5
   IL_004e:  ldnull
-  IL_004f:  stloc.s    V_8
-  IL_0051:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
-  IL_0056:  stloc.s    V_9
+  IL_004f:  stloc.s    V_6
+  IL_0051:  newobj     ""System.Collections.Generic.List<string>..ctor()""
+  IL_0056:  stloc.s    V_7
   IL_0058:  ret
 }
 ");
@@ -4671,12 +4658,8 @@ class C
                 int[] V_3, //array
                 int& V_4, //d
                 int& V_5, //e
-                [unchanged] V_6,
-                [unchanged] V_7,
-                [unchanged] V_8,
-                [unchanged] V_9,
-                C1<(int, dynamic)>.E***[,,] V_10, //x
-                System.Collections.Generic.List<int?> V_11) //f
+                C1<(int, dynamic)>.E***[,,] V_6, //x
+                System.Collections.Generic.List<string> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4717,9 +4700,9 @@ class C
   IL_0047:  ldelema    ""int""
   IL_004c:  stloc.s    V_5
   IL_004e:  ldnull
-  IL_004f:  stloc.s    V_10
-  IL_0051:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
-  IL_0056:  stloc.s    V_11
+  IL_004f:  stloc.s    V_6
+  IL_0051:  newobj     ""System.Collections.Generic.List<string>..ctor()""
+  IL_0056:  stloc.s    V_7
   IL_0058:  ret
 }
 ");
