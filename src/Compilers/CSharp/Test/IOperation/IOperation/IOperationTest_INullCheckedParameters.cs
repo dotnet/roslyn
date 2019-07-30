@@ -2336,7 +2336,7 @@ class Program
           ReturnedValue: 
             null");
             VerifyFlowGraph(comp, node2, @"
-        Block[B0] - Entry
+      Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
             Entering: {R1}
