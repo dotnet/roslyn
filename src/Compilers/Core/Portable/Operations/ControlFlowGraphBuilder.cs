@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1429,9 +1428,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
             ImmutableArray<IParameterSymbol> parameters = member switch
             {
-                null => ImmutableArray<IParameterSymbol>.Empty,
-                IFieldSymbol _ => ImmutableArray<IParameterSymbol>.Empty,
-                IParameterSymbol parameterMember => ImmutableArray.Create(parameterMember),
                 IMethodSymbol method => method.Parameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(member)
             };
