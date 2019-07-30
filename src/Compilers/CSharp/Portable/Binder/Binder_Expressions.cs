@@ -2315,7 +2315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
                 if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
-                    Error(diagnostics, getErrorCode(bag), node, operand.Type, targetTypeWithAnnotations.Type);
+                    var errorCode = bag.AsEnumerable().Last().Code;
+                    Error(diagnostics,  (ErrorCode)errorCode, node, operand.Type, targetTypeWithAnnotations.Type);
 
                     return new BoundConversion(
                         node,
@@ -2343,12 +2344,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 bag.Free();
-            }
-
-            ErrorCode getErrorCode(DiagnosticBag diagnostic)
-            {
-                int code = diagnostic.AsEnumerable().LastOrDefault().Code;
-                return (ErrorCode)code;
             }
         }
 
