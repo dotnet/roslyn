@@ -142,6 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _focusedElement = _tabNavigableChildren[current];
             }
 
+            // We have found the next control in _tabNavigableChildren, but not all controls are
+            // visible in all sessions. For example, "Rename Overloads" only applies if there the
+            // symbol has overloads. Therefore, continue searching for the next control in
+            // _tabNavigableChildren that's actually valid in this session.
             while (!_focusedElement.IsVisible)
             {
                 var current = _tabNavigableChildren.IndexOf(_focusedElement);
