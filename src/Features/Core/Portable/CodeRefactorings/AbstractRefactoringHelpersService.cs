@@ -464,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             //      //Comment1
             //      [||]object Property1 { get; set; }
             //     the comment node being part of the next token's (`object`) leading trivia and not the AttributeList's node.
+            // - In case only attribute is written we need to be careful to not to use next (unrelated) token as beginning current the node.
             var attributeList = syntaxFacts.GetAttributeLists(node);
             if (attributeList.Any())
             {
