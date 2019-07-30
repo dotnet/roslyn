@@ -260,9 +260,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
         /// </summary>
-        /// <remarks>
-        /// May Force binding and decoding of attributes.
-        /// </remarks>
         bool IsConditional { get; }
     }
 }

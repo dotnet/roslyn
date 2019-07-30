@@ -4770,8 +4770,11 @@ System.Diagnostics.Debug.Assert(x == true); }",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontWarnOnInlineIntoMultipleLocationsEvenIfConditional()
+        public async Task DoNotWarnOnInlineIntoMultipleLocationsEvenIfConditional()
         {
+            // If we are inlining an expression into multiple locations,
+            // then it is unlikely that the number of times the expression is called matters,
+            // so the fact that some/all of those calls are conditional shouldn't warn.
             await TestInRegularAndScriptAsync(
 @"using System;
 
