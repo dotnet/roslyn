@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override AutomationPeer OnCreateAutomationPeer()
         {
-            return new DashboardAutomationPeer(this, _model.GetOriginalName());
+            return new DashboardAutomationPeer(this, _model.OriginalName);
         }
 
         private void DisconnectFromPresentationSource()

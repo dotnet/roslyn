@@ -310,10 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string GetOriginalName()
-        {
-            return _session.OriginalSymbolName;
-        }
+        public string OriginalName => _session.OriginalSymbolName;
 
         public void Dispose()
         {
