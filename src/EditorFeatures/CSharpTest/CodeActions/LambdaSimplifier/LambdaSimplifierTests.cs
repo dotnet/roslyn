@@ -586,9 +586,9 @@ class Program
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingCaretPositionBeforeBody()
+        public async Task TestCaretPositionBeforeBody()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -596,6 +596,15 @@ class Program
     static void Main()
     {
         Action a = () => [||]Console.WriteLine();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
     }
 }");
         }
