@@ -230,12 +230,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Location location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
+            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
             if (diag is object)
             {
-                diagnostics.Add(diag, errorLocation);
+                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                return false;
+            }
+            return true;
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            Compilation compilation, 
+            Location location)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpCompilation)compilation) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
                 return false;
             }
             return true;
