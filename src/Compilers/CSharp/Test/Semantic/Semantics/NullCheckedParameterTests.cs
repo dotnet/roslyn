@@ -811,9 +811,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                    // (4,20): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
-                    //     static void Main(string x!) { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(4, 20));
+                    // (4,20): error CS8059: Feature 'parameter null-checking' is not available in C# 6. Please use language version 8.0 or greater.
+                    //     void M(string x!) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("parameter null-checking", "8.0").WithLocation(4, 20));
         }
 
         [Fact]
@@ -831,9 +831,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                    // (7,38): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
+                    // (7,38): error CS8059: Feature 'parameter null-checking' is not available in C# 6. Please use language version 8.0 or greater.
                     //         Func<string, string> func = x! => x;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(7, 38));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("parameter null-checking", "8.0").WithLocation(7, 38));
         }
 
         [Fact]
@@ -851,9 +851,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                    // (7,47): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
+                    // (7,47): error CS8059: Feature 'parameter null-checking' is not available in C# 6. Please use language version CSharp8 or greater.
                     //         Func<string, string, string> func = (x!, y) => x;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(7, 47));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("parameter null-checking", "8.0").WithLocation(7, 47));
         }
     }
 }

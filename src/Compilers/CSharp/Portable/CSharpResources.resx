@@ -354,6 +354,9 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
+  <data name="IDS_ParameterNullChecking" xml:space="preserve">
+    <value>parameter null-checking</value>
+  </data>
   <data name="XML_InvalidToken" xml:space="preserve">
     <value>The character(s) '{0}' cannot be used at this location.</value>
   </data>

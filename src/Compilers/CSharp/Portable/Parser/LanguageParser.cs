@@ -3822,7 +3822,11 @@ tryAgain:
             {
                 equals = this.EatToken(SyntaxKind.EqualsToken);
             }
-            exclamation = CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking);
+            if (!(exclamation is null))
+            {
+
+            }
+            exclamation = !(exclamation is null) ? CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking) : null;
             EqualsValueClauseSyntax def = null;
             if (!(equals is null))
             {
@@ -11105,7 +11109,7 @@ tryAgain:
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     exclamation = null;
                 }
-                exclamation = CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking);
+                exclamation = !(exclamation is null) ? CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking) : null; ;
                 var parameter = _syntaxFactory.Parameter(
                     default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
                     type: null, identifier: name, exclamation, @default: null);
@@ -11233,7 +11237,7 @@ tryAgain:
 
             SyntaxToken paramName = this.ParseIdentifierToken();
             var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
-            exclamation = CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking);
+            exclamation = !(exclamation is null) ? CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking) : null;
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamation, null);
             _pool.Free(modifiers);
             return parameter;
