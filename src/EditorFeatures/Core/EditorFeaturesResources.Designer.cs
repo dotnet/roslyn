@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An inline rename session is active.
+        ///   Looks up a localized string similar to An inline rename session is active. Invoke inline rename again to access additional options..
         /// </summary>
         internal static string An_inline_rename_session_is_active {
             get {

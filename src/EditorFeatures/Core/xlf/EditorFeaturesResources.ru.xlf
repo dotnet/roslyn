@@ -1225,8 +1225,8 @@ Do you want to proceed?</source>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active">
-        <source>An inline rename session is active</source>
-        <target state="translated">Встроенный сеанс переименования активен</target>
+        <source>An inline rename session is active. Invoke inline rename again to access additional options.</source>
+        <target state="needs-review-translation">Встроенный сеанс переименования активен</target>
         <note>For screenreaders</note>
       </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">
