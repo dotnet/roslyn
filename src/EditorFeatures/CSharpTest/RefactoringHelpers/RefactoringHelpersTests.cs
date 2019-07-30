@@ -515,6 +515,47 @@ class C
 
         #region Attributes
         [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [][||]
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [||]// Comment 
+    []
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestEmptyAttributeList()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:[]
+    [||]void a() {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeBeforeAttribute()
         {
@@ -712,7 +753,6 @@ class C
 }";
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
-
         #endregion
 
         #region Extractions general
@@ -973,7 +1013,6 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
-
         #endregion
 
         #region Test predicate
@@ -1470,7 +1509,6 @@ class C
 }";
             await TestAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax);
         }
-
         #endregion
     }
 }
