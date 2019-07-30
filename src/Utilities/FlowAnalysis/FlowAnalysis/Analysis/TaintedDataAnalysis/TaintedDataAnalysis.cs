@@ -37,7 +37,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
-            return TryGetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
+            return TryGetOrComputeResult(cfg, compilation, containingMethod, analyzerOptions, taintedSourceInfos,
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }
 
@@ -45,6 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
+            AnalyzerOptions analyzerOptions,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
@@ -59,6 +60,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                         cfg,
                         containingMethod,
+                        analyzerOptions,
                         wellKnownTypeProvider,
                         interproceduralAnalysisConfig,
                         out copyAnalysisResult,
@@ -75,6 +77,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                 cfg,
                 containingMethod,
+                analyzerOptions,
                 wellKnownTypeProvider,
                 interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt: null,
@@ -91,6 +94,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 cfg,
                 containingMethod,
+                analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
                 copyAnalysisResultOpt: copyAnalysisResult,

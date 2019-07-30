@@ -125,6 +125,12 @@ namespace Newtonsoft.Json
             return null;
         }
 
+        public TypeNameHandling TypeNameHandling { get; set; }
+
+        public SerializationBinder Binder { get; set; }
+
+        public ISerializationBinder SerializationBinder { get; set; }
+
         public object Deserialize(JsonReader reader)
         {
             return null;
