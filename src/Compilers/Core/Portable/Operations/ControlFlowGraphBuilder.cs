@@ -1453,7 +1453,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
             Optional<object> constantValue = default(Optional<object>);
             var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
-            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             IOperation conditionOp;
@@ -1465,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     conditionOp = new UnaryOperation(
                     UnaryOperatorKind.Not,
                     new InvalidOperation(
-                        ImmutableArray.Create((IOperation)OperationCloner.CloneOperation(paramReference)),
+                        ImmutableArray.Create<IOperation>(paramReference),
                         semanticModel,
                         syntax,
                         boolType,
@@ -1521,6 +1520,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     constantValue,
                     isImplicit: true);
             }
+
+            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
             var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
             var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
 
