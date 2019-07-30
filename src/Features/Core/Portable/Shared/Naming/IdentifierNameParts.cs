@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
 
         private static ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
         {
-            var result = ArrayBuilder<string>.GetInstance(parts.Count);
+            using var result = ArrayBuilder<string>.GetInstance(parts.Count);
             foreach (var part in parts)
             {
                 result.Add(name.Substring(part.Start, part.Length));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
     }
 }

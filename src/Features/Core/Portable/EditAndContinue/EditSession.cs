@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var instructionMap = baseActiveStatements.InstructionMap;
-                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count);
+                using var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count);
                 builder.Count = instructionMap.Count;
 
                 foreach (var activeStatement in instructionMap.Values)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

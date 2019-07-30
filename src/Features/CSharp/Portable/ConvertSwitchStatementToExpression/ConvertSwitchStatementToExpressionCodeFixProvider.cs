@@ -41,44 +41,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var spans = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length);
-            try
+            using var spans = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length);
+            foreach (var diagnostic in diagnostics)
             {
-                foreach (var diagnostic in diagnostics)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var span = diagnostic.AdditionalLocations[0].SourceSpan;
+                if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), span))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var span = diagnostic.AdditionalLocations[0].SourceSpan;
-                    if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), span))
-                    {
-                        // Skip nested switch expressions in case of a fix-all operation.
-                        continue;
-                    }
-
-                    spans.Add(span);
-
-                    var properties = diagnostic.Properties;
-                    var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
-                    var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
-
-                    var switchStatement = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(span);
-                    editor.ReplaceNode(switchStatement,
-                        Rewriter.Rewrite(switchStatement, semanticModel, editor,
-                            nodeToGenerate, shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement)
-                        .WithAdditionalAnnotations(Formatter.Annotation));
-
-                    if (shouldRemoveNextStatement)
-                    {
-                        // Already morphed into the top-level switch expression.
-                        var nextStatement = switchStatement.GetNextStatement();
-                        Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
-                        editor.RemoveNode(nextStatement);
-                    }
+                    // Skip nested switch expressions in case of a fix-all operation.
+                    continue;
                 }
-            }
-            finally
-            {
-                spans.Free();
+
+                spans.Add(span);
+
+                var properties = diagnostic.Properties;
+                var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
+                var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
+
+                var switchStatement = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(span);
+                editor.ReplaceNode(switchStatement,
+                    Rewriter.Rewrite(switchStatement, semanticModel, editor,
+                        nodeToGenerate, shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement)
+                    .WithAdditionalAnnotations(Formatter.Annotation));
+
+                if (shouldRemoveNextStatement)
+                {
+                    // Already morphed into the top-level switch expression.
+                    var nextStatement = switchStatement.GetNextStatement();
+                    Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
+                    editor.RemoveNode(nextStatement);
+                }
             }
         }
 

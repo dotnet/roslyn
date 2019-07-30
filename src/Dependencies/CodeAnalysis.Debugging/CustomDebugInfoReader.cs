@@ -123,13 +123,13 @@ namespace Microsoft.CodeAnalysis.Debugging
             var offset = 0;
             var numCounts = ReadInt16(bytes, ref offset);
 
-            var builder = ArrayBuilder<short>.GetInstance(numCounts);
+            using var builder = ArrayBuilder<short>.GetInstance(numCounts);
             for (var i = 0; i < numCounts; i++)
             {
                 builder.Add(ReadInt16(bytes, ref offset));
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             var bucketCount = ReadInt32(bytes, ref offset);
 
-            var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
+            using var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
             for (var i = 0; i < bucketCount; i++)
             {
                 var startOffset = ReadInt32(bytes, ref offset);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 builder.Add(new StateMachineHoistedLocalScope(startOffset, endOffset));
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             const int FlagBytesCount = 64;
 
-            var flagsBuilder = ArrayBuilder<bool>.GetInstance(FlagBytesCount);
-            var pooledNameBuilder = PooledStringBuilder.GetInstance();
+            using var flagsBuilder = ArrayBuilder<bool>.GetInstance(FlagBytesCount);
+            using var pooledNameBuilder = PooledStringBuilder.GetInstance();
             var nameBuilder = pooledNameBuilder.Builder;
 
             var offset = 0;
             var bucketCount = ReadInt32(bytes, ref offset);
-            var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
+            using var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
 
             for (var i = 0; i < bucketCount; i++)
             {
@@ -281,9 +281,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 nameBuilder.Clear();
             }
 
-            flagsBuilder.Free();
-            pooledNameBuilder.Free();
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -293,18 +291,18 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             var offset = 0;
             var n = ReadInt32(bytes, ref offset);
-            var builder = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n);
+            using var builder = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n);
             for (var i = 0; i < n; i++)
             {
                 builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
             }
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
         {
             var n = ReadInt32(bytes, ref offset);
-            var builder = ArrayBuilder<string>.GetInstance(n);
+            using var builder = ArrayBuilder<string>.GetInstance(n);
             for (var i = 0; i < n; i++)
             {
                 var value = ReadUtf8String(bytes, ref offset);
@@ -314,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             var scopeStart = ReadInt32(bytes, ref offset);
             var scopeEnd = ReadInt32(bytes, ref offset);
             var localName = ReadUtf8String(bytes, ref offset);
-            return new TupleElementNamesInfo(builder.ToImmutableAndFree(), slotIndex, localName, scopeStart, scopeEnd);
+            return new TupleElementNamesInfo(builder.ToImmutable(), slotIndex, localName, scopeStart, scopeEnd);
         }
 
         /// <summary>
@@ -427,8 +425,8 @@ RETRY:
             var importStrings = getMethodImportStrings(methodToken, arg);
             Debug.Assert(!importStrings.IsDefault);
 
-            var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
-            var groupBuilder = ArrayBuilder<string>.GetInstance();
+            using var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
+            using var groupBuilder = ArrayBuilder<string>.GetInstance();
             var pos = 0;
 
             foreach (var groupSize in groupSizes)
@@ -469,19 +467,17 @@ RETRY:
                     groupBuilder.Add(importString);
                 }
 
-                externAliasStrings = groupBuilder.ToImmutableAndFree();
+                externAliasStrings = groupBuilder.ToImmutable();
             }
             else
             {
-                groupBuilder.Free();
-
                 if (pos < importStrings.Length)
                 {
                     throw new InvalidOperationException(string.Format("Group size indicates fewer imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                 }
             }
 
-            return resultBuilder.ToImmutableAndFree();
+            return resultBuilder.ToImmutable();
         }
 
         /// <summary>

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
+            using var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
             for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }

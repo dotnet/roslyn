@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 originalNodes,
                 t =>
                 {
-                    var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
+                    using var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
 
-                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
+                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
                 },
                 (_1, _2, _3) => true,
                 (semanticModel, currentRoot, t, currentNode)
