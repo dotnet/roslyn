@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     diagnostics: projectDiagnosticData.ToImmutable()));
             }
 
-            var result = documentIds.AsImmutableOrEmpty();
-            return result;
+            return documentIds.AsImmutableOrEmpty();
         }
 
         internal ImmutableArray<DocumentId> ReportDiagnostics(DebuggingSession session, object errorId, ProjectId projectId, Solution solution, IEnumerable<Diagnostic> diagnostics)
