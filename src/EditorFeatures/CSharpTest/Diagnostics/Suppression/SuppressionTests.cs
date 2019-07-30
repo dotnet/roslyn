@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
@@ -804,6 +803,39 @@ class Class
                 {
                     return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
+                {
+                    var expected = $@"
+// This file is used by Code Analysis to maintain SuppressMessage
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class"")]
+
+";
+
+                    Assert.All(Regex.Split(expected, "\r?\n"), line => Assert.False(HasTrailingWhitespace(line)));
+
+                    await TestAsync(
+            @"
+using System;
+
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}", expected);
+                }
+
+                private static bool HasTrailingWhitespace(string line)
+                {
+                    return line.LastOrNullable() is char last && char.IsWhiteSpace(last);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
