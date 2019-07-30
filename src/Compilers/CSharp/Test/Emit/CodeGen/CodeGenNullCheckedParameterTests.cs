@@ -20,7 +20,7 @@ public class C
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       15 (0xf)
@@ -33,7 +33,7 @@ public class C
     -IL_000e:  ret
 }", sequencePoints: "C.M");
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       16 (0x10)
@@ -61,7 +61,7 @@ public class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       15 (0xf)
@@ -74,7 +74,7 @@ public class C
     -IL_000e:  ret
 }", sequencePoints: "C.M");
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       16 (0x10)
@@ -100,7 +100,7 @@ class C
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       15 (0xf)
@@ -113,7 +113,7 @@ class C
     -IL_000e:  ret
 }", sequencePoints: "C.M");
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       16 (0x10)
@@ -142,7 +142,7 @@ class Box
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("int Box.op_Addition(Box, Box)", @"
 {
     // Code size       16 (0x10)
@@ -156,7 +156,7 @@ class Box
     IL_000f:  ret
 }", sequencePoints: "Box.op_Addition");
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("int Box.op_Addition(Box, Box)", @"
 {
     // Code size       21 (0x15)
@@ -194,7 +194,7 @@ class C
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       10 (0xa)
@@ -206,7 +206,7 @@ class C
     IL_0009:  ret
 }");
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
     // Code size       12 (0xc)
@@ -232,7 +232,7 @@ class C
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[string].get", @"
 {
     // Code size       16 (0x10)
@@ -247,7 +247,7 @@ class C
 }", sequencePoints: "C.get_Item");
 
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[string].get", @"
 {
     // Code size       16 (0x10)
@@ -288,7 +288,7 @@ class C
     }
 }";
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
     // Code size       24 (0x18)
@@ -307,7 +307,7 @@ class C
 }", sequencePoints: "C.set_Item");
 
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
     // Code size       25 (0x19)
@@ -337,7 +337,7 @@ class C
     public static void Main() { }
 }";
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
     // Code size       15 (0xf)
@@ -351,7 +351,7 @@ class C
 }", sequencePoints: "C.set_Item");
 
             // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPreview);
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
     // Code size       16 (0x10)
@@ -379,7 +379,7 @@ class B1<T> : A<T> where T : class
     internal override void M<U>(U u!) { }
 }
 ";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B1<T>.M<U>(U)", @"
 {
     // Code size       20 (0x14)
@@ -418,7 +418,7 @@ class B3<T> : A<T?> where T : struct
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
 {
     // Code size       20 (0x14)
@@ -445,7 +445,7 @@ class B5 : A<object>
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B5.M<U>(U)", @"
 {
     // Code size       20 (0x14)
@@ -468,7 +468,7 @@ class C
 {
     void M<T>(T value!) where T : notnull { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M<T>(T)", @"
 {
     // Code size       20 (0x14)
@@ -519,7 +519,7 @@ class Program
 ok
 System.ArgumentNullException
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -552,7 +552,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -591,7 +591,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -630,7 +630,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -669,7 +669,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -684,7 +684,7 @@ class C
         Func<string, string> func1 = x => x;
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
 {
       // Code size        2 (0x2)
@@ -706,7 +706,7 @@ class C
         Func<string, string> func1 = x! => x;
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
 {
     // Code size       16 (0x10)
@@ -733,7 +733,7 @@ class C
         Func<string, string, string> func1 = (x!, y) => x;
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
 {
     // Code size       16 (0x10)
@@ -760,7 +760,7 @@ class C
         Func<string, string, string> func1 = (x!, y!) => x;
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
 {
     // Code size       30 (0x1e)
@@ -792,7 +792,7 @@ class C
         Func<string, string> func1 = _! => null;
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
 {
     // Code size       16 (0x10)
@@ -819,7 +819,7 @@ class C
     {
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<.ctor>b__2_0(string)", @"
 {
     // Code size       16 (0x10)
@@ -847,7 +847,7 @@ class C
         void InnerM(string x!) { }
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
 {
     // Code size       15 (0xf)
@@ -874,7 +874,7 @@ class C
         void InnerM(string x!, string y) { }
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
 {
     // Code size       15 (0xf)
@@ -901,7 +901,7 @@ class C
         void InnerM(string x!, string y!) { }
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
 {
     // Code size       29 (0x1d)
@@ -933,7 +933,7 @@ class C
         void InnerM(string x!) { }
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
 {
     // Code size       15 (0xf)
@@ -968,7 +968,7 @@ class C
         void InnerM(string x) { }
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
 {
     // Code size        1 (0x1)
@@ -998,7 +998,7 @@ class C
 {
     public C(string x!) { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
     // Code size       21 (0x15)
@@ -1026,7 +1026,7 @@ class C : B
 {
     public C(string x!) : base(x) { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
     // Code size       22 (0x16)
@@ -1060,7 +1060,7 @@ class C
     public C() { }
     public C(string x!) : this() { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
     // Code size       21 (0x15)
@@ -1085,7 +1085,7 @@ class C
     int y = 5;
     public C(string x!) { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
     // Code size       28 (0x1c)
@@ -1113,7 +1113,7 @@ class C
     object Local(object arg!) => arg;
     public static void Main() { }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.Local(object)", @"
 {
     // Code size       16 (0x10)
@@ -1137,7 +1137,7 @@ class C
 {
     public Func<string, string> M(string s1!) => s2! => s2 + s1;
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c__DisplayClass0_0.<M>b__0(string)", @"
 {
     // Code size       27 (0x1b)
@@ -1201,7 +1201,7 @@ class C
 
     }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.GetChars(string)", @"
 {
     // Code size       29 (0x1d)
@@ -1240,7 +1240,7 @@ class Iterators
     }
 
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
     // Code size       29 (0x1d)
@@ -1279,7 +1279,7 @@ class Iterators
     }
 
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
     // Code size       28 (0x1c)
@@ -1340,7 +1340,7 @@ class Program
 ok
 ok
 ok
-System.ArgumentNullException", parseOptions: TestOptions.RegularWithPreview);
+System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -1356,7 +1356,7 @@ class Program
         Func<string, string> func = x! => x;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
@@ -1378,7 +1378,7 @@ class Program
         void M(string x!) { }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
@@ -1400,7 +1400,7 @@ class C
         yield break;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview).VerifyIL("C.GetChars(string)", @"
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
     // Code size       22 (0x16)
     .maxstack  1
@@ -1428,7 +1428,7 @@ class C
         yield break;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview).VerifyIL("C.GetChars(string)", @"
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
     // Code size       21 (0x15)
     .maxstack  1
@@ -1452,7 +1452,7 @@ class C
     public static void Main() { }
     public void M(params int[] number!) {}
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularWithPreview).VerifyIL("C.M(params int[])", @"
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.M(params int[])", @"
 {
     // Code size       15 (0xf)
     .maxstack  1

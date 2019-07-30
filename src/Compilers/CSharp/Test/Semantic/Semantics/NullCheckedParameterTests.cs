@@ -24,7 +24,7 @@ class C
 {
     Del d = delegate(string k!, int j) { /* ... */ };
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (2,26): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     // delegate void Del(int x!, int y);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(2, 26));
@@ -38,7 +38,7 @@ abstract class C
 {
     abstract public int M(string x!);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,34): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     abstract public int M(int x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 34));
@@ -52,7 +52,7 @@ interface C
 {
     public int M(string x!);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,25): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     public int M(int x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 25));
@@ -67,7 +67,7 @@ interface C
     public void M(string x!) { }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
-                parseOptions: TestOptions.RegularWithPreview);
+                parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
         }
 
@@ -79,7 +79,7 @@ abstract class C
 {
     string FirstName! { get; set; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,12): warning CS0169: The field 'C.FirstName' is never used
                     //     string FirstName! { get; set; }
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "FirstName").WithArguments("C.FirstName").WithLocation(4, 12),
@@ -114,7 +114,7 @@ partial class C
 {
     partial void M(string x!);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,27): error CS8717: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     partial void M(string x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 27));
@@ -128,7 +128,7 @@ interface C
 {
     public string this[string index!] { get; set; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,31): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
                     //     public string this[int index!] { get; set; }
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 31));
@@ -142,7 +142,7 @@ abstract class C
 {
     public abstract string this[string index!] { get; }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,40): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
                     //     public abstract string this[int index!] { get; }
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 40));
@@ -156,7 +156,7 @@ class C
 {
     public string this[string index!] => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourcePropertySymbol>("this[]");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -172,7 +172,7 @@ class C
     [DllImport(""User32.dll"")]
     public static extern int M(string x!);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (6,39): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     public static extern int M(int x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(6, 39));
@@ -187,7 +187,7 @@ class C
     void M(string name!) { }
     void M2(string x) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -210,7 +210,7 @@ class C
     {
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics( 
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics( 
                     // (8,22): error CS1003: Syntax error, ',' expected
                     //     void M2(__arglist!)
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
@@ -230,7 +230,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 
@@ -242,7 +242,7 @@ class C
 {
     void M(string name! = null) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                     // (4,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! = null) { }
@@ -259,7 +259,7 @@ class C
 {
     void M(string name! = ""rose"") { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -273,7 +273,7 @@ class C
 {
     void M(string name! =null) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                     // (4,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! =null) { }
@@ -290,7 +290,7 @@ class C
 {
     public C(string name!) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>(".ctor");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -307,7 +307,7 @@ class Box
         return 2;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("Box").GetMember<SourceUserDefinedOperatorSymbol>("op_Addition");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -326,7 +326,7 @@ class C
         Func<string, string> func1 = x! => x + ""1"";
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -353,7 +353,7 @@ class C
         Func<string, string, bool> func1 = (x!, y) => x == y;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -381,7 +381,7 @@ class C
         Func<string, string> func1 = (x!) => x;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -408,7 +408,7 @@ class C
         Func<string, string> func1 = x!=> x;
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (7,39): error CS8713: Space required between '!' and '=' here.
                     //         Func<int, int> func1 = x!=> x;
                     Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(7, 39));
@@ -426,7 +426,7 @@ class C
         Func<string, string> func1 = (string x!) => x;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -453,7 +453,7 @@ class C
         Func<string, string, string> func1 = (string x!, string y) => x;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -481,7 +481,7 @@ class C
         Func<string, string, string> func1 = (string x!, string y!) => x;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -509,7 +509,7 @@ class C
         Func<string, int> func1 = (_!) => 42;
     }
 }";
-            var tree = Parse(source, options: TestOptions.RegularWithPreview);
+            var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
@@ -536,7 +536,7 @@ class C
         x = ""hello world"";
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
                     //     public void M(out string x!)
@@ -555,7 +555,7 @@ class C
         x = ""hello world"";
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
                     //     public void M(ref string x!)
@@ -571,7 +571,7 @@ class C
     public static void Main() { }
     public void M(in string x!) { }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
                     //     public void M(in string x!) { }
@@ -588,7 +588,7 @@ class C
     static void M2<T>(T? t! = default) where T : struct { }
     static void M3<T>(T t! = default) where T : class { }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (5,26): warning CS8721: Nullable value type 'T?' is null-checked and will throw if null.
                     //     static void M2<T>(T? t! = default) where T : struct { }
@@ -608,7 +608,7 @@ class C
     public static void Main() { }
 }";
             // Release
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (4,24): error CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //     static void M(int? i!) { }
@@ -635,7 +635,7 @@ class B3 : A<int?>
 {
     internal override void F<U>(U u! = default) { }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (12,35): warning CS8719: Parameter 'u' is null-checked but is null by default.
                     //     internal override void F<U>(U u! = default) { }
@@ -657,7 +657,7 @@ class C
         Func<int, int> func1 = x! => x;
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                     // (7,32): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
                     //         Func<int, int> func1 = x! => x;
@@ -673,7 +673,7 @@ class C
     public static void Main() { }
     void M(string name! = null) { }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (5,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! = null) { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 19));
@@ -689,7 +689,7 @@ class C
     public static void Main() { }
 }";
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,23): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
                     //     public void M(int x!, string y!) { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "x").WithArguments("int").WithLocation(4, 23));
@@ -708,7 +708,7 @@ class B2<T> : A<T> where T : struct
     internal override void M<U>(U u!) { }
 }";
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
                     //     internal override void M<U>(U u!) { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
@@ -726,7 +726,7 @@ class B4 : A<int>
 {
     internal override void M<U>(U u!) { }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
                     //     internal override void M<U>(U u!) { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
@@ -740,7 +740,7 @@ class C
 {
     void M<T>(T value!) where T : unmanaged { }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (4,17): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
                     //     void M<T>(T value!) where T : unmanaged { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "value").WithArguments("T").WithLocation(4, 17));
@@ -758,7 +758,7 @@ class C
         void M(int? x!) { }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (7,21): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //         void M(int? x!) { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(7, 21));
@@ -776,7 +776,7 @@ class C
         void M(string x! = null) { }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (7,23): warning CS8719: Parameter 'x' is null-checked but is null by default.
                     //         void M(string x! = null) { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "x").WithArguments("x").WithLocation(7, 23));
@@ -791,7 +791,7 @@ class Program
 {
     static void Main(string[] args!) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
