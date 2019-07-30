@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
-        public static bool CanAddNullCheck(this ITypeSymbol type)
+        public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type != null && (type.IsReferenceType || type.IsNullable());
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
@@ -39,45 +42,46 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return allInterfaces;
         }
 
-        public static bool IsAbstractClass(this ITypeSymbol symbol)
+        public static bool IsAbstractClass([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
         }
 
-        public static bool IsSystemVoid(this ITypeSymbol symbol)
+        public static bool IsSystemVoid([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.SpecialType == SpecialType.System_Void;
         }
 
-        public static bool IsNullable(this ITypeSymbol symbol)
+        public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsModuleType(this ITypeSymbol symbol)
+        public static bool IsModuleType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Module;
         }
 
-        public static bool IsInterfaceType(this ITypeSymbol symbol)
+        public static bool IsInterfaceType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Interface;
         }
 
-        public static bool IsDelegateType(this ITypeSymbol symbol)
+        public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Delegate;
         }
 
-        public static bool IsStructType(this ITypeSymbol symbol)
+        public static bool IsStructType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Struct;
         }
 
-        public static bool IsAnonymousType(this INamedTypeSymbol symbol)
+        public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol)
         {
             return symbol?.IsAnonymousType == true;
         }
 
-        public static ITypeSymbol RemoveNullableIfPresent(this ITypeSymbol symbol)
+        [return: NotNullIfNotNull(parameterName: "symbol")]
+        public static ITypeSymbol? RemoveNullableIfPresent([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             if (symbol.IsNullable())
             {
@@ -216,14 +220,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // local functions
 
-            static Task<Compilation> GetCompilationOrNullAsync(Project project, CancellationToken cancellationToken)
+            static Task<Compilation> GetCompilationOrNullAsync(Project? project, CancellationToken cancellationToken)
                 => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Default<Compilation>();
         }
 
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
             this ITypeSymbol type,
-            HashSet<INamedTypeSymbol> symbols = null)
+            HashSet<INamedTypeSymbol>? symbols = null)
         {
             symbols ??= new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -236,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols;
         }
 
-        public static ISymbol FindImplementations(
+        public static ISymbol? FindImplementations(
             this ITypeSymbol typeSymbol,
             ISymbol constructedInterfaceMember,
             Workspace workspace)
@@ -265,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 select member;
 
             var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
-            var semanticFacts = provider.GetService<ISemanticFactsService>();
+            var semanticFacts = provider.GetRequiredService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we
             // can't enforce it for types from metadata. For example, a VB symbol
@@ -279,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return explicitMatches.FirstOrDefault();
             }
 
-            var syntaxFacts = provider.GetService<ISyntaxFactsService>();
+            var syntaxFacts = provider.GetRequiredService<ISyntaxFactsService>();
             var implicitMatches =
                 from baseType in typeSymbol.GetBaseTypesAndThis()
                 from member in baseType.GetMembers(constructedInterfaceMember.Name).OfType<TSymbol>()
@@ -291,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
         }
 
-        public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol type)
+        public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol? type)
         {
             var current = type;
             while (current != null)
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<ITypeSymbol> GetContainingTypesAndThis(this ITypeSymbol type)
+        public static IEnumerable<ITypeSymbol> GetContainingTypesAndThis(this ITypeSymbol? type)
         {
             var current = type;
             while (current != null)
@@ -424,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsFormattableString(this ITypeSymbol symbol)
+        public static bool IsFormattableString([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.MetadataName == "FormattableString"
                 && symbol.ContainingType == null
@@ -432,31 +436,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
-        public static ITypeSymbol RemoveUnavailableTypeParameters(
-            this ITypeSymbol type,
+        public static ITypeSymbol? RemoveUnavailableTypeParameters(
+            this ITypeSymbol? type,
             Compilation compilation,
             IEnumerable<ITypeParameterSymbol> availableTypeParameters)
         {
             return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
         }
 
-        private static ITypeSymbol RemoveUnavailableTypeParameters(
-            this ITypeSymbol type,
+        private static ITypeSymbol? RemoveUnavailableTypeParameters(
+            this ITypeSymbol? type,
             Compilation compilation,
             ISet<string> availableTypeParameterNames)
         {
             return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
         }
 
-        public static ITypeSymbol RemoveAnonymousTypes(
-            this ITypeSymbol type,
+        public static ITypeSymbol? RemoveAnonymousTypes(
+            this ITypeSymbol? type,
             Compilation compilation)
         {
             return type?.Accept(new AnonymousTypeRemover(compilation));
         }
 
-        public static ITypeSymbol ReplaceTypeParametersBasedOnTypeConstraints(
-            this ITypeSymbol type,
+        public static ITypeSymbol? ReplaceTypeParametersBasedOnTypeConstraints(
+            this ITypeSymbol? type,
             Compilation compilation,
             IEnumerable<ITypeParameterSymbol> availableTypeParameters,
             Solution solution,
@@ -465,15 +469,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
         }
 
-        public static ITypeSymbol RemoveUnnamedErrorTypes(
-            this ITypeSymbol type,
+        public static ITypeSymbol? RemoveUnnamedErrorTypes(
+            this ITypeSymbol? type,
             Compilation compilation)
         {
             return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
         public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-            this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
+            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
         {
             result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
@@ -481,15 +485,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-            this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
+            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
         {
             result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
             return result;
         }
 
-        public static ITypeSymbol SubstituteTypes<TType1, TType2>(
-            this ITypeSymbol type,
+        public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
+            this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,
             Compilation compilation)
             where TType1 : ITypeSymbol
@@ -498,8 +502,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.SubstituteTypes(mapping, new CompilationTypeGenerator(compilation));
         }
 
-        public static ITypeSymbol SubstituteTypes<TType1, TType2>(
-            this ITypeSymbol type,
+        public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
+            this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,
             ITypeGenerator typeGenerator)
             where TType1 : ITypeSymbol
@@ -535,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsNumericType(this ITypeSymbol type)
+        public static bool IsNumericType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
         {
             if (type != null)
             {
@@ -564,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
         }
 
-        public static bool ContainsAnonymousType(this ITypeSymbol symbol)
+        public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             switch (symbol)
             {
@@ -614,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return capitalize ? shortName.ToPascalCase() : shortName.ToCamelCase();
         }
 
-        private static string GetParameterName(ITypeSymbol type)
+        private static string GetParameterName(ITypeSymbol? type)
         {
             if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
@@ -632,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : shortName;
         }
 
-        public static bool IsSpecialType(this ITypeSymbol symbol)
+        public static bool IsSpecialType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             if (symbol != null)
             {
@@ -672,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     .Any(m => m.Parameters.Any());
         }
 
-        public static INamedTypeSymbol GetDelegateType(this ITypeSymbol typeSymbol, Compilation compilation)
+        public static INamedTypeSymbol? GetDelegateType(this ITypeSymbol? typeSymbol, Compilation compilation)
         {
             if (typeSymbol != null)
             {
@@ -703,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
-        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol containingType, ISymbol within) where T : class, ISymbol
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, ISymbol within) where T : class, ISymbol
         {
             if (containingType == null)
             {
@@ -748,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result;
         }
 
-        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, ISymbol within) where T : class, ISymbol
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol>? types, ISymbol within) where T : class, ISymbol
         {
             if (types == null)
             {
@@ -758,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
-        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, string memberName, ISymbol within) where T : class, ISymbol
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol>? types, string memberName, ISymbol within) where T : class, ISymbol
         {
             if (types == null)
             {
@@ -848,7 +852,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return allTypeArgs1.AreMoreSpecificThan(allTypeArgs2);
         }
 
-        public static bool IsOrDerivesFromExceptionType(this ITypeSymbol type, Compilation compilation)
+        public static bool IsOrDerivesFromExceptionType([NotNullWhen(returnValue: true)] this ITypeSymbol? type, Compilation compilation)
         {
             if (type != null)
             {
@@ -965,7 +969,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsDisposable(this ITypeSymbol type, ITypeSymbol iDisposableType)
+        public static bool IsDisposable([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? iDisposableType)
             => iDisposableType != null &&
                (Equals(iDisposableType, type) ||
                 type?.AllInterfaces.Contains(iDisposableType) == true);
