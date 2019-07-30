@@ -3822,10 +3822,6 @@ tryAgain:
             {
                 equals = this.EatToken(SyntaxKind.EqualsToken);
             }
-            if (!(exclamation is null))
-            {
-
-            }
             exclamation = !(exclamation is null) ? CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking) : null;
             EqualsValueClauseSyntax def = null;
             if (!(equals is null))
