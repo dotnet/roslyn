@@ -115,7 +115,8 @@
                     VerticalAlignment="Center"
                     HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                     Click="CloseButton_Click"
-                    ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"/>
+                    ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
+                    AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
                 </Grid>
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
@@ -239,9 +240,8 @@
 
                 <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
                     ToolTip="{Binding ElementName=dashboard, Path=ApplyToolTip}"
-                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}">
-                    <AccessText Text="{Binding ElementName=dashboard, Path=ApplyRename}" />
-                </Button>
+                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}"
+                    AutomationProperties.Name="{Binding ElementName=dashboard, Path=ApplyRename}"/>
             </StackPanel>
         </Border>
 
