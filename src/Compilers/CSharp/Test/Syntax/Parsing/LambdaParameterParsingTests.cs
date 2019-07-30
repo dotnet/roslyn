@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -585,7 +586,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidation()
         {
-            UsingDeclaration("Func<string, string> func1 = x! => x + \"1\";");
+            UsingDeclaration("Func<string, string> func1 = x! => x + \"1\";", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -643,7 +644,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidationParams()
         {
-            UsingDeclaration("Func<int, int, bool> func1 = (x!, y) => x == y;");
+            UsingDeclaration("Func<int, int, bool> func1 = (x!, y) => x == y;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -716,7 +717,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamInParens()
         {
-            UsingDeclaration("Func<int, int> func1 = (x!) => x;");
+            UsingDeclaration("Func<int, int> func1 = (x!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -771,7 +772,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!=>x;", expectedErrors: new DiagnosticDescription[]
+            UsingDeclaration("Func<int, int> func1 = x!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
                     // (1,25): error CS8712: Space required between explanation-point and equals-sign here.
                     // Func<int, int> func1 = x!=>x;
@@ -826,7 +827,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedSingleParamInParen()
         {
-            UsingDeclaration("Func<int, int> func1 = (int x!) => x;");
+            UsingDeclaration("Func<int, int> func1 = (int x!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -885,7 +886,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedManyParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y) => x;");
+            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -958,7 +959,7 @@ class C {
         [Fact]
         public void TestManyNullCheckedTypedParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y!) => x;");
+            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1032,7 +1033,7 @@ class C {
         [Fact]
         public void TestNullCheckedNoParams()
         {
-            UsingDeclaration("Func<int> func1 = (!) => 42;", expectedErrors: new DiagnosticDescription[]
+            UsingDeclaration("Func<int> func1 = (!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
                     // (1,21): error CS1525: Invalid expression term ')'
                     // Func<int> func1 = (!) => 42;
@@ -1085,7 +1086,7 @@ class C {
         [Fact]
         public void TestNullCheckedDiscard()
         {
-            UsingDeclaration("Func<int, int> func1 = (_!) => 42;");
+            UsingDeclaration("Func<int, int> func1 = (_!) => 42;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
