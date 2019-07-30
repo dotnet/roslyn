@@ -142,6 +142,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _focusedElement = _tabNavigableChildren[current];
             }
 
+            while (!_focusedElement.IsVisible)
+            {
+                var current = _tabNavigableChildren.IndexOf(_focusedElement);
+                current = selector(current);
+                _focusedElement = _tabNavigableChildren[current];
+            }
+
             _focusedElement.Focus();
             ShowCaret();
         }
