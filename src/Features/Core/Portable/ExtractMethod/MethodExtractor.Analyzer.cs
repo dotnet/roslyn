@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
                 var shouldBeReadOnly = !isThisParameterWritten
-                    && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
+                    && thisParameterBeingRead?.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
