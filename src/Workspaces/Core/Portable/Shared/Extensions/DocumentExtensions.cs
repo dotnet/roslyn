@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
 
+#nullable enable
+
         /// <summary>
         /// this will return either regular semantic model or speculative semantic based on context. 
         /// any feature that is involved in typing or run on UI thread should use this to take advantage of speculative semantic model 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
+            SyntaxNode? node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
             return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// also, symbols from the semantic model returned by this API might have out of date location information. 
         /// if exact location (not relative location) is needed from symbol, regular GetSemanticModel should be used.
         /// </summary>
-        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
             var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
@@ -100,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
         }
+
+#nullable restore
 
 #if DEBUG
         public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
