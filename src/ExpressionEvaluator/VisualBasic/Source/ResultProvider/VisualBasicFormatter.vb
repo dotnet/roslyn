@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         ' TODO https://github.com/dotnet/roslyn/issues/37536 
-        ' This parsing Is imprecise And amy result in bad expressions.
+        ' This parsing is imprecise and may result in bad expressions.
         Friend Overrides Function TrimAndGetFormatSpecifiers(expression As String, ByRef formatSpecifiers As ReadOnlyCollection(Of String)) As String
             expression = RemoveComments(expression)
             expression = RemoveFormatSpecifiers(expression, formatSpecifiers)

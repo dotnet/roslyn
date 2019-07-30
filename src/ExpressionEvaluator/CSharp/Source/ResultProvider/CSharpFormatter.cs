@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         // TODO: https://github.com/dotnet/roslyn/issues/37536 
-        // This parsing is imprecise and amy result in bad expressions.
+        // This parsing is imprecise and may result in bad expressions.
         internal override string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers)
         {
             expression = RemoveComments(expression);
