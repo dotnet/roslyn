@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            SyntaxNode? node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
+            var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
             return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
