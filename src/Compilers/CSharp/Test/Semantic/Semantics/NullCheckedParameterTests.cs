@@ -799,5 +799,61 @@ class Program
                     //     static void Main(string[] args!) { }
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "args").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(4, 31));
         }
+
+        [Fact]
+        public void TestNullCheckedMethodParameterWithWrongLanguageVersion()
+        {
+            var source =
+@"
+class Program
+{
+    void M(string x!) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                    // (4,20): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
+                    //     static void Main(string x!) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void TestNullCheckedLambdaParameterWithWrongLanguageVersion()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    void M()
+    {
+        Func<string, string> func = x! => x;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                    // (7,38): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
+                    //         Func<string, string> func = x! => x;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void TestNullCheckedLambdaParametersWithWrongLanguageVersion()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    void M()
+    {
+        Func<string, string, string> func = (x!, y) => x;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                    // (7,47): error CS8059: Feature '!' is not available in C# 6. Please use language version CSharp8 or greater.
+                    //         Func<string, string, string> func = (x!, y) => x;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "!").WithArguments("!", "CSharp8").WithLocation(7, 47));
+        }
     }
 }

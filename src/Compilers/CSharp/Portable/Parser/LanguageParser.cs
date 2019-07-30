@@ -3822,6 +3822,7 @@ tryAgain:
             {
                 equals = this.EatToken(SyntaxKind.EqualsToken);
             }
+            exclamation = AddLanguageVersionCheckToNullCheckedParameter(exclamation);
             EqualsValueClauseSyntax def = null;
             if (!(equals is null))
             {
@@ -3830,6 +3831,15 @@ tryAgain:
                 def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
             }
             return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamation, def);
+        }
+
+        private SyntaxToken AddLanguageVersionCheckToNullCheckedParameter(SyntaxToken exclamation)
+        {
+            if (this.Options.LanguageVersion < LanguageVersion.CSharp8 && !(exclamation is null))
+            {
+                return AddError(exclamation, LanguageVersionExtensionsInternal.GetErrorCode(this.Options.LanguageVersion), new object[] { exclamation.ValueText, LanguageVersion.CSharp8 });
+            }
+            return exclamation;
         }
 
         private static bool IsParameterModifier(SyntaxKind kind)
@@ -11104,6 +11114,7 @@ tryAgain:
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     exclamation = null;
                 }
+                exclamation = AddLanguageVersionCheckToNullCheckedParameter(exclamation);
                 var parameter = _syntaxFactory.Parameter(
                     default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
                     type: null, identifier: name, exclamation, @default: null);
@@ -11230,8 +11241,8 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            // PROTOTYPE : null checking; lang version check needed
             var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
+            exclamation = AddLanguageVersionCheckToNullCheckedParameter(exclamation);
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamation, null);
             _pool.Free(modifiers);
             return parameter;
