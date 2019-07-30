@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _trackClassFields;
 
         /// <summary>
+        /// Track static fields, properties, events, in addition to instance members.
+        /// </summary>
+        private readonly bool _trackStaticMembers;
+
+        /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
         protected MethodSymbol topLevelMethod;
@@ -122,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
-            bool trackClassFields = false)
+            bool trackClassFields = false,
+            bool trackStaticMembers = false)
             : base(compilation, member, node,
                    compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
                    trackUnassignments)
@@ -133,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
+            _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
@@ -441,53 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentSymbol))
+            if (currentSymbol is SourceMethodSymbol sourceMethod &&
+                Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
             {
                 NoteCaptured(variable);
             }
-        }
-
-        private static bool IsCaptured(Symbol variable, Symbol containingSymbol)
-        {
-            switch (variable.Kind)
-            {
-                case SymbolKind.Field:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
-                // Range variables are not captured, but their underlying parameters
-                // may be. If this is a range underlying parameter it will be a
-                // ParameterSymbol, not a RangeVariableSymbol.
-                case SymbolKind.RangeVariable:
-                    return false;
-
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst)
-                    {
-                        return false;
-                    }
-                    break;
-
-                case SymbolKind.Parameter:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
-            }
-
-            // Walk up the containing symbols until we find the target function, in which
-            // case the variable is not captured by the target function, or null, in which 
-            // case it is.
-            for (var currentFunction = variable.ContainingSymbol;
-                 (object)currentFunction != null;
-                 currentFunction = currentFunction.ContainingSymbol)
-            {
-                if (ReferenceEquals(currentFunction, containingSymbol))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -795,11 +760,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
+                        member = fieldSymbol;
+                        if (fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
-                        member = fieldSymbol;
+                        if (fieldSymbol.IsStatic)
+                        {
+                            return _trackStaticMembers;
+                        }
                         receiver = fieldAccess.ReceiverOpt;
                         break;
                     }
@@ -807,11 +776,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var eventAccess = (BoundEventAccess)expr;
                         var eventSymbol = eventAccess.EventSymbol;
+                        member = eventSymbol.AssociatedField;
                         if (eventSymbol.IsStatic)
                         {
-                            return false;
+                            return _trackStaticMembers;
                         }
-                        member = eventSymbol.AssociatedField;
                         receiver = eventAccess.ReceiverOpt;
                         break;
                     }
@@ -822,11 +791,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
-                            if (propSymbol.IsStatic)
+                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            if (member is null)
                             {
                                 return false;
                             }
-                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            if (propSymbol.IsStatic)
+                            {
+                                return _trackStaticMembers;
+                            }
                             receiver = propAccess.ReceiverOpt;
                         }
                         break;
@@ -1519,23 +1492,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
-            // Visit the statements in two phases:
-            //   1. Local function declarations
-            //   2. Everything else
-            //
-            // The idea behind visiting local functions first is
-            // that we may be able to gather the captured variables
-            // they read and write ahead of time in a single pass, so
-            // when they are used by other statements in the block we
-            // won't have to recompute the set by doing multiple passes.
-            //
-            // If the local functions contain forward calls to other local
-            // functions then we may have to do another pass regardless,
-            // but hopefully that will be an uncommon case in real-world code.
-
-            // First phase
-            if (!block.LocalFunctions.IsDefaultOrEmpty)
+            if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
             {
+                // Visit the statements in two phases:
+                //   1. Local function declarations
+                //   2. Everything else
+                //
+                // The idea behind visiting local functions first is
+                // that we may be able to gather the captured variables
+                // they read and write ahead of time in a single pass, so
+                // when they are used by other statements in the block we
+                // won't have to recompute the set by doing multiple passes.
+                //
+                // If the local functions contain forward calls to other local
+                // functions then we may have to do another pass regardless,
+                // but hopefully that will be an uncommon case in real-world code.
+
+                // First phase
                 foreach (var stmt in block.Statements)
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
@@ -1543,12 +1516,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitAlways(stmt);
                     }
                 }
-            }
 
-            // Second phase
-            foreach (var stmt in block.Statements)
+                // Second phase
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                    {
+                        VisitStatement(stmt);
+                    }
+                }
+            }
+            else
             {
-                if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                foreach (var stmt in block.Statements)
                 {
                     VisitStatement(stmt);
                 }

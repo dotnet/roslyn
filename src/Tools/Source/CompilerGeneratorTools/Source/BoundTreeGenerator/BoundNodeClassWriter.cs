@@ -979,12 +979,19 @@ namespace BoundTreeGenerator
 
             string wasUpdatedCheck(Field field)
             {
-                var format = TypeIsTypeSymbol(field) ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
+                var format = TypeIsTypeSymbol(field)
+                                ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
+                                : TypeIsSymbol(field)
+                                    ? "!SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
+                                    : "{0} != this.{1}";
+
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
 
         private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
+
+        private static bool TypeIsSymbol(Field field) => field.Type.TrimEnd('?').EndsWith("Symbol");
 
         private string StripBound(string name)
         {

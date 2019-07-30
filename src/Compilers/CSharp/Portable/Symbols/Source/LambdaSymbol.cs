@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)lambda != null
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, TypeCompareKind.ConsiderEverything2)
+                && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypesWithAnnotations, this.ParameterTypesWithAnnotations, (p1, p2) => p1.Type.Equals(p2.Type))
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }

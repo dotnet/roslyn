@@ -93,6 +93,16 @@
       "vsBranch": "master",
       "vsMajorVersion": 16,
       "ibcSourceBranch": "master-vs-deps"
+    },
+    "features/dotnetFormat": {
+      "nugetKind": [ "Shipping", "NonShipping" ],
+      "version": "3.3.*",
+      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+      "channels": [ "dotnetFormat" ],
+      "vsBranch": "master",
+      "vsMajorVersion": 16,
+      "ibcSourceBranch": "master-vs-deps"
     }
   },
   "releases": {

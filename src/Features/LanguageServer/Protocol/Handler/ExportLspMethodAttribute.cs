@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
         {
+            if (string.IsNullOrEmpty(methodName))
+            {
+                throw new ArgumentException(nameof(methodName));
+            }
+
             MethodName = methodName;
         }
     }

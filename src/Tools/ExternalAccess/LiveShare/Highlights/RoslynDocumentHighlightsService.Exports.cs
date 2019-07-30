@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
     internal class CSharpLspDocumentHighlightsService : RoslynDocumentHighlightsService
     {
         [ImportingConstructor]
-        public CSharpLspDocumentHighlightsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        public CSharpLspDocumentHighlightsService(CSharpLspClientServiceFactory csharpLspClientServiceFactory)
+            : base(csharpLspClientServiceFactory)
         {
         }
     }
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
     internal class VBLspDocumentHighlightsService : RoslynDocumentHighlightsService
     {
         [ImportingConstructor]
-        public VBLspDocumentHighlightsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        public VBLspDocumentHighlightsService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory)
+            : base(vbLspClientServiceFactory)
         {
         }
     }

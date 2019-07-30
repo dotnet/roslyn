@@ -1187,5 +1187,83 @@ class C
             await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
         }
         #endregion
+
+        #region Test Ifs
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMultiline_IfElseIfElseSelection1()
+        {
+            await TestAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        {|result:[|if (a)
+        {
+            a();
+        }|]
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|}
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMultiline_IfElseIfElseSelection2()
+        {
+            await TestAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        {|result:[|if (a)
+        {
+            a();
+        }
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]|}
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMissingMultiline_IfElseIfElseSelection()
+        {
+            await TestMissingAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        if (a)
+        {
+            a();
+        }
+        [|else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]
+    }
+}");
+        }
+
+        #endregion
     }
 }

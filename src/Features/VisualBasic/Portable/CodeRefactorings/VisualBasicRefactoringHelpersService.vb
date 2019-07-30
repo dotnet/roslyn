@@ -21,6 +21,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             If IsIdentifierOfParameter(node) Then
                 Yield node.Parent
             End If
+
+            ' In VB Statement both for/foreach are split into Statement (header) and the rest
+            ' selecting the header should still count for the whole blockSyntax
+            If TypeOf node Is ForEachStatementSyntax And TypeOf node.Parent Is ForEachBlockSyntax Then
+                Dim foreachStatement = CType(node, ForEachStatementSyntax)
+                Yield foreachStatement.Parent
+            End If
+
+            If TypeOf node Is ForStatementSyntax And TypeOf node.Parent Is ForBlockSyntax Then
+                Dim forStatement = CType(node, ForStatementSyntax)
+                Yield forStatement.Parent
+            End If
         End Function
 
         Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean

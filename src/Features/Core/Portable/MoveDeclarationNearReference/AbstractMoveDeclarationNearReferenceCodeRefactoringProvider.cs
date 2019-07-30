@@ -13,24 +13,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
-    internal sealed class MoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<TLocalDeclaration> : CodeRefactoringProvider where TLocalDeclaration : SyntaxNode
     {
         [ImportingConstructor]
-        public MoveDeclarationNearReferenceCodeRefactoringProvider()
+        public AbstractMoveDeclarationNearReferenceCodeRefactoringProvider()
         {
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
-            var statement = await GetLocalDeclarationStatementAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var statement = await context.TryGetSelectedNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
             if (statement == null)
             {
                 return;
@@ -43,17 +36,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return;
             }
 
-            // Don't offer the refactoring inside the initializer for the variable.
-            var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(variables[0]);
-            var applicableSpan = initializer == null
-                ? statement.Span
-                : TextSpan.FromBounds(statement.SpanStart, initializer.SpanStart);
-
-            if (!applicableSpan.IntersectsWith(textSpan.Start))
-            {
-                return;
-            }
-
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
             if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false))
             {
@@ -61,26 +43,13 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, textSpan, c)));
-        }
-
-        private async Task<SyntaxNode> GetLocalDeclarationStatementAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var position = textSpan.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var statement = root.FindToken(position).Parent.Ancestors().FirstOrDefault(n => syntaxFacts.IsLocalDeclarationStatement(n));
-            return statement;
+                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, statement, c)));
         }
 
         private async Task<Document> MoveDeclarationNearReferenceAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+            Document document, SyntaxNode statement, CancellationToken cancellationToken)
         {
-            var statement = await GetLocalDeclarationStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-
             return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false);
         }
 

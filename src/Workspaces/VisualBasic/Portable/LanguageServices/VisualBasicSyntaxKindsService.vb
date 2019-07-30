@@ -20,5 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
         Public Overrides ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression
         Public Overrides ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken
+        Public Overrides ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword
+
+        Public Overrides ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken
+        Public Overrides ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword
+        Public Overrides ReadOnly Property IncompleteMember As Integer = SyntaxKind.IncompleteMember
+        Public Overrides ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement
+        Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement
+        Public Overrides ReadOnly Property HashToken As Integer = SyntaxKind.HashToken
     End Class
 End Namespace

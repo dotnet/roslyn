@@ -9,12 +9,47 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandlerShim : AbstractLiveShareHandlerShim<WorkspaceSymbolParams, SymbolInformation[]>
     {
-        [ImportingConstructor]
-        public WorkspaceSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public WorkspaceSymbolsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.WorkspaceSymbolName)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.WorkspaceSymbolName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public RoslynWorkspaceSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.WorkspaceSymbolName)]
+    internal class CSharpWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public CSharpWorkspaceSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.WorkspaceSymbolName)]
+    internal class VisualBasicWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public VisualBasicWorkspaceSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
+    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandlerShim
+    {
+        [ImportingConstructor]
+        public TypeScriptWorkspaceSymbolsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }

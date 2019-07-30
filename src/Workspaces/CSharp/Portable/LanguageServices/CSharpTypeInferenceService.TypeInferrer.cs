@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
 
-                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/37310 is fixed
                 var typeArguments = method.ConstructedFrom.TypeParameters
                     .Select(tp => (bestMap.GetValueOrDefault(tp) ?? tp).WithoutNullability()).ToArray();
                 return method.ConstructedFrom.Construct(typeArguments);
@@ -1219,8 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
 
-                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType.WithoutNullability())));
+                return variableTypes.Select(v => new TypeInferenceInfo(type.ConstructWithNullability(v.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1702,8 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         this.Compilation.ObjectType;
                                 }
 
-                                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                                return CreateResult(ienumerableType.Construct(typeArg.WithoutNullability()));
+                                return CreateResult(ienumerableType.ConstructWithNullability(typeArg));
                             }
                         }
                     }
@@ -1882,8 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateResult(task);
                 }
 
-                // TODO: pass along nullability to Construct when https://github.com/dotnet/roslyn/issues/36046 is fixed.
-                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType.WithoutNullability())));
+                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.ConstructWithNullability(t.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInYieldStatement(YieldStatementSyntax yieldStatement, SyntaxToken? previousToken = null)

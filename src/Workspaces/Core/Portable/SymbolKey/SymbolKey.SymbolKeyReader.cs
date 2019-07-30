@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -77,6 +76,14 @@ namespace Microsoft.CodeAnalysis
             public int ReadInteger()
             {
                 EatSpace();
+                return ReadIntegerRaw_DoNotCallDirectly();
+            }
+
+            public int ReadFormatVersion()
+                => ReadIntegerRaw_DoNotCallDirectly();
+
+            private int ReadIntegerRaw_DoNotCallDirectly()
+            {
                 Debug.Assert(char.IsNumber(Data[Position]));
 
                 var value = 0;
@@ -163,46 +170,34 @@ namespace Microsoft.CodeAnalysis
                 Eat(DoubleQuoteChar);
             }
 
-            public ImmutableArray<TStringResult> ReadStringArray()
-            {
-                return ReadArray(_readString);
-            }
+            public PooledArrayBuilder<TStringResult> ReadStringArray()
+                => ReadArray(_readString);
 
-            public ImmutableArray<bool> ReadBooleanArray()
-            {
-                return ReadArray(_readBoolean);
-            }
+            public PooledArrayBuilder<bool> ReadBooleanArray()
+                => ReadArray(_readBoolean);
 
-            public ImmutableArray<RefKind> ReadRefKindArray()
-            {
-                return ReadArray(_readRefKind);
-            }
+            public PooledArrayBuilder<RefKind> ReadRefKindArray()
+                => ReadArray(_readRefKind);
 
-            public ImmutableArray<T> ReadArray<T>(Func<T> readFunction)
+            public PooledArrayBuilder<T> ReadArray<T>(Func<T> readFunction)
             {
+                var builder = PooledArrayBuilder<T>.GetInstance();
                 EatSpace();
 
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
-                {
-                    Eat(SymbolKeyType.Null);
-                    return default;
-                }
+                Debug.Assert((SymbolKeyType)Data[Position] != SymbolKeyType.Null);
 
                 EatOpenParen();
                 Eat(SymbolKeyType.Array);
 
                 var length = ReadInteger();
-                var builder = ImmutableArray.CreateBuilder<T>(length);
-
                 for (var i = 0; i < length; i++)
                 {
                     CancellationToken.ThrowIfCancellationRequested();
-                    builder.Add(readFunction());
+                    builder.Builder.Add(readFunction());
                 }
 
                 EatCloseParen();
-
-                return builder.MoveToImmutable();
+                return builder;
             }
         }
 
@@ -289,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
             private bool _resolveLocations;
 
             private SymbolKeyReader()
@@ -341,9 +336,9 @@ namespace Microsoft.CodeAnalysis
 
             internal bool ParameterTypesMatch(
                 ImmutableArray<IParameterSymbol> parameters,
-                ITypeSymbol[] originalParameterTypes)
+                PooledArrayBuilder<ITypeSymbol> originalParameterTypes)
             {
-                if (parameters.Length != originalParameterTypes.Length)
+                if (originalParameterTypes.IsDefault || parameters.Length != originalParameterTypes.Count)
                 {
                     return false;
                 }
@@ -354,7 +349,7 @@ namespace Microsoft.CodeAnalysis
                 // compare method type parameters by ordinal.
                 var signatureComparer = Comparer.SignatureTypeEquivalenceComparer;
 
-                for (var i = 0; i < originalParameterTypes.Length; i++)
+                for (var i = 0; i < originalParameterTypes.Count; i++)
                 {
                     if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
                     {
@@ -371,7 +366,7 @@ namespace Microsoft.CodeAnalysis
             public void PopMethod(IMethodSymbol methodOpt)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack[_methodSymbolStack.Count - 1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
 
@@ -379,27 +374,24 @@ namespace Microsoft.CodeAnalysis
                 => _methodSymbolStack[index];
 
             internal SyntaxTree GetSyntaxTree(string filePath)
-                => this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+            {
+                foreach (var tree in this.Compilation.SyntaxTrees)
+                {
+                    if (tree.FilePath == filePath)
+                    {
+                        return tree;
+                    }
+                }
+
+                return null;
+            }
 
             #region Symbols
 
-            public SymbolKeyResolution ReadFirstSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: true);
-            }
-
             public SymbolKeyResolution ReadSymbolKey()
             {
-                return ReadSymbolKeyWorker(first: false);
-            }
-
-            private SymbolKeyResolution ReadSymbolKeyWorker(bool first)
-            {
                 CancellationToken.ThrowIfCancellationRequested();
-                if (!first)
-                {
-                    EatSpace();
-                }
+                EatSpace();
 
                 var type = (SymbolKeyType)Data[Position];
                 if (type == SymbolKeyType.Null)
@@ -432,38 +424,63 @@ namespace Microsoft.CodeAnalysis
             }
 
             private SymbolKeyResolution ReadWorker(SymbolKeyType type)
-            {
-                switch (type)
+                => type switch
                 {
-                    case SymbolKeyType.Alias: return AliasSymbolKey.Resolve(this);
-                    case SymbolKeyType.BodyLevel: return BodyLevelSymbolKey.Resolve(this);
-                    case SymbolKeyType.ConstructedMethod: return ConstructedMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.NamedType: return NamedTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.ErrorType: return ErrorTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Field: return FieldSymbolKey.Resolve(this);
-                    case SymbolKeyType.DynamicType: return DynamicTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Method: return MethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.Namespace: return NamespaceSymbolKey.Resolve(this);
-                    case SymbolKeyType.PointerType: return PointerTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Parameter: return ParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.Property: return PropertySymbolKey.Resolve(this);
-                    case SymbolKeyType.ArrayType: return ArrayTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Assembly: return AssemblySymbolKey.Resolve(this);
-                    case SymbolKeyType.TupleType: return TupleTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Module: return ModuleSymbolKey.Resolve(this);
-                    case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
-                    case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.AnonymousFunctionOrDelegate: return AnonymousFunctionOrDelegateSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
+                    SymbolKeyType.Alias => AliasSymbolKey.Resolve(this),
+                    SymbolKeyType.BodyLevel => BodyLevelSymbolKey.Resolve(this),
+                    SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Resolve(this),
+                    SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Field => FieldSymbolKey.Resolve(this),
+                    SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Method => MethodSymbolKey.Resolve(this),
+                    SymbolKeyType.Namespace => NamespaceSymbolKey.Resolve(this),
+                    SymbolKeyType.PointerType => PointerTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Parameter => ParameterSymbolKey.Resolve(this),
+                    SymbolKeyType.Property => PropertySymbolKey.Resolve(this),
+                    SymbolKeyType.ArrayType => ArrayTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Assembly => AssemblySymbolKey.Resolve(this),
+                    SymbolKeyType.TupleType => TupleTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Module => ModuleSymbolKey.Resolve(this),
+                    SymbolKeyType.Event => EventSymbolKey.Resolve(this),
+                    SymbolKeyType.ReducedExtensionMethod => ReducedExtensionMethodSymbolKey.Resolve(this),
+                    SymbolKeyType.TypeParameter => TypeParameterSymbolKey.Resolve(this),
+                    SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this),
+                    SymbolKeyType.TypeParameterOrdinal => TypeParameterOrdinalSymbolKey.Resolve(this),
+                    _ => throw new NotImplementedException(),
+                };
+
+            /// <summary>
+            /// Reads an array of symbols out from the key.  Note: the number of symbols returned 
+            /// will either be the same as the original amount written, or <c>default</c> will be 
+            /// returned. It will never be less or more.  <c>default</c> will be returned if any 
+            /// elements could not be resolved to the requested <typeparamref name="TSymbol"/> type 
+            /// in the provided <see cref="Compilation"/>.
+            /// 
+            /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is
+            /// necessary if <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
+            /// </summary>
+            public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TSymbol>() where TSymbol : ISymbol
+            {
+                using var resolutions = ReadArray(_readSymbolKey);
+
+                var result = PooledArrayBuilder<TSymbol>.GetInstance();
+                foreach (var resolution in resolutions)
+                {
+                    if (resolution.GetAnySymbol() is TSymbol castedSymbol)
+                    {
+                        result.AddIfNotNull(castedSymbol);
+                    }
+                    else
+                    {
+                        result.Dispose();
+                        return default;
+                    }
                 }
 
-                throw new NotImplementedException();
+                return result;
             }
-
-            public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
-                => ReadArray(_readSymbolKey);
 
             #endregion
 
@@ -525,11 +542,14 @@ namespace Microsoft.CodeAnalysis
                         // with this name.  In that case, just map this location to none.
                         if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
                         {
-                            var module = assembly.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
-                            var location = module?.Locations.FirstOrDefault();
-                            if (location != null)
+                            var module = GetModule(assembly.Modules, moduleName);
+                            if (module != null)
                             {
-                                return location;
+                                var location = FirstOrDefault(module.Locations);
+                                if (location != null)
+                                {
+                                    return location;
+                                }
                             }
                         }
                     }
@@ -538,16 +558,20 @@ namespace Microsoft.CodeAnalysis
                 return Location.None;
             }
 
-            private Location CreateModuleLocation(
-                SymbolKeyResolution assembly, string moduleName)
+            private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
             {
-                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
-                Debug.Assert(symbol != null);
-                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
-                return module.Locations.FirstOrDefault();
+                foreach (var module in modules)
+                {
+                    if (module.MetadataName == moduleName)
+                    {
+                        return module;
+                    }
+                }
+
+                return null;
             }
 
-            public ImmutableArray<Location> ReadLocationArray()
+            public PooledArrayBuilder<Location> ReadLocationArray()
                 => ReadArray(_readLocation);
 
             #endregion

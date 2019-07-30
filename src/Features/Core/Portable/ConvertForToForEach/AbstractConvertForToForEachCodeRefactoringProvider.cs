@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
     {
         protected abstract string GetTitle();
 
-        protected abstract bool IsValidCursorPosition(TForStatementSyntax forStatement, int cursorPos);
         protected abstract SyntaxList<TStatementSyntax> GetBodyStatements(TForStatementSyntax forStatement);
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax firstVariable);
 
@@ -50,30 +49,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
-
-            var forStatement = token.Parent.GetAncestorOrThis<TForStatementSyntax>();
+            var forStatement = await context.TryGetSelectedNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
             if (forStatement == null)
             {
                 return;
-            }
-
-            if (!textSpan.IsEmpty)
-            {
-                // if there is a selection, it must match the 'for' span exactly.
-                if (textSpan != forStatement.GetFirstToken().Span)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                // if there's no selection, defer to the language to decide if it's in an ok location.
-                if (!IsValidCursorPosition(forStatement, textSpan.Start))
-                {
-                    return;
-                }
             }
 
             if (!TryGetForStatementComponents(forStatement,

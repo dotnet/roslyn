@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _syntax.GetHashCode();
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 

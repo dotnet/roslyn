@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// cone to the vslsexternal scheme.
     /// This lives in external access because it has a dependency on FAR, which requires the UI thread.
     /// </summary>
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.TextDocumentDefinitionName)]
     internal class GotoDefinitionHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
@@ -31,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         // These languages don't provide an IGoToDefinitionService implementation that will return definitions. We'll use IFindUsagesService instead.
         private static readonly string[] s_findUsagesServiceLanguages = new string[] { LiveShareConstants.TypeScriptLanguageName };
 
-        [ImportingConstructor]
         public GotoDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
         {
             this._metadataAsSourceService = metadataAsSourceService;
