@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override AutomationPeer OnCreateAutomationPeer()
         {
-            return new DashboardAutomationPeer(this);
+            return new DashboardAutomationPeer(this, _model.GetOriginalName());
         }
 
         private void DisconnectFromPresentationSource()
