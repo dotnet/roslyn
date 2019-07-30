@@ -50,7 +50,7 @@
       "version": "3.3.*",
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.3", "dev16.3p2" ],
+      "channels": [ "dev16.3", "dev16.3p3" ],
       "vsBranch": "master",
       "vsMajorVersion": 16
     },
