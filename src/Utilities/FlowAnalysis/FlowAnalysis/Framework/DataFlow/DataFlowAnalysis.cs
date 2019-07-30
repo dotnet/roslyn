@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private TAnalysisResult Run(TAnalysisContext analysisContext)
         {
             var cfg = analysisContext.ControlFlowGraph;
-            if (!cfg.SupportsFlowAnalysis())
+            if (cfg?.SupportsFlowAnalysis() != true)
             {
                 return default;
             }
