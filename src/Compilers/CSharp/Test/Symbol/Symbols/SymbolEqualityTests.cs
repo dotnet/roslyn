@@ -4,15 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Generic;
-using System;
-using System.Collections.Immutable;
-using System.Globalization;
-using System.Threading;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -238,6 +230,7 @@ public class A
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A
 {
     public static A field1;
@@ -254,7 +247,6 @@ public class A
                 expectedDefault: true,
                 expectedIncludeNullability: true // We don't consider top-level nullability
                 );
-
         }
 
         [Fact]
@@ -263,6 +255,7 @@ public class A
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object> field1;
@@ -279,7 +272,6 @@ public class A<T>
                 expectedDefault: true,
                 expectedIncludeNullability: false // nested nullability is different
                 );
-
         }
 
         [Fact]
@@ -288,6 +280,7 @@ public class A<T>
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object?> field1;
@@ -312,6 +305,7 @@ public class A<T>
             var source1 =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object?> field1;
@@ -323,6 +317,7 @@ public class A<T>
             var source2 =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class B
 {
     public static A<object?> field2;
@@ -358,6 +353,7 @@ public class B
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object?> field1;
@@ -459,6 +455,7 @@ public class A
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A
 {
     public static A field1;
@@ -482,7 +479,6 @@ public class A
                 expectedDefault: true,
                 expectedIncludeNullability: true // We don't consider top-level nullability
                 );
-
         }
 
         [Fact]
@@ -491,6 +487,7 @@ public class A
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object> field1;
@@ -514,7 +511,6 @@ public class A<T>
                 expectedDefault: true,
                 expectedIncludeNullability: false // nested nullability is different
                 );
-
         }
 
         [Fact]
@@ -523,6 +519,7 @@ public class A<T>
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static A<object?> field1;
@@ -547,7 +544,6 @@ public class A<T>
                 expectedIncludeNullability: true // nested nullability is the same
                 );
         }
-
 
         [Fact]
         public void SemanticModel_Method_Equality()
@@ -696,6 +692,7 @@ public class B
             var source =
 @"
 #nullable enable
+#pragma warning disable 8618
 public class A<T>
 {
     public static event System.EventHandler<T> MyEvent;
@@ -770,5 +767,4 @@ public class B
             Assert.Equal(SymbolEqualityComparer.IncludeNullability.GetHashCode(type1), SymbolEqualityComparer.IncludeNullability.GetHashCode(type2));
         }
     }
-
 }

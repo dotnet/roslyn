@@ -661,38 +661,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (local.IdentifierToken == declaredIdentifier)
                     {
-                        Debug.Assert(local is SourceLocalSymbol);
-                        LocalSymbol adjustedLocal;
-                        if (Compilation.NullableSemanticAnalysisEnabled)
-                        {
-                            if (!_analyzedVariableTypesOpt.TryGetValue(local, out adjustedLocal))
-                            {
-                                var types = GetSnapshotManager().GetVariableTypesForPosition(declarationSyntax.SpanStart);
-
-                                // If the local was not inferred, it does not get an entry in this dictionary. Save the local mapped
-                                // to itself to avoid needing to enter this code path in the future.
-                                if (types.TryGetValue(local, out TypeWithAnnotations type))
-                                {
-                                    adjustedLocal = _analyzedVariableTypesOpt.GetOrAdd(local, ((SourceLocalSymbol)local).WithAnalyzedType(type));
-                                }
-                                else
-                                {
-                                    _analyzedVariableTypesOpt.TryAdd(local, local);
-                                    adjustedLocal = local;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            adjustedLocal = local;
-                        }
-
-                        return adjustedLocal;
+                        return GetAdjustedLocalSymbol(local, declarationSyntax.SpanStart);
                     }
                 }
             }
 
             return null;
+        }
+
+        internal override LocalSymbol GetAdjustedLocalSymbol(LocalSymbol local, int position)
+        {
+            Debug.Assert(local is SourceLocalSymbol);
+            LocalSymbol adjustedLocal;
+            if (Compilation.NullableSemanticAnalysisEnabled)
+            {
+                if (!_analyzedVariableTypesOpt.TryGetValue(local, out adjustedLocal))
+                {
+                    var types = GetSnapshotManager().GetVariableTypesForPosition(position);
+
+                    // If the local was not inferred, it does not get an entry in this dictionary. Save the local mapped
+                    // to itself to avoid needing to enter this code path in the future.
+                    if (types.TryGetValue(local, out TypeWithAnnotations type))
+                    {
+                        adjustedLocal = _analyzedVariableTypesOpt.GetOrAdd(local, ((SourceLocalSymbol)local).WithAnalyzedType(type));
+                    }
+                    else
+                    {
+                        _analyzedVariableTypesOpt.TryAdd(local, local);
+                        adjustedLocal = local;
+                    }
+                }
+            }
+            else
+            {
+                adjustedLocal = local;
+            }
+
+            return adjustedLocal;
         }
 
         private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax, SyntaxToken declaredIdentifier)
