@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="de" original="../EditorFeaturesResources.resx">
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options.</source>
-        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options.</target>
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
