@@ -1426,13 +1426,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             StartVisitingStatement(operation);
 
             var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
-            ImmutableArray<IParameterSymbol> parameters = member switch
-            {
-                IMethodSymbol method => method.Parameters,
-                _ => throw ExceptionUtilities.UnexpectedValue(member)
-            };
             Debug.Assert(captureIdForResult is null);
-            VisitNullChecks(operation, parameters);
+            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters);
 
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
