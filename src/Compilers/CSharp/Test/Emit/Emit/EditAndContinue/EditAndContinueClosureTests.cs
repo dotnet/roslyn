@@ -517,7 +517,7 @@ class C
     static T id<T>(T t) => t;
     static T G<T>(Func<T> f) => f();
 
-    public void F(int? x)
+    public void F(string? x)
     <N:0>{</N:0>
         var <N:1>y1</N:1> = new { A = id(x) };
         var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
@@ -533,7 +533,7 @@ class C
     static T id<T>(T t) => t;
     static T G<T>(Func<T> f) => f();
 
-    public void F(int? x)
+    public void F(string? x)
     <N:0>{</N:0>
         if (x is null) throw new Exception();
         var <N:1>y1</N:1> = new { A = id(x) };
@@ -558,46 +558,29 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "Microsoft: {CodeAnalysis}",
+                "System.Runtime: {CompilerServices, CompilerServices}",
+                "<global namespace>: {Microsoft, System, System}",
                 "C: {<>c__DisplayClass2_0}",
+                "System: {Runtime, Runtime}",
                 "C.<>c__DisplayClass2_0: {x, y1, y2, <F>b__0, <F>b__1}",
                 "<>f__AnonymousType1<<B>j__TPar>: {Equals, GetHashCode, ToString}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}",
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyIL("C.<>c__DisplayClass2_0.<F>b__1()", @"
 {
-  // Code size       75 (0x4b)
+  // Code size       28 (0x1c)
   .maxstack  2
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                [unchanged] V_2,
-                int? V_3,
-                int? V_4,
-                int? V_5)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""<anonymous type: int? A> C.<>c__DisplayClass2_0.y1""
-  IL_0006:  callvirt   ""int? <>f__AnonymousType0<int?>.A.get""
-  IL_000b:  stloc.3
-  IL_000c:  ldarg.0
-  IL_000d:  ldfld      ""<anonymous type: int? B> C.<>c__DisplayClass2_0.y2""
-  IL_0012:  callvirt   ""int? <>f__AnonymousType1<int?>.B.get""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldloca.s   V_3
-  IL_001b:  call       ""bool int?.HasValue.get""
-  IL_0020:  ldloca.s   V_4
-  IL_0022:  call       ""bool int?.HasValue.get""
-  IL_0027:  and
-  IL_0028:  brtrue.s   IL_0036
-  IL_002a:  ldloca.s   V_5
-  IL_002c:  initobj    ""int?""
-  IL_0032:  ldloc.s    V_5
-  IL_0034:  br.s       IL_004a
-  IL_0036:  ldloca.s   V_3
-  IL_0038:  call       ""int int?.GetValueOrDefault()""
-  IL_003d:  ldloca.s   V_4
-  IL_003f:  call       ""int int?.GetValueOrDefault()""
-  IL_0044:  add
-  IL_0045:  newobj     ""int?..ctor(int)""
-  IL_004a:  ret
+  IL_0001:  ldfld      ""<anonymous type: string A> C.<>c__DisplayClass2_0.y1""
+  IL_0006:  callvirt   ""string <>f__AnonymousType0<string>.A.get""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""<anonymous type: string B> C.<>c__DisplayClass2_0.y2""
+  IL_0011:  callvirt   ""string <>f__AnonymousType1<string>.B.get""
+  IL_0016:  call       ""string string.Concat(string, string)""
+  IL_001b:  ret
 }");
 
             diff1.VerifyIL("C.<>c__DisplayClass2_0.<F>b__0()", @"
@@ -605,9 +588,9 @@ class C
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int? C.<>c__DisplayClass2_0.x""
-  IL_0006:  call       ""int? C.id<int?>(int?)""
-  IL_000b:  newobj     ""<>f__AnonymousType1<int?>..ctor(int?)""
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass2_0.x""
+  IL_0006:  call       ""string C.id<string>(string)""
+  IL_000b:  newobj     ""<>f__AnonymousType1<string>..ctor(string)""
   IL_0010:  ret
 }");
         }
