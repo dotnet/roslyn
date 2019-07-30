@@ -114,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
 
-                _cancellationToken.ThrowIfCancellationRequested();
-
                 if (!node.CanAddUsingDirectives(_cancellationToken))
                 {
                     return rewritten;
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
 
-                if (!node.CanAddUsingDirectives(CancellationToken.None))
+                if (!node.CanAddUsingDirectives(_cancellationToken))
                 {
                     return rewritten;
                 }
