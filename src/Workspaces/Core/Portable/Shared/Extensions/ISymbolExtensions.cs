@@ -920,6 +920,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
+                if (symbol.ContainingType is null)
+                {
+                    // Observed with certain implicit operators, such as operator==(void*, void*).
+                    return false;
+                }
+
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Method:
