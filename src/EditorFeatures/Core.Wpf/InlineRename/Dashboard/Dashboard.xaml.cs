@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInComments => EditorFeaturesResources.Include_comments;
         public string SearchInStrings => EditorFeaturesResources.Include_strings;
         public string ApplyRename => EditorFeaturesResources.Apply1;
+        public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
         public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
