@@ -270,6 +270,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // Preview 
+                case MessageID.IDS_ParameterNullChecking:
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
@@ -289,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_OverrideWithConstraints: // semantic check
                 case MessageID.IDS_FeatureNestedStackalloc: // semantic check
                 case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
-                case MessageID.IDS_ParameterNullChecking:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
