@@ -2336,7 +2336,7 @@ class Program
           ReturnedValue: 
             null");
             VerifyFlowGraph(comp, node2, @"
-    Block[B0] - Entry
+        Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
             Entering: {R1}
@@ -2345,32 +2345,7 @@ class Program
         Methods: [void M(System.String x)]
         Block[B1] - Block
             Predecessors: [B0]
-            Statements (1)Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-              Children(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """"x"""", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """"x"""", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    Block[B3] - Exit
-        Predecessors: [B1]
-        Statements (0)
+            Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M(""ok"");')
                   Expression: 
                     IInvocationOperation (void M(System.String x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M(""ok"")')
