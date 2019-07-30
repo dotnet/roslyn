@@ -1462,13 +1462,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var nullableHasValue = ((IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))?.Construct(parameter.Type);
                 if (nullableHasValue is null)
                 {
-                    conditionOp = new InvalidOperation(
-                        ImmutableArray.Create((IOperation)OperationCloner.CloneOperation(paramNameLiteral)),
+                    conditionOp = new UnaryOperation(
+                    UnaryOperatorKind.Not,
+                    new InvalidOperation(
+                        ImmutableArray.Create((IOperation)OperationCloner.CloneOperation(paramReference)),
                         semanticModel,
                         syntax,
                         boolType,
                         constantValue,
-                        isImplicit: true);
+                        isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    operatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue,
+                    isImplicit: true);
                 }
                 else
                 {

@@ -2421,10 +2421,10 @@ class Program
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if True (Regular) to Block[B3]
             IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
               Children(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
