@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -25,6 +26,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
+        private static readonly DiagnosticDescriptor s_dummyDataflowAnalysisDescriptor = new DiagnosticDescriptor(
+            id: "InterproceduralDataflow",
+            title: string.Empty,
+            messageFormat: string.Empty,
+            category: string.Empty,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            customTags: WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry);
+
         private readonly ImmutableHashSet<CaptureId> _lValueFlowCaptures;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue>.Builder _valueCacheBuilder;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind>.Builder _predicateValueKindCacheBuilder;
@@ -1924,7 +1934,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
-                DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true;
+                DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
+                invokedMethod.IsConfiguredToSkipAnalysis(DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (skipInterproceduralAnalysis ||

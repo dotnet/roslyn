@@ -343,10 +343,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     result = TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
                 }
 
-                if (this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(operation.Parent.Type as IArrayTypeSymbol)
+                IArrayCreationOperation arrayCreationOperation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
+                if (arrayCreationOperation?.Type is IArrayTypeSymbol arrayTypeSymbol
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol)
                     && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
-                    TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(operation.Parent.Type, operation.Syntax, this.OwningSymbol);
+                    TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(arrayTypeSymbol, arrayCreationOperation.Syntax, this.OwningSymbol);
                     result = result == null ? taintedDataAbstractValue : TaintedDataAbstractValue.MergeTainted(result, taintedDataAbstractValue);
                 }
 
