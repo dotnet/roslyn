@@ -50,7 +50,7 @@ class C
 {
     void Test(object? x)
     {
-        if (x is object)
+        if (!(x is null))
         {
             x.ToString();
         }
