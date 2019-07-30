@@ -916,6 +916,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal override bool IsNullChecked => false;
+        public override bool IsNullChecked => false;
     }
 }

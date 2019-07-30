@@ -340,6 +340,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IsNullChecked As Boolean Implements IParameterSymbol.IsNullChecked
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitParameter(Me)
         End Sub

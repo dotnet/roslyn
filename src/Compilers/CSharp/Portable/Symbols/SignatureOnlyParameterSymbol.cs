@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal override bool IsNullChecked => false;
+        public override bool IsNullChecked => false;
 
         #endregion Not used by MethodSignatureComparer
 

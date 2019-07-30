@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _suppressOptional);
         }
 
-        internal override bool IsNullChecked => _originalParam.IsNullChecked;
+        public override bool IsNullChecked => _originalParam.IsNullChecked;
 
         #region Forwarded
 
