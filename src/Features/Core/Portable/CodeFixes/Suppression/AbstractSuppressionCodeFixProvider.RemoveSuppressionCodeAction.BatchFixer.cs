@@ -162,14 +162,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
                 {
-                    var builder = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length);
+                    using var builder = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length);
                     foreach (var attributeRemoveFix in attributeRemoveFixes)
                     {
                         var attributeToRemove = await attributeRemoveFix.GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                         builder.Add(attributeToRemove);
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.ToImmutable();
                 }
             }
         }

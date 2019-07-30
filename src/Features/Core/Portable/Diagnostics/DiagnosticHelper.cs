@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    var argumentsBuilder = ArrayBuilder<string>.GetInstance(length);
+                    using var argumentsBuilder = ArrayBuilder<string>.GetInstance(length);
                     for (var i = 0; i < length; i++)
                     {
                         argumentsBuilder.Add(reader.ReadString());
                     }
 
-                    _formatArguments = argumentsBuilder.ToArrayAndFree();
+                    _formatArguments = argumentsBuilder.ToArray();
                 }
             }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     ///        ... sb.ToString() ...
     ///        inst.Free();
     /// </summary>
-    internal class PooledStringBuilder
+    internal class PooledStringBuilder : IDisposable
     {
         public readonly StringBuilder Builder = new StringBuilder();
         private readonly ObjectPool<PooledStringBuilder> _pool;
@@ -89,6 +90,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(builder.Builder.Length == 0);
             return builder;
         }
+
+        public void Dispose() => Free();
 
         public static implicit operator StringBuilder(PooledStringBuilder obj)
         {

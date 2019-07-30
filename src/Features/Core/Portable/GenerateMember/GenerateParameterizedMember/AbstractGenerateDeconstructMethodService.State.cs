@@ -91,14 +91,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 var tupleElements = ((INamedTypeSymbol)targetType).TupleElements;
-                var builder = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length);
+                using var builder = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length);
                 foreach (var element in tupleElements)
                 {
                     builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default, RefKind.Out, isParams: false, element.Type, element.Name));
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
     }
