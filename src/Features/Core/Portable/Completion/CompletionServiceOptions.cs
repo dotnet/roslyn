@@ -6,7 +6,18 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionServiceOptions
     {
+        /// <summary>
+        /// Indicates if the completion is trigger by toggle the expander.
+        /// </summary>
         public static readonly Option<bool> IsExpandedCompletion
             = new Option<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
+
+        /// <summary>
+        /// Timeout value used for time-boxing import completion.
+        /// Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms,
+        /// Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
+        /// </summary>
+        public static readonly Option<int> TimeoutInMillisecondsForImportCompletion
+            = new Option<int>(nameof(CompletionServiceOptions), nameof(TimeoutInMillisecondsForImportCompletion), defaultValue: 1000);
     }
 }

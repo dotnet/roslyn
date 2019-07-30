@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override bool IsExpandItemProvider => true;
 
-        // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
-        // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
-        // This is mutable for test purpose only.
-        internal static int TimeoutInMilliseconds { get; set; } = 1000;
-
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
@@ -121,10 +116,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
             // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
-            // On the other hand, when users explicitly ask for unimported items via expander, we will block until all items can be provided.
+            var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
-            if (await Task.WhenAny(combinedTask, Task.Delay(TimeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask
-                || isExpandedCompletion)
+
+            if (isExpandedCompletion ||
+                timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
             {
                 // Either there's no timeout, and we now have all completion items ready,
                 // or user asked for unimported type explicitly so we need to wait until they are calculated.
