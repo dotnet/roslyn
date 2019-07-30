@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s)) as IParameterSymbol;
+                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
-                var instanceMemberIsUsed = thisParameterBeingRead is object || isThisParameterWritten;
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
                 var shouldBeReadOnly = !isThisParameterWritten
-                    && thisParameterBeingRead?.Type is ITypeSymbol thisType
-                    && thisType.TypeKind == TypeKind.Struct
-                    && !thisType.IsReadOnly;
+                    && thisParameterBeingRead.Type != null
+                    && thisParameterBeingRead.Type.TypeKind == TypeKind.Struct
+                    && !thisParameterBeingRead.Type.IsReadOnly;
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
 
                 return new AnalyzerResult(
-                    document: newDocument,
-                    typeParametersInDeclaration: typeParametersInDeclaration,
-                    typeParametersInConstraintList: typeParametersInConstraintList,
-                    variables: parameters,
-                    variableToUseAsReturnValue: variableToUseAsReturnValue,
-                    returnType: returnType,
-                    awaitTaskReturn: awaitTaskReturn,
-                    instanceMemberIsUsed: instanceMemberIsUsed,
-                    shouldBeReadOnly: shouldBeReadOnly,
-                    endOfSelectionReachable: endOfSelectionReachable,
-                    status: operationStatus);
+                    newDocument,
+                    typeParametersInDeclaration,
+                    typeParametersInConstraintList,
+                    parameters,
+                    variableToUseAsReturnValue,
+                    returnType,
+                    awaitTaskReturn,
+                    instanceMemberIsUsed,
+                    shouldBeReadOnly,
+                    endOfSelectionReachable,
+                    operationStatus);
             }
 
             private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)

@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
         {
-            if ((object)method == null || method.MethodKind != MethodKind.Constructor)
+            if (method is null || method.MethodKind != MethodKind.Constructor)
             {
                 VisitRvalue(receiverOpt);
             }
@@ -1144,17 +1144,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
-            if (receiverOpt == null)
+            if (receiverOpt is null)
             {
                 return;
             }
 
-            if (method == null)
+            if (method is null)
             {
                 WriteArgument(receiverOpt, RefKind.Ref, method: null);
             }
             else if (method.TryGetThisParameter(out var thisParameter)
-                && thisParameter != null
+                && thisParameter is object
                 && !TypeIsImmutable(thisParameter.Type))
             {
                 var thisRefKind = thisParameter.RefKind;
