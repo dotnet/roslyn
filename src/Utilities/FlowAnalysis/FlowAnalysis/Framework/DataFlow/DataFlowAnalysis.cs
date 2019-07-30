@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            ControlFlowRegion TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
+            static ControlFlowRegion TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
             {
                 Debug.Assert(tryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // If this block starts a catch/filter region, return the enclosing TryAndCatch region.
-            ControlFlowRegion GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
+            static ControlFlowRegion GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
             {
                 if (block.EnclosingRegion?.FirstBlockOrdinal == block.Ordinal)
                 {

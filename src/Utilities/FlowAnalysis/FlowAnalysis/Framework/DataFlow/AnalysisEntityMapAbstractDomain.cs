@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AssertValidAnalysisData(resultMap);
 
             return resultMap;
-
-            bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
+            static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
                 => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
         }
     }

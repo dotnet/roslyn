@@ -65,14 +65,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         private static PointsToAnalysisResult TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
-            using (var trackedEntitiesBuilder = new TrackedEntitiesBuilder())
-            {
-                var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
-                var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
-                var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
-                var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
-                return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
-            }
+            using var trackedEntitiesBuilder = new TrackedEntitiesBuilder();
+            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
+            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
+            var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
+            var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
+            return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||

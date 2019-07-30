@@ -220,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return (cyclomaticComplexity, computationalComplexityMetrics);
-
-            bool hasConditionalLogic(IOperation operation)
+            static bool hasConditionalLogic(IOperation operation)
             {
                 switch (operation.Kind)
                 {
@@ -261,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             // Compat
-            bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
                 switch (namedType.SpecialType)
                 {

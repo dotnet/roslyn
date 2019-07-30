@@ -91,17 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, Location location)
         {
-            bool IsOptimizedValueType(ITypeSymbol type)
+            if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
+            {
+                reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeInAStringConcatenationRule, location, new[] { typeInfo.Type.ToDisplayString() }));
+            }
+
+            return;
+
+            static bool IsOptimizedValueType(ITypeSymbol type)
             {
                 return type.SpecialType == SpecialType.System_Boolean ||
                        type.SpecialType == SpecialType.System_Char ||
                        type.SpecialType == SpecialType.System_IntPtr ||
                        type.SpecialType == SpecialType.System_UIntPtr;
-            }
-
-            if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
-            {
-                reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeInAStringConcatenationRule, location, new[] { typeInfo.Type.ToDisplayString() }));
             }
         }
     }

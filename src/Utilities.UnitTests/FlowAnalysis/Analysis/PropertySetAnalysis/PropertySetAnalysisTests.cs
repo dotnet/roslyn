@@ -146,12 +146,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
+            static string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
             {
                 return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return/Initialization";
             }
 
-            string MethodOrReturnString(string method)
+            static string MethodOrReturnString(string method)
             {
                 return method != null ? $"Method {method}" : "Return/Initialization";
             }

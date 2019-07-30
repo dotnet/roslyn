@@ -41,7 +41,7 @@ namespace Analyzer.Utilities.Extensions
 
             if (methodBlock != null)
             {
-                bool IsSingleStatementBody(IBlockOperation body)
+                static bool IsSingleStatementBody(IBlockOperation body)
                 {
                     return body.Operations.Length == 1 ||
                         (body.Operations.Length == 3 && body.Syntax.Language == LanguageNames.VisualBasic &&
