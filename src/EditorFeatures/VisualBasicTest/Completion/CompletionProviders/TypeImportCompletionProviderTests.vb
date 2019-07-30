@@ -20,9 +20,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
+        ' -1 would disable timebox, whereas 0 means always timeout.
+        Private Property TimeoutInMilliseconds As Integer = -1
+
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
-            workspace.Options = workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue)
-            AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = -1
+            workspace.Options = workspace.Options
+            .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue)
+            .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
         End Sub
 
         Protected Overrides Function GetExportProvider() As ExportProvider

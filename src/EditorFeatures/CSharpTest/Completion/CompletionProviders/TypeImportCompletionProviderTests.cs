@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -31,11 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
+        // -1 would disable timebox, whereas 0 means always timeout.
+        private int TimeoutInMilliseconds { get; set; } = -1;
+
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
-            AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = -1;
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds);
         }
 
         protected override ExportProvider GetExportProvider()
@@ -1258,7 +1260,7 @@ namespace Foo
         public async Task DoNotShowImportItemsIfTimeout()
         {
             // Set timeout to 0 so it always timeout
-            AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0;
+            TimeoutInMilliseconds = 0;
 
             var file1 = $@"
 namespace NS1
