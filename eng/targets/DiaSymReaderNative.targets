@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+  </ItemGroup>
+</Project>
