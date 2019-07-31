@@ -12041,6 +12041,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to parameter null-checking.
+        /// </summary>
+        internal static string IDS_ParameterNullChecking {
+            get {
+                return ResourceManager.GetString("IDS_ParameterNullChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;path list&gt;.
         /// </summary>
         internal static string IDS_PathList {

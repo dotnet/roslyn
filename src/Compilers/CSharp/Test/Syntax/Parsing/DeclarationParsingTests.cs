@@ -7187,7 +7187,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestMethodDeclarationNullValidation()
         {
-            UsingStatement(@"void M(string name!) { }");
+            UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7220,7 +7220,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidation()
         {
-            UsingStatement(@"void M(string name! = null) { }");
+            UsingStatement(@"void M(string name! = null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7261,7 +7261,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
-            UsingStatement(@"void M(string name!=null) { }", expectedErrors: new DiagnosticDescription[]
+            UsingStatement(@"void M(string name!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             { 
                     // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
                     // void M(string name!=null) { }
@@ -7307,7 +7307,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgList()
         {
-            UsingStatement(@"void M(__arglist!) { }",
+            UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!) { }
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
@@ -7339,7 +7339,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithLeadingSpace()
         {
-            UsingStatement(@"void M(string name !=null) { }", expectedErrors: new DiagnosticDescription[]
+            UsingStatement(@"void M(string name !=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             { 
                     // (1,20): error CS8712: Space required between explanation-point and equals-sign here.
                     // void M(string name !=null) { }
@@ -7386,7 +7386,7 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithLeadingNewLine()
         {
             UsingStatement(@"void M(string name
-!=null) { }", expectedErrors: new DiagnosticDescription[]
+!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             { 
                 // (2,1): error CS8712: Space required between '!' and '=' here.
                 // !=null) { }
@@ -7432,7 +7432,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithTrailingSpace()
         {
-            UsingStatement(@"void M(string name!= null) { }", expectedErrors: new DiagnosticDescription[]
+            UsingStatement(@"void M(string name!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             { 
                     // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
                     // void M(string name!= null) { }
@@ -7479,7 +7479,7 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithTrailingNewLine()
         {
             UsingStatement(@"void M(string name!=
-null) { }", expectedErrors: new DiagnosticDescription[]
+null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             { 
                 // (1,19): error CS8712: Space required between '!' and '=' here.
                     // void M(string name!=
@@ -7529,7 +7529,7 @@ null) { }", expectedErrors: new DiagnosticDescription[]
 class C
 {
     public void M(string x!) { }
-}");
+}", options: TestOptions.RegularPreview);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -7576,7 +7576,7 @@ class C
 class C
 {
     public C(string x!) { }
-}");
+}", options: TestOptions.RegularPreview);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -7623,7 +7623,7 @@ class Box
     {
         return 2;
     }
-}");
+}", options: TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7692,7 +7692,7 @@ class Box
             // PROTOTYPE : During semantics, make sure this causes an error
             UsingTree(@"
 delegate void Del(int x!);
-Del d = delegate(int k!) { /* ... */ };");
+Del d = delegate(int k!) { /* ... */ };", options: TestOptions.RegularPreview);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);

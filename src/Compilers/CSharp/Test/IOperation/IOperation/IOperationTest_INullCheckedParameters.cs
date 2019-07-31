@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,7 +20,7 @@ public class C
 {
     public void M(string input!) { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -72,7 +73,7 @@ public class C
 {
     public void M(string x, string y!) { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -125,7 +126,7 @@ public class C
 {
     public void M(string name! = ""rose"") { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -181,7 +182,7 @@ public class Box
         return 2;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -243,7 +244,7 @@ public class C
 {
     public string this[string index!] => null;
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -280,7 +281,7 @@ public class C
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -351,7 +352,7 @@ public class C
     Block[B4] - Exit
         Predecessors: [B3]
         Statements (0)";
-            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None);
+            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -370,7 +371,7 @@ public class C
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().ElementAt(1);
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
@@ -439,7 +440,7 @@ public class C
         Predecessors: [B3]
         Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None);
+            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -450,7 +451,7 @@ public class C
 {
     public string this[object item!] { /*<bind>*/set { }/*</bind>*/ }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -491,7 +492,7 @@ public class C
     Block[B3] - Exit
         Predecessors: [B1]
         Statements (0)";
-            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None);
+            VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -506,7 +507,7 @@ class C
         Func<string, string> func1 = x! => x;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -608,7 +609,7 @@ class C
         Func<string, string, string> func1 = (x!, y) => x;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -710,7 +711,7 @@ class C
         Func<string, string> func1 = _! => null;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -816,7 +817,7 @@ class C
 {
     public Func<string, string> M(string s1!) => s2! => s2 + s1;
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -931,7 +932,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1015,7 +1016,7 @@ class C
         void InnerM(string x!) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1101,7 +1102,7 @@ class C
         void InnerM(string x!, string y!) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1214,7 +1215,7 @@ class C
         void InnerM(string x) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1315,7 +1316,7 @@ class C
         void InnerM(string x!) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1397,7 +1398,7 @@ class C
 {
     public C(string x!) { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1452,7 +1453,7 @@ class C
     public C() { }
     public C(string x!) : this() { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1525,7 +1526,7 @@ class C : B
 {
     public C(string x!) : base(x) { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1603,7 +1604,7 @@ class C
     int y = 5;
     public C(string x!) { y++; }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1675,7 +1676,7 @@ class C
 {
     object Local(object arg!) => arg;
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1747,7 +1748,7 @@ class C
         IEnumerable<char> e = c.GetChars(""hello"");
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -1908,7 +1909,7 @@ class Iterators
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -2097,7 +2098,7 @@ class C
         yield break;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -2157,7 +2158,7 @@ class C
         yield break;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -2219,7 +2220,7 @@ class Program
 }
 
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
@@ -2319,7 +2320,7 @@ class Program
         void M(string x!) { }
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
@@ -2400,7 +2401,7 @@ class Program
 {
     public void Method(int? x!) { }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             comp.VerifyDiagnostics(
                     // (4,29): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
@@ -2453,7 +2454,7 @@ public class C
     public void M(string input!) 
             /*<bind>*/{ }/*</bind>*/
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
@@ -2479,7 +2480,7 @@ public class C : B
 {
     public C(string param!) : base(param ?? """") { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics();
 
