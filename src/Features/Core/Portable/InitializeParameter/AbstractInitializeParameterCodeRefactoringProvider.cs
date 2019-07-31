@@ -38,16 +38,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var parameterNode = await refactoringHelperService.TryGetSelectedNodeAsync<TParameterSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var parameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;

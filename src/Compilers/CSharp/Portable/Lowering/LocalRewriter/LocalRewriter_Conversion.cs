@@ -32,23 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var toType = node.Type;
             Debug.Assert(result.Type.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
-            // It means that explicit casts to (double) or (float) should be preserved on the node.
-            // If original conversion has become something else with unknown precision, add an explicit identity cast.
-            if (!_inExpressionLambda &&
-                node.ExplicitCastInCode &&
-                IsFloatingPointExpressionOfUnknownPrecision(result))
-            {
-                result = MakeConversionNode(
-                    node.Syntax,
-                    result,
-                    Conversion.Identity,
-                    toType,
-                    @checked: false,
-                    explicitCastInCode: true,
-                    constantValueOpt: result.ConstantValue);
-            }
-
             return result;
         }
 
@@ -100,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Helper method to generate a lowered conversion.
         /// </summary>
         private BoundExpression MakeConversionNode(
-            BoundConversion oldNode,
+            BoundConversion oldNodeOpt,
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
@@ -109,7 +92,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             TypeSymbol rewrittenType)
         {
-            Debug.Assert(oldNode == null || oldNode.Syntax == syntax);
+            var result = MakeConversionNodeCore(oldNodeOpt, syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
+
+            // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
+            // It means that explicit casts to (double) or (float) should be preserved on the node.
+            // If original conversion has become something else with unknown precision, add an explicit identity cast.
+            if (!_inExpressionLambda &&
+                explicitCastInCode &&
+                IsFloatingPointExpressionOfUnknownPrecision(result))
+            {
+                result = new BoundConversion(
+                    syntax,
+                    result,
+                    Conversion.Identity,
+                    isBaseConversion: false,
+                    @checked: false,
+                    explicitCastInCode: true,
+                    conversionGroupOpt: null,
+                    constantValueOpt: null,
+                    type: result.Type);
+            }
+
+            return result;
+        }
+
+        private BoundExpression MakeConversionNodeCore(
+            BoundConversion oldNodeOpt,
+            SyntaxNode syntax,
+            BoundExpression rewrittenOperand,
+            Conversion conversion,
+            bool @checked,
+            bool explicitCastInCode,
+            ConstantValue constantValueOpt,
+            TypeSymbol rewrittenType)
+        {
+            Debug.Assert(oldNodeOpt == null || oldNodeOpt.Syntax == syntax);
             Debug.Assert((object)rewrittenType != null);
 
             if (_inExpressionLambda)
@@ -160,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenType: rewrittenType);
 
                 case ConversionKind.IntPtr:
-                    return RewriteIntPtrConversion(oldNode, syntax, rewrittenOperand, conversion, @checked,
+                    return RewriteIntPtrConversion(oldNodeOpt, syntax, rewrittenOperand, conversion, @checked,
                         explicitCastInCode, constantValueOpt, rewrittenType);
 
                 case ConversionKind.ImplicitNullable:
@@ -192,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (nullableValue != null)
                         {
                             // Recurse, eliminating the unnecessary ctor.
-                            return MakeConversionNode(oldNode, syntax, nullableValue, conversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
+                            return MakeConversionNode(oldNodeOpt, syntax, nullableValue, conversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
                         }
                     }
                     break;
@@ -259,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (rewrittenType.IsNullableType())
                     {
                         var operand = MakeConversionNode(
-                            oldNode,
+                            oldNodeOpt,
                             syntax,
                             rewrittenOperand,
                             conversion,
@@ -270,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var outerConversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
                         return MakeConversionNode(
-                            oldNode,
+                            oldNodeOpt,
                             syntax,
                             operand,
                             outerConversion,
@@ -319,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
-                            conversionGroupOpt: oldNode?.ConversionGroupOpt,
+                            conversionGroupOpt: oldNodeOpt?.ConversionGroupOpt,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -347,27 +364,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering
                         var mg = (BoundMethodGroup)rewrittenOperand;
-                        var method = oldNode.SymbolOpt;
+                        var method = oldNodeOpt.SymbolOpt;
                         Debug.Assert((object)method != null);
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         _factory.Syntax = oldSyntax;
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                   isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
+                                                                   isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
                     }
                 default:
                     break;
             }
 
-            return oldNode != null ?
-                oldNode.Update(
+            return oldNodeOpt != null ?
+                oldNodeOpt.Update(
                     rewrittenOperand,
                     conversion,
-                    isBaseConversion: oldNode.IsBaseConversion,
+                    isBaseConversion: oldNodeOpt.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
-                    conversionGroupOpt: oldNode.ConversionGroupOpt,
+                    conversionGroupOpt: oldNodeOpt.ConversionGroupOpt,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType) :
                 new BoundConversion(
@@ -609,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return MakeConversionNode(
-                oldNode: null,
+                oldNodeOpt: null,
                 syntax: syntax,
                 rewrittenOperand: rewrittenOperand,
                 conversion: conversion,
@@ -672,49 +689,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A sequence of side effects with an always-null expression as its value
             // CONSIDER: can be optimized also. Should we?
 
-            if (expression.IsLiteralNull())
-            {
-                return true;
-            }
-
             if (!expression.Type.IsNullableType())
             {
                 return false;
             }
 
-            // default(int?) never has a value.
-            if (expression.Kind == BoundKind.DefaultExpression)
-            {
-                return true;
-            }
+            return nullableNeverHasValue(expression);
 
-            // new int?() never has a value if there is no argument.
-            if (expression.Kind == BoundKind.ObjectCreationExpression)
+            static bool nullableNeverHasValue(BoundExpression expression)
             {
-                if (((BoundObjectCreationExpression)expression).Arguments.Length == 0)
+                Debug.Assert(expression.Type.IsNullableType());
+                switch (expression)
                 {
-                    return true;
+                    case { ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } }:
+                    case BoundConversion { Conversion: { Kind: ConversionKind.DefaultOrNullLiteral } }:
+                    case BoundObjectCreationExpression { Arguments: { Length: 0 } }: // new int?() never has a value if there is no argument.
+                    case BoundDefaultExpression _:
+                        return true;
+                    case BoundConversion { Conversion: { IsNullable: true }, Operand: var operand } when operand.Type.IsNullableType():
+                        return nullableNeverHasValue(operand);
+                    default:
+                        return false;
                 }
             }
-
-            return false;
         }
 
         /// <summary>
         /// If the nullable expression always has a value, returns the value, otherwise null.
+        /// This is normally performed on a lowered expression, however for the purpose of
+        /// tuples and tuple equality operators, we do this on a partially lowered expression in
+        /// which conversions appearing at the top of the expression have not been lowered.
         /// If this method is updated to recognize more complex patterns, callers should be reviewed.
         /// </summary>
         internal static BoundExpression NullableAlwaysHasValue(BoundExpression expression)
         {
-            if (expression.Type.IsNullableType() && expression.Kind == BoundKind.ObjectCreationExpression)
+            if (!expression.Type.IsNullableType())
+                return null;
+
+            switch (expression)
             {
-                BoundObjectCreationExpression objectCreation = (BoundObjectCreationExpression)expression;
-                if (objectCreation.Arguments.Length == 1)
-                {
-                    return objectCreation.Arguments[0];
-                }
+                // Detect the lowered nullable conversion from value type K to type Nullable<K>
+                case BoundObjectCreationExpression { Arguments: { Length: 1 } args }:
+                    return args[0];
+
+                // Detect the unlowered nullable conversion from value type K to type Nullable<K>
+                // This arises in lowering tuple equality operators
+                case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable }, Operand: var convertedArgument }
+                        when convertedArgument.Type.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions):
+                    return convertedArgument;
+
+                // Detect the unlowered nullable conversion from a tuple type T1 to Nullable<T2> for a tuple type T2.
+                case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: var underlying }, Operand: var convertedArgument } conversion
+                        when underlying.Length == 1 && underlying[0].Kind == ConversionKind.ImplicitTuple && !convertedArgument.Type.IsNullableType():
+                    return new BoundConversion(
+                        syntax: expression.Syntax,
+                        operand: convertedArgument,
+                        conversion: underlying[0],
+                        @checked: conversion.Checked,
+                        explicitCastInCode: conversion.ExplicitCastInCode,
+                        conversionGroupOpt: null,
+                        constantValueOpt: null,
+                        type: conversion.Type.StrippedType(),
+                        hasErrors: conversion.HasErrors);
+
+                // No other cases are recognized
+                default:
+                    return null;
             }
-            return null;
         }
 
         private BoundExpression RewriteNullableConversion(

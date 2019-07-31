@@ -888,5 +888,11 @@ namespace Microsoft.CodeAnalysis
         /// Root of this semantic model
         /// </summary>
         protected abstract SyntaxNode RootCore { get; }
+
+        /// <summary>
+        /// Gets the <see cref="NullableContext"/> at a position in the file.
+        /// </summary>
+        /// <param name="position">The position to get the context for.</param>
+        public abstract NullableContext GetNullableContext(int position);
     }
 }

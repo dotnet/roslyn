@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var symbols = ArrayBuilder<object>.GetInstance();
 
             var navBarService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
-            var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+            var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(keepThreadContext);
             if (navBarItems.Count == 0)
             {
                 return symbols.ToArrayAndFree();
             }
 
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 foreach (var item in navBarItems)
                 {
                     // only top level ones
-                    symbols.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    symbols.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext));
                 }
             }
             else
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Get a document symbol from a specified nav bar item.
         /// </summary>
         private static async Task<DocumentSymbol> GetDocumentSymbolAsync(NavigationBarItem item, Compilation compilation, SyntaxTree tree,
-            SourceText text, CancellationToken cancellationToken)
+            SourceText text, bool keepThreadContext, CancellationToken cancellationToken)
         {
             // it is actually symbol location getter. but anyway.
             var location = GetLocation(item, compilation, tree, cancellationToken);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var symbol = await GetSymbolAsync(location, compilation, cancellationToken).ConfigureAwait(false);
+            var symbol = await GetSymbolAsync(location, compilation, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
             if (symbol == null)
             {
                 return null;
@@ -133,25 +133,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Deprecated = symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"),
                 Range = ProtocolConversions.TextSpanToRange(item.Spans.First(), text),
                 SelectionRange = ProtocolConversions.TextSpanToRange(location.SourceSpan, text),
-                Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),
+                Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext),
             };
 
             static async Task<DocumentSymbol[]> GetChildrenAsync(IEnumerable<NavigationBarItem> items, Compilation compilation, SyntaxTree tree,
-                SourceText text, CancellationToken cancellationToken)
+                SourceText text, bool keepThreadContext, CancellationToken cancellationToken)
             {
                 var list = new ArrayBuilder<DocumentSymbol>();
                 foreach (var item in items)
                 {
-                    list.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    list.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext));
                 }
 
                 return list.ToArrayAndFree();
             }
 
-            static async Task<ISymbol> GetSymbolAsync(Location location, Compilation compilation, CancellationToken cancellationToken)
+            static async Task<ISymbol> GetSymbolAsync(Location location, Compilation compilation, bool keepThreadContext, CancellationToken cancellationToken)
             {
                 var model = compilation.GetSemanticModel(location.SourceTree);
-                var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(keepThreadContext);
                 var node = root.FindNode(location.SourceSpan);
 
                 while (node != null)

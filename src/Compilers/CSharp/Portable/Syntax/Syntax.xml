@@ -2429,7 +2429,7 @@
     </FactoryComment>
   </Node>
 
-  <Node Name="SwitchStatementSyntax" Base="StatementSyntax">
+  <Node Name="SwitchStatementSyntax" Base="StatementSyntax" SkipConvenienceFactories="true">
     <Kind Name="SwitchStatement"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
       <Kind Name="SwitchKeyword"/>

@@ -16,23 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            return SwitchLocalRewriter.Rewrite(this, node);
+            return SwitchStatementLocalRewriter.Rewrite(this, node);
         }
 
-        private class SwitchLocalRewriter : BaseSwitchLocalRewriter
+        private sealed class SwitchStatementLocalRewriter : BaseSwitchLocalRewriter
         {
+            /// <summary>
+            /// A map from section syntax to the first label in that section.
+            /// </summary>
+            private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
+
+            protected override bool IsSwitchStatement => true;
+
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
-                var rewriter = new SwitchLocalRewriter(node, localRewriter);
+                var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
                 BoundStatement result = rewriter.LowerSwitchStatement(node);
                 rewriter.Free();
                 return result;
             }
-
-            /// <summary>
-            /// A map from section syntax to the first label in that section.
-            /// </summary>
-            private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
             /// <summary>
             /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.
@@ -62,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private SwitchLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax), isSwitchStatement: true)
+            private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax))
             {
             }
 

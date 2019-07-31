@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 {
@@ -43,11 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         /// <summary>
         /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
         /// </summary>
-        protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
-        {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            return refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken);
-        }
+        protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(CodeRefactoringContext context)
+            => context.TryGetRelevantNodeAsync<QueryExpressionSyntax>();
 
         private sealed class Converter
         {

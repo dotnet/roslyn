@@ -860,6 +860,94 @@ public class SubClass : BaseClass, IConflict
             edits.VerifyRudeDiagnostics();
         }
 
+        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact]
+        public void Interface_AddMembersWithImplementation()
+        {
+            var src1 = @"
+using System;
+interface I
+{
+}
+";
+            var src2 = @"
+using System;
+interface I
+{
+    static int StaticField = 10;
+
+    static void StaticMethod() { }
+    void VirtualMethod1() { }
+    virtual void VirtualMethod2() { }
+    abstract void AbstractMethod();
+    sealed void NonVirtualMethod() { }
+
+    public static int operator +(I a, I b) => 1;
+
+    static int StaticProperty1 { get => 1; set { } }
+    static int StaticProperty2 => 1;
+    virtual int VirtualProperty1 { get => 1; set { } }
+    virtual int VirtualProperty2 { get => 1; }
+    int VirtualProperty3 { get => 1; set { } }
+    int VirtualProperty4 { get => 1; }
+    abstract int AbstractProperty1 { get; set; }
+    abstract int AbstractProperty2 { get; }
+    sealed int NonVirtualProperty => 1;
+
+    int this[byte virtualIndexer] => 1;
+    int this[sbyte virtualIndexer] { get => 1; }
+    virtual int this[ushort virtualIndexer] { get => 1; set {} }
+    virtual int this[short virtualIndexer] { get => 1; set {} }
+    abstract int this[uint abstractIndexer] { get; set; }
+    abstract int this[int abstractIndexer] { get; }
+    sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
+    sealed int this[long nonVirtualIndexer] { get => 1; set {} }
+    
+    static event Action StaticEvent;
+    static event Action StaticEvent2 { add { } remove { } }
+
+    event Action VirtualEvent { add { } remove { } }
+    abstract event Action AbstractEvent;
+    sealed event Action NonVirtualEvent { add { } remove { } }
+
+    interface J { }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "void VirtualMethod1()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual void VirtualMethod2()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract void AbstractMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(I a, I b)", FeaturesResources.operator_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty4", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty1", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[byte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[sbyte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[ushort virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[short virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[uint abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[int abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "event Action VirtualEvent", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract event Action AbstractEvent", CSharpFeaturesResources.event_field),
+                // TODO: The following errors are reported due to https://github.com/dotnet/roslyn/issues/37128.
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticField = 10", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static void StaticMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed void NonVirtualMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[ulong nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[long nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent", CSharpFeaturesResources.event_field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent2", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed event Action NonVirtualEvent", FeaturesResources.event_));
+        }
+
         #endregion
 
         #region Enums
@@ -2901,7 +2989,6 @@ class Test
 {
     public async Task<int> WaitAsync()
     {
-        await Task.Delay(1000);
         return 1;
     }
 }";
@@ -2910,14 +2997,12 @@ class Test
 {
     public Task<int> WaitAsync()
     {
-        await Task.Delay(1000);
-        return 1;
+        return Task.FromResult(1);
     }
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "public Task<int> WaitAsync()", FeaturesResources.method));
         }
 
         [Fact]
@@ -3461,11 +3546,47 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
+        [Theory]
+        [InlineData("stackalloc int[3]")]
+        [InlineData("stackalloc int[3] { 1, 2, 3 }")]
+        [InlineData("stackalloc int[] { 1, 2, 3 }")]
+        [InlineData("stackalloc[] { 1, 2, 3 }")]
+        public void MethodUpdate_UpdateStackAlloc2(string stackallocDecl)
+        {
+            var src1 = @"unsafe class C { static int F() { var x = " + stackallocDecl + "; return 1; } }";
+            var src2 = @"unsafe class C { static int F() { var x = " + stackallocDecl + "; return 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+        }
+
         [Fact]
         public void MethodUpdate_UpdateStackAllocInLambda1()
         {
-            var src1 = "class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
-            var src2 = "class C { void M() { F(2, () => { int* a = stackalloc int[10]; }); } }";
+            var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
+            var src2 = "unsafe class C { void M() { F(2, () => { int* a = stackalloc int[10]; }); } }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -3475,8 +3596,85 @@ class C
         [Fact]
         public void MethodUpdate_UpdateStackAllocInLambda2()
         {
-            var src1 = "class C { void M() { F(1, x => { int* a = stackalloc int[10]; }); } }";
-            var src2 = "class C { void M() { F(2, x => { int* a = stackalloc int[10]; }); } }";
+            var src1 = "unsafe class C { void M() { F(1, x => { int* a = stackalloc int[10]; }); } }";
+            var src2 = "unsafe class C { void M() { F(2, x => { int* a = stackalloc int[10]; }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateStackAllocInAnonymousMethod()
+        {
+            var src1 = "unsafe class C { void M() { F(1, delegate(int x) { int* a = stackalloc int[10]; }); } }";
+            var src2 = "unsafe class C { void M() { F(2, delegate(int x) { int* a = stackalloc int[10]; }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateStackAllocInLocalFunction()
+        {
+            var src1 = "class C { void M() { unsafe void f(int x) { int* a = stackalloc int[10]; } f(1); } }";
+            var src2 = "class C { void M() { unsafe void f(int x) { int* a = stackalloc int[10]; } f(2); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchExpressionInLambda1()
+        {
+            var src1 = "class C { void M() { F(1, a => a switch { 0 => 0, _ => 2 }); } }";
+            var src2 = "class C { void M() { F(2, a => a switch { 0 => 0, _ => 2 }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchExpressionInLambda2()
+        {
+            var src1 = "class C { void M() { F(1, a => a switch { 0 => 0, _ => 2 }); } }";
+            var src2 = "class C { void M() { F(2, a => a switch { 0 => 0, _ => 2 }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchExpressionInAnonymousMethod()
+        {
+            var src1 = "class C { void M() { F(1, delegate(int a) { return a switch { 0 => 0, _ => 2 }; }); } }";
+            var src2 = "class C { void M() { F(2, delegate(int a) { return a switch { 0 => 0, _ => 2 }; }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchExpressionInLocalFunction()
+        {
+            var src1 = "class C { void M() { int f(int a) => a switch { 0 => 0, _ => 2 }; f(1); } }";
+            var src2 = "class C { void M() { int f(int a) => a switch { 0 => 0, _ => 2 }; f(2); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchExpressionInQuery()
+        {
+            var src1 = "class C { void M() { var x = from z in new[] { 1, 2, 3 } where z switch { 0 => true, _ => false } select z + 1; } }";
+            var src2 = "class C { void M() { var x = from z in new[] { 1, 2, 3 } where z switch { 0 => true, _ => false } select z + 2; } }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -4524,6 +4722,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4546,6 +4745,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4568,6 +4768,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4590,6 +4791,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4610,6 +4812,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4632,6 +4835,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4654,6 +4858,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4675,7 +4880,6 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4698,6 +4902,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4718,6 +4923,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -5728,6 +5934,19 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact]
+        public void FieldInitializerUpdate_SwitchExpressionInConstructor()
+        {
+            var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
+            var src2 = "class C { int a = 2; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+        }
+
         [Fact]
         public void PropertyInitializerUpdate_StackAllocInConstructor1()
         {
@@ -5763,6 +5982,44 @@ public class C
             // TODO (tomat): diagnostic should point to the property initializer
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact]
+        public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
+        {
+            var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
+            var src2 = "class C { int a { get; } = 2; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact]
+        public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
+        {
+            var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
+            var src2 = "class C { int a { get; } = 2; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact]
+        public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
+        {
+            var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
+            var src2 = "class C { int a { get; } = 2; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
         }
 
         [Fact]

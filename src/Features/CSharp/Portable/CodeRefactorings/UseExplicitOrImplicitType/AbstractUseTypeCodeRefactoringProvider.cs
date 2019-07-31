@@ -25,21 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var declaration = await GetDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var declaration = await GetDeclarationAsync(context).ConfigureAwait(false);
             if (declaration == null)
             {
                 return;
@@ -54,12 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            if (declaredType.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            if (!declaredType.Span.IntersectsWith(textSpan.Start))
+            // only allow the refactoring is selection/location intersects with the type node
+            if (!declaredType.Span.IntersectsWith(textSpan))
             {
                 return;
             }
@@ -83,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                     c => UpdateDocumentAsync(document, declaredType, c)));
         }
 
-        private static async Task<SyntaxNode> GetDeclarationAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> GetDeclarationAsync(CodeRefactoringContext context)
         {
             // We want to provide refactoring for changing the Type of newly introduced variables in following cases:
             // - DeclarationExpressionSyntax: `"42".TryParseInt32(out var number)`
@@ -94,27 +82,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             // we also want to enable it when only the type node is selected because this refactoring changes the type. We still have to make sure 
             // we're only working on TypeNodes for in above-mentioned situations.
 
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var declNode = await refactoringHelperService.TryGetSelectedNodeAsync<DeclarationExpressionSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var declNode = await context.TryGetRelevantNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
             if (declNode != null)
             {
                 return declNode;
             }
 
-            var variableNode = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclarationSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var variableNode = await context.TryGetRelevantNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
             if (variableNode != null)
             {
                 return variableNode;
             }
 
-            var foreachStatement = await refactoringHelperService.TryGetSelectedNodeAsync<ForEachStatementSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
             if (foreachStatement != null)
             {
                 return foreachStatement;
             }
 
-            var typeNode = await refactoringHelperService.TryGetSelectedNodeAsync<TypeSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
             var typeNodeParent = typeNode?.Parent;
             if (typeNodeParent != null && typeNodeParent.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement))
             {

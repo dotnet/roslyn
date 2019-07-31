@@ -20,5 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
+        public override int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;
+        public override int IdentifierToken => (int)SyntaxKind.IdentifierToken;
+        public override int GlobalKeyword => (int)SyntaxKind.GlobalKeyword;
+        public override int IncompleteMember => (int)SyntaxKind.IncompleteMember;
+        public override int UsingStatement => (int)SyntaxKind.UsingStatement;
+        public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
+        public override int HashToken => (int)SyntaxKind.HashToken;
     }
 }

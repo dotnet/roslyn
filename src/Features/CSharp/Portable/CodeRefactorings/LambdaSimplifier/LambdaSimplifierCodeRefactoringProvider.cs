@@ -20,10 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -36,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var lambda = await refactoringHelperService.TryGetSelectedNodeAsync<LambdaExpressionSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var lambda = await context.TryGetRelevantNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
             if (lambda == null)
             {
                 return;

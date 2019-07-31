@@ -171,6 +171,17 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string NotNullIfNotNulltAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) { }
+    }
+}
+";
+
         protected const string AsyncStreamsTypes = @"
 namespace System.Collections.Generic
 {
@@ -1841,6 +1852,9 @@ namespace System.Runtime.CompilerServices
 
             return comp;
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

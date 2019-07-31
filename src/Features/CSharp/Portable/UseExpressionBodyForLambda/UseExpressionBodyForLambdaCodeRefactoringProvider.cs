@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.Length > 0)
+            var (document, textSpan, cancellationToken) = context;
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var lambdaNode = root.FindToken(position).Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
             if (lambdaNode == null)

@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            return _filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds)
+            return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
                 : ImmutableArray.Create<DocumentId>();
         }

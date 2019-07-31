@@ -30565,7 +30565,7 @@ public interface I3 : I1<string?>
 ";
 
             var source2 =
-@"
+@"#nullable enable warnings
 class Test1 : I2, I3
 {
 }
@@ -30631,7 +30631,6 @@ class Test1 : I2, I3
             var source1 =
 @"
 #nullable enable
-
 public interface I1<T>
 {
     void M1(); 
@@ -30653,7 +30652,7 @@ public interface I3 : I1<string?>
 ";
 
             var source2 =
-@"
+@"#nullable enable warnings
 class Test1 : I2, I3, I1<string>
 {
 }

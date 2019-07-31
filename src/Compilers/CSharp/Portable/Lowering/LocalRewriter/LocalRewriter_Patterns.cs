@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A common base class for lowering constructs that use pattern-matching.
         /// </summary>
-        private class PatternLocalRewriter
+        private abstract class PatternLocalRewriter
         {
             protected readonly LocalRewriter _localRewriter;
             protected readonly SyntheticBoundNodeFactory _factory;
@@ -24,27 +24,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public PatternLocalRewriter(SyntaxNode node, LocalRewriter localRewriter)
             {
-                this._localRewriter = localRewriter;
-                this._factory = localRewriter._factory;
-                this._tempAllocator = new DagTempAllocator(_factory, node);
+                _localRewriter = localRewriter;
+                _factory = localRewriter._factory;
+                _tempAllocator = new DagTempAllocator(_factory, node, IsSwitchStatement);
             }
+
+            /// <summary>
+            /// True if this is a rewriter for a switch statement. This affects 
+            /// - sequence points
+            ///   When clause gets a sequence point in a switch statement, but not in a switch expression.
+            /// - synthesized local variable kind
+            ///   The temp variables must be long lived in a switch statement since their lifetime spans across sequence points.
+            /// </summary>
+            protected abstract bool IsSwitchStatement { get; }
 
             public void Free()
             {
                 _tempAllocator.Free();
             }
 
-            public class DagTempAllocator
+            public sealed class DagTempAllocator
             {
                 private readonly SyntheticBoundNodeFactory _factory;
                 private readonly PooledDictionary<BoundDagTemp, BoundExpression> _map = PooledDictionary<BoundDagTemp, BoundExpression>.GetInstance();
                 private readonly ArrayBuilder<LocalSymbol> _temps = ArrayBuilder<LocalSymbol>.GetInstance();
                 private readonly SyntaxNode _node;
 
-                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node)
+                private readonly bool _isSwitchStatement;
+
+                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node, bool isSwitchStatement)
                 {
-                    this._factory = factory;
-                    this._node = node;
+                    _factory = factory;
+                    _node = node;
+                    _isSwitchStatement = isSwitchStatement;
                 }
 
                 public void Free()
@@ -76,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_map.TryGetValue(dagTemp, out BoundExpression result))
                     {
-                        LocalSymbol temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _node, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
+                        var kind = _isSwitchStatement ? SynthesizedLocalKind.SwitchCasePatternMatching : SynthesizedLocalKind.LoweringTemp;
+                        LocalSymbol temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _node, kind: kind);
                         result = _factory.Local(temp);
                         _map.Add(dagTemp, result);
                         _temps.Add(temp);

@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -1348,5 +1347,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
             Return WithOverflowChecks(checkOverflow)
         End Function
+
+        Public Overrides Property NullableContextOptions As NullableContextOptions
+            Get
+                Return NullableContextOptions.Disable
+            End Get
+            Protected Set(value As NullableContextOptions)
+                Throw New NotImplementedException()
+            End Set
+        End Property
     End Class
 End Namespace

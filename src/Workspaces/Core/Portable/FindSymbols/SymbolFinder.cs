@@ -222,7 +222,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var key = symbol.GetSymbolKey();
 
             // We may be talking about different compilations.  So do not try to resolve locations.
-            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
+            var result = new HashSet<TSymbol>();
+            var resolution = key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken);
+            foreach (var current in resolution.OfType<TSymbol>())
+            {
+                result.Add(current);
+            }
+
+            return result;
         }
     }
 }

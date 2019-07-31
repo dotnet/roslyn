@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (method.IsAwaitableNonDynamic(semanticModel, position))
             {
                 return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position)
-                             .ToTaggedText();
+                             .ToTaggedText(TaggedTextStyle.None);
             }
 
             return SpecializedCollections.EmptyList<TaggedText>();

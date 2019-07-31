@@ -551,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => Signature.ReturnParam.FlowAnalysisAnnotations;
 
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => Signature.ReturnParam.NotNullIfParameterNotNull;
+
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
@@ -638,20 +640,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ParameterSymbol> @params;
             bool isBadParameter;
 
-            string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
-            ImmutableArray<ImmutableArray<byte>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
-
             if (count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    // zero-th annotation is for the return type
-                    ImmutableArray<byte> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
-
                     builder.Add(PEParameterSymbol.Create(
                         moduleSymbol, this, this.IsMetadataVirtual(), i,
-                        paramInfo[i + 1], nullableContext: this, extraAnnotations, isReturn: false, out isBadParameter));
+                        paramInfo[i + 1], nullableContext: this, isReturn: false, out isBadParameter));
 
                     if (isBadParameter)
                     {
@@ -671,10 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            ImmutableArray<byte> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
             var returnParam = PEParameterSymbol.Create(
                 moduleSymbol, this, this.IsMetadataVirtual(), 0,
-                paramInfo[0], nullableContext: this, extraReturnAnnotations, isReturn: true, out isBadParameter);
+                paramInfo[0], nullableContext: this, isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
-        public async Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> GetPropertyDeclarationAsync(CodeRefactoringContext context)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var property = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertySyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var property = await context.TryGetRelevantNodeAsync<TPropertySyntax>().ConfigureAwait(false);
 
             return property;
         }

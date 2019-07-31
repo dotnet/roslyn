@@ -97,8 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return TryGetExtraAttributeAnnotations() ?? FlowAnalysisAnnotations.None; }
+            get { return FlowAnalysisAnnotations.None; }
         }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
