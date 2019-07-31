@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).Last();
+            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
         }
 
         private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
