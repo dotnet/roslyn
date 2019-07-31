@@ -9280,5 +9280,21 @@ class Program
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ClassConstraint()
+        {
+            await AssertFormatAsync(
+                @"
+class Program<T>
+    where T : class?
+{
+}",
+                @"
+class Program<T>
+    where T : class ?
+{
+}");
+        }
     }
 }
