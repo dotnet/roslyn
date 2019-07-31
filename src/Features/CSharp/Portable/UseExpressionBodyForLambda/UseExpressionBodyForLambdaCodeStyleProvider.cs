@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,8 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        public UseExpressionBodyForLambdaCodeStyleProvider() 
+        public UseExpressionBodyForLambdaCodeStyleProvider()
             : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
+                   LanguageNames.CSharp,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)

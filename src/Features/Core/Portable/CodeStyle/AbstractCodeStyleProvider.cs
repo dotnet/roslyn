@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -31,17 +32,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>, new()
     {
         private readonly Option<CodeStyleOption<TOptionKind>> _option;
+        private readonly string _language;
         private readonly string _descriptorId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
 
         protected AbstractCodeStyleProvider(
             Option<CodeStyleOption<TOptionKind>> option,
+            string language,
             string descriptorId,
             LocalizableString title,
             LocalizableString message)
         {
             _option = option;
+            _language = language;
             _descriptorId = descriptorId;
             _title = title;
             _message = message;
@@ -63,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         #region analysis
 
         protected abstract void DiagnosticAnalyzerInitialize(AnalysisContext context);
+        protected abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
         protected DiagnosticDescriptor CreateDescriptorWithId(
             LocalizableString title, LocalizableString message)

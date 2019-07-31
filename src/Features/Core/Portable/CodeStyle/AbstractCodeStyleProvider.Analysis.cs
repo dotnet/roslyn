@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
-        public abstract class DiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+        public abstract class DiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         {
             public readonly TCodeStyleProvider _codeStyleProvider;
 
@@ -23,13 +24,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             private DiagnosticAnalyzer(TCodeStyleProvider codeStyleProvider, bool configurable)
-                : base(codeStyleProvider._descriptorId, codeStyleProvider._title, codeStyleProvider._message, configurable)
+                : base(codeStyleProvider._descriptorId,
+                       codeStyleProvider._option,
+                       codeStyleProvider._language,
+                       codeStyleProvider._title,
+                       codeStyleProvider._message,
+                       configurable)
             {
                 _codeStyleProvider = codeStyleProvider;
             }
 
             protected sealed override void InitializeWorker(Diagnostics.AnalysisContext context)
                 => _codeStyleProvider.DiagnosticAnalyzerInitialize(new AnalysisContext(_codeStyleProvider, context));
+
+            public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+                => _codeStyleProvider.GetAnalyzerCategory();
         }
 
         /// <summary>

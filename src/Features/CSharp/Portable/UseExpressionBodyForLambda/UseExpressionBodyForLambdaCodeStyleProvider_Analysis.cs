@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
 
+        protected override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption<ExpressionBodyPreference> option)
         {
             var declaration = (LambdaExpressionSyntax)context.Node;
