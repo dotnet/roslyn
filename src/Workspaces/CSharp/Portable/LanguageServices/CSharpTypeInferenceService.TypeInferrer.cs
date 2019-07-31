@@ -618,10 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
 
-                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/37310 is fixed
                 var typeArguments = method.ConstructedFrom.TypeParameters
-                    .Select(tp => (bestMap.GetValueOrDefault(tp) ?? tp).WithoutNullability()).ToArray();
-                return method.ConstructedFrom.Construct(typeArguments);
+                    .Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+                return method.ConstructedFrom.ConstructWithNullability(typeArguments);
             }
 
             private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
