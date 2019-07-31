@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 foreach (var index in listOfParametersOrdinals)
                 {
-
-                    // Update functionDeclaration and use it to get the first valid ParameterNode using the ordinals (index).
-                    // var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var token = root.FindToken(position);
                     var firstparameterNode = GetParameterNode(token, position);
@@ -86,21 +84,21 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
 
-                    // Update blockStatementOpt
+                    // Updates blockStatementOpt
                     blockStatementOpt = GetBlockStatmentOpt(document, semanticModel, functionDeclaration, cancellationToken);
                     if (blockStatementOpt == null)
                     {
                         continue;
                     }
 
-                    // If parameter is a string, default check would be IsNullOrEmpty - update document
+                    // If parameter is a string, default check would be IsNullOrEmpty - updates document
                     if (parameter.Type.SpecialType == SpecialType.System_String)
                     {
                         document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    // For all other parameters, add null check - update document
+                    // For all other parameters, add null check - updates document
                     document = await AddNullCheckAsync(document, parameter, functionDeclaration,
                         (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
                 }
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract SyntaxNode GetParameterNodeAtIndex(int position, SyntaxNode functionDeclaration);
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Great.  There was no null check.  Offer to add one.
             var result = ArrayBuilder<CodeAction>.GetInstance();
             result.Add(new MyCodeAction(
-                $"Add null check for {parameter.Name}",
+                FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
 
             // Also, if this was a string, offer to add the special checks to 
@@ -271,6 +269,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return false;
                     }
                 }
+
             }
             return true;
         }

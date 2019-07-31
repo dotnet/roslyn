@@ -1,9 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -45,11 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Function GetParameterNodeAtIndex(position As Integer, functionDeclaration As SyntaxNode) As SyntaxNode
+            Return Nothing
+        End Function
+
+        Protected Overrides Function GetRefactoringsForAllParametersAsync(document As Document, parameter As IParameterSymbol, functionDeclaration As SyntaxNode, method As IMethodSymbol, blockStatementOpt As IBlockOperation, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Throw New NotImplementedException()
         End Function
-        'Protected Overrides Function GetParameterNodeAtIndex(ByVal ordinal As Integer, ByVal functionDecleration As SyntaxNode) As SyntaxNode
-        '    Dim listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration)
-        '    Return If(listOfParameters.Count < ordinal, Nothing, If(ordinal > listOfParameters.Count AndAlso listOfParameters(ordinal) IsNot Nothing, Nothing, listOfParameters(ordinal)))
-        'End Function
     End Class
 End Namespace

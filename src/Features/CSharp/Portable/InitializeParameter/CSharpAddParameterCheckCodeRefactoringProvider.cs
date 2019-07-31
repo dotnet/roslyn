@@ -2,10 +2,14 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -61,9 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
             var listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration);
 
-            return listOfParameters.Length < ordinal
+            return listOfParameters.IsDefault || listOfParameters.Length < ordinal || listOfParameters[ordinal] == null
                 ? null
-                : ordinal > listOfParameters.Length && listOfParameters[ordinal] != null ? null : listOfParameters[ordinal];
+                : listOfParameters[ordinal];
+        }
+
+        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

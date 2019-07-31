@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected virtual ImmutableArray<SyntaxNode> GetParameters(SyntaxNode parameterNode)
         {
             return default;
-            // Null, count/length, Immutablearray/Ienmuarable, isDefault/null
         }
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
@@ -52,95 +51,98 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var token = root.FindToken(position);
             var firstparameterNode = GetParameterNode(token, position);
 
-            // Creating a list and iterating it from the allows the right order or ifs
             var parameterNodes = GetParameters(firstparameterNode);
-            var counter = 0;
+            if (parameterNodes.IsDefault)
+            {
+                return;
+            }
 
             // List with parameterNodes that pass all checks
             var listOfPotentiallyValidParametersNodes = new List<SyntaxNode>();
+            var counter = 0;
 
-            if (!parameterNodes.IsDefault)
+            foreach (var parameterNode in parameterNodes)
             {
-                foreach (var parameterNode in parameterNodes)
+                ++counter;
+                if (parameterNode == null)
                 {
-                    ++counter;
-                    if (parameterNode == null)
+                    continue;
+                }
+
+                // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                if (!context.Span.IsEmpty)
+                {
+                    var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
+                    if (parameterName == null || parameterName.Value.Span != context.Span)
                     {
                         continue;
                     }
+                }
 
-                    // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    if (!context.Span.IsEmpty)
+                var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                if (functionDeclaration == null)
+                {
+                    continue;
+                }
+
+                var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
+
+                // Don't offer inside the "=initializer" of a parameter
+                if (parameterDefault?.Span.Contains(position) == true)
+                {
+                    continue;
+                }
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
+                // so first we have to get the parameter symbol and then its containing method symbol
+                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                if (parameter == null || parameter.Name == "")
+                {
+                    continue;
+                }
+
+                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
+                if (methodSymbol.IsAbstract ||
+                    methodSymbol.IsExtern ||
+                    methodSymbol.PartialImplementationPart != null ||
+                    methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
+                {
+                    continue;
+                }
+
+                if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+                {
+                    // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
+                    // actually determine if there are any viable refactorings here.
+
+                    // Update the list of valid parameter nodes
+                    listOfPotentiallyValidParametersNodes.Add(parameterNode);
+
+                    // For single parameter - Only offers for the parameter cursor is on
+                    if (firstparameterNode == parameterNode)
                     {
-                        var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                        if (parameterName == null || parameterName.Value.Span != context.Span)
-                        {
-                            continue;
-                        }
+                        context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
+                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
                     }
 
-                    var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-                    if (functionDeclaration == null)
+                    // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
+                    if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count())
                     {
-                        continue;
-                    }
-
-                    var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
-                    // Don't offer inside the "=initializer" of a parameter
-                    if (parameterDefault?.Span.Contains(position) == true)
-                    {
-                        continue;
-                    }
-
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
-                    // so first we have to get the parameter symbol and then its containing method symbol
-                    var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                    if (parameter == null || parameter.Name == "")
-                    {
-                        continue;
-                    }
-
-                    var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
-                    if (methodSymbol.IsAbstract ||
-                        methodSymbol.IsExtern ||
-                        methodSymbol.PartialImplementationPart != null ||
-                        methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
-                    {
-                        continue;
-                    }
-
-                    if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
-                    {
-                        // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
-                        // actually determine if there are any viable refactorings here.
-
-                        // Update the list of valid parameter nodes
-                        listOfPotentiallyValidParametersNodes.Add(parameterNode);
-
-                        // For single parameter - Only offers for the parameter cursor is on
-                        if (firstparameterNode == parameterNode)
-                        {
-                            context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                        document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
-
-                        }
-
-                        // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
-                        if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count())
-                        {
-                            context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                                document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
-                        }
+                        context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                            document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
         }
 
         protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+        }
+        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<CodeAction>.Empty);
         }

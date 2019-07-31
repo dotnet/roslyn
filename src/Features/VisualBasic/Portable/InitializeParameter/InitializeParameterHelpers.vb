@@ -15,9 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Shared Function GetBody(node As SyntaxNode) As SyntaxNode
             Return node
         End Function
-        'Public Shared Function GetParameters(ByVal node As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-        '    Return (TryCast(node, BaseMethodDeclarationSyntax))?.ParameterList?.Parameters
-        'End Function
 
         Private Shared Function GetStatements(functionDeclaration As SyntaxNode) As SyntaxList(Of StatementSyntax)
             If TypeOf functionDeclaration Is MethodBlockBaseSyntax Then

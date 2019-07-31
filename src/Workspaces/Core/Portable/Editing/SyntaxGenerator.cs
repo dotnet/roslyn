@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
         internal abstract ISyntaxFactsService SyntaxFacts { get; }
+
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
 
