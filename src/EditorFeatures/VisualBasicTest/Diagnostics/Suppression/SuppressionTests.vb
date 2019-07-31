@@ -1562,6 +1562,39 @@ End Class
 
                     Await TestAsync(source.ToString(), expected)
                 End Function
+
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument() As Task
+                    Dim source =
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="CurrentDocument.vb"><![CDATA[
+Imports System
+
+Class Class1
+End Class
+
+[|Class Class2|]
+End Class]]>
+                            </Document>
+                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>
+
+                    Dim expected = $"
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+"
+
+                    Await TestAsync(source.ToString(), expected)
+                End Function
             End Class
         End Class
 
