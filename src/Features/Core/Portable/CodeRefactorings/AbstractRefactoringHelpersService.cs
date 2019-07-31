@@ -107,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
                     if (IsWantedTypeExpressionLike<TSyntaxNode>())
                     {
+                        // Reason to treat Arguments (and potentially others) as Expression-like: 
+                        // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
                         await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                     }
                 }
