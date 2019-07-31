@@ -12,6 +12,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -21,7 +22,7 @@
   <ItemGroup>
     <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
