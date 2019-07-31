@@ -82,11 +82,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns></returns>
         public static bool IsSourceConstantArrayOfType(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IArrayTypeSymbol arrayTypeSymbol)
         {
-            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(arrayTypeSymbol.ElementType as INamedTypeSymbol))
+            if (arrayTypeSymbol.ElementType is INamedTypeSymbol elementType)
             {
-                if (sourceInfo.TaintConstantArray)
+                foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(elementType))
                 {
-                    return true;
+                    if (sourceInfo.TaintConstantArray)
+                    {
+                        return true;
+                    }
                 }
             }
 
