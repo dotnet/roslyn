@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 if (arity == 1)
                 {
                     var typeArg = type.GetTypeArguments().First();
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability(typeArg);
                 }
                 else if (arity == 0 && type is IArrayTypeSymbol)
                 {
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability((type as IArrayTypeSymbol).ElementType);
                 }
                 else
                 {

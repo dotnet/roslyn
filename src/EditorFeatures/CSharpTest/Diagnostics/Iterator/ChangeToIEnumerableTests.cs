@@ -103,6 +103,39 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+        {
+            var initial =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IList<string?> [|M|]()
+    {
+        yield return """";
+    }
+}";
+
+            var expected =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IEnumerable<string?> M()
+    {
+        yield return """";
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
         {
             var initial =
