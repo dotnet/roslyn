@@ -135,5 +135,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return builder.ToImmutableAndFree();
         }
+
+        /// <summary>
+        /// Determines if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its type
+        /// argument satisfying <paramref name="typeArgumentPredicate"/>.
+        /// </summary>
+        /// <param name="typeSymbol">Type potentially representing a <see cref="System.Threading.Tasks.Task{TResult}"/>.</param>
+        /// <param name="typeArgumentPredicate">Predicate to check the <paramref name="typeSymbol"/>'s type argument.</param>
+        /// <returns>True if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its
+        /// type argument satisfying <paramref name="typeArgumentPredicate"/>, false otherwise.</returns>
+        public bool IsTaskOfType(ITypeSymbol typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
+        {
+            return typeSymbol != null
+                && typeSymbol.OriginalDefinition != null
+                && typeSymbol.OriginalDefinition.Equals(GenericTask)
+                && typeSymbol is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.TypeArguments.Length == 1
+                && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
+        }
     }
 }
