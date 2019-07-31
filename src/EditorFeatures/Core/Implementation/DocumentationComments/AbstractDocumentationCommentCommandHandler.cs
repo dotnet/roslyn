@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 var selectedSpan = args.TextView.Selection
                     .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
-                    .FirstOrNullable();
+                    .FirstOrNull();
 
                 originalPosition = selectedSpan != null
                     ? selectedSpan.Value.Start

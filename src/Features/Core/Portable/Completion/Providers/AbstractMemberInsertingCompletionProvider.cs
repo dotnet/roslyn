@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Attempt to find the inserted node and move the caret appropriately
             if (newRoot != null)
             {
-                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNullable();
+                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNull();
                 if (caretTarget != null)
                 {
                     var targetPosition = GetTargetCaretPosition(caretTarget.Value.AsNode());
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot, string insertionText)
         {
-            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNullable();
+            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
             var text = insertionRoot.GetText();
             var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
 

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTriviaListExtensions
     {
-        public static SyntaxTrivia? FirstOrNullable(this SyntaxTriviaList triviaList, Func<SyntaxTrivia, bool> predicate)
+        public static SyntaxTrivia? FirstOrNull(this SyntaxTriviaList triviaList, Func<SyntaxTrivia, bool> predicate)
         {
             foreach (var trivia in triviaList)
             {

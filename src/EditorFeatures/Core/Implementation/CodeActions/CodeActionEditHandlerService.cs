@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
                 var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
-                                             .FirstOrNullable();
+                                             .FirstOrNull();
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
 
                 var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
-                                         .FirstOrNullable();
+                                         .FirstOrNull();
 
                 if (renameTokenOpt.HasValue)
                 {

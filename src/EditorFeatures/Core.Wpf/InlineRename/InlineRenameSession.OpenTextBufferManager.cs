@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 // in tests `ActiveTextview` can be null so don't depend on it
                                 ActiveTextView == null ||
                                 ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
-                            .FirstOrNullable(); // filter to spans that have a projection
+                            .FirstOrNull(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
                     this.ApplyReplacementText(updateSelection: false);
