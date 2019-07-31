@@ -86,36 +86,52 @@ namespace IOperationGenerator
         {
             foreach (var grouping in _tree.Types.OfType<AbstractNode>().GroupBy(n => n.Namespace))
             {
-                foreach (var node in grouping)
+                var @namespace = grouping.Key ?? "Operations";
+                var outFileName = Path.Combine(_location, $"{@namespace}.Generated.cs");
+                using (_writer = new StreamWriter(File.Open(outFileName, FileMode.Create), Encoding.UTF8))
                 {
-                    var outFileName = Path.Combine(_location, $"{node.Name}.cs");
-                    using (_writer = new StreamWriter(File.Open(outFileName, FileMode.Create), Encoding.UTF8))
+                    writeHeader();
+                    WriteUsing("System");
+                    WriteUsing("System.Collections.Immutable");
+
+                    if (grouping.Key is object)
                     {
-                        WriteLine("// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.");
-
-                        WriteUsing("System");
-
-                        if (node.Properties.Any(f => IsImmutableArray(f.Type)))
-                        {
-                            WriteUsing("System.Collections.Immutable");
-                        }
-
-                        if (grouping.Key == "FlowAnalysis")
-                        {
-                            WriteUsing("Microsoft.CodeAnalysis.Operations");
-                        }
-
-                        Blank();
-
-                        WriteStartNamespace(grouping.Key ?? "Operations");
-                        WriteInterface(node);
-                        WriteEndNamespace();
-                        _writer.Flush();
+                        WriteUsing("Microsoft.CodeAnalysis.Operations");
                     }
+
+                    Blank();
+                    WriteStartNamespace(@namespace);
+
+                    foreach (var node in grouping)
+                    {
+                        WriteInterface(node);
+                    }
+
+                    WriteEndNamespace();
+                    _writer.Flush();
                 }
             }
 
-            WriteOperationKind();
+            using (_writer = new StreamWriter(File.Open(Path.Combine(_location, "OperationKind.Generated.cs"), FileMode.Create)))
+            {
+                writeHeader();
+                WriteUsing("System");
+                WriteUsing("System.ComponentModel");
+                WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
+                WriteUsing("Microsoft.CodeAnalysis.Operations");
+
+                WriteStartNamespace(namespaceSuffix: null);
+
+                WriteOperationKind();
+
+                WriteEndNamespace();
+            }
+
+            void writeHeader()
+            {
+                WriteLine("// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.");
+                WriteLine("// < auto-generated />");
+            }
         }
 
         private void WriteUsing(string nsName)
@@ -208,74 +224,61 @@ namespace IOperationGenerator
 
         private void WriteOperationKind()
         {
-            var outFileName = Path.Combine(_location, $"OperationKind.cs");
-            using (_writer = new StreamWriter(File.Open(outFileName, FileMode.Create), Encoding.UTF8))
+            WriteLine("/// <summary>");
+            WriteLine("/// All of the kinds of operations, including statements and expressions.");
+            WriteLine("/// </summary>");
+            WriteLine("public enum OperationKind");
+            Brace();
+
+            WriteLine("/// <summary>Indicates an <see cref=\"IOperation\"/> for a construct that is not implemented yet.</summary>");
+            WriteLine("None = 0x0,");
+
+            Dictionary<int, IEnumerable<(OperationKindEntry, AbstractNode)>> explicitKinds = _tree.Types.OfType<AbstractNode>()
+                .Where(n => n.OperationKind?.Entries is object)
+                .SelectMany(n => n.OperationKind!.Entries.Select(e => (entry: e, node: n)))
+                .GroupBy(e => e.entry.Value)
+                .ToDictionary(g => g.Key, g => g.Select(k => (entryName: k.entry, k.node)));
+
+            // Conditions for inclusion in the OperationKind enum:
+            //  1. Concrete Node types that do not have an explicit false include flag OR AbstractNodes that have an explicit true include flag
+            //  2. No explicit kind entries: those are handled above.
+            //  3. No internal nodes.
+            List<AbstractNode> elementsToKind = _tree.Types.OfType<AbstractNode>()
+                .Where(n => ((n is Node && (n.OperationKind?.Include != false)) ||
+                             n.OperationKind?.Include == true) &&
+                            (n.OperationKind?.Entries is null || n.OperationKind?.Entries.Count == 0) &&
+                            !n.IsInternal)
+                .ToList();
+
+            var unusedKinds = _tree.UnusedOperationKinds.Entries?.Select(e => e.Value).ToList() ?? new List<int>();
+
+            using var elementsToKindEnumerator = elementsToKind.GetEnumerator();
+            Debug.Assert(elementsToKindEnumerator.MoveNext());
+
+            int numKinds = elementsToKind.Count + explicitKinds.Count + unusedKinds.Count;
+
+            for (int i = 1; i <= numKinds; i++)
             {
-                WriteLine("// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.");
-                WriteUsing("System");
-                WriteUsing("System.ComponentModel");
-                WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
-                WriteUsing("Microsoft.CodeAnalysis.Operations");
-
-                WriteStartNamespace(namespaceSuffix: null);
-
-                WriteLine("/// <summary>");
-                WriteLine("/// All of the kinds of operations, including statements and expressions.");
-                WriteLine("/// </summary>");
-                WriteLine("public enum OperationKind");
-                Brace();
-
-                WriteLine("/// <summary>Indicates an <see cref=\"IOperation\"/> for a construct that is not implemented yet.</summary>");
-                WriteLine("None = 0x0,");
-
-                Dictionary<int, IEnumerable<(OperationKindEntry, AbstractNode)>> explicitKinds = _tree.Types.OfType<AbstractNode>()
-                    .Where(n => n.OperationKind?.Entries is object)
-                    .SelectMany(n => n.OperationKind!.Entries.Select(e => (entry: e, node: n)))
-                    .GroupBy(e => e.entry.Value)
-                    .ToDictionary(g => g.Key, g => g.Select(k => (entryName: k.entry, k.node)));
-
-                // Conditions for inclusion in the OperationKind enum:
-                //  1. Concrete Node types that do not have an explicit false include flag OR AbstractNodes that have an explicit true include flag
-                //  2. No explicit kind entries: those are handled above.
-                //  3. No internal nodes.
-                List<AbstractNode> elementsToKind = _tree.Types.OfType<AbstractNode>()
-                    .Where(n => ((n is Node && (n.OperationKind?.Include != false)) ||
-                                 n.OperationKind?.Include == true) &&
-                                (n.OperationKind?.Entries is null || n.OperationKind?.Entries.Count == 0) &&
-                                !n.IsInternal)
-                    .ToList();
-
-                var unusedKinds = _tree.UnusedOperationKinds.Entries?.Select(e => e.Value).ToList() ?? new List<int>();
-
-                using var elementsToKindEnumerator = elementsToKind.GetEnumerator();
-                Debug.Assert(elementsToKindEnumerator.MoveNext());
-
-                int numKinds = elementsToKind.Count + explicitKinds.Count + unusedKinds.Count;
-
-                for (int i = 1; i <= numKinds; i++)
+                if (unusedKinds.Contains(i))
                 {
-                    if (unusedKinds.Contains(i))
+                    WriteLine($"// Unused: {i:x}");
+                }
+                else if (explicitKinds.TryGetValue(i, out var kinds))
+                {
+                    foreach (var (entry, node) in kinds)
                     {
-                        WriteLine($"// Unused: {i:x}");
-                    }
-                    else if (explicitKinds.TryGetValue(i, out var kinds))
-                    {
-                        foreach (var (entry, node) in kinds)
-                        {
-                            writeEnumElement(entry.Name, i, node.Name, entry.ExtraDescription, entry.EditorBrowsable ?? true, node.Obsolete?.Message, node.Obsolete?.ErrorText);
-                        }
-                    }
-                    else
-                    {
-                        var currentEntry = elementsToKindEnumerator.Current;
-                        writeEnumElement(GetKindName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
-                        Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
+                        writeEnumElement(entry.Name, i, node.Name, entry.ExtraDescription, entry.EditorBrowsable ?? true, node.Obsolete?.Message, node.Obsolete?.ErrorText);
                     }
                 }
-
-                Unbrace();
-                WriteEndNamespace();
+                else
+                {
+                    var currentEntry = elementsToKindEnumerator.Current;
+                    writeEnumElement(GetKindName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
+                    Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
+                }
             }
+
+            Unbrace();
 
             void writeEnumElement(string kind, int value, string operationName, string? extraText, bool editorBrowsable, string? obsoleteMessage, string? obsoleteError)
             {

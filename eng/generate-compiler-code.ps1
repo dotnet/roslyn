@@ -67,13 +67,15 @@ function Run-Language($language, $languageSuffix, $languageDir, $languageTestDir
 function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
+  $generationDir = Join-Path $coreDir "Generated"
 
   if (-not $test) {
-    Run-Tool $ioperationProject "`"$operationsXml`" `"$operationsDir`""
+    Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`""
   } else {
     $scratchDir = Join-Path $generationTempDir "Core\Operations"
+    Create-Directory $scratchDir
     Run-Tool $ioperationProject "`"$operationsXml`" `"$scratchDir`""
-    # Test-GeneratedContent $operationsDir $scratchDir
+    Test-GeneratedContent $generationDir $scratchDir
   }
 }
 
