@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -19,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Method body corresponding to BaseMethodDeclarationSyntax.Body or AccessorDeclarationSyntax.Body
         /// </summary>
         IBlockOperation BlockBody { get; }
-
         /// <summary>
         /// Method body corresponding to BaseMethodDeclarationSyntax.ExpressionBody or AccessorDeclarationSyntax.ExpressionBody
         /// </summary>

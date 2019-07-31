@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -13,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
-    /// https://github.com/dotnet/roslyn/issues/27601: Figure out how to make this public. There is also almost no IOperation tests for scenarios involving this node.
     /// </remarks>
     internal interface INoPiaObjectCreationOperation : IOperation
     {
@@ -23,4 +23,3 @@ namespace Microsoft.CodeAnalysis.Operations
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 }
-

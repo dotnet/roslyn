@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation"/> is used to refer to the value
-    /// of <see cref="Operation"/> within <see cref="WhenNotNull"/>.
+    /// Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation" /> is used to refer to the value
+    /// of <see cref="Operation" /> within <see cref="WhenNotNull" />.
     /// <para>
     /// Current usage:
     ///  (1) C# conditional access expression (? or ?. operator).
@@ -22,9 +23,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operation { get; }
         /// <summary>
-        /// Operation to be evaluated if <see cref="Operation"/> is non null.
+        /// Operation to be evaluated if <see cref="Operation" /> is non null.
         /// </summary>
         IOperation WhenNotNull { get; }
     }
 }
-

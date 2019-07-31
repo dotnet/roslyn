@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a loop operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'while', 'for', 'foreach' and 'do' loop statements
-    ///  (2) VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements
+    ///   (1) C# 'while', 'for', 'foreach' and 'do' loop statements
+    ///   (2) VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements
     /// </para>
     /// </summary>
     /// <remarks>
@@ -40,4 +40,3 @@ namespace Microsoft.CodeAnalysis.Operations
         ILabelSymbol ExitLabel { get; }
     }
 }
-

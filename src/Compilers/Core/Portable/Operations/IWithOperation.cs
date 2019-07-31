@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a <see cref="Body"/> of operations that are executed with implicit reference to the <see cref="Value"/> for member references.
+    /// Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
     /// <para>
     /// Current usage:
     ///  (1) VB With statement.
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface IWithOperation : IOperation // https://github.com/dotnet/roslyn/issues/22005
+    internal interface IWithOperation : IOperation
     {
         /// <summary>
         /// Body of the with.
@@ -25,4 +26,3 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Value { get; }
     }
 }
-

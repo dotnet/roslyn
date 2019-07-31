@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -22,19 +22,16 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Instance receiver. In VB, this can be null.
         /// </summary>
         IOperation Instance { get; }
-
         /// <summary>
         /// Referenced member.
         /// </summary>
         string MemberName { get; }
-
         /// <summary>
         /// Type arguments.
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
-
         /// <summary>
-        /// The containing type of the referenced member, if different from type of the <see cref="Instance"/>.
+        /// The containing type of the referenced member, if different from type of the <see cref="Instance" />.
         /// </summary>
         ITypeSymbol ContainingType { get; }
     }

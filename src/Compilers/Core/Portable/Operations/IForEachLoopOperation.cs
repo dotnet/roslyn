@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -22,12 +22,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Refers to the operation for declaring a new local variable or reference an existing variable or an expression.
         /// </summary>
         IOperation LoopControlVariable { get; }
-
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
         IOperation Collection { get; }
-
         /// <summary>
         /// Optional list of comma separated next variables at loop bottom in VB.
         /// This list is always empty for C#.
@@ -35,4 +33,3 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IOperation> NextVariables { get; }
     }
 }
-

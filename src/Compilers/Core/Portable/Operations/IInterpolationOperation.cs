@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -20,12 +21,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Expression of the interpolation.
         /// </summary>
         IOperation Expression { get; }
-
         /// <summary>
         /// Optional alignment of the interpolation.
         /// </summary>
         IOperation Alignment { get; }
-
         /// <summary>
         /// Optional format string of the interpolation.
         /// </summary>

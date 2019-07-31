@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Arguments of the object creation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
@@ -36,4 +36,3 @@ namespace Microsoft.CodeAnalysis.Operations
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 }
-

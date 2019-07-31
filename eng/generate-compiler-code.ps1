@@ -64,6 +64,19 @@ function Run-Language($language, $languageSuffix, $languageDir, $languageTestDir
   }
 }
 
+function Run-IOperation($coreDir, $ioperationProject) {
+  $operationsDir = Join-Path $coreDir "Operations"
+  $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
+
+  if (-not $test) {
+    Run-Tool $ioperationProject "`"$operationsXml`" `"$operationsDir`""
+  } else {
+    $scratchDir = Join-Path $generationTempDir "Core\Operations"
+    Run-Tool $ioperationProject "`"$operationsXml`" `"$scratchDir`""
+    # Test-GeneratedContent $operationsDir $scratchDir
+  }
+}
+
 function Run-GetTextCore($generatedDir) {
   $syntaxFilePath = Join-Path $basicDir "Syntax\Syntax.xml"
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
@@ -97,6 +110,8 @@ try {
   $dotnet = Ensure-DotnetSdk
   $boundTreeGenProject = Get-ToolPath 'BoundTreeGenerator\CompilersBoundTreeGenerator.csproj'
 
+  $coreDir = Join-Path $RepoRoot "src\Compilers\Core\Portable"
+  $operationsProject = Get-ToolPath "IOperationGenerator\CompilersIOperationGenerator.csproj"
   $csharpDir = Join-Path $RepoRoot "src\Compilers\CSharp\Portable"
   $csharpTestDir = Join-Path $RepoRoot "src\Compilers\CSharp\Test\Syntax"
   $csharpSyntaxProject = Get-ToolPath 'CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj'
@@ -107,9 +122,9 @@ try {
   $basicErrorFactsProject = Get-ToolPath 'VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj'
   $generationTempDir = Join-Path $RepoRoot "artifacts\log\$configuration\Generated"
 
-
   Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxProject $csharpErrorFactsProject
   Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxProject $basicErrorFactsProject 
+  Run-IOperation $coreDir $operationsProject
   Run-GetText
 
   exit 0

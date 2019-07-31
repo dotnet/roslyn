@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -31,9 +31,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ILabelSymbol ExitLabel { get; }
         /// <summary>
-        /// Locals declared within the switch operation with scope spanning across all <see cref="Cases"/>.
+        /// Locals declared within the switch operation with scope spanning across all <see cref="Cases" />.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
-

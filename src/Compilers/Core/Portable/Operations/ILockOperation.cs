@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a <see cref="Body"/> of operations that are executed while holding a lock onto the <see cref="LockedValue"/>.
+    /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
     /// <para>
     /// Current usage:
     ///  (1) C# lock statement.
@@ -26,4 +27,3 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Body { get; }
     }
 }
-

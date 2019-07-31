@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -7,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# nested member initializer expression.
-    /// For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
-    /// member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
+    ///   For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
+    ///   member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
     /// </para>
     /// </summary>
     /// <remarks>
@@ -18,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IMemberInitializerOperation : IOperation
     {
         /// <summary>
-        /// Initialized member reference <see cref="IMemberReferenceOperation"/> or an invalid operation for error cases.
+        /// Initialized member reference <see cref="IMemberReferenceOperation" /> or an invalid operation for error cases.
         /// </summary>
         IOperation InitializedMember { get; }
-
         /// <summary>
         /// Member initializer.
         /// </summary>

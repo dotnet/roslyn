@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -20,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Referenced local variable.
         /// </summary>
         ILocalSymbol Local { get; }
-
         /// <summary>
         /// True if this reference is also the declaration site of this variable. This is true in out variable declarations
         /// and in deconstruction operations where a new variable is being declared.
@@ -28,4 +28,3 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsDeclaration { get; }
     }
 }
-

@@ -1,27 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an implicit/explicit reference to an instance.
+    /// Represents a constructor method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# this or base expression.
-    ///  (2) VB Me, MyClass, or MyBase expression.
-    ///  (3) C# object or collection initializers.
-    ///  (4) VB With statements, object or collection initializers.
+    ///  (1) C# method body for constructor declaration
     /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IInstanceReferenceOperation : IOperation
+    public interface IConstructorBodyOperation : IMethodBodyBaseOperation
     {
         /// <summary>
-        /// The kind of reference that is being made.
+        /// Local declarations contained within the <see cref="Initializer" />.
         /// </summary>
-        InstanceReferenceKind ReferenceKind { get; }
+        ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
+        /// Constructor initializer, if any.
+        /// </summary>
+        IOperation Initializer { get; }
     }
 }
-

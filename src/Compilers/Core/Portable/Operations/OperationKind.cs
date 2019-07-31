@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using System;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         VariableDeclarationGroup = 0x3,
         /// <summary>Indicates an <see cref="ISwitchOperation"/>.</summary>
         Switch = 0x4,
-        /// <summary>Indicates an <see cref="ILoopOperation"/>, which is further differentiated by <see cref="ILoopOperation.LoopKind"/>.</summary>
+        /// <summary>Indicates an <see cref="ILoopOperation"/>. This is further differentiated by <see cref="ILoopOperation.LoopKind"/>.</summary>
         Loop = 0x5,
         /// <summary>Indicates an <see cref="ILabeledOperation"/>.</summary>
         Labeled = 0x6,
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         Empty = 0x8,
         /// <summary>Indicates an <see cref="IReturnOperation"/>.</summary>
         Return = 0x9,
-        /// <summary>Indicates an <see cref="IReturnOperation"/> with yield break semantics.</summary>
+        /// <summary>Indicates an <see cref="IReturnOperation"/>. This has yield break semantics.</summary>
         YieldBreak = 0xa,
         /// <summary>Indicates an <see cref="ILockOperation"/>.</summary>
         Lock = 0xb,
@@ -40,11 +38,11 @@ namespace Microsoft.CodeAnalysis
         Try = 0xc,
         /// <summary>Indicates an <see cref="IUsingOperation"/>.</summary>
         Using = 0xd,
-        /// <summary>Indicates an <see cref="IReturnOperation"/> with yield return semantics.</summary>
+        /// <summary>Indicates an <see cref="IReturnOperation"/>. This has yield return semantics.</summary>
         YieldReturn = 0xe,
         /// <summary>Indicates an <see cref="IExpressionStatementOperation"/>.</summary>
         ExpressionStatement = 0xf,
-        /// <summary>Indicates an <see cref="ILocalFunctionOperation"/></summary>
+        /// <summary>Indicates an <see cref="ILocalFunctionOperation"/>.</summary>
         LocalFunction = 0x10,
         /// <summary>Indicates an <see cref="IStopOperation"/>.</summary>
         Stop = 0x11,
@@ -70,6 +68,7 @@ namespace Microsoft.CodeAnalysis
         MethodReference = 0x1b,
         /// <summary>Indicates an <see cref="IPropertyReferenceOperation"/>.</summary>
         PropertyReference = 0x1c,
+        // Unused: 1d
         /// <summary>Indicates an <see cref="IEventReferenceOperation"/>.</summary>
         EventReference = 0x1e,
         /// <summary>Indicates an <see cref="IUnaryOperation"/>.</summary>
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccess = 0x3a,
         /// <summary>Indicates an <see cref="ITranslatedQueryOperation"/>.</summary>
         TranslatedQuery = 0x3b,
-        /// <summary>Indicates a <see cref="IDelegateCreationOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="IDelegateCreationOperation"/>.</summary>
         DelegateCreation = 0x3c,
         /// <summary>Indicates an <see cref="IDefaultValueOperation"/>.</summary>
         DefaultValue = 0x3d,
@@ -149,11 +148,11 @@ namespace Microsoft.CodeAnalysis
         AddressOf = 0x40,
         /// <summary>Indicates an <see cref="IIsPatternOperation"/>.</summary>
         IsPattern = 0x41,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/> for increment operator.</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as an increment operator</summary>
         Increment = 0x42,
         /// <summary>Indicates an <see cref="IThrowOperation"/>.</summary>
         Throw = 0x43,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/> for decrement operator.</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as an decrement operator</summary>
         Decrement = 0x44,
         /// <summary>Indicates an <see cref="IDeconstructionAssignmentOperation"/>.</summary>
         DeconstructionAssignment = 0x45,
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis
         CatchClause = 0x50,
         /// <summary>Indicates an <see cref="ISwitchCaseOperation"/>.</summary>
         SwitchCase = 0x51,
-        /// <summary>Indicates an <see cref="ICaseClauseOperation"/>, which is further differentiated by <see cref="ICaseClauseOperation.CaseKind"/>.</summary>
+        /// <summary>Indicates an <see cref="ICaseClauseOperation"/>. This is further differentiated by <see cref="ICaseClauseOperation.CaseKind"/>.</summary>
         CaseClause = 0x52,
         /// <summary>Indicates an <see cref="IInterpolatedStringTextOperation"/>.</summary>
         InterpolatedStringText = 0x53,
@@ -207,28 +206,25 @@ namespace Microsoft.CodeAnalysis
         [EditorBrowsable(EditorBrowsableState.Never)]
         ConstructorBodyOperation = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
-        Discard = 0x5A,
+        Discard = 0x5a,
         /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>
-        FlowCapture = 0x5B,
+        FlowCapture = 0x5b,
         /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
-        FlowCaptureReference = 0x5C,
+        FlowCaptureReference = 0x5c,
         /// <summary>Indicates an <see cref="IIsNullOperation"/>.</summary>
-        IsNull = 0x5D,
+        IsNull = 0x5d,
         /// <summary>Indicates an <see cref="ICaughtExceptionOperation"/>.</summary>
-        CaughtException = 0x5E,
+        CaughtException = 0x5e,
         /// <summary>Indicates an <see cref="IStaticLocalInitializationSemaphoreOperation"/>.</summary>
-        StaticLocalInitializationSemaphore = 0x5F,
+        StaticLocalInitializationSemaphore = 0x5f,
         /// <summary>Indicates an <see cref="IFlowAnonymousFunctionOperation"/>.</summary>
         FlowAnonymousFunction = 0x60,
         /// <summary>Indicates an <see cref="ICoalesceAssignmentOperation"/>.</summary>
         CoalesceAssignment = 0x61,
-
-        // Available: 0x62
-
+        // Unused: 62
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x63,
-        // Unused, FromEndIndex will be a unary operator: https://github.com/dotnet/roslyn/pull/32918
-        //FromEndIndex = 0x64,
+        // Unused: 64
         /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
         ReDim = 0x65,
         /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>
@@ -241,20 +237,7 @@ namespace Microsoft.CodeAnalysis
         SwitchExpression = 0x69,
         /// <summary>Indicates an <see cref="ISwitchExpressionArmOperation"/>.</summary>
         SwitchExpressionArm = 0x6a,
-        /// <summary>Indicates an <see cref="IPropertySubpatternOperation"/></summary>
+        /// <summary>Indicates an <see cref="IPropertySubpatternOperation"/>.</summary>
         PropertySubpattern = 0x6b,
-
-        // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
-        // https://github.com/dotnet/roslyn/issues/21281
-        //Fixed = <TBD>,
-        // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
-        // https://github.com/dotnet/roslyn/issues/22005
-        //With = <TBD>,
-        // /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        // https://github.com/dotnet/roslyn/issues/21295
-        //PointerIndirectionReference = <TBD>,
-        // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
-        // https://github.com/dotnet/roslyn/issues/21294
-        //Placeholder = <TBD>,
     }
 }

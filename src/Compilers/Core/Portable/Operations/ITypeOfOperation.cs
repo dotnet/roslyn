@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an operation that gets <see cref="System.Type"/> for the given <see cref="TypeOperand"/>.
+    /// Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
     /// <para>
     /// Current usage:
     ///  (1) C# typeof expression.
@@ -22,4 +23,3 @@ namespace Microsoft.CodeAnalysis.Operations
         ITypeSymbol TypeOperand { get; }
     }
 }
-
