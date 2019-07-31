@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
         {
             // walk up until we find a nearest enclosing block or arrow expression.
-            for (SyntaxNode node = expression; node != null; node = node.GetParent())
+            for (SyntaxNode node = expression; node != null; node = node.Parent)
             {
                 // If we are in an expression bodied member and if the expression has a block body, then,
                 // act as if we're in a block context and not in an expression body context at all.
