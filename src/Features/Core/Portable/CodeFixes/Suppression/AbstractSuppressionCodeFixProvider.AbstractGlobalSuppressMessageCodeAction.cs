@@ -70,12 +70,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var fullPath = !string.IsNullOrEmpty(filePath) ? Path.GetFullPath(filePath) : filePath;
                         if (fullPath == suppressionsFilePath)
                         {
-                            // Existing global suppressions file, see if this file only has global assembly attributes.
+                            // Existing global suppressions file. See if this file only has imports and global assembly
+                            // attributes.
                             hasDocWithSuppressionsName = true;
 
                             var t = await document.GetSyntaxTreeAsync(c).ConfigureAwait(false);
                             var r = await t.GetRootAsync(c).ConfigureAwait(false);
-                            if (r.ChildNodes().All(n => Fixer.IsAttributeListWithAssemblyAttributes(n)))
+                            if (r.ChildNodes().All(n => Fixer.IsImportsLine(n) || Fixer.IsAttributeListWithAssemblyAttributes(n)))
                             {
                                 suppressionsDoc = document;
                                 break;

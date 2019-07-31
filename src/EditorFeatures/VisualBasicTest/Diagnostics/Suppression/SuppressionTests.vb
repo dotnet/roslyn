@@ -1475,7 +1475,7 @@ End Class]]>
 ' a specific target and scoped to a namespace, type, member, etc.
 
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1511,7 +1511,7 @@ End Class
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1557,7 +1557,7 @@ End Class
 ' a specific target and scoped to a namespace, type, member, etc.
 
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1678,7 +1678,7 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1701,7 +1701,7 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
 [|Class C|]
     Sub Method()
         Dim x
@@ -1712,8 +1712,8 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1752,7 +1752,7 @@ Imports System
 ''' <summary>
 ''' My custom type
 ''' </summary>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1793,7 +1793,7 @@ Imports System
 ''' My custom type
 ''' </summary>
 <Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1827,7 +1827,7 @@ Imports System
 
 Namespace N
     ' Some Trivia
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
     Class C
         Sub Method()
             Dim x
@@ -1861,7 +1861,7 @@ Imports System
 
 Class Generic(Of T)
     ' Some Trivia
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
     Class C
         Sub Method()
             Dim x
@@ -1896,7 +1896,7 @@ Imports System
 Class Generic(Of T)
     Class C
         ' Some Trivia
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+        <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
         Sub Method()
             Dim x
         End Sub

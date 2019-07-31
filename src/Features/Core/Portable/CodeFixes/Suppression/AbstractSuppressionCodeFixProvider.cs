@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }
+        protected abstract bool IsImportsLine(SyntaxNode node);
         protected abstract bool IsAttributeListWithAssemblyAttributes(SyntaxNode node);
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
         protected abstract bool IsEndOfFileToken(SyntaxToken token);

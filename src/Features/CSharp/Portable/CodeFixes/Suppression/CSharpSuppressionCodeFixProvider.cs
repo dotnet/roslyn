@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
@@ -70,6 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override string SingleLineCommentStart => "//";
 
+        protected override bool IsImportsLine(SyntaxNode node)
+        {
+            return node is UsingDirectiveSyntax;
+        }
+
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
             return node is AttributeListSyntax attributeList &&
@@ -124,9 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             SyntaxTriviaList leadingTrivia,
             bool needsLeadingEndOfLine)
         {
+            var attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation);
             var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
-            var attribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName(SuppressMessageAttributeName), attributeArguments);
-            var attributes = new SeparatedSyntaxList<AttributeSyntax>().Add(attribute);
+
+            var attributes = new SeparatedSyntaxList<AttributeSyntax>()
+                .Add(SyntaxFactory.Attribute(attributeName, attributeArguments));
 
             AttributeListSyntax attributeList;
             if (isAssemblyAttribute)

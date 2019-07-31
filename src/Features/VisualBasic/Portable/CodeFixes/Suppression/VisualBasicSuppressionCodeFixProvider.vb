@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -109,6 +110,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             End Get
         End Property
 
+        Protected Overrides Function IsImportsLine(node As SyntaxNode) As Boolean
+            Return TypeOf node Is ImportsStatementSyntax
+        End Function
+
         Protected Overrides Function IsAttributeListWithAssemblyAttributes(node As SyntaxNode) As Boolean
             Dim attributesStatement = TryCast(node, AttributesStatementSyntax)
             Return attributesStatement IsNot Nothing AndAlso
@@ -158,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 
         Private Function CreateAttributeList(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As AttributeListSyntax
             Dim attributeTarget = If(isAssemblyAttribute, SyntaxFactory.AttributeTarget(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)), Nothing)
-            Dim attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName)
+            Dim attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation)
             Dim attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute)
 
             Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(attributeTarget, attributeName, attributeArguments)
