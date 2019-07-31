@@ -26,4 +26,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
             : base(streamingPresenter, vbLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
+
+    [ExportLanguageService(typeof(IGoToDefinitionService), StringConstants.TypeScriptLanguageName, WorkspaceKind.AnyCodeRoslynWorkspace), Shared]
+    internal class TypeScriptLspGotoDefinitionService : RoslynGotoDefinitionService
+    {
+        [ImportingConstructor]
+        public TypeScriptLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, TypeScriptLspClientServiceFactory typeScriptLspClientServiceFactory,
+            RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
+            : base(streamingPresenter, typeScriptLspClientServiceFactory, remoteWorkspace, threadingContext)
+        {
+        }
+    }
 }
