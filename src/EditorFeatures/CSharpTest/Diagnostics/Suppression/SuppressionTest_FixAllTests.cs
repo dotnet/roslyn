@@ -367,8 +367,8 @@ class Class2
     </Project>
 </Workspace>";
 
-                    var addedGlobalSuppressions = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                    var addedGlobalSuppressions =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -470,8 +470,8 @@ class Class2
     </Project>
 </Workspace>";
 
-                    var addedGlobalSuppressions = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                    var addedGlobalSuppressions =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -574,8 +574,8 @@ class Class2
     </Project>
 </Workspace>";
 
-                    var addedGlobalSuppressionsProject1 = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                    var addedGlobalSuppressionsProject1 =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -587,8 +587,8 @@ class Class2
 
 ".Replace("<", "&lt;").Replace(">", "&gt;");
 
-                    var addedGlobalSuppressionsProject2 = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                    var addedGlobalSuppressionsProject2 =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -697,8 +697,8 @@ class Class2
     </Project>
 </Workspace>";
 
-                var addedGlobalSuppressions = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                var addedGlobalSuppressions =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.

@@ -808,8 +808,8 @@ class Class
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
                 {
-                    var expected = $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+                    var expected =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -881,8 +881,7 @@ using System;
         int x = 0;
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -924,8 +923,7 @@ using System;
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -973,8 +971,7 @@ namespace N1
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1025,8 +1022,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1077,8 +1073,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1134,8 +1129,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1194,8 +1188,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1225,8 +1218,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1277,8 +1269,7 @@ namespace N
         }
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1320,8 +1311,7 @@ class Class
 {
     [|int field = 0;|]
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1362,8 +1352,7 @@ enum E
     Field2
     |]
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1399,8 +1388,7 @@ class Class
 {
     int [|field = 0|], field2 = 1;
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1447,8 +1435,7 @@ class Class
         remove { }
     }|]
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1497,8 +1484,7 @@ class Class { }
 [|class Class2|] { }
 ]]>
         </Document>
-        <Document FilePath=""GlobalSuppressions.cs""><![CDATA[
-// This file is used by Code Analysis to maintain SuppressMessage
+        <Document FilePath=""GlobalSuppressions.cs""><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1509,8 +1495,7 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1546,8 +1531,7 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1579,8 +1563,7 @@ using System;
 class Class { }
 ]]>
         </Document>
-         <Document FilePath=""GlobalSuppressions2.cs""><![CDATA[
-// This file is used by Code Analysis to maintain SuppressMessage
+         <Document FilePath=""GlobalSuppressions2.cs""><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1591,8 +1574,7 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1997,8 +1979,7 @@ class Class
         int x = 0;
     }
 }",
-            $@"
-// This file is used by Code Analysis to maintain SuppressMessage
+$@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.

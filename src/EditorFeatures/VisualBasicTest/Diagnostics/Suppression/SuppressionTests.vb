@@ -980,8 +980,8 @@ Imports System
         Dim x
     End Sub
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1018,8 +1018,8 @@ Imports System
         End Sub
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1060,8 +1060,8 @@ Namespace N1
         End Class
     End Namespace
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1104,8 +1104,8 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1148,8 +1148,8 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1196,8 +1196,8 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1248,8 +1248,8 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1298,8 +1298,8 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1338,8 +1338,8 @@ Imports System
 Class C
 	[|Private ReadOnly F As Integer|]
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1394,8 +1394,8 @@ Class C
 		End RemoveHandler
 	End Event
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1456,8 +1456,7 @@ End Class
 [|Class Class2|]
 End Class]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[
-' This file is used by Code Analysis to maintain SuppressMessage
+                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1468,8 +1467,8 @@ End Class]]>
                         </Project>
                     </Workspace>
 
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1505,8 +1504,8 @@ End Class
                         </Project>
                     </Workspace>
 
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1538,8 +1537,7 @@ Class Class3
 End Class
 ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions2.vb"><![CDATA[
-' This file is used by Code Analysis to maintain SuppressMessage
+                            <Document FilePath="GlobalSuppressions2.vb"><![CDATA[' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
@@ -1550,8 +1548,8 @@ End Class
                         </Project>
                     </Workspace>
 
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
