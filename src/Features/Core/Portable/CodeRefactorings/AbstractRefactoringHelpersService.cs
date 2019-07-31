@@ -51,12 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // want the whole node `var a = b;`
 
                 // Handle selections:
-                // - The smallest node whose FullSpan includes the whole (trimmed) selection
+                // - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
+                //   - The smallest node whose FullSpan includes the whole (trimmed) selection
                 //   - Using FullSpan is important because it handles over-selection with comments
-                // - Travels upwards through same-sized (FullSpan) nodes, extracting
-                // - Handles situations where:
-                //  - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
-                //  - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
+                //   - Travels upwards through same-sized (FullSpan) nodes, extracting
+                // - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
                 // Note: Whether we have selection or location has to be checked against original selection because selecting just
                 // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
                 // registering as `   [||]token`.
