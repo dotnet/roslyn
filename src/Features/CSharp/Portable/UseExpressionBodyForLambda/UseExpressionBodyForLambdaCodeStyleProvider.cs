@@ -232,13 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
     // Stub classes needed only for exporting purposes.
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
     }
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
-        Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
     }
