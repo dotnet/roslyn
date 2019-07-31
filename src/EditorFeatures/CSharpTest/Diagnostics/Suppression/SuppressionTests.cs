@@ -868,6 +868,34 @@ using System;
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task GeneratedCodeShouldNotHaveMoreThanOneTrailingBlankLine()
+                {
+                    var expected =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class"")]
+";
+
+                    var lines = Regex.Split(expected, "\r?\n");
+                    Assert.False(string.IsNullOrWhiteSpace(lines[lines.Length - 2]));
+
+                    await TestAsync(
+            @"
+using System;
+
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}", expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnSimpleType()
                 {
                     await TestAsync(
