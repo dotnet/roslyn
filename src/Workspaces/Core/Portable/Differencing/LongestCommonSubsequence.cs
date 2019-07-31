@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Differencing
     internal abstract class LongestCommonSubsequence<TSequence>
     {
         // VArray struct enables array indexing in range [-d...d].
-        private struct VArray
+        private readonly struct VArray
         {
             private readonly int[] _array;
 
-            public VArray(int d)
+            public VArray(int[] array)
             {
-                _array = new int[2 * d + 1];
+                _array = array;
             }
 
             public void CopyFrom(VArray otherVArray)
@@ -36,23 +36,12 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             public int this[int index]
             {
-                get
-                {
-                    return _array[index + Offset];
-                }
-                set
-                {
-                    _array[index + Offset] = value;
-                }
+                get => _array[index + Offset];
+                set => _array[index + Offset] = value;
             }
 
-            private int Offset
-            {
-                get
-                {
-                    return _array.Length / 2;
-                }
-            }
+            private int Offset => _array.Length / 2;
+            public int[] UnderlyingArray => _array;
         }
 
         protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
@@ -67,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                var currentV = stackOfVs.Pop();
+                var currentV = new VArray(stackOfVs.Pop());
                 var d = stackOfVs.Count;
                 var k = x - y;
 
@@ -112,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                var currentV = stackOfVs.Pop();
+                var currentV = new VArray(stackOfVs.Pop());
                 var d = stackOfVs.Count;
                 var k = x - y;
 
@@ -233,12 +222,14 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// 
         /// VArrays store just the y index because x can be calculated: x = y + k.
         /// </remarks>
-        private Stack<VArray> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        private Stack<int[]> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            var stackOfVs = new Stack<VArray>();
+            var stackOfVs = new Stack<int[]>();
+
+            VArray AllocateVArray(int d) => new VArray(new int[2 * d + 1]);
 
             // special-case: the first "snake" to start at (-1,0 )
-            var previousV = new VArray(1);
+            var previousV = AllocateVArray(1);
             VArray currentV;
 
             var reachedEnd = false;
@@ -252,14 +243,14 @@ namespace Microsoft.CodeAnalysis.Differencing
                 }
                 else
                 {
-                    currentV = new VArray(d);
+                    currentV = AllocateVArray(d);
                     currentV.CopyFrom(previousV);
                 }
 
                 for (var k = -d; k <= d; k += 2)
                 {
                     // down or right? 
-                    var right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                    var right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
                     var kPrev = right ? k - 1 : k + 1;
 
                     // start point
@@ -291,9 +282,11 @@ namespace Microsoft.CodeAnalysis.Differencing
                         reachedEnd = true;
                     }
                 }
-                stackOfVs.Push(currentV);
+
+                stackOfVs.Push(currentV.UnderlyingArray);
                 previousV = currentV;
             }
+
             return stackOfVs;
         }
     }
