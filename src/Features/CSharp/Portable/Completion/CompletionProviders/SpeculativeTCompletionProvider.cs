@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (showSpeculativeT)
                 {
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                     const string T = nameof(T);
                     context.AddItem(CommonCompletionItem.Create(
                         T, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.TypeParameter));

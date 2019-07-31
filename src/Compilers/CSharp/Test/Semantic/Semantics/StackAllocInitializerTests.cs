@@ -768,10 +768,7 @@ unsafe class Test
             comp.VerifyDiagnostics(
                 // (6,32): error CS0841: Cannot use local variable 'x' before it is declared
                 //         var x = stackalloc int[x] { };
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 32),
-                // (6,32): error CS0165: Use of unassigned local variable 'x'
-                //         var x = stackalloc int[x] { };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 32)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 32)
                 );
         }
 

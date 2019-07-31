@@ -31,11 +31,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var property = await GetPropertyAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
             {
                 return;
@@ -66,11 +65,9 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             return field != null;
         }
 
-        private async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertyDeclarationNode>(document, span, cancellationToken).ConfigureAwait(false);
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
             {
                 return null;

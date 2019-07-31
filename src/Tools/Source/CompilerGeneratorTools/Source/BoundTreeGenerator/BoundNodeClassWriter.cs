@@ -894,46 +894,9 @@ namespace BoundTreeGenerator
             {
                 WriteAccept(node.Name);
                 WriteUpdateMethod(node as Node);
-                WriteShallowCloneMethodIfNeeded(node as Node);
             }
 
             WriteClassFooter(node);
-        }
-
-        private void WriteShallowCloneMethodIfNeeded(Node node)
-        {
-            if (SkipShallowClone(node))
-            {
-                return;
-            }
-
-            switch (_targetLang)
-            {
-                case TargetLanguage.CSharp:
-                    {
-                        if (node.Name != "BoundExpression" && IsDerivedType("BoundExpression", node.Name))
-                        {
-                            Blank();
-                            Write("protected override BoundExpression ShallowClone()", node.Name);
-                            Blank();
-                            Brace();
-                            Write("var result = new {0}", node.Name);
-                            var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => $"this.{f.Name}")).Concat(new[] { "this.HasErrors" });
-                            ParenList(fields);
-                            WriteLine(";");
-                            WriteLine("result.CopyAttributes(this);");
-                            WriteLine("return result;");
-                            Unbrace();
-                        }
-                        break;
-                    }
-
-                case TargetLanguage.VB:
-                    break;
-
-                default:
-                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
-            }
         }
 
         private void WriteUpdateMethod(Node node)
@@ -1016,12 +979,19 @@ namespace BoundTreeGenerator
 
             string wasUpdatedCheck(Field field)
             {
-                var format = TypeIsTypeSymbol(field) ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
+                var format = TypeIsTypeSymbol(field)
+                                ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
+                                : TypeIsSymbol(field)
+                                    ? "!SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
+                                    : "{0} != this.{1}";
+
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
 
         private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
+
+        private static bool TypeIsSymbol(Field field) => field.Type.TrimEnd('?').EndsWith("Symbol");
 
         private string StripBound(string name)
         {
@@ -1246,15 +1216,18 @@ namespace BoundTreeGenerator
                                     WriteLine(",");
                             }
 
-                            if (IsDerivedType("BoundExpression", node.Name))
+                            if (allFields.Length != 0)
                             {
-                                if (allFields.Length != 0)
-                                {
-                                    WriteLine(",");
-                                }
-                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                                WriteLine(",");
                             }
 
+                            if (IsDerivedType("BoundExpression", node.Name))
+                            {
+                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                                WriteLine(",");
+                            }
+
+                            Write("new TreeDumperNode(\"hasErrors\", node.HasErrors, null)");
                             WriteLine("");
                             Unbrace();
                         }
@@ -1678,11 +1651,6 @@ namespace BoundTreeGenerator
         private static bool SkipInNullabilityRewriter(Node n)
         {
             return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
-        }
-
-        private static bool SkipShallowClone(Node n)
-        {
-            return string.Compare(n.SkipShallowClone, "true", true) == 0;
         }
 
         private string ToCamelCase(string name)

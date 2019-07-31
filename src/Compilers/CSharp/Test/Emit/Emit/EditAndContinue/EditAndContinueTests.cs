@@ -1937,6 +1937,202 @@ class C : I
         }
 
         [Fact]
+        public void AddAndModifyInterfaceMembers()
+        {
+            var source0 = @"
+using System;
+interface I
+{
+}";
+            var source1 = @"
+using System;
+interface I
+{
+    static int X = 10;
+    static event Action Y;
+
+    static void M() { }
+    void N() { }
+
+    static int P { get => 1; set { } }
+    int Q { get => 1; set { } }
+
+    static event Action E { add { } remove { } }
+    event Action F { add { } remove { } }
+
+    interface J { }
+}";
+            var source2 = @"
+using System;
+interface I
+{
+    static int X = 2;
+    static event Action Y;
+
+    static I() { X--; }
+
+    static void M() { X++; }
+    void N() { X++; }
+
+    static int P { get => 3; set { X++; } }
+    int Q { get => 3; set { X++; } }
+
+    static event Action E { add { X++; } remove { X++; } }
+    event Action F { add { X++; } remove { X++; } }
+
+    interface J { }
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var x1 = compilation1.GetMember<FieldSymbol>("I.X");
+            var y1 = compilation1.GetMember<EventSymbol>("I.Y");
+            var m1 = compilation1.GetMember<MethodSymbol>("I.M");
+            var n1 = compilation1.GetMember<MethodSymbol>("I.N");
+            var p1 = compilation1.GetMember<PropertySymbol>("I.P");
+            var q1 = compilation1.GetMember<PropertySymbol>("I.Q");
+            var e1 = compilation1.GetMember<EventSymbol>("I.E");
+            var f1 = compilation1.GetMember<EventSymbol>("I.F");
+            var j1 = compilation1.GetMember<NamedTypeSymbol>("I.J");
+            var getP1 = compilation1.GetMember<MethodSymbol>("I.get_P");
+            var setP1 = compilation1.GetMember<MethodSymbol>("I.set_P");
+            var getQ1 = compilation1.GetMember<MethodSymbol>("I.get_Q");
+            var setQ1 = compilation1.GetMember<MethodSymbol>("I.set_Q");
+            var addE1 = compilation1.GetMember<MethodSymbol>("I.add_E");
+            var removeE1 = compilation1.GetMember<MethodSymbol>("I.remove_E");
+            var addF1 = compilation1.GetMember<MethodSymbol>("I.add_F");
+            var removeF1 = compilation1.GetMember<MethodSymbol>("I.remove_F");
+            var cctor1 = compilation1.GetMember<NamedTypeSymbol>("I").StaticConstructors.Single();
+
+            var x2 = compilation2.GetMember<FieldSymbol>("I.X");
+            var m2 = compilation2.GetMember<MethodSymbol>("I.M");
+            var n2 = compilation2.GetMember<MethodSymbol>("I.N");
+            var getP2 = compilation2.GetMember<MethodSymbol>("I.get_P");
+            var setP2 = compilation2.GetMember<MethodSymbol>("I.set_P");
+            var getQ2 = compilation2.GetMember<MethodSymbol>("I.get_Q");
+            var setQ2 = compilation2.GetMember<MethodSymbol>("I.set_Q");
+            var addE2 = compilation2.GetMember<MethodSymbol>("I.add_E");
+            var removeE2 = compilation2.GetMember<MethodSymbol>("I.remove_E");
+            var addF2 = compilation2.GetMember<MethodSymbol>("I.add_F");
+            var removeF2 = compilation2.GetMember<MethodSymbol>("I.remove_F");
+            var cctor2 = compilation2.GetMember<NamedTypeSymbol>("I").StaticConstructors.Single();
+
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, x1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, y1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, m1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, n1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, p1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, q1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, e1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, f1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, j1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, cctor1)));
+
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "J");
+            CheckNames(readers, reader1.GetFieldDefNames(), "X", "Y");
+            CheckNames(readers, reader1.GetMethodDefNames(), "add_Y", "remove_Y", "M", "N", "get_P", "set_P", "get_Q", "set_Q", "add_E", "remove_E", "add_F", "remove_F", ".cctor");
+            Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, x1, x2),
+                    new SemanticEdit(SemanticEditKind.Update, m1, m2),
+                    new SemanticEdit(SemanticEditKind.Update, n1, n2),
+                    new SemanticEdit(SemanticEditKind.Update, getP1, getP2),
+                    new SemanticEdit(SemanticEditKind.Update, setP1, setP2),
+                    new SemanticEdit(SemanticEditKind.Update, getQ1, getQ2),
+                    new SemanticEdit(SemanticEditKind.Update, setQ1, setQ2),
+                    new SemanticEdit(SemanticEditKind.Update, addE1, addE2),
+                    new SemanticEdit(SemanticEditKind.Update, removeE1, removeE2),
+                    new SemanticEdit(SemanticEditKind.Update, addF1, addF2),
+                    new SemanticEdit(SemanticEditKind.Update, removeF1, removeF2),
+                    new SemanticEdit(SemanticEditKind.Update, cctor1, cctor2)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetFieldDefNames(), "X");
+            CheckNames(readers, reader2.GetMethodDefNames(), "M", "N", "get_P", "set_P", "get_Q", "set_Q", "add_E", "remove_E", "add_F", "remove_F", ".cctor");
+            Assert.Equal(0, reader2.GetTableRowCount(TableIndex.NestedClass));
+
+            CheckEncLog(reader2,
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Event, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Event, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(15, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(17, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(18, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+
+            diff2.VerifyIL(@"
+{
+  // Code size       14 (0xe)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000001
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  stsfld     0x04000001
+  IL_000d:  ret
+}
+{
+  // Code size        2 (0x2)
+  .maxstack  8
+  IL_0000:  ldc.i4.3
+  IL_0001:  ret
+}
+{
+  // Code size       20 (0x14)
+  .maxstack  8
+  IL_0000:  ldc.i4.2
+  IL_0001:  stsfld     0x04000001
+  IL_0006:  nop
+  IL_0007:  ldsfld     0x04000001
+  IL_000c:  ldc.i4.1
+  IL_000d:  sub
+  IL_000e:  stsfld     0x04000001
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
         public void AddAttributeReferences()
         {
             var source0 =

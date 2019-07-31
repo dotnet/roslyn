@@ -430,9 +430,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (targetToken.Kind() == SyntaxKind.ColonToken &&
                 targetToken.Parent.IsKind(SyntaxKind.NameColon) &&
                 targetToken.Parent.IsParentKind(SyntaxKind.Argument) &&
-                targetToken.Parent.GetParent().IsParentKind(SyntaxKind.ArgumentList))
+                targetToken.Parent.Parent.IsParentKind(SyntaxKind.ArgumentList))
             {
-                var owner = targetToken.Parent.GetParent().GetParent().GetParent();
+                var owner = targetToken.Parent.Parent.Parent.Parent;
                 if (owner.IsKind(SyntaxKind.InvocationExpression) ||
                     owner.IsKind(SyntaxKind.ObjectCreationExpression) ||
                     owner.IsKind(SyntaxKind.BaseConstructorInitializer) ||
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // int Goo { set { } private |
             if (targetToken.Kind() == SyntaxKind.CloseBraceToken &&
                 targetToken.Parent.IsKind(SyntaxKind.Block) &&
-                targetToken.Parent.GetParent() is AccessorDeclarationSyntax)
+                targetToken.Parent.Parent is AccessorDeclarationSyntax)
             {
                 return true;
             }
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // int Goo { [Bar]|
             if (targetToken.Kind() == SyntaxKind.CloseBracketToken &&
                 targetToken.Parent.IsKind(SyntaxKind.AttributeList) &&
-                targetToken.Parent.GetParent() is AccessorDeclarationSyntax)
+                targetToken.Parent.Parent is AccessorDeclarationSyntax)
             {
                 return true;
             }
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (targetToken.Kind() == SyntaxKind.CloseBracketToken &&
                 targetToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 targetToken.Parent.IsParentKind(SyntaxKind.TypeParameter) &&
-                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent.GetParent().GetParent()))
+                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent.Parent.Parent))
             {
                 return true;
             }

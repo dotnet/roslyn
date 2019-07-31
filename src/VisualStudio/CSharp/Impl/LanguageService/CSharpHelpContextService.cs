@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Just use syntaxfacts for operators
-            if (symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
             {
                 text = null;
                 return false;

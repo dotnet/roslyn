@@ -397,6 +397,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface method will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
         /// </summary>
         internal static string Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing {
@@ -803,6 +821,26 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
                 return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; from asynchronous to synchronous will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing because it changes the shape of the state machine..
+        /// </summary>
+        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine {
+            get {
+                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes" +
+                        "_the_shape_of_the_state_machine", resourceCulture);
             }
         }
         
@@ -2516,6 +2554,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a switch expression will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_fro" +
+                        "m_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing {
@@ -3973,12 +4021,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+        internal static string Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_" +
-                        "from_continuing", resourceCulture);
+                return ResourceManager.GetString("Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_conti" +
+                        "nuing", resourceCulture);
             }
         }
         
@@ -4621,6 +4669,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_colon_Iteration_variable_crossed_function_boundary {
             get {
                 return ResourceManager.GetString("Warning_colon_Iteration_variable_crossed_function_boundary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Semantics may change when converting statement..
+        /// </summary>
+        internal static string Warning_colon_semantics_may_change_when_converting_statement {
+            get {
+                return ResourceManager.GetString("Warning_colon_semantics_may_change_when_converting_statement", resourceCulture);
             }
         }
         

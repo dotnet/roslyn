@@ -30,10 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
+        // -1 would disable timebox, whereas 0 means always timeout.
+        private int TimeoutInMilliseconds { get; set; } = -1;
+
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds);
         }
 
         protected override ExportProvider GetExportProvider()
@@ -1178,6 +1182,104 @@ namespace Test
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyVBClass", inlineDescription: "Foo");
         }
 
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        public async Task CommitTypeInUsingStaticContextShouldUseFullyQualifiedName(SourceCodeKind kind)
+        {
+            var file1 = @"
+namespace Foo
+{
+    public class MyClass { }
+}";
+
+            var file2 = @"
+using static $$";
+
+            var expectedCodeAfterCommit = @"
+using static Foo.MyClass$$";
+
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName(SourceCodeKind kind)
+        {
+            var file1 = @"
+namespace Foo
+{
+    public class MyClass { }
+}";
+
+            var file2 = @"
+using CollectionOfStringBuilders = System.Collections.Generic.List<$$>";
+
+            var expectedCodeAfterCommit = @"
+using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.MyClass$$>";
+
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName2(SourceCodeKind kind)
+        {
+            var file1 = @"
+namespace Foo.Bar
+{
+    public class MyClass { }
+}";
+
+            var file2 = @"
+namespace Foo
+{
+    using CollectionOfStringBuilders = System.Collections.Generic.List<$$>
+}";
+
+            // Completion is not fully qualified
+            var expectedCodeAfterCommit = @"
+namespace Foo
+{
+    using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.Bar.MyClass$$>
+}";
+
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(36624, "https://github.com/dotnet/roslyn/issues/36624")]
+        public async Task DoNotShowImportItemsIfTimeout()
+        {
+            // Set timeout to 0 so it always timeout
+            TimeoutInMilliseconds = 0;
+
+            var file1 = $@"
+namespace NS1
+{{
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace NS2
+{
+    class C
+    {
+         $$
+    }
+}";
+
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "NS1");
+        }
 
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {

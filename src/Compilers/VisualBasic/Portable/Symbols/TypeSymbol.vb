@@ -329,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            ' VB doesn't support any nullable annotations, but it is desirable at the top level to allow them to be provided
+            ' as a comparison option so that a user doesn't need to distinguish between VB and C# symbols.
+            ' We explicitly strip out the nullable ignore options here so that later assertions and code don't have to consider them 
+            comparison = comparison And Not TypeCompareKind.AllNullableIgnoreOptions
             Return left.IsSameType(right, comparison)
         End Function
 

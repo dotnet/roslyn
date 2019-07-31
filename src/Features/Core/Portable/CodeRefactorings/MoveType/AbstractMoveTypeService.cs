@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var isOnTypeHeader = syntaxFacts.IsOnTypeHeader(root, textSpan.Start);
+            var isOnTypeHeader = syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             return State.Generate(semanticDocument, nodeToAnalyze, isOnTypeHeader, cancellationToken);

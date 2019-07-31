@@ -62,6 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public TestParameters WithParseOptions(ParseOptions parseOptions)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
+            public TestParameters WithOptions(IDictionary<OptionKey, object> options)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+
             public TestParameters WithFixProviderData(object fixProviderData)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 

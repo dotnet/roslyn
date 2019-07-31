@@ -326,6 +326,40 @@ class X
         }
 
         [Fact]
+        public void NullableWarnings()
+        {
+            foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if ((int)error < 8600 || (int)error >= 9000)
+                {
+                    continue;
+                }
+
+                if (!error.ToString().StartsWith("WRN"))
+                {
+                    // Only interested in warnings
+                    continue;
+                }
+
+                if (ErrorFacts.NullableWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)error)))
+                {
+                    continue;
+                }
+
+                // Nullable-unrelated warnings in the C# 8 range should be added to this array.
+                var nullableUnrelatedWarnings = new[]
+                {
+                    ErrorCode.WRN_NullCheckingOnNullableValueType,
+                    ErrorCode.WRN_NullCheckedHasDefaultNull,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                };
+
+                Assert.Contains(error, nullableUnrelatedWarnings);
+            }
+        }
+
+        [Fact]
         public void Warning_1()
         {
             var text = @"

@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_DefaultInterfaceImplementation = MessageBase + 12760,
         IDS_OverrideWithConstraints = MessageBase + 12761,
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
-        IDS_ParameterNullChecking = MessageBase + 12763,
+        IDS_FeatureSwitchExpression = MessageBase + 12763,
+        IDS_ParameterNullChecking = MessageBase + 12764,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -230,12 +231,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Location location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
-            if (!(diag is null))
+            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
+            if (diag is object)
             {
-                diagnostics.Add(diag, errorLocation);
+                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                return false;
+            }
+            return true;
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            Compilation compilation, 
+            Location location)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpCompilation)compilation) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
                 return false;
             }
             return true;
@@ -293,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_OverrideWithConstraints: // semantic check
                 case MessageID.IDS_FeatureNestedStackalloc: // semantic check
                 case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
+                case MessageID.IDS_FeatureSwitchExpression:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

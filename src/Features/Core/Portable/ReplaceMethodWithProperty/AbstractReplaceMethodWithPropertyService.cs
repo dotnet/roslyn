@@ -12,10 +12,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarationSyntax> where TMethodDeclarationSyntax : SyntaxNode
     {
-        public async Task<SyntaxNode> GetMethodDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var property = await refactoringHelperService.TryGetSelectedNodeAsync<TMethodDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var property = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
 
             return property;
         }

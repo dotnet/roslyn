@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -170,6 +171,67 @@ class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithStaticLocalFunction_ChangeStatic()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        <N:0>int x() => 1;</N:0>
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        <N:0>static int x() => 1;</N:0>
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>g__x|0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var localFunction0 = testData0.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction0.IsStatic);
+
+            var localFunction1 = diff1.TestData.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction1.IsStatic);
         }
 
         [Fact]
@@ -441,6 +503,96 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithNullable_AddingNullCheck()
+        {
+            var source0 = MarkedSource(@"
+using System;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T G<T>(Func<T> f) => f();
+
+    public void F(string? x)
+    <N:0>{</N:0>
+        var <N:1>y1</N:1> = new { A = id(x) };
+        var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
+        var <N:4>z</N:4> = G(<N:5>() => y1.A + y2.B</N:5>);
+    }
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source1 = MarkedSource(@"
+using System;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T G<T>(Func<T> f) => f();
+
+    public void F(string? x)
+    <N:0>{</N:0>
+        if (x is null) throw new Exception();
+        var <N:1>y1</N:1> = new { A = id(x) };
+        var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
+        var <N:4>z</N:4> = G(<N:5>() => y1.A + y2.B</N:5>);
+    }
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "Microsoft: {CodeAnalysis}",
+                "System.Runtime: {CompilerServices, CompilerServices}",
+                "<global namespace>: {Microsoft, System, System}",
+                "C: {<>c__DisplayClass2_0}",
+                "System: {Runtime, Runtime}",
+                "C.<>c__DisplayClass2_0: {x, y1, y2, <F>b__0, <F>b__1}",
+                "<>f__AnonymousType1<<B>j__TPar>: {Equals, GetHashCode, ToString}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}",
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass2_0.<F>b__1()", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<anonymous type: string A> C.<>c__DisplayClass2_0.y1""
+  IL_0006:  callvirt   ""string <>f__AnonymousType0<string>.A.get""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""<anonymous type: string B> C.<>c__DisplayClass2_0.y2""
+  IL_0011:  callvirt   ""string <>f__AnonymousType1<string>.B.get""
+  IL_0016:  call       ""string string.Concat(string, string)""
+  IL_001b:  ret
+}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass2_0.<F>b__0()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass2_0.x""
+  IL_0006:  call       ""string C.id<string>(string)""
+  IL_000b:  newobj     ""<>f__AnonymousType1<string>..ctor(string)""
+  IL_0010:  ret
+}");
         }
 
         [Fact]

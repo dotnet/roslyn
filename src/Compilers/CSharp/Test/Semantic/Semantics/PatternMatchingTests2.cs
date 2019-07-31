@@ -494,13 +494,12 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,17): error CS8406: No best type was found for the switch expression.
+                // (5,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "1 switch { }").WithLocation(5, 17),
-                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
+                // (5,19): error CS8506: No best type was found for the switch expression.
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
-                );
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 19));
         }
 
         [Fact]

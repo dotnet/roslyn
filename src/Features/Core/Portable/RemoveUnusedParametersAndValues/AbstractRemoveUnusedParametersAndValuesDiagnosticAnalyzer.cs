@@ -280,15 +280,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            switch (unusedParametersPreference)
+            if (unusedParametersPreference == UnusedParametersPreference.NonPublicMethods)
             {
-                case UnusedParametersPreference.AllMethods:
-                    return true;
-                case UnusedParametersPreference.NonPublicMethods:
-                    return !symbol.HasPublicResultantVisibility();
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                return !symbol.HasPublicResultantVisibility();
             }
+
+            return true;
         }
 
         public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)

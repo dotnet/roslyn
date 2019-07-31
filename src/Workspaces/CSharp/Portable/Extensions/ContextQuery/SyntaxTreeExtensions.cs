@@ -116,9 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
 
             // class C {
-            //   public |
-
-            // class C {
             //   [Goo]
             //   |
 
@@ -129,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // previous token.
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+            // class C {
+            //   |
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
                 if (token.Parent is BaseTypeDeclarationSyntax)
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent is MemberDeclarationSyntax &&
-                    token.Parent.GetParent() is BaseTypeDeclarationSyntax)
+                    token.Parent.Parent is BaseTypeDeclarationSyntax)
                 {
                     return true;
                 }
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
                 if (token.Parent is BaseTypeDeclarationSyntax &&
-                    token.Parent.GetParent() is BaseTypeDeclarationSyntax)
+                    token.Parent.Parent is BaseTypeDeclarationSyntax)
                 {
                     // after a nested type
                     return true;
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
                 else if (
                     token.Parent.IsKind(SyntaxKind.Block) &&
-                    token.Parent.GetParent() is MemberDeclarationSyntax)
+                    token.Parent.Parent is MemberDeclarationSyntax)
                 {
                     // after a method/operator/etc.
                     return true;
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the attribute
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
-                var container = token.Parent.GetParent().GetParent();
+                var container = token.Parent.Parent?.Parent;
                 if (container is BaseTypeDeclarationSyntax)
                 {
                     return true;
@@ -220,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
+
             if (!validTypeDeclarations.Contains(typeDecl.Kind()))
             {
                 return false;
             }
-
-            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             // Check many of the simple cases first.
             var leftToken = contextOpt != null
@@ -370,9 +369,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
 
             // class C {
-            //   public |
-
-            // class C {
             //   [Goo]
             //   |
 
@@ -464,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
                 else if (
                     token.Parent.IsKind(SyntaxKind.Block) &&
-                    token.Parent.GetParent() is MemberDeclarationSyntax)
+                    token.Parent.Parent is MemberDeclarationSyntax)
                 {
                     return true;
                 }
@@ -489,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the attribute
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
-                var container = token.Parent.GetParent().GetParent();
+                var container = token.Parent?.Parent?.Parent;
                 if (container.IsKind(SyntaxKind.CompilationUnit) ||
                     container.IsKind(SyntaxKind.NamespaceDeclaration) ||
                     container.IsKind(SyntaxKind.ClassDeclaration) ||
@@ -576,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // the parent is the member
                 // the grandparent is the container of the member
-                var container = token.Parent.GetParent();
+                var container = token.Parent?.Parent;
 
                 // ref $$
                 // readonly ref $$
@@ -1562,12 +1558,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // ref |
             // ref readonly |
+            // for ( ref |
+            // foreach ( ref | x
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
-                token.Parent.IsKind(SyntaxKind.RefType) &&
-                token.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                token.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+                token.Parent.IsKind(SyntaxKind.RefType))
             {
-                return true;
+                var refType = token.Parent;
+
+                if (refType.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                    refType.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement))
+                {
+                    return true;
+                }
+
+                if (refType.IsParentKind(SyntaxKind.ForEachStatement))
+                {
+                    return true;
+                }
             }
 
             // out |

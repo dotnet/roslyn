@@ -85,6 +85,7 @@ Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.Par
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ClassifyCommonConversion(source As Microsoft.CodeAnalysis.ITypeSymbol, destination As Microsoft.CodeAnalysis.ITypeSymbol) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.ISymbol)
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.NullableContextOptions() -> Microsoft.CodeAnalysis.NullableContextOptions
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CarriageReturn() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CarriageReturnLineFeed() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticCarriageReturn() -> Microsoft.CodeAnalysis.SyntaxTrivia

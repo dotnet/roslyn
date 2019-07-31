@@ -730,6 +730,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
+                case BoundKind.TypeExpression:
+                    return false;
+
                 default:
                     return true;
             }
