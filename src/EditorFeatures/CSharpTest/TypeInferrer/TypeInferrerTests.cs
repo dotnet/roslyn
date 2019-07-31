@@ -2042,7 +2042,7 @@ class C
             await TestAsync(text, "global::System.Object");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32459")]
+        [Fact]
         public async Task TestArrayInitializerInImplicitArrayCreationInferredAsNullable()
         {
             var text =
