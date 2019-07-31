@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,7 +20,7 @@ using Roslyn.Utilities;
 
 
 
-namespace Microsoft.CodeAnalysis.CSharp.GetCaptures
+namespace Microsoft.CodeAnalysis.CSharp.GetCapturedVariables
 {
     [Shared]
     [ExportLanguageService(typeof(GetCaptures), LanguageNames.CSharp)]
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCaptures
 
 
 
-            var parameters = DetermineParameters(captures);  //should we set this equal to something?
+            var parameters = DetermineParameters(captures);  
 
 
 
@@ -118,7 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCaptures
 
             //Updates the declaration with the variables passed in
             var newLF = CodeGenerator.AddParameterDeclarations(localfunction, parameters, workspace);
-            dict.Add(localfunction, newLF);
+
+            //Adds the modifier static
+            var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
+            var LFWithStatic = s_generator.WithModifiers(newLF, modifiers);
+
+
+            dict.Add(localfunction, LFWithStatic);
             var syntaxTree = localfunction.SyntaxTree;
 
 

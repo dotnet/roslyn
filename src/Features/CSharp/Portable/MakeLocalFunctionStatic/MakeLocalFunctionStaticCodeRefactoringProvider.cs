@@ -1,31 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.GetCapturedVariables;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStaticWithParameters
+namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStaticWithParams
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeRefactoringProvider)), Shared]
-    internal class MakeLocalFunctionStaticCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticWithParamsCodeRefactoringProvider)), Shared]
+    internal class MakeLocalFunctionStaticWithParamsCodeRefactoringProvider : CodeRefactoringProvider
     {
-        
 
         [ImportingConstructor]
-        public MakeLocalFunctionStaticCodeRefactoringProvider()
+        public MakeLocalFunctionStaticWithParamsCodeRefactoringProvider()
         {
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+
             var (document, textSpan, cancellationToken) = context;
 
-            
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             //Gets the local function statement
@@ -37,27 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStaticWithParameters
 
             var service = document.GetLanguageService<GetCaptures>();
 
-
-           
             //Need to register refactoring and add the modifier static
-
-            context.RegisterRefactoring(new MyCodeAction("Make local function static", c => service.CreateParameterSymbolAsync(document, localFunction, cancellationToken)));
-
-
-
-
-
-
-
-
+            context.RegisterRefactoring(new MyCodeAction("Make Local Function Static", c => service.CreateParameterSymbolAsync(document, localFunction, c)));
 
 
         }
 
-        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
+        private sealed class MyCodeAction : CodeActions.CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
             {
             }
         }
