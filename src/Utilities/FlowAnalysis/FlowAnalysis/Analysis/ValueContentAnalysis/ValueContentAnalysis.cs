@@ -83,6 +83,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, out copyAnalysisResultOpt,
                     interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis) :
                 null;
+
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             var analysisContext = ValueContentAnalysisContext.Create(
                 ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt,
