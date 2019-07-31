@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editing
             Document document, IEnumerable<TextSpan> spans,
             OptionSet options, CancellationToken cancellationToken)
         {
-            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

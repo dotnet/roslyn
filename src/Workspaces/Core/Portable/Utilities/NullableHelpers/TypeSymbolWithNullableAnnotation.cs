@@ -24,12 +24,17 @@ namespace Microsoft.CodeAnalysis
                 Nullability = nullability;
             }
 
-            public bool Equals(ISymbol other)
+            bool IEquatable<ISymbol>.Equals(ISymbol other)
+            {
+                return Equals(other, SymbolEqualityComparer.Default);
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
             {
                 if (other is TypeSymbolWithNullableAnnotation otherWrappingSymbol)
                 {
                     return this.Nullability == otherWrappingSymbol.Nullability &&
-                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol);
+                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol, equalityComparer);
                 }
                 else if (other is ITypeSymbol)
                 {
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object obj)
             {
-                return this.Equals(obj as ISymbol);
+                return this.Equals(obj as ISymbol, SymbolEqualityComparer.Default);
             }
 
             public override int GetHashCode()

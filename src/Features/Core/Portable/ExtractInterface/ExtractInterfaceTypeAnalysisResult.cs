@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             INamedTypeSymbol typeToExtractFrom,
             IEnumerable<ISymbol> extractableMembers)
         {
-            this.CanExtractInterface = true;
-            this.DocumentToExtractFrom = documentToExtractFrom;
-            this.TypeNode = typeNode;
-            this.TypeToExtractFrom = typeToExtractFrom;
-            this.ExtractableMembers = extractableMembers;
+            CanExtractInterface = true;
+            DocumentToExtractFrom = documentToExtractFrom;
+            TypeNode = typeNode;
+            TypeToExtractFrom = typeToExtractFrom;
+            ExtractableMembers = extractableMembers;
         }
 
         public ExtractInterfaceTypeAnalysisResult(string errorMessage)
         {
-            this.CanExtractInterface = false;
-            this.ErrorMessage = errorMessage;
+            CanExtractInterface = false;
+            ErrorMessage = errorMessage;
         }
     }
 }

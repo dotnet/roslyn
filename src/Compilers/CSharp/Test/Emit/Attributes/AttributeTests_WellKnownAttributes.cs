@@ -9382,9 +9382,9 @@ class C
 ";
 
             CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (4,24): error CS8652: The feature 'obsolete on property accessor' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int Prop { [Obsolete] get; set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Obsolete").WithArguments("obsolete on property accessor").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Obsolete").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
         }
 
         [Fact]
@@ -9399,9 +9399,9 @@ class C
 ";
 
             CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (5,24): error CS8652: The feature 'obsolete on property accessor' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int Prop { [Deprecated("don't use this", DeprecationType.Remove, 50331648u)] get; set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete on property accessor").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
         }
 
         [Fact]

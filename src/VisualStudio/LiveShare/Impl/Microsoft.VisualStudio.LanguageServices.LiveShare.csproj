@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.LiveShare</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.LanguageServices.LiveShare</AssemblyName>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      A private package for the liveshare team to grant access to LSP implementations.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LiveShare" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
+  </ItemGroup>
+</Project>

@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public FirstDiagnosticResult(bool partialResult, bool hasFix, DiagnosticData diagnostic)
         {
-            this.PartialResult = partialResult;
-            this.HasFix = hasFix;
-            this.Diagnostic = diagnostic;
+            PartialResult = partialResult;
+            HasFix = hasFix;
+            Diagnostic = diagnostic;
         }
     }
 }

@@ -83,17 +83,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            string language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                        .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                   language)
         {
+            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+            UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given
@@ -270,15 +280,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            switch (unusedParametersPreference)
+            if (unusedParametersPreference == UnusedParametersPreference.NonPublicMethods)
             {
-                case UnusedParametersPreference.AllMethods:
-                    return true;
-                case UnusedParametersPreference.NonPublicMethods:
-                    return !symbol.HasPublicResultantVisibility();
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                return !symbol.HasPublicResultantVisibility();
             }
+
+            return true;
         }
 
         public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)

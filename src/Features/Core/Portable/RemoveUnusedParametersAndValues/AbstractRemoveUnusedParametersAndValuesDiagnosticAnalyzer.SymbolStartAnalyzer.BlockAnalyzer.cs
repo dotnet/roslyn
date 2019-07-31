@@ -414,9 +414,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     try
                     {
                         // Flag indicating if we found an operation block where all symbol writes were used. 
-                        bool hasBlockWithAllUsedWrites;
-
-                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out hasBlockWithAllUsedWrites);
+                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites);
 
                         AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites);
                     }
@@ -600,7 +598,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
+                    static bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
                     {
                         if (assignmentValue.ConstantValue.HasValue)
                         {
@@ -686,8 +684,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     foreach (var parameter in method.Parameters)
                     {
-                        bool isUsed = false;
-                        bool isSymbolRead = false;
+                        var isUsed = false;
+                        var isSymbolRead = false;
                         var isRefOrOutParam = parameter.IsRefOrOut();
 
                         // Iterate through symbol usage results for each operation block.

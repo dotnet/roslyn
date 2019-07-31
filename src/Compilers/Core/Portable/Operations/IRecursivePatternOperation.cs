@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface IRecursivePatternOperation : IPatternOperation
+    public interface IRecursivePatternOperation : IPatternOperation
     {
         /// <summary>
         /// The type accepted for the recursive pattern.

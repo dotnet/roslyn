@@ -8,13 +8,13 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Editor de Página de Código do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Editor de Página de Código do Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Editor do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Editor do Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">

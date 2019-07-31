@@ -3,7 +3,10 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<ISymbol> SelectedMembers { get; private set; }
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
-            public static State TryGenerate(
+            public static async Task<State> TryGenerateAsync(
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!state.TryInitialize(service, document, textSpan, containingType, selectedMembers, cancellationToken))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return state;
             }
 
-            private bool TryInitialize(
+            private async Task<bool> TryInitializeAsync(
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
@@ -49,19 +52,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return false;
                 }
 
-                this.SelectedMembers = selectedMembers;
-                this.ContainingType = containingType;
-                this.TextSpan = textSpan;
-                if (this.ContainingType == null || this.ContainingType.TypeKind == TypeKind.Interface)
+                SelectedMembers = selectedMembers;
+                ContainingType = containingType;
+                TextSpan = textSpan;
+                if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
-                this.Parameters = service.DetermineParameters(selectedMembers);
-                this.MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                Parameters = service.DetermineParameters(selectedMembers, rules);
+                MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
-                this.DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
+                DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 return true;
             }
 

@@ -13,11 +13,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
-        [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -167,6 +166,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     return;
                 }
+
+                // explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
+                // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
+                // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
+                // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
+                var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.EnsureRegistration(_workspace, initializeLazily: false);
 
                 _lastBuiltResult = inProgressState.GetBuildDiagnostics();
 

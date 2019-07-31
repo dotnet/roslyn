@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            ignoreErrorCode = ignoreErrorCode ?? SpecializedCollections.EmptyList<string>();
+            ignoreErrorCode ??= SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
                 diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));

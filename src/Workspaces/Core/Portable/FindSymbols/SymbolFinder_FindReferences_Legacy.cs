@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            progress = progress ?? FindReferencesProgress.Instance;
+            progress ??= FindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(

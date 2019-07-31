@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
     {
         protected interface IAnalyzer
         {
-            Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context, SyntaxNode root);
         }
 
         protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
@@ -26,46 +25,45 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             where TArgumentListSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
+                CodeRefactoringContext context, SyntaxNode root)
             {
-                if (context.Span.Length > 0)
-                {
-                    return;
-                }
+                var (document, textSpan, cancellationToken) = context;
 
-                var position = context.Span.Start;
-                var token = root.FindToken(position);
-                if (token.Span.Start == position &&
-                    IsCloseParenOrComma(token))
+                var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
+                if (argument == null && textSpan.IsEmpty)
                 {
-                    token = token.GetPreviousToken();
-                    if (token.Span.End != position)
+                    // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
+                    // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
+                    // traversing up & checking line numbers -> need to do it manually.
+                    // The rationale for only first line is that arg. expressions can be arbitrarily large. 
+                    // see: https://github.com/dotnet/roslyn/issues/18848
+
+                    var position = textSpan.Start;
+                    var token = root.FindToken(position);
+
+                    argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                    if (argument == null)
+                    {
+                        return;
+                    }
+
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
+                    var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
+
+                    if (argumentStartLine != caretLine)
                     {
                         return;
                     }
                 }
 
-                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
                 }
 
                 if (!IsPositionalArgument(argument))
-                {
-                    return;
-                }
-
-                // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
-                // line that the argument starts on.
-
-                var document = context.Document;
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
-
-                if (argumentStartLine != caretLine)
                 {
                     return;
                 }
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
                 var argumentName = parameters[argumentIndex].Name;
 
-                if (this.SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
+                if (SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
                     argumentIndex < argumentCount - 1)
                 {
                     context.RegisterRefactoring(
@@ -210,22 +208,19 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, _, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            await _argumentAnalyzer.ComputeRefactoringsAsync(
-                context, root, cancellationToken).ConfigureAwait(false);
+            await _argumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
 
             if (_attributeArgumentAnalyzer != null)
             {
-                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(
-                    context, root, cancellationToken).ConfigureAwait(false);
+                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
             }
         }
 

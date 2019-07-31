@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
         {
-            for (int i = 0; i < oldMembers.Count; i++)
+            for (var i = 0; i < oldMembers.Count; i++)
             {
                 if (!SyntaxFactory.AreEquivalent(oldMembers[i], newMembers[i], topLevel: false))
                 {

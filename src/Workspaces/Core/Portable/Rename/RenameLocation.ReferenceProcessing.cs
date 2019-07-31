@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private static string TrimNameToAfterLastDot(string name)
             {
-                int position = name.LastIndexOf('.');
+                var position = name.LastIndexOf('.');
 
                 if (position == -1)
                 {
@@ -419,8 +419,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 var renameText = originalSymbol.Name;
-                List<RenameLocation> stringLocations = renameInStrings ? new List<RenameLocation>() : null;
-                List<RenameLocation> commentLocations = renameInComments ? new List<RenameLocation>() : null;
+                var stringLocations = renameInStrings ? new List<RenameLocation>() : null;
+                var commentLocations = renameInComments ? new List<RenameLocation>() : null;
 
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
@@ -493,15 +493,15 @@ namespace Microsoft.CodeAnalysis.Rename
                 var regex = GetRegexForMatch(renameText);
                 foreach (var renameStringAndPosition in renameStringsAndPositions)
                 {
-                    string renameString = renameStringAndPosition.Item1;
-                    int renameStringPosition = renameStringAndPosition.Item2;
+                    var renameString = renameStringAndPosition.Item1;
+                    var renameStringPosition = renameStringAndPosition.Item2;
                     var containingSpan = renameStringAndPosition.Item3;
 
-                    MatchCollection matches = regex.Matches(renameString);
+                    var matches = regex.Matches(renameString);
 
                     foreach (Match match in matches)
                     {
-                        int start = renameStringPosition + match.Index;
+                        var start = renameStringPosition + match.Index;
                         Debug.Assert(renameText.Length == match.Length);
                         var matchTextSpan = new TextSpan(start, renameText.Length);
                         var matchLocation = tree.GetLocation(matchTextSpan);

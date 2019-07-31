@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// True if this is a Windows Runtime-style event.
         /// 
         /// A normal C# event, "event D E", has accessors
@@ -346,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         IMethodSymbol IEventSymbol.AddMethod
         {
@@ -415,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Equality
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             EventSymbol other = obj as EventSymbol;
 
@@ -431,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the events have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
+            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
         }
 
         public override int GetHashCode()

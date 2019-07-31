@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 

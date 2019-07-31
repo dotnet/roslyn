@@ -3,16 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServices;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
         }
 
-        private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 

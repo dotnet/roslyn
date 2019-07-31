@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _includeOverridesAndImplementations
-                        ? FeaturesResources.Generate_parameter_0_and_overrides_implementations 
+                        ? FeaturesResources.Generate_parameter_0_and_overrides_implementations
                         : FeaturesResources.Generate_parameter_0;
 
                     return string.Format(

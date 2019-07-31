@@ -42,6 +42,16 @@
         <target state="translated">タプル要素名 '{0}' を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">明示的なインターフェイス指定子が含まれるメソッドを追加すると、デバッグ セッションを続行できなくなります。</target>
@@ -67,6 +77,11 @@
         <target state="translated">コード内に使用されないパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Cannot apply changes -- unexpected error: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">名前空間を '{0}' に変更します</target>
@@ -77,9 +92,39 @@
         <target state="translated">グローバル名前空間に変更します</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="new">Changes are not allowed while stopped at exception</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="new">Changes made in project '{0}' will not be applied while the application is running</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="translated">コードの品質</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -135,6 +180,26 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">スコープを失う前にオブジェクトを破棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="new">Edit and Continue disallowed by module</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="new">Changes made in project '{0}' will prevent the debug session from continuing: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="new">Error while reading file '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -262,6 +327,11 @@
         <target state="translated">{0} は、読み取りとシーク操作をサポートするストリームを返す必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">名前空間へのコンテンツの移動...</target>
@@ -377,6 +447,11 @@
         <target state="translated">'{0}' を '{1}' に置き換える</target>
         <note />
       </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="new">Rude edit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">連続する '{0}' ステートメントに分割</target>
@@ -390,6 +465,11 @@
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -432,6 +512,11 @@
         <target state="translated">引数リストの折り返しを解除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">式の折り返しを解除</target>
@@ -440,6 +525,11 @@
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
         <target state="translated">パラメーター リストのラップを解除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
@@ -517,9 +607,29 @@
         <target state="translated">警告: 名前空間を変更すると無効なコードが生成され、コードの意味が変更される可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
         <target state="translated">式を折り返して整列する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -540,6 +650,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">長い引数リストを折り返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1177,11 +1292,6 @@
         <target state="translated">アクティブ ステートメントは元のメソッドから削除されました。変更を元に戻して続行するか、またはデバッグ セッションを再開してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後の '{0}' ステートメントを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">アクティブ ステートメントの前後の async 修飾子または iterator 修飾子を更新すると、デバッグ セッションが継続しなくなります。</target>
@@ -1403,11 +1513,6 @@ Do you want to continue?</source>
         <target state="translated">修飾子を削除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">エディット コンティニュ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
         <source>This signature does not contain parameters that can be changed.</source>
         <target state="translated">この署名には、変更できるパラメーターが含まれていません。</target>
@@ -1493,19 +1598,9 @@ Do you want to continue?</source>
         <target state="translated">コンパイラ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">エディット コンティニュ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">スタイル</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">{0} の非表示</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
@@ -1576,11 +1671,6 @@ Do you want to continue?</source>
       <trans-unit id="Compiler2">
         <source>Compiler</source>
         <target state="translated">コンパイラ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">エディット コンティニュ</target>
         <note />
       </trans-unit>
       <trans-unit id="Live">
@@ -2423,21 +2513,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">引数の名前 '{0}' を追加します (末尾の引数を含む)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">読み取り専用の構造体を使用すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">ref 構造体を使用すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">読み取り専用の参照を使用すると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">

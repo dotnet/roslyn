@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             displayParts.AddRange(_declarationParts);
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
 
-            bool first = true;
+            var first = true;
             foreach (var parameter in AllParameters.Where(p => !p.IsRemoved))
             {
                 if (!first)

@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 FilterResult? bestFilterResult = null;
-                int matchCount = 0;
+                var matchCount = 0;
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
                 {
                     if (bestFilterResult == null ||
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
             private static bool IsAllDigits(string filterText)
             {
-                for (int i = 0; i < filterText.Length; i++)
+                for (var i = 0; i < filterText.Length; i++)
                 {
                     if (filterText[i] < '0' || filterText[i] > '9')
                     {

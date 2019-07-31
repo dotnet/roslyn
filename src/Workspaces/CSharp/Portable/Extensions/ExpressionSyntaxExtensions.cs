@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             foreach (var enclosingTypeParameter in enclosingTypeParametersInsideOut)
             {
-                ISymbol newCandidateSymbol = candidateSymbol;
+                var newCandidateSymbol = candidateSymbol;
                 if (candidateSymbol.IsKind(SymbolKind.ArrayType))
                 {
                     newCandidateSymbol = ((IArrayTypeSymbol)candidateSymbol).ElementType;

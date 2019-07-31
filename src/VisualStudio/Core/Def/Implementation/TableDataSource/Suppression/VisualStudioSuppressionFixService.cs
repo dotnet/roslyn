@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource buildErrorDiagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
-            _buildErrorDiagnosticService = buildErrorDiagnosticService;
+            _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;
@@ -80,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return false;
             }
 
-            Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
 
             // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
             // in source only for compiler diagnostics.
@@ -100,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return false;
             }
 
-            Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
             return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
@@ -111,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return false;
             }
 
-            Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
             return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
@@ -120,8 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             ProjectId projectIdToMatch = null;
             if (projectHierarchyOpt != null)
             {
-                IVsHierarchyItem projectHierarchyItem = vsHierarchyItemManager.GetHierarchyItem(projectHierarchyOpt, VSConstants.VSITEMID_ROOT);
-                if (projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out ProjectId projectId))
+                var projectHierarchyItem = vsHierarchyItemManager.GetHierarchyItem(projectHierarchyOpt, VSConstants.VSITEMID_ROOT);
+                if (projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out var projectId))
                 {
                     projectIdToMatch = projectId;
                 }
@@ -374,13 +373,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             {
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 var cancellationToken = context.CancellationToken;
-                _editHandlerService.ApplyAsync(
+                _editHandlerService.Apply(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
                     progressTracker: context.ProgressTracker,
-                    cancellationToken: cancellationToken).Wait(cancellationToken);
+                    cancellationToken: cancellationToken);
             }
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);

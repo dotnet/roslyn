@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public int IndexOf(VirtualChar @char)
         {
-            int index = 0;
+            var index = 0;
             foreach (var ch in this)
             {
                 if (ch == @char)

@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
+                   CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -187,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             if (token.HasLeadingTrivia)
             {
-                int i = 0;
+                var i = 0;
                 foreach (var trivia in token.LeadingTrivia)
                 {
                     if (IsConflictMarker(text, trivia, '='))

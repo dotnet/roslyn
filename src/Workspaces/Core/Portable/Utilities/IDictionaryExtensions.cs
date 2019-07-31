@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Roslyn.Utilities
@@ -42,6 +43,17 @@ namespace Roslyn.Utilities
             collection.Add(value);
         }
 
+        public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
+            where TValue : IEquatable<TValue>
+        {
+            if (!dictionary.TryGetValue(key, out var collection))
+            {
+                collection = ImmutableArray<TValue>.Empty;
+            }
+
+            dictionary[key] = collection.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : collection.Add(value);
+        }
+
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
             where TCollection : ICollection<TValue>
         {
@@ -52,6 +64,21 @@ namespace Roslyn.Utilities
                 if (collection.Count == 0)
                 {
                     dictionary.Remove(key);
+                }
+            }
+        }
+
+        public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
+        {
+            if (dictionary.TryGetValue(key, out var collection))
+            {
+                if (collection.Length == 1)
+                {
+                    dictionary.Remove(key);
+                }
+                else
+                {
+                    dictionary[key] = collection.Remove(value);
                 }
             }
         }

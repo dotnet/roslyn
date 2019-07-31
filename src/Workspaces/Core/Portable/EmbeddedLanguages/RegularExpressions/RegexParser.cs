@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // Iterate all the nodes in the sequence we have, adding them directly to
             // `final` if they are not text nodes.  If they are text nodes, we attempt
             // to keep merging them with any following text nodes as long as well.
-            for (int index = 0; index < list.Count;)
+            for (var index = 0; index < list.Count;)
             {
                 var current = list[index];
                 if (current.Kind != RegexKind.Text)

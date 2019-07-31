@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         End Function
 
         Public Overrides Function ParseText(source As String) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(source)
+            Return SyntaxFactory.ParseSyntaxTree(source, VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         Public Overrides Function FindNode(root As SyntaxNode, span As TextSpan) As SyntaxNode

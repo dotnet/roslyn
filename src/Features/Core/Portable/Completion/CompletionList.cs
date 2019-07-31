@@ -102,15 +102,15 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionRules> rules = default,
             Optional<CompletionItem> suggestionModeItem = default)
         {
-            var newSpan = span.HasValue ? span.Value : this.Span;
-            var newItems = items.HasValue ? items.Value : this.Items;
-            var newRules = rules.HasValue ? rules.Value : this.Rules;
-            var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : this.SuggestionModeItem;
+            var newSpan = span.HasValue ? span.Value : Span;
+            var newItems = items.HasValue ? items.Value : Items;
+            var newRules = rules.HasValue ? rules.Value : Rules;
+            var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
-            if (newSpan == this.Span &&
-                newItems == this.Items &&
-                newRules == this.Rules &&
-                newSuggestionModeItem == this.SuggestionModeItem)
+            if (newSpan == Span &&
+                newItems == Items &&
+                newRules == Rules &&
+                newSuggestionModeItem == SuggestionModeItem)
             {
                 return this;
             }

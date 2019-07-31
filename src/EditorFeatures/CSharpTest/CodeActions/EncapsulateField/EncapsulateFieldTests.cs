@@ -122,7 +122,7 @@ class goo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, index: 1, parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            await TestAllOptionsOffAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

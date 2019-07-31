@@ -30,10 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (!textSpan.IsEmpty)
             {
                 return;
@@ -44,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
+            var awaitable = GetAwaitableExpression(token, model, syntaxFacts);
             if (awaitable == null)
             {
                 return;
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
         }
 
-        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        private TExpressionSyntax GetAwaitableExpression(SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
             var invocation = token.GetAncestor<TInvocationExpressionSyntax>();
             if (invocation is null)
@@ -123,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

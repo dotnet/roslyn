@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                     return document;
                 }
 
-                optionSet = optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
-                bool originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
+                var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             // Reduce each node or token in the given list by running it through each reducer.
             var simplifyTasks = new Task[nodesAndTokensToReduce.Length];
-            for (int i = 0; i < nodesAndTokensToReduce.Length; i++)
+            for (var i = 0; i < nodesAndTokensToReduce.Length; i++)
             {
                 var nodeOrTokenToReduce = nodesAndTokensToReduce[i];
                 simplifyTasks[i] = Task.Run(async () =>

@@ -1099,7 +1099,7 @@ End Class
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                       <Workspace>
                           <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
@@ -1129,7 +1129,7 @@ End Class
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion2(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                       <Workspace>
                           <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>

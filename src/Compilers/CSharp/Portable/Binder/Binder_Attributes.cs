@@ -909,20 +909,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol argumentType = (TypeSymbol)argument.Type;
-            // Easy out (i.e. don't bother classifying conversion).
-            if (TypeSymbol.Equals(argumentType, parameter.Type, TypeCompareKind.ConsiderEverything2))
-            {
-                result = argument;
-                return true;
-            }
-
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
+            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.Type, parameter.Type, ref useSiteDiagnostics);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
-            if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
+            if (conversion.IsValid && (conversion.Kind == ConversionKind.ImplicitReference || conversion.Kind == ConversionKind.Identity))
             {
                 result = argument;
                 return true;

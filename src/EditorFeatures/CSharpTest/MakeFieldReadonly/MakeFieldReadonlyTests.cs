@@ -174,6 +174,26 @@ $@"class MyClass
 }");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [InlineData("")]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class MyClass
+{{
+    //Comment{leadingTrvia}
+    private int _goo = 0, [|_bar|] = 0;
+}}",
+$@"class MyClass
+{{
+    //Comment{leadingTrvia}
+    private int _goo = 0;
+    private readonly int _bar = 0;
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInCtor()
         {

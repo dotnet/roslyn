@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
         End Function
 
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
-            Assert.NotNull(session)
+            Assert.True(session IsNot Nothing, "AssertCompletionSession")
         End Function
 
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
@@ -295,15 +295,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim item = session.GetComputedItems(CancellationToken.None).SelectedItem
             End If
         End Sub
-
-        Private Function GetRoslynCompletionItemOpt(editorCompletionItem As Data.CompletionItem) As CompletionItem
-            Dim roslynCompletionItem As CompletionItem = Nothing
-            If editorCompletionItem?.Properties.TryGetProperty(RoslynItem, roslynCompletionItem) Then
-                Return roslynCompletionItem
-            End If
-
-            Return Nothing
-        End Function
 
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             WaitForAsynchronousOperationsAsync()

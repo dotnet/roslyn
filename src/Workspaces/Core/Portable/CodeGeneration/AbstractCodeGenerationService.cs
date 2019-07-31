@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var (destinationDeclaration, availableIndices) =
                 await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             var adder = this.CreateImportsAdder(document);
             var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;

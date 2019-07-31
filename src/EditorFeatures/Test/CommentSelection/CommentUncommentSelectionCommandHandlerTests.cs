@@ -160,36 +160,34 @@ class Goo
     void M() { }
 }|end|
 ";
-            using (var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code))
-            {
-                var selectedSpans = SetupSelection(disposableView.TextView);
+            using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code);
+            var selectedSpans = SetupSelection(disposableView.TextView);
 
-                var expectedChanges = new[]
-                {
+            var expectedChanges = new[]
+            {
                 new TextChange(new TextSpan(0, 0), "//"),
                 new TextChange(new TextSpan(9, 0), "//"),
                 new TextChange(new TextSpan(12, 0), "//"),
                 new TextChange(new TextSpan(30, 0), "//"),
             };
-                CommentSelection(
-                    disposableView.TextView,
-                    expectedChanges,
-                    supportBlockComments: false,
-                    expectedSelectedSpans: new[] { new Span(0, 39) });
+            CommentSelection(
+                disposableView.TextView,
+                expectedChanges,
+                supportBlockComments: false,
+                expectedSelectedSpans: new[] { new Span(0, 39) });
 
-                expectedChanges = new[]
-                {
+            expectedChanges = new[]
+            {
                 new TextChange(new TextSpan(0, 0), "//"),
                 new TextChange(new TextSpan(11, 0), "//"),
                 new TextChange(new TextSpan(16, 0), "//"),
                 new TextChange(new TextSpan(36, 0), "//"),
             };
-                CommentSelection(
-                    disposableView.TextView,
-                    expectedChanges,
-                    supportBlockComments: false,
-                    expectedSelectedSpans: new[] { new Span(0, 47) });
-            }
+            CommentSelection(
+                disposableView.TextView,
+                expectedChanges,
+                supportBlockComments: false,
+                expectedSelectedSpans: new[] { new Span(0, 47) });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
@@ -746,12 +744,10 @@ class A
             bool supportBlockComments,
             Operation operation)
         {
-            using (var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code))
-            {
-                var selectedSpans = SetupSelection(disposableView.TextView);
+            using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code);
+            var selectedSpans = SetupSelection(disposableView.TextView);
 
-                CommentOrUncommentSelection(disposableView.TextView, expectedChanges, expectedSelectedSpans, supportBlockComments, operation);
-            }
+            CommentOrUncommentSelection(disposableView.TextView, expectedChanges, expectedSelectedSpans, supportBlockComments, operation);
         }
 
         private static void CommentOrUncommentSelection(

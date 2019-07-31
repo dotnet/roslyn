@@ -590,7 +590,7 @@ namespace Roslyn.Test.Utilities
         {
             if (itemInspector == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
@@ -602,7 +602,7 @@ namespace Roslyn.Test.Utilities
 
             if (itemSeparator == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemSeparator = ", ";
                 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             return newReturnType.WithTriviaFrom(returnTypeSyntax);
 
-            TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
+            static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
                 var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
                         SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             bool ContainsYield(SyntaxNode node)
                 => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
 
-            bool IsYield(SyntaxNode node)
+            static bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 return modifiers.Add(s_asyncToken);
 
             // Move the leading trivia from the return type to the new modifiers list.
-            SyntaxTokenList result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
+            var result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
             newReturnType = newReturnType.WithoutLeadingTrivia();
             return result;
         }

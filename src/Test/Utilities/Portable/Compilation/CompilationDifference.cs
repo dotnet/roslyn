@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
-            MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
+            MethodDefinitionHandle methodToken = default,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0)
         {

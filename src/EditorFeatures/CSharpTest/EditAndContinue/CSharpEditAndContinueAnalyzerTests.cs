@@ -30,20 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             foreach (var expected in GetExpectedSpans(source))
             {
-                string expectedText = source.Substring(expected.Start, expected.Length);
-                SyntaxToken token = tree.GetRoot().FindToken(expected.Start);
-                SyntaxNode node = token.Parent;
+                var expectedText = source.Substring(expected.Start, expected.Length);
+                var token = tree.GetRoot().FindToken(expected.Start);
+                var node = token.Parent;
                 while (!hasLabel(node.Kind()))
                 {
                     node = node.Parent;
                 }
 
-                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind(), node, EditKind.Update);
+                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpan(node, EditKind.Update);
                 var actualText = source.Substring(actual.Start, actual.Length);
 
-                Assert.True(expected == actual, "\r\n" +
-                    "Expected span: '" + expectedText + "' " + expected + "\r\n" +
-                    "Actual span: '" + actualText + "' " + actual);
+                Assert.True(expected == actual,
+                    $"{Environment.NewLine}Expected span: '{expectedText}' {expected}" +
+                    $"{Environment.NewLine}Actual span: '{actualText}' {actual}");
             }
         }
 
@@ -51,18 +51,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             const string StartTag = "/*<span>*/";
             const string EndTag = "/*</span>*/";
-            int i = 0;
+            var i = 0;
 
             while (true)
             {
-                int start = source.IndexOf(StartTag, i, StringComparison.Ordinal);
+                var start = source.IndexOf(StartTag, i, StringComparison.Ordinal);
                 if (start == -1)
                 {
                     break;
                 }
 
                 start += StartTag.Length;
-                int end = source.IndexOf(EndTag, start + 1, StringComparison.Ordinal);
+                var end = source.IndexOf(EndTag, start + 1, StringComparison.Ordinal);
                 yield return new TextSpan(start, end - start);
                 i = end + 1;
             }
@@ -70,20 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private static void TestErrorSpansAllKinds(Func<SyntaxKind, bool> hasLabel)
         {
-            List<SyntaxKind> unhandledKinds = new List<SyntaxKind>();
+            var unhandledKinds = new List<SyntaxKind>();
             foreach (var kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>().Where(hasLabel))
             {
+                TextSpan? span;
                 try
                 {
-                    CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(kind, null, EditKind.Update);
+                    span = CSharpEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl(kind, null, EditKind.Update);
                 }
                 catch (NullReferenceException)
                 {
                     // expected, we passed null node
+                    continue;
                 }
-                catch (Exception)
+
+                // unexpected:
+                if (span == null)
                 {
-                    // unexpected:
                     unhandledKinds.Add(kind);
                 }
             }
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ErrorSpans_TopLevel()
         {
-            string source = @"
+            var source = @"
 /*<span>*/extern alias A;/*</span>*/
 /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ErrorSpans_StatementLevel_Update()
         {
-            string source = @"
+            var source = @"
 class C
 {
     void M()
@@ -224,7 +227,7 @@ class C
         }
 
         /// <summary>
-        /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
+        /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
         /// </summary>
         [Fact]
         public void ErrorSpansAllKinds()
@@ -236,7 +239,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_InsignificantChangesInMethodBody()
         {
-            string source1 = @"
+            var source1 = @"
 class C
 {
     public static void Main()
@@ -246,7 +249,7 @@ class C
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 class C
 {
     public static void Main()
@@ -295,7 +298,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_Change()
         {
-            string source1 = @"
+            var source1 = @"
 class C
 {
     public static void Main()
@@ -304,7 +307,7 @@ class C
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 class C
 {
     public static void Main()
@@ -334,7 +337,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange()
         {
-            string source = @"
+            var source = @"
 class C
 {
     public static void Main()
@@ -361,7 +364,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange2()
         {
-            string source1 = @"
+            var source1 = @"
 class C
 {
     public static void Main()
@@ -370,7 +373,7 @@ class C
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 class C
 {
     public static void Main()
@@ -400,7 +403,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_Features_NoChange()
         {
-            string source = @"
+            var source = @"
 class C
 {
     public static void Main()
@@ -424,7 +427,7 @@ class C
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
                 Assert.False(result.HasChangesAndCompilationErrors);
-                Assert.True(result.RudeEditErrors.IsDefaultOrEmpty);
+                Assert.True(result.RudeEditErrors.IsEmpty);
             }
         }
 
@@ -432,11 +435,11 @@ class C
         public async Task AnalyzeDocumentAsync_Features_Change()
         {
             // these are all the experimental features currently implemented
-            string[] experimentalFeatures = Array.Empty<string>();
+            var experimentalFeatures = Array.Empty<string>();
 
             foreach (var feature in experimentalFeatures)
             {
-                string source1 = @"
+                var source1 = @"
 class C
 {
     public static void Main()
@@ -445,7 +448,7 @@ class C
     }
 }
 ";
-                string source2 = @"
+                var source2 = @"
 class C
 {
     public static void Main()
@@ -481,7 +484,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_SemanticError_NoChange()
         {
-            string source = @"
+            var source = @"
 class C
 {
     public static void Main()
@@ -509,7 +512,7 @@ class C
         [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
-            string source1 = @"
+            var source1 = @"
 class C
 {
     public static void Main()
@@ -519,7 +522,7 @@ class C
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 class C
 {
     public static void Main()
@@ -552,7 +555,7 @@ class C
         [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
-            string source1 = @"
+            var source1 = @"
 class C
 {
     public static void Main(Bar x)
@@ -561,7 +564,7 @@ class C
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 class C
 {
     public static void Main(Bar x)
@@ -591,7 +594,7 @@ class C
         [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFileHavingRudeEdits()
         {
-            string source1 = @"
+            var source1 = @"
 namespace N
 {
     class C
@@ -602,7 +605,7 @@ namespace N
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 namespace N
 {
     public class D
@@ -647,7 +650,7 @@ namespace N
         [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFile()
         {
-            string source1 = @"
+            var source1 = @"
 namespace N
 {
     class C
@@ -658,7 +661,7 @@ namespace N
     }
 }
 ";
-            string source2 = @"
+            var source2 = @"
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 

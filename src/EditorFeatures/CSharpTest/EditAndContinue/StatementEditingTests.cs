@@ -912,8 +912,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using1()
         {
-            string src1 = @"using (a) { using (b) { Goo(); } }";
-            string src2 = @"using (a) { using (c) { using (b) { Goo(); } } }";
+            var src1 = @"using (a) { using (b) { Goo(); } }";
+            var src2 = @"using (a) { using (c) { using (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -926,8 +926,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using_DeleteHeader()
         {
-            string src1 = @"using (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"using (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -939,8 +939,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"using (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"using (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -956,8 +956,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock1()
         {
-            string src1 = @"lock (a) { lock (b) { Goo(); } }";
-            string src2 = @"lock (a) { lock (c) { lock (b) { Goo(); } } }";
+            var src1 = @"lock (a) { lock (b) { Goo(); } }";
+            var src2 = @"lock (a) { lock (c) { lock (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -970,8 +970,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock_DeleteHeader()
         {
-            string src1 = @"lock (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"lock (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -983,8 +983,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"lock (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"lock (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1000,8 +1000,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
-            string src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }";
+            var src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            var src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1027,8 +1027,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach_Swap1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
-            string src2 = @"foreach (var b in f) { foreach (var a in e) { Goo(); } }";
+            var src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            var src2 = @"foreach (var b in f) { foreach (var a in e) { Goo(); } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1054,8 +1054,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Foreach_DeleteHeader()
         {
-            string src1 = @"foreach (var a in b) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"foreach (var a in b) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1067,8 +1067,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Foreach_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"foreach (var a in b) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"foreach (var a in b) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1083,20 +1083,20 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var src1 = @"
 foreach (var (a1, a2) in e) { }
 foreach ((var b1, var b2) in e) { }
-foreach (var a in e1) { yield return 7; }
+foreach (var a in e1) { }
 ";
 
             var src2 = @"
 foreach (var (a1, a3) in e) { }
 foreach ((var b3, int b2) in e) { }
-foreach (_ in e1) { yield return 7; }
+foreach (_ in e1) { }
 ";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [foreach ((var b1, var b2) in e) { }]@37 -> [foreach ((var b3, int b2) in e) { }]@37",
-                "Update [foreach (var a in e1) { yield return 7; }]@74 -> [foreach (_ in e1) { yield return 7; }]@74",
+                "Update [foreach (var a in e1) { }]@74 -> [foreach (_ in e1) { }]@74",
                 "Update [a2]@22 -> [a3]@22",
                 "Update [b1]@51 -> [b3]@51");
         }
@@ -1105,20 +1105,20 @@ foreach (_ in e1) { yield return 7; }
         public void ForeachVariable_Update2()
         {
             var src1 = @"
-foreach (_ in e2) { yield return 5; }
+foreach (_ in e2) { }
 foreach (_ in e3) {  A(); }
 ";
 
             var src2 = @"
-foreach (var b in e2) { yield return 5; }
+foreach (var b in e2) { }
 foreach (_ in e4) { A(); }
 ";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [foreach (_ in e2) { yield return 5; }]@4 -> [foreach (var b in e2) { yield return 5; }]@4",
-                "Update [foreach (_ in e3) {  A(); }]@43 -> [foreach (_ in e4) { A(); }]@47");
+                "Update [foreach (_ in e2) { }]@4 -> [foreach (var b in e2) { }]@4",
+                "Update [foreach (_ in e3) {  A(); }]@27 -> [foreach (_ in e4) { A(); }]@31");
         }
 
         [Fact]
@@ -1204,7 +1204,6 @@ foreach (var (a, b) in e1) { }
                 "Move [foreach ((var x, var y) in e2) { }]@39 -> @4");
         }
 
-
         #endregion
 
         #region For Statement
@@ -1212,8 +1211,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For1()
         {
-            string src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Goo(); } }";
-            string src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } } }";
+            var src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Goo(); } }";
+            var src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1230,8 +1229,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_DeleteHeader()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1249,8 +1248,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1268,8 +1267,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_DeclaratorsToInitializers()
         {
-            string src1 = @"for (var i = 10; i < 10; i++) { }";
-            string src2 = @"for (i = 10; i < 10; i++) { }";
+            var src1 = @"for (var i = 10; i < 10; i++) { }";
+            var src2 = @"for (i = 10; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1282,8 +1281,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_InitializersToDeclarators()
         {
-            string src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
-            string src2 = @"for (var i = 10, j = 0; i < 10; i++) { }";
+            var src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src2 = @"for (var i = 10, j = 0; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1298,8 +1297,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Reorder()
         {
-            string src1 = @"for (var i = 10, j = 0; i > j; i++, j++) { }";
-            string src2 = @"for (var j = 0, i = 10; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 10, j = 0; i > j; i++, j++) { }";
+            var src2 = @"for (var j = 0, i = 10; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1309,8 +1308,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Insert()
         {
-            string src1 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
-            string src2 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
+            var src2 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1322,8 +1321,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Delete()
         {
-            string src1 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
-            string src2 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
+            var src2 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1335,8 +1334,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Reorder()
         {
-            string src1 = @"for (i = 10, j = 0; i > j; i++, j++) { }";
-            string src2 = @"for (j = 0, i = 10; i > j; i++, j++) { }";
+            var src1 = @"for (i = 10, j = 0; i > j; i++, j++) { }";
+            var src2 = @"for (j = 0, i = 10; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1346,8 +1345,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Insert()
         {
-            string src1 = @"for (i = 10; i < 10; i++) { }";
-            string src2 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src1 = @"for (i = 10; i < 10; i++) { }";
+            var src2 = @"for (i = 10, j = 0; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1357,8 +1356,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Delete()
         {
-            string src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
-            string src2 = @"for (i = 10; i < 10; i++) { }";
+            var src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src2 = @"for (i = 10; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1368,8 +1367,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Update()
         {
-            string src1 = @"for (i = 1; i < 10; i++) { }";
-            string src2 = @"for (i = 2; i < 10; i++) { }";
+            var src1 = @"for (i = 1; i < 10; i++) { }";
+            var src2 = @"for (i = 2; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1379,8 +1378,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Update_Lambda()
         {
-            string src1 = @"for (int i = 10, j = F(() => 1); i > j; i++) { }";
-            string src2 = @"for (int i = 10, j = F(() => 2); i > j; i++) { }";
+            var src1 = @"for (int i = 10, j = F(() => 1); i > j; i++) { }";
+            var src2 = @"for (int i = 10, j = F(() => 2); i > j; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1390,8 +1389,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Condition_Update()
         {
-            string src1 = @"for (int i = 0; i < 10; i++) { }";
-            string src2 = @"for (int i = 0; i < 20; i++) { }";
+            var src1 = @"for (int i = 0; i < 10; i++) { }";
+            var src2 = @"for (int i = 0; i < 20; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1401,8 +1400,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Condition_Lambda()
         {
-            string src1 = @"for (int i = 0; F(() => 1); i++) { }";
-            string src2 = @"for (int i = 0; F(() => 2); i++) { }";
+            var src1 = @"for (int i = 0; F(() => 1); i++) { }";
+            var src2 = @"for (int i = 0; F(() => 2); i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1412,8 +1411,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Reorder()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1423,8 +1422,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Insert()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1434,8 +1433,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Delete()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1445,8 +1444,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Update()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; j++) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; i++) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; j++) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1456,8 +1455,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Update_Lambda()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; F(() => 1)) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; F(() => 2)) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; F(() => 1)) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; F(() => 2)) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1471,8 +1470,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While1()
         {
-            string src1 = @"while (a) { while (b) { Goo(); } }";
-            string src2 = @"while (a) { while (c) { while (b) { Goo(); } } }";
+            var src1 = @"while (a) { while (b) { Goo(); } }";
+            var src2 = @"while (a) { while (c) { while (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1485,8 +1484,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While_DeleteHeader()
         {
-            string src1 = @"while (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"while (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1498,8 +1497,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"while (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"while (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1515,8 +1514,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do1()
         {
-            string src1 = @"do { do { Goo(); } while (b); } while (a);";
-            string src2 = @"do { do { do { Goo(); } while(b); } while(c); } while(a);";
+            var src1 = @"do { do { Goo(); } while (b); } while (a);";
+            var src2 = @"do { do { do { Goo(); } while(b); } while(c); } while(a);";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1529,8 +1528,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do_DeleteHeader()
         {
-            string src1 = @"do { Goo(); } while (a);";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"do { Goo(); } while (a);";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1542,8 +1541,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"do { Goo(); } while (a);";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"do { Goo(); } while (a);";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1597,8 +1596,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If1()
         {
-            string src1 = @"if (a) if (b) Goo();";
-            string src2 = @"if (a) if (c) if (b) Goo();";
+            var src1 = @"if (a) if (b) Goo();";
+            var src2 = @"if (a) if (c) if (b) Goo();";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1610,8 +1609,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"if (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1623,8 +1622,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"if (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"if (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1636,8 +1635,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Else_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1649,8 +1648,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Else_InsertHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1662,8 +1661,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void ElseIf_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1676,8 +1675,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void ElseIf_InsertHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1690,8 +1689,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void IfElseElseIf_InsertHeader()
         {
-            string src1 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
-            string src2 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
+            var src1 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
+            var src2 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1708,8 +1707,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void IfElseElseIf_DeleteHeader()
         {
-            string src1 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
-            string src2 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
+            var src1 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
+            var src2 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -4630,7 +4629,7 @@ class C
         [Fact]
         public void Lambdas_RenameCapturedLocal()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -4642,7 +4641,7 @@ class Program
         Func<int> f = () => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -4664,7 +4663,7 @@ class Program
         [Fact]
         public void Lambdas_RenameCapturedParameter()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -4675,7 +4674,7 @@ class Program
         Func<int> f = () => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -4741,7 +4740,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunctions_InLocalFunction_NoChangeInignature()
+        public void LocalFunctions_InLocalFunction_NoChangeInSignature()
         {
             var src1 = "int x() { int y(int a) => a; return y(b); }";
             var src2 = "int x() { int y() => c; return y(); }";
@@ -4752,7 +4751,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunctions_InLocalFunction_ChangeInignature()
+        public void LocalFunctions_InLocalFunction_ChangeInSignature()
         {
             var src1 = "int x() { int y(int a) => a; return y(b); }";
             var src2 = "int x(int z) { int y() => c; return y(); }";
@@ -6634,7 +6633,7 @@ class C
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_RenameCapturedLocal()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -6646,7 +6645,7 @@ class Program
         int f() => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -6668,7 +6667,7 @@ class Program
         [Fact]
         public void LocalFunctions_RenameCapturedParameter()
         {
-            string src1 = @"
+            var src1 = @"
         using System;
         using System.Diagnostics;
 
@@ -6679,7 +6678,7 @@ class Program
                 int f() => x;
             }
         }";
-            string src2 = @"
+            var src2 = @"
         using System;
         using System.Diagnostics;
 
@@ -6703,13 +6702,12 @@ class Program
             var src1 = @"class Test { void M() { } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6718,13 +6716,12 @@ class Program
             var src1 = @"class Test { void M() { void local() { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6733,13 +6730,12 @@ class Program
             var src1 = @"class Test { void M() { void local(int b) { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6748,13 +6744,12 @@ class Program
             var src1 = @"class Test { void M() { } }";
             var src2 = @"class Test { void M() { ref readonly int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6763,13 +6758,141 @@ class Program
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { ref readonly int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact]
+        public void LocalFunction_AddToInterfaceMethod()
+        {
+            var src1 = @"
+using System;
+interface I
+{
+    static int X = M(() => 1);
+    static int M() => 1;
+
+    static void F()
+    {
+        void g() { }
+    }
+}
+";
+            var src2 = @"
+using System;
+interface I
+{
+    static int X = M(() => { void f3() {} return 2; });
+    static int M() => 1;
+
+    static void F()
+    {
+        int f1() => 1;
+        f1();
+
+        void g() { void f2() {} f2(); }
+
+        var l = new Func<int>(() => 1);
+        l();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // lambdas are ok as they are emitted to a nested type
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3")
+                });
+        }
+
+        [Fact]
+        public void LocalFunction_AddStatic()
+        {
+            var src1 = @"class Test { void M() { int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { static int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { static int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveStatic()
+        {
+            var src1 = @"class Test { void M() { static int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { static int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_AddUnsafe()
+        {
+            var src1 = @"class Test { void M() { int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { unsafe int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { unsafe int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveUnsafe()
+        {
+            var src1 = @"class Test { void M() { unsafe int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { unsafe int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunction_AddAsync()
+        {
+            var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
+            var src2 = @"class Test { void M() { async Task<int> local() => throw null; } }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunction_RemoveAsync()
+        {
+            var src1 = @"class Test { void M() { async int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
         }
 
         #endregion
@@ -7288,10 +7411,10 @@ class C
             var src1 = "F(from a in await b from x in y select c);";
             var src2 = "F(from a in await c from x in y select c);";
 
-            var edits = GetMethodEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2, MethodKind.Async);
 
             edits.VerifyEdits(
-                "Update [await b]@14 -> [await c]@14");
+                "Update [await b]@34 -> [await c]@34");
         }
 
         [Fact]
@@ -7586,7 +7709,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_FromClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7608,7 +7731,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7638,7 +7761,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_LetClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7656,7 +7779,7 @@ class C
 		             select a + b;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7682,7 +7805,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_JoinClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7700,7 +7823,7 @@ class C
                      select Z(() => g.First());
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7726,7 +7849,7 @@ class C
         [Fact]
         public void Queries_CeaseCapturingTransparentIdentifiers1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7745,7 +7868,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7774,7 +7897,7 @@ class C
         [Fact]
         public void Queries_CapturingTransparentIdentifiers1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7793,7 +7916,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -8085,8 +8208,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "yield break;", CSharpFeaturesResources.yield_statement),
-                Diagnostic(RudeEditKind.Update, "yield return 4;", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield break;", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.yield_break_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 4;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8135,7 +8258,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8187,8 +8310,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_statement),
-                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_return_statement),
+                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8271,8 +8394,11 @@ class C
 
         #region Await
 
+        /// <summary>
+        /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
+        /// </summary>
         [Fact]
-        public void Await_Update_OK()
+        public void AwaitSpilling_OK()
         {
             var src1 = @"
 class C
@@ -8328,8 +8454,11 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        /// <summary>
+        /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
+        /// </summary>
         [Fact]
-        public void Await_Update_Errors()
+        public void AwaitSpilling_Errors()
         {
             var src1 = @"
 class C
@@ -8478,7 +8607,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "=> await F(1)", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -8493,35 +8622,202 @@ class C
             var src2 = @"
 class C
 {
-    static Task<int> F() => F(1);
+    static async Task<int> F() => F(1);
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static Task<int> F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
-        public void Await_Delete6()
+        public void AwaitForEach_Delete1()
         {
             var src1 = @"
 class C
 {
-    static async void F() => F();
+    static async Task<int> F() 
+    {
+        await foreach (var x in G()) { } 
+    }
 }
 ";
             var src2 = @"
 class C
 {
-    static void F() => F();
+    static async Task<int> F()
+    {
+        foreach (var x in G()) { } 
+    }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var x in G())", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitForEach_Delete2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await foreach (var (x, y) in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        foreach (var (x, y) in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var (x, y) in G())", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitForEach_Delete3()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete1()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D x = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete3()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete4()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        using D x = new D(), y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration),
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration));
         }
 
         [Fact]
@@ -8653,6 +8949,163 @@ class C
         }
 
         [Fact]
+        public void AwaitForEach_Insert_Ok()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // ok to add awaits if there were none before and no active statements
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitForEach_Insert()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await Task.FromResult(1);
+
+        foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await Task.FromResult(1);
+
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
+        }
+
+        [Fact]
+        public void AwaitUsing_Insert1()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Insert2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await G();
+        using D x = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await G();
+        await using D x = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
+        }
+
+        [Fact]
+        public void Await_Update()
+        {
+            var src1 = @"
+class C
+{
+    static async IAsyncEnumerable<int> F() 
+    {
+        await foreach (var x in G()) { }
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        yield return 1;
+        yield break;
+        yield break;
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        await foreach (var (x,y) in G()) { }
+        await foreach (var x in G()) { }
+        await using D x = new D(), y = new D();
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        yield return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_foreach_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 1;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
+        }
+
+        [Fact]
         public void MissingAsyncStateMachineAttribute1()
         {
             var src1 = @"
@@ -8681,13 +9134,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                editScript: edits,
-                activeStatements: ActiveStatementsDescription.Empty,
-                additionalNewSources: null,
-                additionalOldSources: null,
-                expectedSemanticEdits: null,
-                expectedDeclarationError: null,
+            edits.VerifySemantics(
+                targetFrameworks: new[] { TargetFramework.MinimalAsync },
                 expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static async Task<int> F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")
@@ -8722,19 +9170,13 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null);
+            edits.VerifySemantics(targetFrameworks: new[] { TargetFramework.MinimalAsync });
         }
 
         [Fact]
         public void SemanticError_AwaitInPropertyAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Threading.Tasks;
 
 class C
@@ -8749,7 +9191,7 @@ class C
    }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Threading.Tasks;
 
 class C
@@ -8898,6 +9340,186 @@ if (!(c is int)) return;
             edits.VerifyEdits(
                 "Update [if ((a is int i) && (b is int j)) { A(); }]@2 -> [if ((b is int j) && (a is int i)) { A(); }]@2",
                 "Reorder [j]@32 -> @16");
+        }
+
+        [Fact]
+        public void VarPattern_Update()
+        {
+            var src1 = @"
+if (o is (var x, var y)) return;
+if (o4 is (string a, var (b, c))) return;
+if (o2 is var (e, f, g)) return;
+if (o3 is var (k, l, m)) return;
+";
+
+            var src2 = @"
+if (o is (int x, int y1)) return;
+if (o1 is (var a, (var b, string c1))) return;
+if (o7 is var (g, e, f)) return;
+if (o3 is (string k, int l2, int m)) return;
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [if (o is (var x, var y)) return;]@4 -> [if (o is (int x, int y1)) return;]@4",
+                "Update [if (o4 is (string a, var (b, c))) return;]@38 -> [if (o1 is (var a, (var b, string c1))) return;]@39",
+                "Update [if (o2 is var (e, f, g)) return;]@81 -> [if (o7 is var (g, e, f)) return;]@87",
+                "Reorder [g]@102 -> @102",
+                "Update [if (o3 is var (k, l, m)) return;]@115 -> [if (o3 is (string k, int l2, int m)) return;]@121",
+                "Update [y]@25 -> [y1]@25",
+                "Update [c]@67 -> [c1]@72",
+                "Update [l]@133 -> [l2]@146");
+        }
+
+        [Fact]
+        public void PositionalPattern_Update1()
+        {
+            var src1 = @"var r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 };";
+            var src2 = @"var r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 };";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@6",
+                "Reorder [c]@44 -> @39",
+                "Update [c]@44 -> [b1]@39",
+                "Update [b]@37 -> [c1]@50",
+                "Update [when c > 1]@47 -> [when c1 > 2]@54");
+        }
+
+        [Fact]
+        public void PositionalPattern_Update2()
+        {
+            var src1 = @"var r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 };";
+
+            var src2 = @"var r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@6",
+                "Update [a]@34 -> [a1]@36",
+                "Update [p]@71 -> [p1]@79");
+        }
+
+        [Fact]
+        public void PositionalPattern_Reorder()
+        {
+            var src1 = @"var r = (x, y, z) switch {
+(1, 2, 3) => 0,
+(var a, 3, 4) => a,
+(0, var b, int c) when c > 1 => 2,
+(1, 1, Point { X: 0 } p) => 3,
+_ => 4
+};
+";
+
+            var src2 = @"var r = ((x, y, z)) switch {
+(1, 1, Point { X: 0 } p) => 3,
+(0, var b, int c) when c > 1 => 2,
+(var a, 3, 4) => a,
+(1, 2, 3) => 0,
+_ => 4
+};
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                @"Update [r = (x, y, z) switch {
+(1, 2, 3) => 0,
+(var a, 3, 4) => a,
+(0, var b, int c) when c > 1 => 2,
+(1, 1, Point { X: 0 } p) => 3,
+_ => 4
+}]@6 -> [r = ((x, y, z)) switch {
+(1, 1, Point { X: 0 } p) => 3,
+(0, var b, int c) when c > 1 => 2,
+(var a, 3, 4) => a,
+(1, 2, 3) => 0,
+_ => 4
+}]@6",
+                "Reorder [a]@52 -> @105",
+                "Reorder [p]@126 -> @54");
+        }
+
+        [Fact]
+        public void PropertyPattern_Update()
+        {
+            var src1 = @"
+if (address is { State: ""WA"" }) return 1;
+if (obj is { Color: Color.Purple }) return 2;
+if (o is string { Length: 5 } s) return 3;
+";
+
+            var src2 = @"
+if (address is { ZipCode: 98052 }) return 4;
+if (obj is { Size: Size.M }) return 2;
+if (o is string { Length: 7 } s7) return 5;
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [if (address is { State: \"WA\" }) return 1;]@4 -> [if (address is { ZipCode: 98052 }) return 4;]@4",
+                "Update [if (obj is { Color: Color.Purple }) return 2;]@47 -> [if (obj is { Size: Size.M }) return 2;]@50",
+                "Update [if (o is string { Length: 5 } s) return 3;]@94 -> [if (o is string { Length: 7 } s7) return 5;]@90",
+                "Update [return 1;]@36 -> [return 4;]@39",
+                "Update [s]@124 -> [s7]@120",
+                "Update [return 3;]@127 -> [return 5;]@124");
+        }
+
+        [Fact]
+        public void RecursivePatterns_Reorder()
+        {
+            var src1 = @"var r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        _ => 0
+    },
+    int i => i * i,
+    _ => -1
+};
+";
+
+            var src2 = @"var r = obj switch
+{
+    int i => i * i,
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        _ => 0
+    },
+    _ => -1
+};
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                @"Update [r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        _ => 0
+    },
+    int i => i * i,
+    _ => -1
+}]@6 -> [r = obj switch
+{
+    int i => i * i,
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        _ => 0
+    },
+    _ => -1
+}]@6",
+                "Reorder [i]@102 -> @33");
         }
 
         [Fact]

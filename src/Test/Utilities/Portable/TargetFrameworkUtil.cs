@@ -54,6 +54,16 @@ namespace Roslyn.Test.Utilities
         Mscorlib461,
         Mscorlib461Extended,
         DesktopLatestExtended = Mscorlib461Extended,
+
+        /// <summary>
+        /// Minimal set of required types (<see cref="NetFx.Minimal.mincorlib"/>).
+        /// </summary>
+        Minimal,
+
+        /// <summary>
+        /// Minimal set of required types and Task implementation (<see cref="NetFx.Minimal.minasync"/>).
+        /// </summary>
+        MinimalAsync,
     }
 
     public static class TargetFrameworkUtil
@@ -80,44 +90,45 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef);
         public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef, Net461.SystemRef, Net461.SystemCoreRef, Net461.SystemValueTupleRef, Net461.SystemRuntimeRef, Net461.netstandardRef);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
-        public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp30.NetStandard, NetCoreApp30.MscorlibRef, NetCoreApp30.SystemRuntimeRef, NetCoreApp30.SystemCoreRef, NetCoreApp30.SystemDynamicRuntimeRef, NetCoreApp30.SystemConsoleRef);
+        public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp30.NetStandard, NetCoreApp30.MscorlibRef, NetCoreApp30.SystemRuntimeRef, NetCoreApp30.SystemCollectionsRef, NetCoreApp30.SystemCoreRef, NetCoreApp30.SystemDynamicRuntimeRef, NetCoreApp30.SystemConsoleRef, NetCoreApp30.SystemLinqRef, NetCoreApp30.SystemLinqExpressionsRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp30References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib40References;
-        public static ImmutableArray<MetadataReference> DefaultVbReferencs => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.MsvbRef);
+        public static ImmutableArray<MetadataReference> DefaultVbReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.MsvbRef);
+        public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
+        public static ImmutableArray<MetadataReference> MinimalAsyncReferences => ImmutableArray.Create(TestBase.MinAsyncCorlibRef);
 
-        public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf)
+        public static ImmutableArray<MetadataReference> GetReferences(TargetFramework targetFramework) => targetFramework switch
         {
-            switch (tf)
-            {
-                case TargetFramework.Empty: return ImmutableArray<MetadataReference>.Empty;
-                case TargetFramework.Mscorlib40: return Mscorlib40References;
-                case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
-                case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;
-                case TargetFramework.Mscorlib40AndVBRuntime: return Mscorlib40andVBRuntimeReferences;
-                case TargetFramework.Mscorlib45: return Mscorlib45References;
-                case TargetFramework.Mscorlib45Extended: return Mscorlib45ExtendedReferences;
-                case TargetFramework.Mscorlib45AndCSharp: return Mscorlib45AndCSharpReferences;
-                case TargetFramework.Mscorlib45AndVBRuntime: return Mscorlib45AndVBRuntimeReferences;
-                case TargetFramework.Mscorlib46: return Mscorlib46References;
-                case TargetFramework.Mscorlib46Extended: return Mscorlib46ExtendedReferences;
-                case TargetFramework.Mscorlib461: return Mscorlib46References;
-                case TargetFramework.Mscorlib461Extended: return Mscorlib461ExtendedReferences;
-                case TargetFramework.NetStandard20: return NetStandard20References;
-                case TargetFramework.NetCoreApp30: return NetCoreApp30References;
-                case TargetFramework.WinRT: return WinRTReferences;
-                case TargetFramework.Standard: return StandardReferences;
-                case TargetFramework.StandardLatest: return StandardLatestReferences;
-                case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;
-                case TargetFramework.StandardAndVBRuntime: return StandardAndVBRuntimeReferences;
-                case TargetFramework.StandardCompat: return StandardCompatReferences;
-                case TargetFramework.DefaultVb: return DefaultVbReferencs;
-                default: throw new InvalidOperationException($"Unexpected target framework {tf}");
-            }
-        }
+            TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
+            TargetFramework.Mscorlib40 => Mscorlib40References,
+            TargetFramework.Mscorlib40Extended => Mscorlib40ExtendedReferences,
+            TargetFramework.Mscorlib40AndSystemCore => Mscorlib40andSystemCoreReferences,
+            TargetFramework.Mscorlib40AndVBRuntime => Mscorlib40andVBRuntimeReferences,
+            TargetFramework.Mscorlib45 => Mscorlib45References,
+            TargetFramework.Mscorlib45Extended => Mscorlib45ExtendedReferences,
+            TargetFramework.Mscorlib45AndCSharp => Mscorlib45AndCSharpReferences,
+            TargetFramework.Mscorlib45AndVBRuntime => Mscorlib45AndVBRuntimeReferences,
+            TargetFramework.Mscorlib46 => Mscorlib46References,
+            TargetFramework.Mscorlib46Extended => Mscorlib46ExtendedReferences,
+            TargetFramework.Mscorlib461 => Mscorlib46References,
+            TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
+            TargetFramework.NetStandard20 => NetStandard20References,
+            TargetFramework.NetCoreApp30 => NetCoreApp30References,
+            TargetFramework.WinRT => WinRTReferences,
+            TargetFramework.Standard => StandardReferences,
+            TargetFramework.StandardLatest => StandardLatestReferences,
+            TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
+            TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,
+            TargetFramework.StandardCompat => StandardCompatReferences,
+            TargetFramework.DefaultVb => DefaultVbReferences,
+            TargetFramework.Minimal => MinimalReferences,
+            TargetFramework.MinimalAsync => MinimalAsyncReferences,
+            _ => throw new InvalidOperationException($"Unexpected target framework {targetFramework}"),
+        };
 
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf, IEnumerable<MetadataReference> additionalReferences)
         {

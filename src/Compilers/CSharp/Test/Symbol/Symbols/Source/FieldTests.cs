@@ -527,5 +527,31 @@ unsafe struct S
 
             Assert.False(goo.IsFixedSizeBuffer);
         }
+
+        [Fact]
+        public void StaticFieldDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.False(field.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceFieldRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.True(field.RequiresInstanceReceiver);
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(nameof(id));
             }
 
-            debugName = debugName ?? "unsaved";
+            debugName ??= "unsaved";
 
             return new SolutionId(id, debugName);
         }

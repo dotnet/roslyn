@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -170,6 +171,67 @@ class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithStaticLocalFunction_ChangeStatic()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        <N:0>int x() => 1;</N:0>
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        <N:0>static int x() => 1;</N:0>
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>g__x|0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var localFunction0 = testData0.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction0.IsStatic);
+
+            var localFunction1 = diff1.TestData.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction1.IsStatic);
         }
 
         [Fact]

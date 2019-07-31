@@ -3831,8 +3831,9 @@ public class BaseClass<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 
         [Fact]
@@ -3926,8 +3927,9 @@ public class BaseClass<TMember> : I1<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
-            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 
         [Fact]

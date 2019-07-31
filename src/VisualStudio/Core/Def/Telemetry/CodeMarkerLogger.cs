@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 return;
             }
 
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
             {
                 var marker = getter(items[i]);
                 Microsoft.Internal.Performance.CodeMarkers.Instance.CodeMarker(marker);

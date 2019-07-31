@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -10328,7 +10329,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(null, default(TextSpan), null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(null, default, null, CancellationToken.None);
             }));
         }
 
@@ -10344,7 +10345,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, default(TextSpan));
+            await service.ExtractMethodAsync(document, default);
         }
 
         [WpfFact]
@@ -10371,8 +10372,8 @@ namespace ClassLibrary9
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new ExtractMethodCommandHandler(
+                    workspace.GetService<IThreadingContext>(),
                     workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.GetService<IEditorOperationsFactoryService>(),
                     workspace.GetService<IInlineRenameService>());
 
                 var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));

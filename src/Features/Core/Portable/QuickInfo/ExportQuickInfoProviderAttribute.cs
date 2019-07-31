@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public ExportQuickInfoProviderAttribute(string name, string language)
             : base(typeof(QuickInfoProvider))
         {
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
-            this.Language = language ?? throw new ArgumentNullException(nameof(language));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

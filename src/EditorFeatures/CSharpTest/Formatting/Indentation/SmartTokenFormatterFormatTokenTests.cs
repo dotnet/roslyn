@@ -575,7 +575,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);
@@ -614,7 +614,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);

@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             private readonly Solution _solution;
             private readonly IAsynchronousOperationListener _asyncListener;
-            private readonly IDocumentTrackingService _documentTrackingService;
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public Searcher(
                 Solution solution,
                 IAsynchronousOperationListener asyncListener,
-                IDocumentTrackingService documentTrackingService,
                 INavigateToItemDisplayFactory displayFactory,
                 INavigateToCallback callback,
                 string searchPattern,
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 _solution = solution;
                 _asyncListener = asyncListener;
-                _documentTrackingService = documentTrackingService;
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         // If the workspace is tracking documents, use that to prioritize our search
                         // order.  That way we provide results for the documents the user is working
                         // on faster than the rest of the solution.
-                        var docTrackingService = _documentTrackingService ?? workspace.Services.GetService<IDocumentTrackingService>();
+                        var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
                         if (docTrackingService != null)
                         {
                             await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
@@ -94,7 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
                 finally
                 {
-                    _callback.Done();
+                    var service = _solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                    if (_callback is INavigateToCallback2 callback2 &&
+                        !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
+                    {
+                        // providing this extra information will make UI to show indication to users
+                        // that result might not contain full data
+                        callback2.Done(IncompleteReason.SolutionLoading);
+                    }
+                    else
+                    {
+                        _callback.Done();
+                    }
                 }
             }
 

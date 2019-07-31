@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //cannot capture stack-only types.
-            if (!method.IsStatic && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
+            if (method.RequiresInstanceReceiver && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
             {
                 return Conversion.NoConversion;
             }

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public State(TService service, SemanticDocument document)
             {
                 _service = service;
-                this.Document = document;
+                Document = document;
             }
 
             public static State Generate(
@@ -61,27 +61,27 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var tree = this.Document.SyntaxTree;
-                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var tree = Document.SyntaxTree;
+                var syntaxFacts = Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-                this.Expression = this.GetExpressionUnderSpan(tree, textSpan, cancellationToken);
-                if (this.Expression == null)
+                Expression = GetExpressionUnderSpan(tree, textSpan, cancellationToken);
+                if (Expression == null)
                 {
                     return false;
                 }
 
-                var expressionType = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken).Type;
+                var expressionType = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
                 if (expressionType is IErrorTypeSymbol)
                 {
                     return false;
                 }
 
-                var containingType = this.Expression.AncestorsAndSelf()
-                    .Select(n => this.Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
+                var containingType = Expression.AncestorsAndSelf()
+                    .Select(n => Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()
                     .FirstOrDefault();
 
-                containingType = containingType ?? this.Document.SemanticModel.Compilation.ScriptClass;
+                containingType ??= Document.SemanticModel.Compilation.ScriptClass;
 
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
                 {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                this.IsConstant = this.Document.SemanticModel.GetConstantValue(this.Expression, cancellationToken).HasValue;
+                IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
                 // innermost to outermost order.  
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (CanGenerateInto<TQueryExpressionSyntax>(cancellationToken))
                     {
-                        this.InQueryContext = true;
+                        InQueryContext = true;
                         return true;
                     }
 
@@ -112,14 +112,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InConstructorInitializerContext = true;
+                        InConstructorInitializerContext = true;
                         return true;
                     }
 
                     return false;
                 }
 
-                var enclosingBlocks = _service.GetContainingExecutableBlocks(this.Expression);
+                var enclosingBlocks = _service.GetContainingExecutableBlocks(Expression);
                 if (enclosingBlocks.Any())
                 {
                     // If we're inside a block, then don't even try the other options (like field,
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     // a local, and not a field.
                     if (IsInBlockContext(cancellationToken))
                     {
-                        this.InBlockContext = true;
+                        InBlockContext = true;
                         return true;
                     }
 
@@ -139,22 +139,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 // If we are inside a block within an Expression bodied member we should generate inside the block, 
                 // instead of rewriting a concise expression bodied member to its equivalent that has a body with a block.
-                if (_service.IsInExpressionBodiedMember(this.Expression))
+                if (_service.IsInExpressionBodiedMember(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InExpressionBodiedMemberContext = true;
+                        InExpressionBodiedMemberContext = true;
                         return true;
                     }
 
                     return false;
                 }
 
-                if (_service.IsInAutoPropertyInitializer(this.Expression))
+                if (_service.IsInAutoPropertyInitializer(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InAutoPropertyInitializerContext = true;
+                        InAutoPropertyInitializerContext = true;
                         return true;
                     }
 
@@ -165,17 +165,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (IsInParameterContext(cancellationToken))
                     {
-                        this.InParameterContext = true;
+                        InParameterContext = true;
                         return true;
                     }
                     else if (IsInFieldContext(cancellationToken))
                     {
-                        this.InFieldContext = true;
+                        InFieldContext = true;
                         return true;
                     }
                     else if (IsInAttributeContext(cancellationToken))
                     {
-                        this.InAttributeContext = true;
+                        InAttributeContext = true;
                         return true;
                     }
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
             {
-                _semanticMap = _semanticMap ?? this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
+                _semanticMap ??= Document.SemanticModel.GetSemanticMap(Expression, cancellationToken);
                 return _semanticMap;
             }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 var startToken = root.FindToken(textSpan.Start);
-                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 if (startToken.Span.End < textSpan.Start && startToken.TrailingTrivia.All(t => syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t)))
                 {
                     // We are pointing in the trailing whitespace trivia of a token, we shouldn't include that token
@@ -278,18 +278,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isSpanEmpty,
                 CancellationToken cancellationToken)
             {
-                if (!_service.CanIntroduceVariableFor(this.Expression))
+                if (!_service.CanIntroduceVariableFor(Expression))
                 {
                     return false;
                 }
 
-                if (isSpanEmpty && this.Expression is TNameSyntax)
+                if (isSpanEmpty && Expression is TNameSyntax)
                 {
                     // to extract a name, you must have a selection (this avoids making the refactoring too noisy)
                     return false;
                 }
 
-                if (this.Expression is TTypeSyntax && !(this.Expression is TNameSyntax))
+                if (Expression is TTypeSyntax && !(Expression is TNameSyntax))
                 {
                     // name syntax can introduce variables, but not other type syntaxes
                     return false;
@@ -303,31 +303,31 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 //
                 // In essence, this says "i can be replaced with an expression as long as I'm not being
                 // written to".
-                var semanticFacts = this.Document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                return semanticFacts.CanReplaceWithRValue(this.Document.SemanticModel, this.Expression, cancellationToken);
+                var semanticFacts = Document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                return semanticFacts.CanReplaceWithRValue(Document.SemanticModel, Expression, cancellationToken);
             }
 
             private bool CanGenerateInto<TSyntax>(CancellationToken cancellationToken)
                 where TSyntax : SyntaxNode
             {
-                if (this.Document.SemanticModel.Compilation.ScriptClass != null)
+                if (Document.SemanticModel.Compilation.ScriptClass != null)
                 {
                     return true;
                 }
 
-                var syntax = this.Expression.GetAncestor<TSyntax>();
+                var syntax = Expression.GetAncestor<TSyntax>();
                 return syntax != null && !syntax.OverlapsHiddenPosition(cancellationToken);
             }
 
             private bool IsInTypeDeclarationOrValidCompilationUnit()
             {
-                if (this.Expression.GetAncestorOrThis<TTypeDeclarationSyntax>() != null)
+                if (Expression.GetAncestorOrThis<TTypeDeclarationSyntax>() != null)
                 {
                     return true;
                 }
 
                 // If we're interactive/script, we can generate into the compilation unit.
-                if (this.Document.Document.SourceCodeKind != SourceCodeKind.Regular)
+                if (Document.Document.SourceCodeKind != SourceCodeKind.Regular)
                 {
                     return true;
                 }

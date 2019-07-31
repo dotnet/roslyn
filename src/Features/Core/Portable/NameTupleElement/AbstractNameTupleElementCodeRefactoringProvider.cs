@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
+            var (document, span, cancellationToken) = context;
             var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)

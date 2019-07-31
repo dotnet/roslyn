@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetAllSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
@@ -437,11 +437,6 @@ namespace Microsoft.CodeAnalysis.Emit
         protected override IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles()
         {
             return _standAloneSignatureIndex.Rows;
-        }
-
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
-        {
-            return _changes.GetTopLevelTypes(this.Context);
         }
 
         protected override void OnIndicesCreated()
@@ -1446,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public override void Visit(CommonPEModuleBuilder module)
             {
-                this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
+                Visit(module.GetTopLevelTypeDefinitions(metadataWriter.Context));
             }
 
             public override void Visit(IEventDefinition eventDefinition)

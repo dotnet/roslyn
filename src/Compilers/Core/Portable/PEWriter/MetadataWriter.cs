@@ -383,8 +383,6 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles();
 
-        protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module);
-
         protected abstract void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef);
 
         /// <summary>
@@ -513,7 +511,7 @@ namespace Microsoft.Cci
         {
             var nestedTypes = new Queue<INestedTypeDefinition>();
 
-            foreach (INamespaceTypeDefinition typeDef in this.GetTopLevelTypes(this.module))
+            foreach (INamespaceTypeDefinition typeDef in module.GetTopLevelTypeDefinitions(Context))
             {
                 this.CreateIndicesFor(typeDef, nestedTypes);
             }
@@ -903,8 +901,7 @@ namespace Microsoft.Cci
         private EntityHandle GetExportedTypeImplementation(INamespaceTypeReference namespaceRef)
         {
             IUnitReference uref = namespaceRef.GetUnit(Context);
-            var aref = uref as IAssemblyReference;
-            if (aref != null)
+            if (uref is IAssemblyReference aref)
             {
                 return GetAssemblyReferenceHandle(aref);
             }
@@ -966,8 +963,7 @@ namespace Microsoft.Cci
                         return parentTypeDefHandle;
                     }
 
-                    IMethodReference methodRef = memberRef as IMethodReference;
-                    if (methodRef != null)
+                    if (memberRef is IMethodReference methodRef)
                     {
                         if (methodRef.AcceptsExtraArguments)
                         {
@@ -1117,19 +1113,12 @@ namespace Microsoft.Cci
 
         private BlobHandle GetMemberReferenceSignatureHandle(ITypeMemberReference memberRef)
         {
-            IFieldReference fieldReference = memberRef as IFieldReference;
-            if (fieldReference != null)
+            return memberRef switch
             {
-                return this.GetFieldSignatureIndex(fieldReference);
-            }
-
-            IMethodReference methodReference = memberRef as IMethodReference;
-            if (methodReference != null)
-            {
-                return this.GetMethodSignatureHandle(methodReference);
-            }
-
-            throw ExceptionUtilities.Unreachable;
+                IFieldReference fieldReference => this.GetFieldSignatureIndex(fieldReference),
+                IMethodReference methodReference => this.GetMethodSignatureHandle(methodReference),
+                _ => throw ExceptionUtilities.Unreachable
+            };
         }
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
@@ -1311,8 +1300,7 @@ namespace Microsoft.Cci
 
         private EntityHandle GetResolutionScopeHandle(IUnitReference unitReference)
         {
-            var aref = unitReference as IAssemblyReference;
-            if (aref != null)
+            if (unitReference is IAssemblyReference aref)
             {
                 return GetAssemblyReferenceHandle(aref);
             }
@@ -1680,37 +1668,15 @@ namespace Microsoft.Cci
 
         internal EntityHandle GetDefinitionHandle(IDefinition definition)
         {
-            ITypeDefinition typeDef = definition as ITypeDefinition;
-            if (typeDef != null)
+            return definition switch
             {
-                return GetTypeDefinitionHandle(typeDef);
-            }
-
-            IMethodDefinition methodDef = definition as IMethodDefinition;
-            if (methodDef != null)
-            {
-                return GetMethodDefinitionHandle(methodDef);
-            }
-
-            IFieldDefinition fieldDef = definition as IFieldDefinition;
-            if (fieldDef != null)
-            {
-                return GetFieldDefinitionHandle(fieldDef);
-            }
-
-            IEventDefinition eventDef = definition as IEventDefinition;
-            if (eventDef != null)
-            {
-                return GetEventDefinitionHandle(eventDef);
-            }
-
-            IPropertyDefinition propertyDef = definition as IPropertyDefinition;
-            if (propertyDef != null)
-            {
-                return GetPropertyDefIndex(propertyDef);
-            }
-
-            throw ExceptionUtilities.Unreachable;
+                ITypeDefinition typeDef => (EntityHandle)GetTypeDefinitionHandle(typeDef),
+                IMethodDefinition methodDef => GetMethodDefinitionHandle(methodDef),
+                IFieldDefinition fieldDef => GetFieldDefinitionHandle(fieldDef),
+                IEventDefinition eventDef => GetEventDefinitionHandle(eventDef),
+                IPropertyDefinition propertyDef => GetPropertyDefIndex(propertyDef),
+                _ => throw ExceptionUtilities.Unreachable
+            };
         }
 
         public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
@@ -3058,25 +3024,13 @@ namespace Microsoft.Cci
 
         private EntityHandle GetHandle(IReference reference)
         {
-            var typeReference = reference as ITypeReference;
-            if (typeReference != null)
+            return reference switch
             {
-                return GetTypeHandle(typeReference);
-            }
-
-            var fieldReference = reference as IFieldReference;
-            if (fieldReference != null)
-            {
-                return GetFieldHandle(fieldReference);
-            }
-
-            var methodReference = reference as IMethodReference;
-            if (methodReference != null)
-            {
-                return GetMethodHandle(methodReference);
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(reference);
+                ITypeReference typeReference => GetTypeHandle(typeReference),
+                IFieldReference fieldReference => GetFieldHandle(fieldReference),
+                IMethodReference methodReference => GetMethodHandle(methodReference),
+                _ => throw ExceptionUtilities.UnexpectedValue(reference)
+            };
         }
 
         private EntityHandle ResolveEntityHandleFromPseudoToken(int pseudoSymbolToken)
@@ -3391,8 +3345,7 @@ namespace Microsoft.Cci
 
         private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type)
         {
-            var arrayType = type as IArrayTypeReference;
-            if (arrayType != null)
+            if (type is IArrayTypeReference arrayType)
             {
                 SerializeCustomAttributeArrayType(encoder.SZArray(), arrayType);
             }
@@ -3408,14 +3361,11 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataExpression(LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
         {
-            var a = expression as MetadataCreateArray;
-            if (a != null)
+            if (expression is MetadataCreateArray a)
             {
                 ITypeReference targetElementType;
-                var targetArrayType = targetType as IArrayTypeReference;
-
                 VectorEncoder vectorEncoder;
-                if (targetArrayType == null)
+                if (!(targetType is IArrayTypeReference targetArrayType))
                 {
                     // implicit conversion from array to object
                     Debug.Assert(this.module.IsPlatformType(targetType, PlatformType.SystemObject));
@@ -3507,18 +3457,17 @@ namespace Microsoft.Cci
                     writer.WriteUInt16(0); // padding
 
                     object marshaller = marshallingInformation.GetCustomMarshaller(Context);
-                    ITypeReference marshallerTypeRef = marshaller as ITypeReference;
-                    if (marshallerTypeRef != null)
+                    switch (marshaller)
                     {
-                        this.SerializeTypeName(marshallerTypeRef, writer);
-                    }
-                    else if (marshaller != null)
-                    {
-                        writer.WriteSerializedString((string)marshaller);
-                    }
-                    else
-                    {
-                        writer.WriteByte(0);
+                        case ITypeReference marshallerTypeRef:
+                            this.SerializeTypeName(marshallerTypeRef, writer);
+                            break;
+                        case null:
+                            writer.WriteByte(0);
+                            break;
+                        default:
+                            writer.WriteSerializedString((string)marshaller);
+                            break;
                     }
 
                     var arg = marshallingInformation.CustomMarshallerRuntimeArgument;
@@ -3648,8 +3597,7 @@ namespace Microsoft.Cci
                 if (!isAssemblyQualified)
                 {
                     INamespaceTypeReference namespaceType = customAttribute.GetType(context).AsNamespaceTypeReference;
-                    var referencedAssembly = namespaceType?.GetUnit(context) as IAssemblyReference;
-                    if (referencedAssembly != null)
+                    if (namespaceType?.GetUnit(context) is IAssemblyReference referencedAssembly)
                     {
                         typeName = typeName + ", " + StrongName(referencedAssembly);
                     }
@@ -3725,8 +3673,7 @@ namespace Microsoft.Cci
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 
-                var modifiedTypeReference = typeReference as IModifiedTypeReference;
-                if (modifiedTypeReference != null)
+                if (typeReference is IModifiedTypeReference modifiedTypeReference)
                 {
                     SerializeCustomModifiers(encoder.CustomModifiers(), modifiedTypeReference.CustomModifiers);
                     typeReference = modifiedTypeReference.UnmodifiedType;
@@ -3740,8 +3687,7 @@ namespace Microsoft.Cci
                     return;
                 }
 
-                var pointerTypeReference = typeReference as IPointerTypeReference;
-                if (pointerTypeReference != null)
+                if (typeReference is IPointerTypeReference pointerTypeReference)
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
                     encoder = encoder.Pointer();
@@ -3757,8 +3703,7 @@ namespace Microsoft.Cci
                     return;
                 }
 
-                var arrayTypeReference = typeReference as IArrayTypeReference;
-                if (arrayTypeReference != null)
+                if (typeReference is IArrayTypeReference arrayTypeReference)
                 {
                     typeReference = arrayTypeReference.GetElementType(Context);
 

@@ -25,24 +25,24 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SearchResult searchResult)
             {
                 this.provider = provider;
-                this.SearchResult = searchResult;
+                SearchResult = searchResult;
             }
 
             public int CompareTo(Document document, Reference other)
             {
                 // If references have different weights, order by the ones with lower weight (i.e.
                 // they are better matches).
-                if (this.SearchResult.Weight < other.SearchResult.Weight)
+                if (SearchResult.Weight < other.SearchResult.Weight)
                 {
                     return -1;
                 }
 
-                if (this.SearchResult.Weight > other.SearchResult.Weight)
+                if (SearchResult.Weight > other.SearchResult.Weight)
                 {
                     return 1;
                 }
 
-                if (this.SearchResult.DesiredNameMatchesSourceName(document))
+                if (SearchResult.DesiredNameMatchesSourceName(document))
                 {
                     if (!other.SearchResult.DesiredNameMatchesSourceName(document))
                     {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         // Both our names need to change.  Sort by the name we're 
                         // changing to.
                         var diff = StringComparer.OrdinalIgnoreCase.Compare(
-                            this.SearchResult.DesiredName, other.SearchResult.DesiredName);
+                            SearchResult.DesiredName, other.SearchResult.DesiredName);
                         if (diff != 0)
                         {
                             return diff;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // If the weights are the same and no names changed, just order 
                 // them based on the namespace we're adding an import for.
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    this.SearchResult.NameParts, other.SearchResult.NameParts,
+                    SearchResult.NameParts, other.SearchResult.NameParts,
                     placeSystemNamespaceFirst: true);
             }
 
@@ -86,18 +86,18 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 return other != null &&
                     other.SearchResult.NameParts != null &&
-                    this.SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
+                    SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
             }
 
             public override int GetHashCode()
             {
-                return Hash.CombineValues(this.SearchResult.NameParts);
+                return Hash.CombineValues(SearchResult.NameParts);
             }
 
             protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
                 SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
             {
-                if (!this.SearchResult.DesiredNameDiffersFromSourceName())
+                if (!SearchResult.DesiredNameDiffersFromSourceName())
                 {
                     return (contextNode, document);
                 }
@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var originalDocument = document;
 
-                (node, document) = await this.ReplaceNameNodeAsync(
+                (node, document) = await ReplaceNameNodeAsync(
                     node, document, cancellationToken).ConfigureAwait(false);
 
-                var newDocument = await this.provider.AddImportAsync(
-                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var newDocument = await provider.AddImportAsync(
+                    node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);

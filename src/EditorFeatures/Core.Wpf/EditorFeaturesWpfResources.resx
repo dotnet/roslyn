@@ -153,4 +153,7 @@
   <data name="Regex_OtherEscape" xml:space="preserve">
     <value>Regex - Other Escape</value>
   </data>
+  <data name="Configure_or_Suppress_issues" xml:space="preserve">
+    <value>Configure or Suppress issues</value>
+  </data>
 </root>

@@ -330,13 +330,13 @@ Enter キーで常に新しい行を追加する;
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp エディター</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">エンコード付き CSharp エディター</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">Encoding 付き CSharp エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

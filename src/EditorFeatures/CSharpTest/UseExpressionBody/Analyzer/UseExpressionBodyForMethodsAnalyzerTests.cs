@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(default(bool), deserialized.Value);
+            Assert.Equal(default, deserialized.Value);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

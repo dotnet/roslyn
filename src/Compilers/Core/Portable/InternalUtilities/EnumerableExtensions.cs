@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -26,8 +27,7 @@ namespace Roslyn.Utilities
             }
 
             // perf optimization. try to not use enumerator if possible
-            var list = source as IList<T>;
-            if (list != null)
+            if (source is IList<T> list)
             {
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
@@ -168,14 +168,12 @@ namespace Roslyn.Utilities
 
         public static bool IsEmpty<T>(this IEnumerable<T> source)
         {
-            var readOnlyCollection = source as IReadOnlyCollection<T>;
-            if (readOnlyCollection != null)
+            if (source is IReadOnlyCollection<T> readOnlyCollection)
             {
                 return readOnlyCollection.Count == 0;
             }
 
-            var genericCollection = source as ICollection<T>;
-            if (genericCollection != null)
+            if (source is ICollection<T> genericCollection)
             {
                 return genericCollection.Count == 0;
             }
@@ -371,6 +369,128 @@ namespace Roslyn.Utilities
         {
             return Comparer<T>.Create(comparison);
         }
+
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items)
+        {
+            if (items == null)
+            {
+                return ImmutableDictionary.Create<K, V>();
+            }
+
+            return ImmutableDictionary.CreateRange(items);
+        }
+
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items, IEqualityComparer<K> keyComparer)
+        {
+            if (items == null)
+            {
+                return ImmutableDictionary.Create<K, V>(keyComparer);
+            }
+
+            return ImmutableDictionary.CreateRange(keyComparer, items);
+        }
+
+        internal static IList<IList<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> data)
+        {
+#if DEBUG
+            var count = data.First().Count();
+            Debug.Assert(data.All(d => d.Count() == count));
+#endif
+            return TransposeInternal(data).ToArray();
+        }
+
+        private static IEnumerable<IList<T>> TransposeInternal<T>(this IEnumerable<IEnumerable<T>> data)
+        {
+            List<IEnumerator<T>> enumerators = new List<IEnumerator<T>>();
+
+            var width = 0;
+            foreach (var e in data)
+            {
+                enumerators.Add(e.GetEnumerator());
+                width += 1;
+            }
+
+            try
+            {
+                while (true)
+                {
+                    T[] line = null;
+                    for (int i = 0; i < width; i++)
+                    {
+                        var e = enumerators[i];
+                        if (!e.MoveNext())
+                        {
+                            yield break;
+                        }
+
+                        if (line == null)
+                        {
+                            line = new T[width];
+                        }
+
+                        line[i] = e.Current;
+                    }
+
+                    yield return line;
+                }
+            }
+            finally
+            {
+                foreach (var enumerator in enumerators)
+                {
+                    enumerator.Dispose();
+                }
+            }
+        }
+
+#if !CODE_STYLE
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        {
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(comparer);
+            var groups = data.GroupBy(keySelector, comparer);
+            foreach (var grouping in groups)
+            {
+                var items = grouping.AsImmutable();
+                dictionary.Add(grouping.Key, items);
+            }
+
+            return dictionary;
+        }
+#endif
+
+        /// <summary>
+        /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
+        /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.
+        /// </summary>
+        internal static TSource AsSingleton<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+            {
+                return default(TSource);
+            }
+
+            IList<TSource> list = source as IList<TSource>;
+            if (list != null)
+            {
+                return (list.Count == 1) ? list[0] : default(TSource);
+            }
+
+            using (IEnumerator<TSource> e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    return default(TSource);
+                }
+
+                TSource result = e.Current;
+                if (e.MoveNext())
+                {
+                    return default(TSource);
+                }
+
+                return result;
+            }
+        }
     }
 
     /// <summary>
@@ -381,6 +501,15 @@ namespace Roslyn.Utilities
     {
         public static readonly Func<T, T> Identity = t => t;
         public static readonly Func<T, bool> True = t => true;
+    }
+
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal static class Predicates<T>
+    {
+        public static readonly Predicate<T> True = t => true;
     }
 }
 

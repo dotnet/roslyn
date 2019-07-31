@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Use WithTextChange instead", error: true)]
         public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
         {
-            return new CompletionChange(textChanges, this.NewPosition, this.IncludesCommitCharacter);
+            return new CompletionChange(textChanges, NewPosition, IncludesCommitCharacter);
         }
 
         public CompletionChange WithTextChange(TextChange textChange)
         {
-            return new CompletionChange(textChange, this.NewPosition, this.IncludesCommitCharacter);
+            return new CompletionChange(textChange, NewPosition, IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithNewPosition(int? newPostion)
         {
-            return new CompletionChange(this.TextChange, newPostion, this.IncludesCommitCharacter);
+            return new CompletionChange(TextChange, newPostion, IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithIncludesCommitCharacter(bool includesCommitCharacter)
         {
-            return new CompletionChange(this.TextChange, this.NewPosition, includesCommitCharacter);
+            return new CompletionChange(TextChange, NewPosition, includesCommitCharacter);
         }
     }
 }
