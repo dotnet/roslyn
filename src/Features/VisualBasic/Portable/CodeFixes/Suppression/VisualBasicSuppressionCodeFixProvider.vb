@@ -110,10 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             End Get
         End Property
 
-        Protected Overrides Function IsImportsLine(node As SyntaxNode) As Boolean
-            Return TypeOf node Is ImportsStatementSyntax
-        End Function
-
         Protected Overrides Function IsAttributeListWithAssemblyAttributes(node As SyntaxNode) As Boolean
             Dim attributesStatement = TryCast(node, AttributesStatementSyntax)
             Return attributesStatement IsNot Nothing AndAlso

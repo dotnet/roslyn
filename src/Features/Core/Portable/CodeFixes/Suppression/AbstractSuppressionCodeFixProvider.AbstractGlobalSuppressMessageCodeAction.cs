@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -76,7 +77,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                             var t = await document.GetSyntaxTreeAsync(c).ConfigureAwait(false);
                             var r = await t.GetRootAsync(c).ConfigureAwait(false);
-                            if (r.ChildNodes().All(n => Fixer.IsImportsLine(n) || Fixer.IsAttributeListWithAssemblyAttributes(n)))
+                            var syntaxFacts = _project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+
+                            if (r.ChildNodes().All(n => syntaxFacts.IsUsingOrExternOrImport(n) || Fixer.IsAttributeListWithAssemblyAttributes(n)))
                             {
                                 suppressionsDoc = document;
                                 break;

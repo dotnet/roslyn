@@ -71,11 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override string SingleLineCommentStart => "//";
 
-        protected override bool IsImportsLine(SyntaxNode node)
-        {
-            return node is UsingDirectiveSyntax;
-        }
-
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
             return node is AttributeListSyntax attributeList &&
