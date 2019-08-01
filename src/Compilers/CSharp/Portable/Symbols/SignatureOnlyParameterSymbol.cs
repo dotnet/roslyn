@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion Not used by MethodSignatureComparer
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var other = obj as SignatureOnlyParameterSymbol;
             return (object)other != null &&
-                TypeSymbol.Equals(_type.Type, other._type.Type, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
                 _isParams == other._isParams &&

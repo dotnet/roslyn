@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,9 +18,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynCompletionProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
                 Context = new LSP.CompletionContext { TriggerCharacter = context.Trigger.Character.ToString(), TriggerKind = GetTriggerKind(context.Trigger) }
             };
 
-            var completionObject = await lspClient.RequestAsync(LSP.Methods.TextDocumentCompletion, completionParams, context.CancellationToken).ConfigureAwait(false);
+            var completionObject = await lspClient.RequestAsync(LSP.Methods.TextDocumentCompletion.ToLSRequest(), completionParams, context.CancellationToken).ConfigureAwait(false);
             if (completionObject == null)
             {
                 return;
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
             }
 
             var completionItem = JToken.Parse(serializedItem).ToObject<RoslynCompletionItem>();
-            var request = new LSP.LspRequest<RoslynCompletionItem, RoslynCompletionItem>(LSP.Methods.TextDocumentCompletionResolveName);
+            var request = new LspRequest<RoslynCompletionItem, RoslynCompletionItem>(LSP.Methods.TextDocumentCompletionResolveName);
             var resolvedCompletionItem = await lspClient.RequestAsync(request, completionItem, cancellationToken).ConfigureAwait(false);
             if (resolvedCompletionItem?.Description == null)
             {

@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             bool containsNamespaceOrTypeSymbol;
             bool containsOtherSymbol;
-            if (!(actualSymbol.Symbol is null))
+            if (actualSymbol.Symbol is object)
             {
                 containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
                 containsOtherSymbol = !containsNamespaceOrTypeSymbol;
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (!(actualSymbol.Symbol is null))
+            if (actualSymbol.Symbol is object)
             {
                 return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
                     || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);

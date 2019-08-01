@@ -13,17 +13,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class CSharpLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLspClientServiceFactory roslynLspClientServiceFactory,
+        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, CSharpLspClientServiceFactory csharpLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
-            : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
+            : base(streamingPresenter, csharpLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
 
     [ExportLanguageService(typeof(IGoToDefinitionService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLspClientServiceFactory roslynLspClientServiceFactory,
+        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, VisualBasicLspClientServiceFactory vbLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
-            : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
+            : base(streamingPresenter, vbLspClientServiceFactory, remoteWorkspace, threadingContext) { }
+    }
+
+    [ExportLanguageService(typeof(IGoToDefinitionService), StringConstants.TypeScriptLanguageName, WorkspaceKind.AnyCodeRoslynWorkspace), Shared]
+    internal class TypeScriptLspGotoDefinitionService : RoslynGotoDefinitionService
+    {
+        [ImportingConstructor]
+        public TypeScriptLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, TypeScriptLspClientServiceFactory typeScriptLspClientServiceFactory,
+            RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
+            : base(streamingPresenter, typeScriptLspClientServiceFactory, remoteWorkspace, threadingContext)
+        {
+        }
     }
 }

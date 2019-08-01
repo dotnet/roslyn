@@ -339,11 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.Equals(t2 as ArrayTypeSymbol, comparison, isValueTypeOverrideOpt);
         }
 
-        internal bool Equals(ArrayTypeSymbol other)
-        {
-            return Equals(other, TypeCompareKind.ConsiderEverything);
-        }
-
         private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
@@ -482,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
         {
-            get => ElementTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+            get => ElementTypeWithAnnotations.ToPublicAnnotation();
         }
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
@@ -492,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool IArrayTypeSymbol.Equals(IArrayTypeSymbol symbol)
         {
-            return this.Equals(symbol as ArrayTypeSymbol);
+            return this.Equals(symbol as ArrayTypeSymbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
         #endregion

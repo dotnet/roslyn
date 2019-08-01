@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNamedArguments
 {
@@ -29,35 +30,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
-                if (argument == null && textSpan.IsEmpty)
-                {
-                    // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
-                    // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
-                    // traversing up & checking line numbers -> need to do it manually.
-                    // The rationale for only first line is that arg. expressions can be arbitrarily large. 
-                    // see: https://github.com/dotnet/roslyn/issues/18848
-
-                    var position = textSpan.Start;
-                    var token = root.FindToken(position);
-
-                    argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
-                    if (argument == null)
-                    {
-                        return;
-                    }
-
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                    var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
-
-                    if (argumentStartLine != caretLine)
-                    {
-                        return;
-                    }
-                }
-
+                var argument = await context.TryGetRelevantNodeAsync<TBaseArgumentSyntax>().ConfigureAwait(false) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;

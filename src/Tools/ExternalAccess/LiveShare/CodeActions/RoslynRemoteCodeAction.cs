@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
             var runCodeActionsCommand = ((JToken)_command.Arguments?.Single()).ToObject<LSP.Command>();
             var runCodeActionParams = ((JToken)runCodeActionsCommand.Arguments?.Single())?.ToObject<RunCodeActionParams>();
 
-            var request = new LSP.LspRequest<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName);
+            var request = new LspRequest<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName);
             var textEdits = await _lspClient.RequestAsync(request, runCodeActionParams, cancellationToken).ConfigureAwait(false);
             if (textEdits == null || textEdits.Length == 0)
             {

@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var ifNode = await context.TryGetSelectedNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
-
-            if (ifNode == null || ifNode.OverlapsHiddenPosition(cancellationToken))
+            var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
+            if (ifNode == null)
             {
                 return;
             }

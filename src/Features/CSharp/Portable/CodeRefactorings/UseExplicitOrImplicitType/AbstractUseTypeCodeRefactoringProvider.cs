@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -51,12 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            if (declaredType.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            if (!declaredType.Span.IntersectsWith(textSpan.Start))
+            // only allow the refactoring is selection/location intersects with the type node
+            if (!declaredType.Span.IntersectsWith(textSpan))
             {
                 return;
             }
@@ -91,25 +82,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             // we also want to enable it when only the type node is selected because this refactoring changes the type. We still have to make sure 
             // we're only working on TypeNodes for in above-mentioned situations.
 
-            var declNode = await context.TryGetSelectedNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
+            var declNode = await context.TryGetRelevantNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
             if (declNode != null)
             {
                 return declNode;
             }
 
-            var variableNode = await context.TryGetSelectedNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
+            var variableNode = await context.TryGetRelevantNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
             if (variableNode != null)
             {
                 return variableNode;
             }
 
-            var foreachStatement = await context.TryGetSelectedNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
+            var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
             if (foreachStatement != null)
             {
                 return foreachStatement;
             }
 
-            var typeNode = await context.TryGetSelectedNodeAsync<TypeSyntax>().ConfigureAwait(false);
+            var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
             var typeNodeParent = typeNode?.Parent;
             if (typeNodeParent != null && typeNodeParent.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement))
             {
