@@ -54,14 +54,15 @@ namespace Microsoft.CodeAnalysis.AddImports
         private bool HasExistingImport(
             SyntaxNode import, ImmutableArray<SyntaxNode> containers, ImmutableArray<SyntaxNode> globalImports)
         {
+            SemanticModel semanticModel = null;
             foreach (var node in containers)
             {
-                if (GetUsingsAndAliases(node).Any(u => u.IsEquivalentTo(import, topLevel: false)))
+                if (GetUsingsAndAliases(node).Any(u => IsEquivalentImport(u, import)))
                 {
                     return true;
                 }
 
-                if (GetExterns(node).Any(u => u.IsEquivalentTo(import, topLevel: false)))
+                if (GetExterns(node).Any(u => IsEquivalentImport(u, import)))
                 {
                     return true;
                 }
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             foreach (var node in globalImports)
             {
-                if (node.IsEquivalentTo(import, topLevel: false))
+                if (IsEquivalentImport(node, import))
                 {
                     return true;
                 }
@@ -77,6 +78,8 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             return false;
         }
+
+        protected abstract bool IsEquivalentImport(SyntaxNode a, SyntaxNode b);
 
         public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
         {

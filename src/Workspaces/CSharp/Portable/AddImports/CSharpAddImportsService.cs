@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImports
@@ -69,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 case NamespaceDeclarationSyntax n: return n.Externs;
                 default: return default;
             }
+        }
+
+        protected override bool IsEquivalentImport(SyntaxNode a, SyntaxNode b)
+        {
+            return a.IsEquivalentTo(b);
         }
 
         private class Rewriter : CSharpSyntaxRewriter

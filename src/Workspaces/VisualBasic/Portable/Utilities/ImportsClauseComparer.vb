@@ -9,19 +9,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Class ImportsClauseComparer
         Implements IComparer(Of ImportsClauseSyntax)
 
-        Public Shared ReadOnly Instance As IComparer(Of ImportsClauseSyntax) = New ImportsClauseComparer()
+        Public Shared ReadOnly NormalInstance As IComparer(Of ImportsClauseSyntax) = New ImportsClauseComparer()
 
         Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
+        Private ReadOnly _tokenComparer As IComparer(Of SyntaxToken)
 
         Private Sub New()
             _nameComparer = NameSyntaxComparer.Create(TokenComparer.NormalInstance)
         End Sub
 
-        Public Function Compare(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Integer Implements IComparer(Of ImportsClauseSyntax).Compare
-            Return CompareClauses(x, y, _nameComparer)
-        End Function
+        Public Sub New(tokenComparer As IComparer(Of SyntaxToken))
+            _nameComparer = NameSyntaxComparer.Create(tokenComparer)
+            _tokenComparer = tokenComparer
+        End Sub
 
-        Friend Shared Function CompareClauses(x As ImportsClauseSyntax, y As ImportsClauseSyntax, nameComparer As IComparer(Of NameSyntax)) As Integer
+        Friend Function Compare(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Integer Implements IComparer(Of ImportsClauseSyntax).Compare
             Dim imports1 = TryCast(x, SimpleImportsClauseSyntax)
             Dim imports2 = TryCast(y, SimpleImportsClauseSyntax)
             Dim xml1 = TryCast(x, XmlNamespaceImportsClauseSyntax)
@@ -41,21 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 ElseIf imports1.Alias Is Nothing AndAlso imports2.Alias IsNot Nothing Then
                     Return -1
                 ElseIf imports1.Alias IsNot Nothing AndAlso imports2.Alias IsNot Nothing Then
-                    Return TokenComparer.NormalInstance.Compare(imports1.Alias.Identifier, imports2.Alias.Identifier)
+                    Return _tokenComparer.Compare(imports1.Alias.Identifier, imports2.Alias.Identifier)
                 Else
-                    Return nameComparer.Compare(imports1.Name, imports2.Name)
+                    Return _nameComparer.Compare(imports1.Name, imports2.Name)
                 End If
             End If
 
             Return 0
         End Function
 
-        Private Shared Function CompareXmlNames(xmlName1 As XmlNameSyntax, xmlName2 As XmlNameSyntax) As Integer
+        Private Function CompareXmlNames(xmlName1 As XmlNameSyntax, xmlName2 As XmlNameSyntax) As Integer
             Dim tokens1 = xmlName1.DescendantTokens().Where(Function(t) t.Kind = SyntaxKind.IdentifierToken).ToList()
             Dim tokens2 = xmlName2.DescendantTokens().Where(Function(t) t.Kind = SyntaxKind.IdentifierToken).ToList()
 
             For i = 0 To Math.Min(tokens1.Count - 1, tokens2.Count - 1)
-                Dim compare = TokenComparer.NormalInstance.Compare(tokens1(i), tokens2(i))
+                Dim compare = _tokenComparer.Compare(tokens1(i), tokens2(i))
                 If compare <> 0 Then
                     Return compare
                 End If
