@@ -18,12 +18,6 @@
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
-
-    <!-- 
-      Bootstrap compiler should run as a 32 bit process on our 32 bit test runs. This will validate
-      the legacy JIT ability to handle the compiler. 
-    -->
-    <PlatformTarget Condition="'$(OutputType)' == 'Exe' AND '$(TargetFramework)' == 'net472' AND '$(BOOTSTRAP32)' == 'true'">x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
