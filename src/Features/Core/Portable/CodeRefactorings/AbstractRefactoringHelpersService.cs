@@ -270,7 +270,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var endOfAttributeLists = attributeList.Last().Span.End;
                 var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
 
-                return TextSpan.FromBounds(afterAttributesToken.Span.Start, node.Span.End);
+                var endOfNode = node.Span.End;
+                var startOfTokenAfterAttributes = afterAttributesToken.Span.Start;
+                var startOfNodeWithoutAttributes = endOfNode >= startOfTokenAfterAttributes
+                    ? afterAttributesToken.Span.Start
+                    : endOfNode;
+
+                return TextSpan.FromBounds(startOfNodeWithoutAttributes, endOfNode);
             }
 
             return node.Span;
