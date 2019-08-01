@@ -102,6 +102,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertMethodWithExplicitInterfaceSpecifier = 81,
         InsertIntoInterface = 82,
         InsertLocalFunctionIntoInterfaceMethod = 83,
+        SwitchExpressionUpdate = 84,
+        ChangingFromAsynchronousToSynchronous = 85,
+        ChangingStateMachineShape = 86,
 
         // Chagned from 0x103 in 16.1
         ComplexQueryExpression = 82,

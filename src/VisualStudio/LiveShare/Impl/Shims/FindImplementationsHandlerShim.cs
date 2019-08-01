@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             // TypeScript requires this call to be on the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
+            return await base.HandleAsyncPreserveThreadContext(param, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 

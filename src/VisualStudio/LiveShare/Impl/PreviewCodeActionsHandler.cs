@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var codeActions = await GetCodeActionsAsync(solution,
                                                         request.CodeActionParams.TextDocument.Uri,
                                                         request.CodeActionParams.Range,
+                                                        keepThreadContext: false,
                                                         cancellationToken).ConfigureAwait(false);
 
             var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);

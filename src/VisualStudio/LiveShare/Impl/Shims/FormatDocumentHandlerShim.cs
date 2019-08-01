@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             // To get the formatting options, TypeScript expects to be called on the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
+            return await base.HandleAsyncPreserveThreadContext(param, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 
