@@ -5,7 +5,7 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Describes different kinds of Dispose-like methods.
     /// </summary>
-    public enum DisposeMethodKind
+    internal enum DisposeMethodKind
     {
         /// <summary>
         /// Not a dispose-like method.

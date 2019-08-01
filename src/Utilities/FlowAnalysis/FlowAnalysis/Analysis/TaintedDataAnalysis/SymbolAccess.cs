@@ -50,11 +50,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(Location.GetHashCode());
-            builder.Add(Symbol.GetHashCode());
-            builder.Add(AccessingMethod.GetHashCode());
+            addPart(Location.GetHashCode());
+            addPart(Symbol.GetHashCode());
+            addPart(AccessingMethod.GetHashCode());
         }
     }
 }

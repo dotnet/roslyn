@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 copyAnalysisData.AssertValidCopyAnalysisData(GetDefaultCopyValue);
             }
 
-            protected override void AddTrackedEntities(CopyAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(CopyAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => analysisData.AddTrackedEntities(builder);
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);

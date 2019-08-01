@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
             }
 
-            protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => analysisData.AddTrackedEntities(builder);
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
