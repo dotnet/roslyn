@@ -11,14 +11,15 @@ using Microsoft.CodeAnalysis.ExternalAccess.LiveShare;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     class RoslynSignatureHelpProvider : ISignatureHelpProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynSignatureHelpProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynSignatureHelpProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
@@ -49,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            SignatureHelp signatureHelp = await lspClient.RequestAsync(Methods.TextDocumentSignatureHelp, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
+            SignatureHelp signatureHelp = await lspClient.RequestAsync(Methods.TextDocumentSignatureHelp.ToLSRequest(), textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             if (signatureHelp == null || signatureHelp.Signatures == null || signatureHelp.Signatures.Length <= 0)
             {
                 return null;

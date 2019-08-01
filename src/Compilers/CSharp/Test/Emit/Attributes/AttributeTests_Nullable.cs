@@ -934,6 +934,40 @@ C
         }
 
         [Fact]
+        public void EmitAttribute_TypeParameters()
+        {
+            var source =
+@"#nullable enable
+public interface I<T, U, V>
+    where U : class
+    where V : struct
+{
+    T F1();
+    U F2();
+    U? F3();
+    V F4();
+    V? F5();
+#nullable disable
+    T F6();
+    U F7();
+    U? F8();
+    V F9();
+    V? F10();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"I<T, U, V> where U : class! where V : struct
+    [Nullable(2)] T
+    [Nullable(1)] U
+    [NullableContext(1)] T F1()
+    [NullableContext(1)] U! F2()
+    [NullableContext(2)] U? F3()
+    [NullableContext(2)] U? F8()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Constraint_Nullable()
         {
             var source =

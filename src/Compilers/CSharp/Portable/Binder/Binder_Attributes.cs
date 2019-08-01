@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (!(attributeConstructor is null))
+            if (attributeConstructor is object)
             {
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 

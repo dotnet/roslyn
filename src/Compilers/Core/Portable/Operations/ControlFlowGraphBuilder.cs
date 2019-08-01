@@ -6690,13 +6690,13 @@ oneMoreTime:
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
         {
-            if (!(operation.LeftOperand is null))
+            if (operation.LeftOperand is object)
             {
                 PushOperand(Visit(operation.LeftOperand));
             }
 
             IOperation visitedRightOperand = null;
-            if (!(operation.RightOperand is null))
+            if (operation.RightOperand is object)
             {
                 visitedRightOperand = Visit(operation.RightOperand);
             }

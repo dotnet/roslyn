@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // already declared as nullable to indicate that null is ok.  Adding a null check
             // just disallows something that should be allowed.
             var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
-            
+
             if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
             {
                 // Generate: this.x = x ?? throw ...

@@ -2,9 +2,10 @@
 
 using System;
 using System.Threading;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
                     Arguments = _command.Arguments
                 };
 
-                await _lspClient.RequestAsync(Methods.WorkspaceExecuteCommand, executeCommandParams, cancellationToken).ConfigureAwait(false);
+                await _lspClient.RequestAsync(Methods.WorkspaceExecuteCommand.ToLSRequest(), executeCommandParams, cancellationToken).ConfigureAwait(false);
             });
         }
     }

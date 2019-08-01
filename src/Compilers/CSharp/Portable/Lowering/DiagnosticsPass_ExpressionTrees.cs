@@ -139,30 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter);
 
-            if ((object)_staticLocalFunction != null && !IsContainedIn(_staticLocalFunction, symbol))
+            if (_staticLocalFunction is object && Symbol.IsCaptured(symbol, _staticLocalFunction))
             {
                 Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
 
-        private static bool IsContainedIn(LocalFunctionSymbol container, Symbol symbol)
-        {
-            Debug.Assert((object)container != null);
-            Debug.Assert(container != symbol);
-            while (true)
-            {
-                var containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol is null)
-                {
-                    return false;
-                }
-                if (container == containingSymbol)
-                {
-                    return true;
-                }
-                symbol = containingSymbol;
-            }
-        }
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {

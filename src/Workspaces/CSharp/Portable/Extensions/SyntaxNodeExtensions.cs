@@ -520,75 +520,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        public static SyntaxNode GetParent(this SyntaxNode node)
-            => node?.Parent;
-
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ParenthesizedExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case MakeRefExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case RefTypeExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case RefValueExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CheckedExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case DefaultExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case TypeOfExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SizeOfExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CastExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case WhileStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case DoStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ForStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CommonForEachStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case UsingStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case FixedStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case LockStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case IfStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SwitchStatementSyntax n when n.OpenParenToken != default: return (n.OpenParenToken, n.CloseParenToken);
-                case TupleExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CatchDeclarationSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ParameterListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                default: return default;
-            }
-        }
+                ParenthesizedExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                MakeRefExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                RefTypeExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                RefValueExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CheckedExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                DefaultExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                TypeOfExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                SizeOfExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ArgumentListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CastExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                WhileStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                DoStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ForStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CommonForEachStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                UsingStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                FixedStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                LockStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                IfStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                SwitchStatementSyntax n when n.OpenParenToken != default => (n.OpenParenToken, n.CloseParenToken),
+                TupleExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CatchDeclarationSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                AttributeArgumentListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ConstructorConstraintSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ParameterListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                _ => default,
+            };
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBrackets(this SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ArrayRankSpecifierSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedArgumentListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default;
-            }
-        }
+                ArrayRankSpecifierSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedArgumentListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ImplicitArrayCreationExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                AttributeListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedParameterListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                _ => default,
+            };
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode member)
-        {
-            switch (member)
+            => member switch
             {
-                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
-                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
-            }
-
-            return default;
-        }
+                MemberDeclarationSyntax memberDecl => memberDecl.Modifiers,
+                AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                _ => default,
+            };
 
         public static SyntaxNode WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)
-        {
-            switch (member)
+            => member switch
             {
-                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
-                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
-            }
-
-            return null;
-        }
+                MemberDeclarationSyntax memberDecl => memberDecl.WithModifiers(modifiers),
+                AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                _ => default(SyntaxNode),
+            };
 
         public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
         {
@@ -653,21 +640,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax compilation:
-                    return compilation.Members;
-                case NamespaceDeclarationSyntax @namespace:
-                    return @namespace.Members;
-                case TypeDeclarationSyntax type:
-                    return type.Members;
-                case EnumDeclarationSyntax @enum:
-                    return @enum.Members;
-            }
-
-            return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
+                CompilationUnitSyntax compilation => compilation.Members,
+                NamespaceDeclarationSyntax @namespace => @namespace.Members,
+                TypeDeclarationSyntax type => type.Members,
+                EnumDeclarationSyntax @enum => @enum.Members,
+                _ => SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>(),
+            };
 
         public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)
         {
@@ -751,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInDeconstructionLeft(this SyntaxNode node, out SyntaxNode deconstructionLeft)
         {
             SyntaxNode previous = null;
-            for (var current = node; current != null; current = current.GetParent())
+            for (var current = node; current != null; current = current.Parent)
             {
                 if ((current is AssignmentExpressionSyntax assignment && previous == assignment.Left && assignment.IsDeconstruction()) ||
                     (current is ForEachVariableStatementSyntax @foreach && previous == @foreach.Variable))

@@ -119,24 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return rightNode
         End Function
 
-        Public Shared Function IsMethod(declaration As SyntaxNode) As Boolean
-            Select Case declaration.Kind
-                Case SyntaxKind.SubBlock,
-                     SyntaxKind.FunctionBlock,
-                     SyntaxKind.ConstructorBlock,
-                     SyntaxKind.OperatorBlock,
-                     SyntaxKind.GetAccessorBlock,
-                     SyntaxKind.SetAccessorBlock,
-                     SyntaxKind.AddHandlerAccessorBlock,
-                     SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock
-                    Return True
-
-                Case Else
-                    Return False
-            End Select
-        End Function
-
         Public Shared Function IsParameterlessConstructor(declaration As SyntaxNode) As Boolean
             If Not declaration.IsKind(SyntaxKind.ConstructorBlock) Then
                 Return False

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }

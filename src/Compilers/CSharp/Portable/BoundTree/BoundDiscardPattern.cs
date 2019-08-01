@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyDiscardSymbol is null)
                 {
-                    Debug.Assert(!(this.InputType is null));
+                    Debug.Assert(this.InputType is object);
                     _lazyDiscardSymbol = new DiscardSymbol(this.InputType);
                 }
 
