@@ -21,12 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     internal partial class InertClassifierProvider : IClassifierProvider
     {
         private static readonly object s_classificationsKey = new object();
-        private readonly IViewClassifierAggregatorService _classifierAggregator;
 
         [ImportingConstructor]
-        public InertClassifierProvider(IViewClassifierAggregatorService classifierAggregator)
+        public InertClassifierProvider()
         {
-            _classifierAggregator = classifierAggregator;
         }
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)

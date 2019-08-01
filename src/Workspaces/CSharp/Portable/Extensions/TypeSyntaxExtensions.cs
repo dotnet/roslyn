@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var nameSyntax = typeSyntax as NameSyntax;
-            if (nameSyntax == null)
+            if (!(typeSyntax is NameSyntax nameSyntax))
             {
                 return false;
             }

@@ -182,16 +182,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static string GetDocumentation(ISymbol symbol, CancellationToken cancellationToken)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, cancellationToken);
-                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
-                case IMethodSymbol method: return GetMethodDocumentation(method);
-                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
-                default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
-            }
-        }
+                IParameterSymbol parameter => GetParameterDocumentation(parameter, cancellationToken),
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
+                IMethodSymbol method => GetMethodDocumentation(method),
+                IAliasSymbol alias => alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
+                _ => symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
+            };
 
         private static string GetParameterDocumentation(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
@@ -304,8 +302,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(symbol is IMethodSymbol methodSymbol))
             {
                 return null;
             }

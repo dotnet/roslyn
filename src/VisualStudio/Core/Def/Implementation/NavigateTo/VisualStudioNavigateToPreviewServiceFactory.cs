@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
     [ExportWorkspaceServiceFactory(typeof(INavigateToPreviewService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
     {
-        private Lazy<INavigateToPreviewService> _singleton =
+        private readonly Lazy<INavigateToPreviewService> _singleton =
             new Lazy<INavigateToPreviewService>(() => new VisualStudioNavigateToPreviewService());
 
         [ImportingConstructor]

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
-            var options = GetChangeSignatureOptions(context, CancellationToken.None);
+            var options = GetChangeSignatureOptions(context);
             if (options.IsCancelled)
             {
                 return new ChangeSignatureResult(succeeded: false);
@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(
-            ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
             var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
