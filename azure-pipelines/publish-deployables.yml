@@ -3,7 +3,7 @@ steps:
   displayName: Download deployables
   artifact: deployables-Windows
 
-- task: DotNetCoreCLI@2
+- task: NuGetCommand@2
   displayName: Push packages to CI feed
   inputs:
     command: push
