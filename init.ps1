@@ -96,12 +96,6 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
-    if ($FxCop) {
-        Write-Host "Installing MicroBuild FxCop plugin" -ForegroundColor $HeaderColor
-        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.FxCop -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
-        $EnvVars['MicroBuild_FXCop'] = "true"
-    }
-
     & ".\azure-pipelines\Set-EnvVars.ps1" -Variables $EnvVars
 }
 catch {

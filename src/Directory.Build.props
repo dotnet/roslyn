@@ -8,8 +8,6 @@
     <LangVersion>7.3</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <SignAssembly>true</SignAssembly>
-
     <Company>COMPANY-PLACEHOLDER</Company>
     <Authors>COMPANY-PLACEHOLDER</Authors>
     <Copyright>© COMPANY-PLACEHOLDER. All rights reserved.</Copyright>
@@ -23,9 +21,9 @@
 
   <ItemGroup>
     <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.55" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.4" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
     <!-- <PackageReference Include="Microsoft.SourceLink.Vsts.Git" Version="1.0.0-beta2-19351-01" PrivateAssets="All" /> -->
     <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.183" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />

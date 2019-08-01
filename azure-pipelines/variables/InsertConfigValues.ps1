@@ -1,4 +1,4 @@
-$BinPath = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\bin\Packages\$env:BuildConfiguration")
+$BinPath = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\bin\Packages\$env:BUILDCONFIGURATION")
 
 $icv=@()
 if (Test-Path "$BinPath") {
