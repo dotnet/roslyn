@@ -243,12 +243,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 End If
 
                 If newNode.Kind = SyntaxKind.AsNewClause Then
-                    ' Speculation is not supported for AsNewClauseSyntax nodes.
+                    ' Speculation is not supported for AsNewClauseSyntax nodes (see https://github.com/dotnet/roslyn/issues/15593).
                     ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
+                    
+                    ' The SpeculationAnalyzer would do the work of creating the EqualsValueSyntax for us if we passed the AsNewClause,
+                    ' but we need to build it ourself so that we can locate the newTypeName node in the new tree. This way we can
+                    ' GetSymbolInfo for it.
 
                     Dim asNewClauseNode = DirectCast(newNode, AsNewClauseSyntax)
-                    Dim equalsValueNode = SyntaxFactory.EqualsValue(asNewClauseNode.NewExpression)
-                    newNode = asNewClauseNode.CopyAnnotationsTo(equalsValueNode)
+                    newNode = SyntaxFactory.EqualsValue(asNewClauseNode.NewExpression)
                     newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                 End If
 
