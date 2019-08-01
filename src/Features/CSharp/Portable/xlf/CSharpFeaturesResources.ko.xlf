@@ -167,6 +167,16 @@
         <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
+      <trans-unit id="asynchronous_foreach_statement">
+        <source>asynchronous foreach statement</source>
+        <target state="new">asynchronous foreach statement</target>
+        <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="asynchronous_using_declaration">
+        <source>asynchronous using declaration</source>
+        <target state="new">asynchronous using declaration</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
@@ -180,6 +190,11 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
         <source>Autoselect disabled due to potential lambda declaration.</source>
         <target state="translated">람다 선언이 있을 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_variable_declaration">
+        <source>local variable declaration</source>
+        <target state="new">local variable declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="member_name">
@@ -402,6 +417,16 @@
         <target state="translated">Using 지시문은 필요하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="switch_statement">
+        <source>switch statement</source>
+        <target state="new">switch statement</target>
+        <note>{Locked="switch"} "switch" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="switch_statement_case_clause">
+        <source>switch statement case clause</source>
+        <target state="new">switch statement case clause</target>
+        <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
         <target state="translated">try 블록</target>
@@ -427,6 +452,11 @@
         <target state="translated">fixed 문</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="using_declaration">
+        <source>using declaration</source>
+        <target state="new">using declaration</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="using_statement">
         <source>using statement</source>
         <target state="translated">using 문</target>
@@ -451,11 +481,6 @@
         <source>unchecked statement</source>
         <target state="translated">unchecked 문</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="yield_statement">
-        <source>yield statement</source>
-        <target state="translated">yield 문</target>
-        <note>{Locked="yield"} "yield" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="await_expression">
         <source>await expression</source>
@@ -546,11 +571,6 @@
         <source>ref local or expression</source>
         <target state="translated">참조 로컬 또는 식</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="v7_switch">
-        <source>C# 7 enhanced switch statement</source>
-        <target state="translated">C# 7 향상된 switch 문</target>
-        <note />
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
@@ -816,6 +836,16 @@
         <source>Warning: Moving using directives may change code meaning.</source>
         <target state="new">Warning: Moving using directives may change code meaning.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="yield_break_statement">
+        <source>yield break statement</source>
+        <target state="new">yield break statement</target>
+        <note>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="yield_return_statement">
+        <source>yield return statement</source>
+        <target state="new">yield return statement</target>
+        <note>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool minimal)
         {
             // https://github.com/dotnet/roslyn/issues/35035: Refactor this. We need to be able to handle non-TypeSymbol inputs
-            var annotation = (CodeAnalysis.NullableAnnotation?)TypeWithState.Create((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().NullableAnnotation.ToPublicAnnotation();
+            var annotation = (CodeAnalysis.NullableAnnotation?)TypeWithState.Create((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToPublicAnnotation();
             return ToDisplayParts(symbol, annotation, semanticModelOpt, positionOpt, format, minimal);
         }
 

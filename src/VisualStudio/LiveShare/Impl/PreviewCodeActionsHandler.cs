@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,16 +11,13 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.CodeActionPreviewName)]
     internal class PreviewCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<RunCodeActionParams, LSP.TextEdit[], Solution>
     {
-        [ImportingConstructor]
         public PreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
             : base(codeFixService, codeRefactoringService)
         {
@@ -34,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var codeActions = await GetCodeActionsAsync(solution,
                                                         request.CodeActionParams.TextDocument.Uri,
                                                         request.CodeActionParams.Range,
+                                                        keepThreadContext: false,
                                                         cancellationToken).ConfigureAwait(false);
 
             var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);

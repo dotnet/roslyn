@@ -2052,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberOpt = WellKnownMember.System_Range__StartAt;
                 }
 
-                if (!(memberOpt is null))
+                if (memberOpt is object)
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
                         Compilation,
@@ -3455,7 +3455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalCSharp73SpanStackAllocPosition();
                 if (!inLegalPosition)
                 {
-                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node.GetFirstToken().GetLocation());
+                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node, node.GetFirstToken().GetLocation());
                 }
             }
 
@@ -7048,7 +7048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                 {
                     result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
-                    if (!(result is null))
+                    if (result is object)
                     {
                         // This member is needed for lowering and should produce an error if not present
                         _ = GetWellKnownTypeMember(
@@ -7097,7 +7097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var attemptDiagnostics = DiagnosticBag.GetInstance();
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7113,7 +7113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
 
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7664,7 +7664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 

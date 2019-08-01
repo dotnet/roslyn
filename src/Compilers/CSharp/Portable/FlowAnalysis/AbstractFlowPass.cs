@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nonMonotonicTransfer = nonMonotonicTransferFunction;
         }
 
+        protected bool TrackingRegions => _trackRegions;
+
         protected abstract string Dump(TLocalState state);
 
         protected string Dump()

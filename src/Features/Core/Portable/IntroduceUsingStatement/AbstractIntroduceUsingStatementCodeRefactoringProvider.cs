@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var declarationSyntax = await refactoringHelperService.TryGetSelectedNodeAsync<TLocalDeclarationSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
-
+            var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
                 return default;

@@ -30,42 +30,42 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
     [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspEditorClassificationFactoryService : ILanguageServiceFactory
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly CSharpLspClientServiceFactory _csharpLspClientServiceFactory;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public CSharpLspEditorClassificationFactoryService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
+        public CSharpLspEditorClassificationFactoryService(CSharpLspClientServiceFactory csharpLspClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _csharpLspClientServiceFactory = csharpLspClientServiceFactory ?? throw new ArgumentNullException(nameof(csharpLspClientServiceFactory));
             _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
             _threadingContext = threadingContext;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new RoslynClassificationService(_roslynLspClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
+            return new RoslynClassificationService(_csharpLspClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
         }
     }
 
     [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspEditorClassificationFactoryService : ILanguageServiceFactory
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly VisualBasicLspClientServiceFactory _vbLspClientServiceFactory;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public VBLspEditorClassificationFactoryService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
+        public VBLspEditorClassificationFactoryService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _vbLspClientServiceFactory = vbLspClientServiceFactory ?? throw new ArgumentNullException(nameof(vbLspClientServiceFactory));
             _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
             _threadingContext = threadingContext;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new RoslynClassificationService(_roslynLspClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
+            return new RoslynClassificationService(_vbLspClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
         }
     }
 }

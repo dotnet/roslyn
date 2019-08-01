@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 var (document, textSpan, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = await context.TryGetSelectedNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
+                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
                 if (ifStatement == null || ifStatement.ContainsDiagnostics)
                 {
                     return;

@@ -48,12 +48,5 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <!-- 
-      Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
-      Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition containing it.
-      This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
-      Remove this reference once it's fixed.
-     -->
-    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>
