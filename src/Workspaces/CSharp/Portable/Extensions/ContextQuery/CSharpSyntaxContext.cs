@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+        public readonly bool IsLeftSideOfImportAliasDirective;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective,
+            bool isLeftSideOfImportAliasDirective,
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
             bool isRightOfDotOrArrowOrColonColon,
@@ -139,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -227,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 isNameOfContext: syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
                 isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
-                isInImportsDirective: IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
+                isInImportsDirective: leftToken.GetAncestor<UsingDirectiveSyntax>() != null,
+                isLeftSideOfImportAliasDirective: IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 isRightOfDotOrArrowOrColonColon: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
