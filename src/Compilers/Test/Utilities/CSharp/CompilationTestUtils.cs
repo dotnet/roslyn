@@ -286,12 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            // When nullable analysis does not require a feature flag, this can be removed so that we
-            // don't need to create an extra compilation
-            if (compilation.Feature("run-nullable-analysis") != "true")
-            {
-                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
-            }
+            Assert.True(compilation.NullableSemanticAnalysisEnabled);
 
             if (tree == null)
             {
@@ -321,18 +316,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var actualTypes = annotations.SelectAsArray(annotation =>
                     {
                         var typeInfo = model.GetTypeInfo(annotation.Expression);
-                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
-                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
                         // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
-                        return TypeWithState.Create((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                        var type = TypeWithState.Create(
+                            (TypeSymbol)(annotation.IsConverted ? typeInfo.ConvertedType : typeInfo.Type),
+                            (annotation.IsConverted ? typeInfo.ConvertedNullability : typeInfo.Nullability).FlowState.ToInternalFlowState()).ToTypeWithAnnotations();
+                        return type.ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
                     });
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
             }
 
-            ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+            ImmutableArray<(ExpressionSyntax Expression, string Text, bool IsConverted)> getAnnotations()
             {
-                var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                var builder = ArrayBuilder<(ExpressionSyntax, string, bool)>.GetInstance();
                 foreach (var token in root.DescendantTokens())
                 {
                     foreach (var trivia in token.TrailingTrivia)
@@ -340,15 +337,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
                         {
                             var text = trivia.ToFullString();
-                            const string prefix = "/*T:";
+                            const string typePrefix = "/*T:";
+                            const string convertedPrefix = "/*CT:";
                             const string suffix = "*/";
-                            if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                            bool startsWithTypePrefix = text.StartsWith(typePrefix);
+                            if (text.EndsWith(suffix) && (startsWithTypePrefix || text.StartsWith(convertedPrefix)))
                             {
+                                var prefix = startsWithTypePrefix ? typePrefix : convertedPrefix;
                                 var expr = getEnclosingExpression(token);
                                 Assert.True(expr != null, $"VerifyTypes could not find a matching expression for annotation '{text}'.");
 
                                 var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
-                                builder.Add((expr, content));
+                                builder.Add((expr, content, !startsWithTypePrefix));
                             }
                         }
                     }

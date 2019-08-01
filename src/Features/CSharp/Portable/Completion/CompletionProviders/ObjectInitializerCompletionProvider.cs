@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol && ((IPropertySymbol)member).Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
             {
                 return false;
             }

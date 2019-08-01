@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out DisposeAnalysisHelper disposeAnalysisHelper))
+                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out var disposeAnalysisHelper))
                 {
                     return;
                 }
@@ -102,6 +102,13 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                     ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
                         disposeAnalysisResult, pointsToAnalysisResult);
+
+                    if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                    {
+                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                        // Bail out in presence of OperationKind.None - not implemented IOperation.
+                        return;
+                    }
 
                     // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
                     // and avoiding duplicates.
@@ -161,8 +168,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             {
                 foreach (var kvp in disposeData)
                 {
-                    AbstractLocation location = kvp.Key;
-                    DisposeAbstractValue disposeValue = kvp.Value;
+                    var location = kvp.Key;
+                    var disposeValue = kvp.Value;
 
                     // Ignore non-disposable locations and locations without a Creation operation.
                     if (disposeValue.Kind == DisposeAbstractValueKind.NotDisposable ||

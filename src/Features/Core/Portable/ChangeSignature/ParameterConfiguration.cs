@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public ParameterConfiguration(IParameterSymbol thisParameter, List<IParameterSymbol> parametersWithoutDefaultValues, List<IParameterSymbol> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
         {
-            this.ThisParameter = thisParameter;
-            this.ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
-            this.RemainingEditableParameters = remainingEditableParameters;
-            this.ParamsParameter = paramsParameter;
-            this.SelectedIndex = selectedIndex;
+            ThisParameter = thisParameter;
+            ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
+            RemainingEditableParameters = remainingEditableParameters;
+            ParamsParameter = paramsParameter;
+            SelectedIndex = selectedIndex;
         }
 
         public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod, int selectedIndex)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 parameters.RemoveAt(parameters.Count - 1);
             }
 
-            bool seenDefaultValues = false;
+            var seenDefaultValues = false;
             foreach (var param in parameters)
             {
                 if (param.HasExplicitDefaultValue)

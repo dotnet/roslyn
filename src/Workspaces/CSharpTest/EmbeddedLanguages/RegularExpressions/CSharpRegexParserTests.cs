@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowOutOfMemory);
             }
 
-            for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+            for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
                     stringText.Substring(0, start) +

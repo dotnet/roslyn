@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
@@ -63,24 +63,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
+                var (document, textSpan, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
-                if (ifStatement == null)
-                {
-                    return;
-                }
-
-                if (ifStatement.ContainsDiagnostics)
-                {
-                    return;
-                }
-
-                // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
-                var token = ifStatement.GetFirstToken();
-                if (!token.Span.Contains(context.Span))
+                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
+                if (ifStatement == null || ifStatement.ContainsDiagnostics)
                 {
                     return;
                 }

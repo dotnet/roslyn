@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Consumers must provide implementation for <see cref="VisitExpressionWithoutStackGuard"/>.
         /// </summary>
+        [DebuggerStepThrough]
         protected BoundExpression VisitExpressionWithStackGuard(ref int recursionDepth, BoundExpression node)
         {
             BoundExpression result;
@@ -216,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        [DebuggerStepThrough]
         private BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
         {
             try

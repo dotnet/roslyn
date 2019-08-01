@@ -131,12 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
-                if (annotations.HasValue)
-                {
-                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
-                    return annotations.Value;
-                }
                 return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
             }
         }
@@ -150,34 +144,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
             if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
             if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
+
             if (attributeData.HasMaybeNullAttribute)
             {
                 annotations |= FlowAnalysisAnnotations.MaybeNull;
             }
             else
             {
-                bool? value = attributeData.MaybeNullWhenAttribute;
-                if (value.HasValue)
+                if (attributeData.MaybeNullWhenAttribute is bool when)
                 {
-                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
+                    annotations |= (when ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
                 }
             }
+
             if (attributeData.HasNotNullAttribute)
             {
                 annotations |= FlowAnalysisAnnotations.NotNull;
             }
             else
             {
-                bool? value = attributeData.NotNullWhenAttribute;
-                if (value.HasValue)
+                if (attributeData.NotNullWhenAttribute is bool when)
                 {
-                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
+                    annotations |= (when ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
                 }
             }
-            if (attributeData.HasAssertsTrueAttribute) annotations |= FlowAnalysisAnnotations.AssertsTrue;
-            if (attributeData.HasAssertsFalseAttribute) annotations |= FlowAnalysisAnnotations.AssertsFalse;
+
+            if (attributeData.DoesNotReturnIfAttribute is bool condition)
+            {
+                annotations |= (condition ? FlowAnalysisAnnotations.DoesNotReturnIfTrue : FlowAnalysisAnnotations.DoesNotReturnIfFalse);
+            }
+
             return annotations;
         }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull 
+            => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         internal bool HasEnumeratorCancellationAttribute
         {
@@ -684,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute, arguments.Diagnostics);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute, arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
@@ -692,15 +693,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.NotNullWhenAttribute, attribute, arguments.Diagnostics);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.NotNullWhenAttribute, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {
@@ -709,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool? DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
         {
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?

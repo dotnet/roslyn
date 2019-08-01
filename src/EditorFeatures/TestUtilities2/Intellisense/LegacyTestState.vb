@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
@@ -32,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler, workspaceKind)
 
             Me.CompletionCommandHandler = GetExportedValue(Of CompletionCommandHandler)()
+
+            Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
+            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
         End Sub
 
 #Region "Editor Related Operations"

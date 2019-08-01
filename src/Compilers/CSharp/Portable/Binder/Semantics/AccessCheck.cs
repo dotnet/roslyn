@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -55,6 +54,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics, basesBeingResolved);
+        }
+
+        /// <summary>
+        /// Returns true if the symbol is effectively public or internal based on
+        /// the declared accessibility of the symbol and any containing symbols.
+        /// </summary>
+        internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
+        {
+            Debug.Assert(symbol is object);
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                    break;
+                case SymbolKind.TypeParameter:
+                    symbol = symbol.ContainingSymbol;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+
+            isInternal = false;
+
+            do
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                    case Accessibility.Protected:
+                    case Accessibility.ProtectedOrInternal:
+                        break;
+                    case Accessibility.Internal:
+                    case Accessibility.ProtectedAndInternal:
+                        isInternal = true;
+                        break;
+                    case Accessibility.Private:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+                }
+
+                symbol = symbol.ContainingType;
+            }
+            while (symbol is object);
+
+            return true;
         }
 
         /// <summary>
@@ -130,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    if (symbol.IsStatic)
+                    if (!symbol.RequiresInstanceReceiver())
                     {
                         // static members aren't accessed "through" an "instance" of any type.  So we
                         // null out the "through" instance here.  This ensures that we'll understand

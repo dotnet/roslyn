@@ -124,7 +124,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
         {
             try
             {
-                List<Exception> inners = new List<Exception>();
+                var inners = new List<Exception>();
 
                 try
                 {

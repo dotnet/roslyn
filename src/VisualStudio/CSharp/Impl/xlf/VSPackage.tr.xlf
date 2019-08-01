@@ -327,13 +327,13 @@ Adı önerilerini göster;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp Düzenleyici</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp Düzenleyici</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Encoding ile CSharp Düzenleyici</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">Encoding ile CSharp Düzenleyici</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

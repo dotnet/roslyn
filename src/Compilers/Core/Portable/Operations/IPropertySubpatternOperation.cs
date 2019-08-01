@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface IPropertySubpatternOperation : IOperation
+    public interface IPropertySubpatternOperation : IOperation
     {
         /// <summary>
         /// The member being matched in a property subpattern.  This can be a <see cref="IMemberReferenceOperation"/>

@@ -9,6 +9,7 @@
     <Rule Id="CA1018" Action="None" />
     <Rule Id="CA1028" Action="None" />
     <Rule Id="CA1030" Action="None" />
+    <Rule Id="CA1031" Action="None" /> <!-- Do not catch general exception types -->
     <Rule Id="CA1032" Action="None" />
     <Rule Id="CA1034" Action="None" />
     <Rule Id="CA1036" Action="None" />
@@ -86,6 +87,7 @@
     <Rule Id="RS1013" Action="None" />
     <Rule Id="RS1014" Action="Warning" />
     <Rule Id="RS1022" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26420: Enable rule RS1022 for Roslyn.sln -->
+    <Rule Id="RS1024" Action="Hidden" /> <!-- Compare symbols correctly -->
   </Rules>
   <Rules AnalyzerId="Microsoft.Composition.Analyzers" RuleNamespace="Microsoft.Composition.Analyzers">
     <Rule Id="RS0006" Action="Error" />
@@ -105,6 +107,8 @@
     <Rule Id="RS0025" Action="Error" />
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
+    <Rule Id="RS0033" Action="None" /> <!-- Importing constructor should be [Obsolete] -->
+    <Rule Id="RS0034" Action="None" /> <!-- 'type_name' is MEF-exported and should have a single importing constructor of the correct form -->
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />

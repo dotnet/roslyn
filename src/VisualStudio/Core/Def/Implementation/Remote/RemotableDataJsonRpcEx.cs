@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Threading;
@@ -65,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // only expected exception will be catched. otherwise, NFW and let it propagate
                 Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
             }
+        }
+
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
         }
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)

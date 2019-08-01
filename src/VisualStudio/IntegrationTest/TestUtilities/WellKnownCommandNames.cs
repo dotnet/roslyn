@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public const string Test_IntegrationTestService_Start = "Test.IntegrationTestService.Start";
         public const string Test_IntegrationTestService_Stop = "Test.IntegrationTestService.Stop";
+        public const string Test_IntegrationTestService_DisableAsyncCompletion = "Test.IntegrationTestService.DisableAsyncCompletion";
 
         public const string View_ErrorList = "View.ErrorList";
         public const string View_ShowSmartTag = "View.ShowSmartTag";

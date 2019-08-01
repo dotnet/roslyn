@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 throw new InvalidOperationException("Invalid header.");
             }
 
-            int offset = 0;
+            var offset = 0;
             ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         break;
                 }
 
-                int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
+                var bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
                 if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </remarks>
         public static ImmutableArray<short> DecodeUsingRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
+            var offset = 0;
             var numCounts = ReadInt16(bytes, ref offset);
 
             var builder = ArrayBuilder<short>.GetInstance(numCounts);
-            for (int i = 0; i < numCounts; i++)
+            for (var i = 0; i < numCounts; i++)
             {
                 builder.Add(ReadInt16(bytes, ref offset));
             }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </remarks>
         public static int DecodeForwardRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
+            var offset = 0;
             return ReadInt32(bytes, ref offset);
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </remarks>
         public static int DecodeForwardToModuleRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
+            var offset = 0;
             return ReadInt32(bytes, ref offset);
         }
 
@@ -168,15 +168,15 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </remarks>
         public static ImmutableArray<StateMachineHoistedLocalScope> DecodeStateMachineHoistedLocalScopesRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
+            var offset = 0;
 
             var bucketCount = ReadInt32(bytes, ref offset);
 
             var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
-            for (int i = 0; i < bucketCount; i++)
+            for (var i = 0; i < bucketCount; i++)
             {
-                int startOffset = ReadInt32(bytes, ref offset);
-                int endOffset = ReadInt32(bytes, ref offset);
+                var startOffset = ReadInt32(bytes, ref offset);
+                var endOffset = ReadInt32(bytes, ref offset);
 
                 // The range is stored as end-inclusive.
                 // The case [0,0] is ambiguous in Windows PDBs.
@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </remarks>
         public static string DecodeForwardIteratorRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
+            var offset = 0;
 
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
             while (true)
             {
-                char ch = (char)ReadInt16(bytes, ref offset);
+                var ch = (char)ReadInt16(bytes, ref offset);
                 if (ch == 0)
                 {
                     break;
@@ -238,33 +238,33 @@ namespace Microsoft.CodeAnalysis.Debugging
             var pooledNameBuilder = PooledStringBuilder.GetInstance();
             var nameBuilder = pooledNameBuilder.Builder;
 
-            int offset = 0;
-            int bucketCount = ReadInt32(bytes, ref offset);
+            var offset = 0;
+            var bucketCount = ReadInt32(bytes, ref offset);
             var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
 
-            for (int i = 0; i < bucketCount; i++)
+            for (var i = 0; i < bucketCount; i++)
             {
                 Debug.Assert(flagsBuilder.Count == 0);
                 Debug.Assert(nameBuilder.Length == 0);
 
-                for (int j = 0; j < FlagBytesCount; j++)
+                for (var j = 0; j < FlagBytesCount; j++)
                 {
                     flagsBuilder.Add(ReadByte(bytes, ref offset) != 0);
                 }
 
-                int flagCount = ReadInt32(bytes, ref offset);
+                var flagCount = ReadInt32(bytes, ref offset);
                 if (flagCount < flagsBuilder.Count)
                 {
                     flagsBuilder.Count = flagCount;
                 }
 
-                int slotId = ReadInt32(bytes, ref offset);
+                var slotId = ReadInt32(bytes, ref offset);
 
                 const int NameBytesCount = 128;
-                int nameEnd = offset + NameBytesCount;
+                var nameEnd = offset + NameBytesCount;
                 while (offset < nameEnd)
                 {
-                    char ch = (char)ReadInt16(bytes, ref offset);
+                    var ch = (char)ReadInt16(bytes, ref offset);
                     if (ch == 0)
                     {
                         // The Identifier name takes 64 WCHAR no matter how big its actual length is.
@@ -291,10 +291,10 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </summary>
         public static ImmutableArray<TupleElementNamesInfo> DecodeTupleElementNamesRecord(ImmutableArray<byte> bytes)
         {
-            int offset = 0;
-            int n = ReadInt32(bytes, ref offset);
+            var offset = 0;
+            var n = ReadInt32(bytes, ref offset);
             var builder = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n);
-            for (int i = 0; i < n; i++)
+            for (var i = 0; i < n; i++)
             {
                 builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
             }
@@ -303,16 +303,16 @@ namespace Microsoft.CodeAnalysis.Debugging
 
         private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
         {
-            int n = ReadInt32(bytes, ref offset);
+            var n = ReadInt32(bytes, ref offset);
             var builder = ArrayBuilder<string>.GetInstance(n);
-            for (int i = 0; i < n; i++)
+            for (var i = 0; i < n; i++)
             {
                 var value = ReadUtf8String(bytes, ref offset);
                 builder.Add(string.IsNullOrEmpty(value) ? null : value);
             }
-            int slotIndex = ReadInt32(bytes, ref offset);
-            int scopeStart = ReadInt32(bytes, ref offset);
-            int scopeEnd = ReadInt32(bytes, ref offset);
+            var slotIndex = ReadInt32(bytes, ref offset);
+            var scopeStart = ReadInt32(bytes, ref offset);
+            var scopeEnd = ReadInt32(bytes, ref offset);
             var localName = ReadUtf8String(bytes, ref offset);
             return new TupleElementNamesInfo(builder.ToImmutableAndFree(), slotIndex, localName, scopeStart, scopeEnd);
         }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// </summary>
         private static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
         {
-            int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
+            var bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
             body = ImmutableArray.Create(bytes, offset, bodySize);
             offset += bodySize;
         }
@@ -352,10 +352,10 @@ namespace Microsoft.CodeAnalysis.Debugging
             externAliasStrings = default;
 
             ImmutableArray<short> groupSizes = default;
-            bool seenForward = false;
+            var seenForward = false;
 
 RETRY:
-            byte[] bytes = getMethodCustomDebugInfo(methodToken, arg);
+            var bytes = getMethodCustomDebugInfo(methodToken, arg);
             if (bytes == null)
             {
                 return default;
@@ -398,14 +398,14 @@ RETRY:
                             throw new InvalidOperationException(string.Format("Expected at most one ForwardToModule record for method {0}", FormatMethodToken(methodToken)));
                         }
 
-                        int moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
+                        var moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
 
-                        ImmutableArray<string> allModuleInfoImportStrings = getMethodImportStrings(moduleInfoMethodToken, arg);
+                        var allModuleInfoImportStrings = getMethodImportStrings(moduleInfoMethodToken, arg);
                         Debug.Assert(!allModuleInfoImportStrings.IsDefault);
 
                         var externAliasBuilder = ArrayBuilder<string>.GetInstance();
 
-                        foreach (string importString in allModuleInfoImportStrings)
+                        foreach (var importString in allModuleInfoImportStrings)
                         {
                             if (IsCSharpExternAliasInfo(importString))
                             {
@@ -424,23 +424,23 @@ RETRY:
                 return default;
             }
 
-            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            var importStrings = getMethodImportStrings(methodToken, arg);
             Debug.Assert(!importStrings.IsDefault);
 
             var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
             var groupBuilder = ArrayBuilder<string>.GetInstance();
-            int pos = 0;
+            var pos = 0;
 
-            foreach (short groupSize in groupSizes)
+            foreach (var groupSize in groupSizes)
             {
-                for (int i = 0; i < groupSize; i++, pos++)
+                for (var i = 0; i < groupSize; i++, pos++)
                 {
                     if (pos >= importStrings.Length)
                     {
                         throw new InvalidOperationException(string.Format("Group size indicates more imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                     }
 
-                    string importString = importStrings[pos];
+                    var importString = importStrings[pos];
                     if (IsCSharpExternAliasInfo(importString))
                     {
                         throw new InvalidOperationException(string.Format("Encountered extern alias info before all import strings were consumed (method {0}).", FormatMethodToken(methodToken)));
@@ -460,7 +460,7 @@ RETRY:
                 // Extern alias detail strings (prefix "Z") are not included in the group counts.
                 for (; pos < importStrings.Length; pos++)
                 {
-                    string importString = importStrings[pos];
+                    var importString = importStrings[pos];
                     if (!IsCSharpExternAliasInfo(importString))
                     {
                         throw new InvalidOperationException(string.Format("Expected only extern alias info strings after consuming the indicated number of imports (method {0}).", FormatMethodToken(methodToken)));
@@ -495,7 +495,7 @@ RETRY:
             TArg arg,
             Func<int, TArg, ImmutableArray<string>> getMethodImportStrings)
         {
-            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            var importStrings = getMethodImportStrings(methodToken, arg);
             Debug.Assert(!importStrings.IsDefault);
 
             if (importStrings.IsEmpty)
@@ -506,10 +506,10 @@ RETRY:
             // Follow at most one forward link.
             // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
             // checking for forwarding.
-            string importString = importStrings[0];
+            var importString = importStrings[0];
             if (importString.Length >= 2 && importString[0] == '@')
             {
-                char ch1 = importString[1];
+                var ch1 = importString[1];
                 if ('0' <= ch1 && ch1 <= '9')
                 {
                     if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
@@ -533,7 +533,7 @@ RETRY:
 
         private static int ReadInt32(ImmutableArray<byte> bytes, ref int offset)
         {
-            int i = offset;
+            var i = offset;
             if (i + sizeof(int) > bytes.Length)
             {
                 throw new InvalidOperationException("Read out of buffer.");
@@ -545,7 +545,7 @@ RETRY:
 
         private static short ReadInt16(ImmutableArray<byte> bytes, ref int offset)
         {
-            int i = offset;
+            var i = offset;
             if (i + sizeof(short) > bytes.Length)
             {
                 throw new InvalidOperationException("Read out of buffer.");
@@ -557,7 +557,7 @@ RETRY:
 
         private static byte ReadByte(ImmutableArray<byte> bytes, ref int offset)
         {
-            int i = offset;
+            var i = offset;
             if (i + sizeof(byte) > bytes.Length)
             {
                 throw new InvalidOperationException("Read out of buffer.");
@@ -711,7 +711,7 @@ RETRY:
                 return true;
             }
 
-            int pos = 0;
+            var pos = 0;
             switch (import[pos])
             {
                 case '&':
@@ -838,7 +838,7 @@ RETRY:
 
         private static bool TrySplit(string input, int offset, char separator, out string before, out string after)
         {
-            int separatorPos = input.IndexOf(separator, offset);
+            var separatorPos = input.IndexOf(separator, offset);
 
             // Allow zero-length before for the global namespace (empty string).
             // Allow zero-length after for an XML alias in VB ("@PX:=").  Not sure what it means.

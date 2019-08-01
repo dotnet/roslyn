@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -70,34 +71,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return await FixSolutionAsync(_workspace.CurrentSolution, context).ConfigureAwait(true);
             }
 
+            // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, we first try to
+            // get the project in the most recent active context, but fall back to the first target framework if no
+            // active context is available.
+            var hierarchyToProjectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.OperationContext.UserCancellationToken);
+            context.OperationContext.UserCancellationToken.ThrowIfCancellationRequested();
+
+            ProjectId projectId = null;
+            if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
+                && contextProjectNameObject is string contextProjectName)
+            {
+                projectId = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName)?.Id;
+            }
+
+            if (projectId is null)
+            {
+                var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchyContent.Hierarchy, (uint)VSConstants.VSITEMID.Root);
+                if (!hierarchyToProjectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out projectId))
+                {
+                    return false;
+                }
+            }
+
             var itemId = hierarchyContent.ItemId;
             if (itemId == (uint)VSConstants.VSITEMID.Root)
             {
-                // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, we first try to
-                // get the project in the most recent active context, but fall back to the first target framework if no
-                // active context is available.
-                var hierarchyToProjectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.OperationContext.UserCancellationToken);
-                context.OperationContext.UserCancellationToken.ThrowIfCancellationRequested();
-
-                ProjectId projectId = null;
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
-                    && contextProjectNameObject is string contextProjectName
-                    && hierarchy.TryGetProjectGuid(out var projectGuid))
-                {
-                    projectId = _workspace.GetProjectWithGuidAndName(projectGuid, contextProjectName)?.Id;
-                }
-
-                if (projectId is null)
-                {
-                    var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchyContent.Hierarchy, itemId);
-                    if (!hierarchyToProjectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out projectId))
-                    {
-                        return false;
-                    }
-                }
-
                 await TaskScheduler.Default;
 
                 var project = _workspace.CurrentSolution.GetProject(projectId);
@@ -119,9 +119,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
                 else
                 {
-                    // document
-                    // TODO: this one will be implemented later
-                    // https://github.com/dotnet/roslyn/issues/30165
+                    // Handle code cleanup for a single document
+                    await TaskScheduler.Default;
+
+                    var solution = _workspace.CurrentSolution;
+                    var documentIds = solution.GetDocumentIdsWithFilePath(path);
+                    var documentId = documentIds.FirstOrDefault(id => id.ProjectId == projectId);
+                    if (documentId is null)
+                    {
+                        return false;
+                    }
+
+                    return await FixDocumentAsync(solution.GetDocument(documentId), context).ConfigureAwait(true);
                 }
             }
 
@@ -149,6 +158,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, addProgressItemsForDocuments: true, cancellationToken).ConfigureAwait(true);
                 return newProject.Solution;
+            }
+        }
+
+        private Task<bool> FixDocumentAsync(Document document, ICodeCleanUpExecutionContext context)
+        {
+            return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context, document.Name);
+
+            // Local function
+            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
+            {
+                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                return newDocument.Project.Solution;
             }
         }
 

@@ -2285,17 +2285,14 @@ class C
 ";
             var expected = new[]
             {
-                // (28,55): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (28,55): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(28, 55)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
             };
             var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp = CreateEmptyCompilation(text, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
@@ -3165,7 +3162,7 @@ ref struct DisposableEnumerator
 
                 if (enumeratorInfo.NeedsDisposal)
                 {
-                    if (!(enumeratorInfo.DisposeMethod is null))
+                    if (enumeratorInfo.DisposeMethod is object)
                     {
                         Assert.Equal(enumeratorInfo.DisposeMethod, statementInfo.DisposeMethod);
                     }

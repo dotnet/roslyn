@@ -225,6 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableKeyword = 8486,
         EnableKeyword = 8487,
 
+        // targets for #nullable directive
+        WarningsKeyword = 8488,
+        AnnotationsKeyword = 8489,
+
         // Other
         VarKeyword = 8490,
         UnderscoreToken = 8491,

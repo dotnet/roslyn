@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.GetEntryAttributes(int iCombo, int iIndex, out uint pAttr)
         {
-            DROPDOWNFONTATTR attributes = DROPDOWNFONTATTR.FONTATTR_PLAIN;
+            var attributes = DROPDOWNFONTATTR.FONTATTR_PLAIN;
 
             var item = GetItem(iCombo, iIndex);
 

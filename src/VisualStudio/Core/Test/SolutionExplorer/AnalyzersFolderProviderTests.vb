@@ -61,8 +61,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     }
                 }
 
-                environment.ServiceProvider.VsSolutionMock.GetProjectOfGuidImpl = Function(guid As Guid) hierarchy
-
                 Dim mapper = New HierarchyItemToProjectIdMap(environment.Workspace)
 
                 Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(mapper, environment.Workspace, New FakeAnalyzersCommandHandler)

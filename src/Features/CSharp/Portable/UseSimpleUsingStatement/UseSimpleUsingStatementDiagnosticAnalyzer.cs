@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     {
         public UseSimpleUsingStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
+                   CSharpCodeStyleOptions.PreferSimpleUsingStatement,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_simple_using_statement), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.using_statement_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             // Note: we only have to check up to the `using`, since the checks below in
             // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no
             // labels/gotos *after* the using statement.
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 var priorStatement = parentStatements[i];
                 if (IsGotoOrLabeledStatement(priorStatement))

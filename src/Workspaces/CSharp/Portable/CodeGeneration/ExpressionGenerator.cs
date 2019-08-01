@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax GenerateMemberAccess(params string[] names)
         {
             ExpressionSyntax result = SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 var name = SyntaxFactory.IdentifierName(names[i]);
                 if (i == 0)

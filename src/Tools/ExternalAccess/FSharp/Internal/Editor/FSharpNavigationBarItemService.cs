@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                     item.Text,
                     FSharpGlyphHelpers.ConvertTo(item.Glyph),
                     item.Spans,
-                    item.ChildItems.Select(x => ConvertToNavigationBarItem(x)).ToList(),
+                    item.ChildItems?.Select(x => ConvertToNavigationBarItem(x)).ToList(),
                     item.Indent,
                     item.Bolded,
                     item.Grayed);

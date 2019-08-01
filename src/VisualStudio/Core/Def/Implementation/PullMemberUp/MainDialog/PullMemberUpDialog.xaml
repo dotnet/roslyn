@@ -147,23 +147,16 @@
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="*">
                             <DataGridTemplateColumn.Header>
-                                <StackPanel 
-                                    Orientation="Horizontal" 
-                                    Width="Auto">
-                                    <self:SelectAllCheckBox
-                                        AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
-                                        Margin="0, 0, 4, 0"
-                                        Checked="SelectAllCheckBox_Checked"
-                                        Unchecked="SelectAllCheckBox_Unchecked"
-                                        Focusable="True"
-                                        DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
-                                        IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
-                                        IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}">
-                                    </self:SelectAllCheckBox>
-                                    <TextBlock
-                                        Width="Auto"
-                                        Text="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=MembersHeader}" />
-                                </StackPanel>
+                                <self:SelectAllCheckBox
+                                            AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
+                                            Margin="0, 0, 4, 0"
+                                            Checked="SelectAllCheckBox_Checked"
+                                            Unchecked="SelectAllCheckBox_Unchecked"
+                                            Focusable="True"
+                                            Content="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=MembersHeader}"
+                                            DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
+                                            IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
+                                            IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}" />
                             </DataGridTemplateColumn.Header>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

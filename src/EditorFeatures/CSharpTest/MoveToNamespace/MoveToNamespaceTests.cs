@@ -1,10 +1,14 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
 using Microsoft.VisualStudio.Composition;
@@ -16,14 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly IExportProviderFactory CSharpExportProviderFactory =
+        private static readonly IExportProviderFactory ExportProviderFactory =
             ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestMoveToNamespaceOptionsService))
-                    .WithPart(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService)));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestMoveToNamespaceOptionsService)));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: CSharpExportProviderFactory.CreateExportProvider());
+            => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
+
+        protected TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -1080,5 +1085,34 @@ expectedSymbolChanges: new Dictionary<string, string>()
 {
     {"Two.C2", "Three.C2" }
 });
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(35577, "https://github.com/dotnet/roslyn/issues/35577")]
+        public async Task MoveToNamespace_WithoutOptionsService()
+        {
+            var code = @"namespace A[||]
+{
+class MyClass
+{
+    void Method() { }
+}
+}";
+
+            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
+
+            using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
+            using (var testState = new TestState(workspace))
+            {
+                Assert.Null(testState.TestMoveToNamespaceOptionsService);
+
+                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                    testState.InvocationDocument,
+                    testState.TestInvocationDocument.SelectedSpans.Single(),
+                    CancellationToken.None);
+
+                Assert.Empty(actions);
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -214,12 +215,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
             var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
             var indexLocal = F.StoreToTemp(
-                MakePatternIndexOffsetExpression(argument, lengthLocal),
+                MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
                 out var indexStore);
 
+            // Hint the array size here because the only case when the length is not needed is if the
+            // user writes code like receiver[(Index)offset], as opposed to just receiver[offset]
+            // and that will probably be very rare.
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance(3);
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(3);
+
+            locals.Add(receiverLocal.LocalSymbol);
+            sideEffects.Add(receiverStore);
+
+            if (usedLength)
+            {
+                locals.Add(lengthLocal.LocalSymbol);
+                sideEffects.Add(lengthStore);
+            }
+
+            locals.Add(indexLocal.LocalSymbol);
+            sideEffects.Add(indexStore);
+
             return F.Sequence(
-                ImmutableArray.Create(receiverLocal.LocalSymbol, lengthLocal.LocalSymbol, indexLocal.LocalSymbol),
-                ImmutableArray.Create<BoundExpression>(receiverStore, lengthStore, indexStore),
+                locals.ToImmutable(),
+                sideEffects.ToImmutable(),
                 MakeIndexerAccess(
                     syntax,
                     receiverLocal,
@@ -234,24 +253,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isLeftOfAssignment));
         }
 
-        private BoundExpression MakePatternIndexOffsetExpression(BoundExpression unloweredExpr, BoundLocal lengthAccess)
+        private BoundExpression MakePatternIndexOffsetExpression(
+            BoundExpression unloweredExpr,
+            BoundLocal lengthAccess,
+            out bool usedLength)
         {
             Debug.Assert(TypeSymbol.Equals(
                 unloweredExpr.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything));
 
-            // If the System.Index argument is `^index`, we can replace the
-            // `argument.GetOffset(length)` call with `length - index`
             var F = _factory;
 
             if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
             {
+                // If the System.Index argument is `^index`, we can replace the
+                // `argument.GetOffset(length)` call with `length - index`
                 Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                usedLength = true;
                 return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
+            }
+            else if (unloweredExpr is BoundConversion conversion && conversion.Operand.Type.SpecialType == SpecialType.System_Int32)
+            {
+                // If the System.Index argument is a conversion from int to Index we
+                // can return the int directly
+                usedLength = false;
+                return VisitExpression(conversion.Operand);
             }
             else
             {
+                usedLength = true;
                 return F.Call(
                     VisitExpression(unloweredExpr),
                     WellKnownMember.System_Index__GetOffset,
@@ -265,46 +296,133 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol sliceMethod,
             BoundExpression rangeArg)
         {
-            // Lowered code:
+            Debug.Assert(TypeSymbol.Equals(
+                rangeArg.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                TypeCompareKind.ConsiderEverything));
+
+            // Lowered code without optimizations:
             // var receiver = receiverExpr;
             // int length = receiver.length;
             // Range range = argumentExpr;
             // int start = range.Start.GetOffset(length)
-            // int end = range.End.GetOffset(length)
-            // receiver.Slice(start, end - start)
+            // int rangeSize = range.End.GetOffset(length) - start
+            // receiver.Slice(start, rangeSize)
 
             var F = _factory;
 
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
             var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
             var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
-            var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
-            var startLocal = F.StoreToTemp(
-                F.Call(
-                    F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
-                    F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
-                    lengthLocal),
-                out var startStore);
-            var endLocal = F.StoreToTemp(
-                F.Call(
-                    F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
-                    F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
-                    lengthLocal),
-                out var endStore);
+
+            localsBuilder.Add(receiverLocal.LocalSymbol);
+            sideEffectsBuilder.Add(receiverStore);
+
+            BoundExpression startExpr;
+            BoundExpression rangeSizeExpr;
+            if (rangeArg is BoundRangeExpression rangeExpr)
+            {
+                // If we know that the input is a range expression, we can
+                // optimize by pulling it apart inline, so
+                // 
+                // Range range = argumentExpr;
+                // int start = range.Start.GetOffset(length)
+                // int rangeSize = range.End.GetOffset(length) - start
+                //
+                // is, with `start..end`:
+                //
+                // int start = start.GetOffset(length)
+                // int rangeSize = end.GetOffset(length) - start
+
+                bool usedLength = false;
+
+                if (rangeExpr.LeftOperandOpt is BoundExpression left)
+                {
+                    var startLocal = F.StoreToTemp(
+                        MakePatternIndexOffsetExpression(rangeExpr.LeftOperandOpt, lengthLocal, out usedLength),
+                        out var startStore);
+
+                    localsBuilder.Add(startLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(startStore);
+                    startExpr = startLocal;
+                }
+                else
+                {
+                    startExpr = F.Literal(0);
+                }
+
+                BoundExpression endExpr;
+                if (rangeExpr.RightOperandOpt is BoundExpression right)
+                {
+                    endExpr = MakePatternIndexOffsetExpression(
+                        right,
+                        lengthLocal,
+                        out bool usedLengthTemp);
+                    usedLength |= usedLengthTemp;
+                }
+                else
+                {
+                    usedLength = true;
+                    endExpr = lengthLocal;
+                }
+
+                if (usedLength)
+                {
+                    // If we used the length, it needs to be calculated after the receiver (the
+                    // first bound node in the builder) and before the first use, which could be the
+                    // second or third node in the builder
+                    localsBuilder.Insert(1, lengthLocal.LocalSymbol);
+                    sideEffectsBuilder.Insert(1, lengthStore);
+                }
+
+                var rangeSizeLocal = F.StoreToTemp(
+                    F.IntSubtract(endExpr, startExpr),
+                    out var rangeStore);
+
+                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeStore);
+                rangeSizeExpr = rangeSizeLocal;
+            }
+            else
+            {
+                var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
+
+                localsBuilder.Add(lengthLocal.LocalSymbol);
+                sideEffectsBuilder.Add(lengthStore);
+                localsBuilder.Add(rangeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeStore);
+
+                var startLocal = F.StoreToTemp(
+                    F.Call(
+                        F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
+                        F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                        lengthLocal),
+                    out var startStore);
+
+                localsBuilder.Add(startLocal.LocalSymbol);
+                sideEffectsBuilder.Add(startStore);
+                startExpr = startLocal;
+
+                var rangeSizeLocal = F.StoreToTemp(
+                    F.IntSubtract(
+                        F.Call(
+                            F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
+                            F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                            lengthLocal),
+                        startExpr),
+                    out var rangeSizeStore);
+
+                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                sideEffectsBuilder.Add(rangeSizeStore);
+                rangeSizeExpr = rangeSizeLocal;
+            }
 
             return F.Sequence(
-                ImmutableArray.Create(
-                    receiverLocal.LocalSymbol,
-                    lengthLocal.LocalSymbol,
-                    rangeLocal.LocalSymbol,
-                    startLocal.LocalSymbol,
-                    endLocal.LocalSymbol),
-                ImmutableArray.Create<BoundExpression>(
-                    receiverStore,
-                    lengthStore,
-                    rangeStore,
-                    startStore,
-                    endStore),
-                F.Call(receiverLocal, sliceMethod, startLocal, F.IntSubtract(endLocal, startLocal)));
+                localsBuilder.ToImmutableAndFree(),
+                sideEffectsBuilder.ToImmutableAndFree(),
+                F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));
         }
     }
 }

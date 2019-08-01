@@ -28,13 +28,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
         public async Task<CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
         {
             var result = await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (result.IsLineBreakpoint)
+            if (result != null)
             {
-                return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateLineResult(result.Document, result.LocationNameOpt);
+                if (result.IsLineBreakpoint)
+                {
+                    return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateLineResult(result.Document, result.LocationNameOpt);
+                }
+                else
+                {
+                    return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateSpanResult(result.Document, result.TextSpan, result.LocationNameOpt);
+                }
             }
             else
             {
-                return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateSpanResult(result.Document, result.TextSpan, result.LocationNameOpt);
+                return null;
             }
         }
 

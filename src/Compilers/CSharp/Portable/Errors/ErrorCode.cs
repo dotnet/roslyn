@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
-        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+        // Unused 8402
         ERR_IteratorMustBeAsync = 8403,
 
         ERR_NoConvToIAsyncDisp = 8410,
@@ -1640,7 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
         WRN_NullReferenceIterationVariable = 8606,
-        // Unused 8607-8608
+        WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
         WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
@@ -1702,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideValConstraintNotSatisfied = 8666,
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
@@ -1721,7 +1723,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractEventHasAccessors = 8712,
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
-        WRN_SpecialTypeAsBound = 8715,
+
+        ERR_DuplicateNullSuppression = 8715
 
         #endregion diagnostics introduced for C# 8.0
 

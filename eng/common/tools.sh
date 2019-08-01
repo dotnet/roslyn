@@ -52,78 +52,6 @@ else
   use_global_nuget_cache=${use_global_nuget_cache:-true}
 fi
 
-function EmitError {
-  if [[ "$ci" != true ]]; then
-    echo "$@" >&2
-    return
-  fi
-
-  message_type="error"
-  sourcepath=''
-  linenumber=''
-  columnnumber=''
-  error_code=''
-
-  while [[ $# -gt 0 ]]; do
-    opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
-    case "$opt" in
-      -type|-t)
-        message_type=$2
-        shift
-        ;;
-      -sourcepath|-s)
-        sourcepath=$2
-        shift
-        ;;
-      -linenumber|-l)
-        linenumber=$2
-        shift
-        ;;
-      -columnnumber|-col)
-        columnnumber=$2
-        shift
-        ;;
-      -code|-c)
-        error_code=$2
-        shift
-        ;;
-      *)
-        break
-        ;;
-    esac
-
-    shift
-  done
-
-  message='##vso[task.logissue'
-
-  message="$message type=$message_type"
-
-  if [ -n "$sourcepath" ]; then
-    message="$message;sourcepath=$sourcepath"
-  else
-    message="$message;sourcepath=${BASH_SOURCE[1]}"
-  fi
-
-  if [ -n "$linenumber" ]; then
-    message="$message;linenumber=$linenumber"
-  else
-    message="$message;linenumber=${BASH_LINENO[0]}"
-  fi
-
-  if [ -n "$columnnumber" ]; then
-    message="$message;columnnumber=$columnnumber"
-  fi
-
-  if [ -n "$error_code" ]; then
-    message="$message;code=$error_code"
-  fi
-
-  message="$message]$*"
-
-  echo "$message"
-}
-
 # Resolve any symlinks in the given path.
 function ResolvePath {
   local path=$1
@@ -149,7 +77,7 @@ function ReadGlobalVersion {
   local pattern="\"$key\" *: *\"(.*)\""
 
   if [[ ! $line =~ $pattern ]]; then
-    EmitError "Error: Cannot find \"$key\" in $global_json_file"
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Error: Cannot find \"$key\" in $global_json_file"
     ExitWithExitCode 1
   fi
 
@@ -210,7 +138,7 @@ function InitializeDotNetCli {
       if [[ "$install" == true ]]; then
         InstallDotNetSdk "$dotnet_root" "$dotnet_sdk_version"
       else
-        EmitError "Unable to find dotnet with SDK version '$dotnet_sdk_version'"
+        Write-PipelineTelemetryError -category 'InitializeToolset' "Unable to find dotnet with SDK version '$dotnet_sdk_version'"
         ExitWithExitCode 1
       fi
     fi
@@ -218,14 +146,10 @@ function InitializeDotNetCli {
 
   # Add dotnet to PATH. This prevents any bare invocation of dotnet in custom
   # build steps from using anything other than what we've downloaded.
-  export PATH="$dotnet_root:$PATH"
+  Write-PipelinePrependPath -path "$dotnet_root"
 
-  if [[ $ci == true ]]; then
-    # Make Sure that our bootstrapped dotnet cli is avaliable in future steps of the Azure Pipelines build
-    echo "##vso[task.prependpath]$dotnet_root"
-    echo "##vso[task.setvariable variable=DOTNET_MULTILEVEL_LOOKUP]0"
-    echo "##vso[task.setvariable variable=DOTNET_SKIP_FIRST_TIME_EXPERIENCE]1"
-  fi
+  Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
+  Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
   # return value
   _InitializeDotNetCli="$dotnet_root"
@@ -263,7 +187,7 @@ function InstallDotNet {
   fi
   bash "$install_script" --version $version --install-dir "$root" $archArg $runtimeArg $skipNonVersionedFilesArg || {
     local exit_code=$?
-    EmitError "Failed to install dotnet SDK (exit code '$exit_code')."
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK (exit code '$exit_code')."
     ExitWithExitCode $exit_code
   }
 }
@@ -321,7 +245,7 @@ function InitializeNativeTools() {
   then
     local nativeArgs=""
     if [[ "$ci" == true ]]; then
-      nativeArgs="-InstallDirectory $tools_dir"
+      nativeArgs="--installDirectory $tools_dir"
     fi
     "$_script_dir/init-tools-native.sh" $nativeArgs
   fi
@@ -349,7 +273,7 @@ function InitializeToolset {
   fi
 
   if [[ "$restore" != true ]]; then
-    EmitError "Toolset version $toolsetVersion has not been restored."
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Toolset version $toolset_version has not been restored."
     ExitWithExitCode 2
   fi
 
@@ -366,7 +290,7 @@ function InitializeToolset {
   local toolset_build_proj=`cat "$toolset_location_file"`
 
   if [[ ! -a "$toolset_build_proj" ]]; then
-    EmitError "Invalid toolset path: $toolset_build_proj"
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Invalid toolset path: $toolset_build_proj"
     ExitWithExitCode 3
   fi
 
@@ -389,26 +313,27 @@ function StopProcesses {
 }
 
 function MSBuild {
-  args=$@
+  local args=$@
   if [[ "$pipelines_log" == true ]]; then
     InitializeBuildTool
     InitializeToolset
-    _toolset_dir="${_InitializeToolset%/*}"
-    _loggerPath="$_toolset_dir/$_InitializeBuildToolFramework/Microsoft.DotNet.Arcade.Sdk.dll"
-    args=( "${args[@]}" "-logger:$_loggerPath" )
+    local toolset_dir="${_InitializeToolset%/*}"
+    local logger_path="$toolset_dir/$_InitializeBuildToolFramework/Microsoft.DotNet.Arcade.Sdk.dll"
+    args=( "${args[@]}" "-logger:$logger_path" )
   fi
+
   MSBuild-Core ${args[@]}
 }
 
 function MSBuild-Core {
   if [[ "$ci" == true ]]; then
     if [[ "$binary_log" != true ]]; then
-      EmitError "Binary log must be enabled in CI build."
+      Write-PipelineTaskError "Binary log must be enabled in CI build."
       ExitWithExitCode 1
     fi
 
     if [[ "$node_reuse" == true ]]; then
-      EmitError "Node reuse must be disabled in CI build."
+      Write-PipelineTaskError "Node reuse must be disabled in CI build."
       ExitWithExitCode 1
     fi
   fi
@@ -422,13 +347,15 @@ function MSBuild-Core {
 
   "$_InitializeBuildTool" "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@" || {
     local exit_code=$?
-    EmitError "Build failed (exit code '$exit_code')."
+    Write-PipelineTaskError "Build failed (exit code '$exit_code')."
     ExitWithExitCode $exit_code
   }
 }
 
 ResolvePath "${BASH_SOURCE[0]}"
 _script_dir=`dirname "$_ResolvePath"`
+
+. "$_script_dir/pipeline-logging-functions.sh"
 
 eng_root=`cd -P "$_script_dir/.." && pwd`
 repo_root=`cd -P "$_script_dir/../.." && pwd`
@@ -456,7 +383,8 @@ mkdir -p "$toolset_dir"
 mkdir -p "$temp_dir"
 mkdir -p "$log_dir"
 
-if [[ $ci == true ]]; then
-  export TEMP="$temp_dir"
-  export TMP="$temp_dir"
-fi
+Write-PipelineSetVariable -name "Artifacts" -value "$artifacts_dir"
+Write-PipelineSetVariable -name "Artifacts.Toolset" -value "$toolset_dir"
+Write-PipelineSetVariable -name "Artifacts.Log" -value "$log_dir"
+Write-PipelineSetVariable -name "Temp" -value "$temp_dir"
+Write-PipelineSetVariable -name "TMP" -value "$temp_dir"

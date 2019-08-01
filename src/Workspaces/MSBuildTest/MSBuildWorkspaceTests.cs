@@ -25,6 +25,7 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -3628,7 +3629,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/core-eng/issues/6424"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestEditorConfigDiscovery()
         {
             var files = GetSimpleCSharpSolutionFiles()
@@ -3637,19 +3638,24 @@ class C { }";
 
             CreateFiles(files);
 
+            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
                 var project = await workspace.OpenProjectAsync(projectFullPath);
-                var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments);
+
+                // We should have exactly one .editorconfig corresponding to the file we had. We may also
+                // have other files if there is a .editorconfig floating around somewhere higher on the disk.
+                var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments.Where(d => d.FilePath == expectedEditorConfigPath));
                 Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
                 var text = await analyzerConfigDocument.GetTextAsync();
                 Assert.Equal("root = true", text.ToString());
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestEditorConfigDiscoveryDisabled()
         {
             var files = GetSimpleCSharpSolutionFiles()

@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
         }
 
-        internal ProjectInfo WithDefaultNamespace(string defaultNamespace)
+        public ProjectInfo WithDefaultNamespace(string defaultNamespace)
         {
             return With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
         }

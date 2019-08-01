@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             public void CopyFrom(VArray otherVArray)
             {
-                int copyDelta = Offset - otherVArray.Offset;
+                var copyDelta = Offset - otherVArray.Offset;
                 if (copyDelta >= 0)
                 {
                     Array.Copy(otherVArray._array, 0, _array, copyDelta, otherVArray._array.Length);
@@ -60,33 +60,33 @@ namespace Microsoft.CodeAnalysis.Differencing
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            var stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
-            int x = oldLength;
-            int y = newLength;
+            var x = oldLength;
+            var y = newLength;
 
             while (x > 0 || y > 0)
             {
-                VArray currentV = stackOfVs.Pop();
-                int d = stackOfVs.Count;
-                int k = x - y;
+                var currentV = stackOfVs.Pop();
+                var d = stackOfVs.Count;
+                var k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
                 // snake end point is in V
-                int yEnd = currentV[k];
-                int xEnd = yEnd + k;
+                var yEnd = currentV[k];
+                var xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                int kPrev = right ? k - 1 : k + 1;
+                var right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                var kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
-                int yStart = currentV[kPrev];
-                int xStart = yStart + kPrev;
+                var yStart = currentV[kPrev];
+                var xStart = yStart + kPrev;
 
                 // snake mid point
-                int yMid = right ? yStart : yStart + 1;
-                int xMid = yMid + k;
+                var yMid = right ? yStart : yStart + 1;
+                var xMid = yMid + k;
 
                 // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
                 while (xEnd > xMid)
@@ -105,33 +105,33 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            var stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
-            int x = oldLength;
-            int y = newLength;
+            var x = oldLength;
+            var y = newLength;
 
             while (x > 0 || y > 0)
             {
-                VArray currentV = stackOfVs.Pop();
-                int d = stackOfVs.Count;
-                int k = x - y;
+                var currentV = stackOfVs.Pop();
+                var d = stackOfVs.Count;
+                var k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
                 // snake end point is in V
-                int yEnd = currentV[k];
-                int xEnd = yEnd + k;
+                var yEnd = currentV[k];
+                var xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                int kPrev = right ? k - 1 : k + 1;
+                var right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                var kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
-                int yStart = currentV[kPrev];
-                int xStart = yStart + kPrev;
+                var yStart = currentV[kPrev];
+                var xStart = yStart + kPrev;
 
                 // snake mid point
-                int yMid = right ? yStart : yStart + 1;
-                int xMid = yMid + k;
+                var yMid = right ? yStart : yStart + 1;
+                var xMid = yMid + k;
 
                 // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
                 while (xEnd > xMid)
@@ -188,13 +188,13 @@ namespace Microsoft.CodeAnalysis.Differencing
                 return 1.0;
             }
 
-            int lcsLength = 0;
+            var lcsLength = 0;
             foreach (var pair in GetMatchingPairs(oldSequence, oldLength, newSequence, newLength))
             {
                 lcsLength++;
             }
 
-            int max = Math.Max(oldLength, newLength);
+            var max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
             return 1.0 - (double)lcsLength / (double)max;
         }
@@ -235,15 +235,15 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// </remarks>
         private Stack<VArray> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = new Stack<VArray>();
+            var stackOfVs = new Stack<VArray>();
 
             // special-case: the first "snake" to start at (-1,0 )
-            VArray previousV = new VArray(1);
+            var previousV = new VArray(1);
             VArray currentV;
 
-            bool reachedEnd = false;
+            var reachedEnd = false;
 
-            for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
+            for (var d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
                 // V is in range [-d...d] => use d to offset the k-based array indices to non-negative values
                 if (d == 0)
@@ -256,23 +256,23 @@ namespace Microsoft.CodeAnalysis.Differencing
                     currentV.CopyFrom(previousV);
                 }
 
-                for (int k = -d; k <= d; k += 2)
+                for (var k = -d; k <= d; k += 2)
                 {
                     // down or right? 
-                    bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                    int kPrev = right ? k - 1 : k + 1;
+                    var right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                    var kPrev = right ? k - 1 : k + 1;
 
                     // start point
-                    int yStart = currentV[kPrev];
-                    int xStart = yStart + kPrev;
+                    var yStart = currentV[kPrev];
+                    var xStart = yStart + kPrev;
 
                     // mid point
-                    int yMid = right ? yStart : yStart + 1;
-                    int xMid = yMid + k;
+                    var yMid = right ? yStart : yStart + 1;
+                    var xMid = yMid + k;
 
                     // end point
-                    int xEnd = xMid;
-                    int yEnd = yMid;
+                    var xEnd = xMid;
+                    var yEnd = yMid;
 
                     // follow diagonal
                     while (xEnd < oldLength && yEnd < newLength && ItemsEqual(oldSequence, xEnd, newSequence, yEnd))

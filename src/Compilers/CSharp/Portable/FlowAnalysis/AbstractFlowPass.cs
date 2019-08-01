@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Region
         // For region analysis, we maintain some extra data.
-        protected enum RegionPlace { Before, Inside, After };
         protected RegionPlace regionPlace; // tells whether we are currently analyzing code before, during, or after the region
         protected readonly BoundNode firstInRegion, lastInRegion;
         private readonly bool _trackRegions;
@@ -202,6 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackRegions = trackRegions;
             _nonMonotonicTransfer = nonMonotonicTransferFunction;
         }
+
+        protected bool TrackingRegions => _trackRegions;
 
         protected abstract string Dump(TLocalState state);
 
@@ -313,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        [DebuggerStepThrough]
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
             var expression = node as BoundExpression;
@@ -324,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             return (BoundExpression)base.Visit(node);
@@ -543,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
@@ -597,8 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// assigned (or not). That is, we will not be needing AssignedWhenTrue and
         /// AssignedWhenFalse.
         /// </summary>
-        /// <param name="node"></param>
-        protected virtual void VisitRvalue(BoundExpression node)
+        /// <param name="isKnownToBeAnLvalue">True when visiting an rvalue that will actually be used as an lvalue,
+        /// for example a ref parameter when simulating a read of it, or an argument corresponding to an in parameter</param>
+        protected virtual void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
         {
             Visit(node);
             Unsplit();
@@ -956,8 +961,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
-            Visit(node.Left);
-            Visit(node.Right);
+            VisitRvalue(node.Left);
+            VisitRvalue(node.Right);
             return null;
         }
 
@@ -1038,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that we require that the variable whose reference we are taking
             // has been initialized; it is similar to passing the variable as a ref parameter.
 
-            VisitRvalue(node.Operand);
+            VisitRvalue(node.Operand, isKnownToBeAnLvalue: true);
             return null;
         }
 
@@ -1064,7 +1069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.InitializerOpt != null)
             {
-                VisitRvalue(node.InitializerOpt); // analyze the expression
+                // analyze the expression
+                VisitRvalue(node.InitializerOpt, isKnownToBeAnLvalue: node.LocalSymbol.RefKind != RefKind.None);
 
                 // byref assignment is also a potential write
                 if (node.LocalSymbol.RefKind != RefKind.None)
@@ -1139,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
             NamedTypeSymbol containingType;
-            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && !method.IsStatic && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
+            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && method.RequiresInstanceReceiver && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
             {
                 WriteArgument(receiverOpt, method?.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method);
             }
@@ -1225,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind = GetRefKind(refKindsOpt, i);
                 if (refKind != RefKind.Out)
                 {
-                    VisitRvalue(arguments[i]);
+                    VisitRvalue(arguments[i], isKnownToBeAnLvalue: refKind != RefKind.None);
                 }
                 else
                 {
@@ -1296,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && !node.MethodOpt.IsStatic)
+                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
                 {
                     if (_trackRegions)
                     {
@@ -1377,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ConversionKind == ConversionKind.MethodGroup)
             {
-                if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
+                if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && node.SymbolOpt.RequiresInstanceReceiver))
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.
@@ -1612,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt, isKnownToBeAnLvalue: node.RefKind != RefKind.None);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1710,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitLvalue(node.Left);
-            VisitRvalue(node.Right);
+            VisitRvalue(node.Right, isKnownToBeAnLvalue: node.IsRef);
 
             // byref assignment is also a potential write
             if (node.IsRef)
@@ -1764,7 +1770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitRvalue(node.Left);
+            VisitRvalue(node.Left, isKnownToBeAnLvalue: true);
         }
 
         protected void AfterRightHasBeenVisited(BoundCompoundAssignmentOperator node)
@@ -2893,7 +2899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperand, isKnownToBeAnLvalue: true);
                 savedState = this.State.Clone();
                 VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
             }
@@ -2956,4 +2962,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         #endregion visitors
     }
+
+    /// <summary>
+    /// The possible places that we are processing when there is a region.
+    /// </summary>
+    /// <remarks>
+    /// This should be nested inside <see cref="AbstractFlowPass{TLocalState}"/> but is not due to https://github.com/dotnet/roslyn/issues/36992 .
+    /// </remarks>
+    internal enum RegionPlace { Before, Inside, After };
 }
+

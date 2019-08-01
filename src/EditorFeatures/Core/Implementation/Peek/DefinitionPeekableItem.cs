@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationFile.FilePath, identifierSpan, entityOfInterestSpan, peekDisplayInfo, _peekableItem.PeekResultFactory, isReadOnly: true));
                 }
 
-                int processedSourceLocations = 0;
+                var processedSourceLocations = 0;
 
                 foreach (var declaration in sourceLocations)
                 {

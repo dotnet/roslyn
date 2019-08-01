@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return false; }
             }
 
+            public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            {
+                get { return FlowAnalysisAnnotations.None; }
+            }
+
             public override ImmutableArray<Location> Locations
             {
                 get { throw ExceptionUtilities.Unreachable; }

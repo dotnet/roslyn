@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKindsOfInterest.ToArray());
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest.ToArray());
         }
 
         protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
         {
-            bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
+            static bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
             var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {

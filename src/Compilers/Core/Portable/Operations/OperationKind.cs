@@ -241,6 +241,8 @@ namespace Microsoft.CodeAnalysis
         SwitchExpression = 0x69,
         /// <summary>Indicates an <see cref="ISwitchExpressionArmOperation"/>.</summary>
         SwitchExpressionArm = 0x6a,
+        /// <summary>Indicates an <see cref="IPropertySubpatternOperation"/></summary>
+        PropertySubpattern = 0x6b,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

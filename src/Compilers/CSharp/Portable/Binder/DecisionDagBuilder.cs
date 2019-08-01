@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
     /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
     internal class DecisionDagBuilder

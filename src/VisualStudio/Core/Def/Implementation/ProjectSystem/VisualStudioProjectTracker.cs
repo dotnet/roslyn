@@ -154,6 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     AssemblyName = project.AssemblyName,
                     FilePath = project.ProjectFilePath,
+                    Hierarchy = project.Hierarchy,
                     ProjectGuid = project.Guid,
                 };
                 project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language, creationInfo);

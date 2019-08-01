@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var solution = (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
                     if (solution != null)
                     {
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out string name)) && name != null)
+                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
                         {
                             return name;
                         }

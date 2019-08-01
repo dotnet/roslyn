@@ -5,7 +5,6 @@ using System.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 {
-    [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
     internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
     {
         [ImportingConstructor]
@@ -73,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
-            var attributeList = node as AttributeListSyntax;
-            return attributeList != null &&
+            return node is AttributeListSyntax attributeList &&
                 attributeList.Target != null &&
                 attributeList.Target.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
         }
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             }
             else
             {
-                leadingTriviaForAttributeList = default(SyntaxTriviaList);
+                leadingTriviaForAttributeList = default;
                 needsLeadingEndOfLine = true;
             }
 
@@ -191,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
             if (attribute is AttributeSyntax attributeSyntax)
             {
-                var attributeList = attributeSyntax.Parent as AttributeListSyntax;
-                return attributeList != null && attributeList.Attributes.Count == 1;
+                return attributeSyntax.Parent is AttributeListSyntax attributeList && attributeList.Attributes.Count == 1;
             }
 
             return false;

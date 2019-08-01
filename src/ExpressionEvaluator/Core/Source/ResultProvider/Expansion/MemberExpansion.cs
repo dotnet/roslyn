@@ -32,17 +32,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // For members of type DynamicProperty (part of Dynamic View expansion), we want
             // to expand the underlying value (not the members of the DynamicProperty type).
             var type = value.Type;
-            var isDynamicProperty = type.GetLmrType().IsDynamicProperty();
+            var runtimeType = type.GetLmrType();
+            var isDynamicProperty = runtimeType.IsDynamicProperty();
             if (isDynamicProperty)
             {
                 Debug.Assert(!value.IsNull);
                 value = value.GetFieldValue("value", inspectionContext);
             }
 
-            var runtimeType = type.GetLmrType();
-            // Primitives, enums, function pointers, and null values with a declared type that is an interface have no visible members.
+            // Primitives, enums, function pointers, IntPtr, UIntPtr and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);
-            if (resultProvider.IsPrimitiveType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface || runtimeType.IsFunctionPointer())
+            if (resultProvider.IsPrimitiveType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface || runtimeType.IsFunctionPointer() ||
+                runtimeType.IsIntPtr() || runtimeType.IsUIntPtr())
             {
                 return null;
             }

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly SourceText _text;
 
-            public NodeAndText(SyntaxNode root, SourceText text) :
-                base(root)
+            public NodeAndText(SyntaxNode root, SourceText text)
+                : base(root)
             {
                 Contract.ThrowIfNull(text);
                 _text = text;

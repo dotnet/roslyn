@@ -28,6 +28,14 @@
       "commandName": "Project",
       "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats /a CSharpSimplifyTypeNamesDiagnosticAnalyzer /editperf:ContentQueryExtensions /edititer:300"
     },
+    "Profile FormattingDiagnosticAnalyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /a FormattingDiagnosticAnalyzer"
+    },
+    "IIncrementalAnalyzer SyntaxTreeInfoIncrementalAnalyzerProvider": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia SyntaxTreeInfoIncrementalAnalyzerProvider /persist /profileroot $(SolutionDir)artifacts\\profileRoot"
+    },
     "IIncrementalAnalyzer SymbolTreeInfoIncrementalAnalyzerProvider": {
       "commandName": "Project",
       "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia SymbolTreeInfoIncrementalAnalyzerProvider /persist /profileroot $(SolutionDir)artifacts\\profileRoot"

@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
             }
+            else if (typeParameter.HasNotNullConstraint)
+            {
+                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
+            }
 
             var constraintTypes =
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(

@@ -52,24 +52,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public async Task Test_Cancellation()
         {
-            using (var waitEvent = new AutoResetEvent(initialState: false))
-            {
-                var asyncToken = EmptyAsyncToken.Instance;
-                var ran = false;
+            using var waitEvent = new AutoResetEvent(initialState: false);
+            var asyncToken = EmptyAsyncToken.Instance;
+            var ran = false;
 
-                var source = new CancellationTokenSource();
-                source.Cancel();
+            var source = new CancellationTokenSource();
+            source.Cancel();
 
-                Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
-                Service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
-                Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
+            Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
-                waitEvent.Set();
-                await PumpWait();
+            waitEvent.Set();
+            await PumpWait();
 
-                Assert.False(ran);
-                Assert.True(Service.IsEmpty_TestOnly);
-            }
+            Assert.False(ran);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             var asyncToken = EmptyAsyncToken.Instance;
 
-            int startMilliseconds = Environment.TickCount;
+            var startMilliseconds = Environment.TickCount;
             int? elapsedMilliseconds = null;
 
             Service.RegisterNotification(() =>
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     Service.RegisterNotification(() =>
                     {
-                        for (int j = 0; j < 100; j++)
+                        for (var j = 0; j < 100; j++)
                         {
                             count++;
                         }

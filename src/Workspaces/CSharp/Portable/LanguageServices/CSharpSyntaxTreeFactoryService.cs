@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _parseOptionWithLatestLanguageVersion;
             }
 
-            public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, Encoding encoding, SyntaxNode root)
+            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt)
             {
-                options = options ?? GetDefaultParseOptions();
-                return SyntaxFactory.SyntaxTree(root, options, fileName, encoding);
+                options ??= GetDefaultParseOptions();
+                return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, treeDiagnosticReportingOptionsOpt);
             }
 
             public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt, CancellationToken cancellationToken)
             {
-                options = options ?? GetDefaultParseOptions();
+                options ??= GetDefaultParseOptions();
                 return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken: cancellationToken);
             }
 
@@ -65,7 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.CanCreateRecoverableTree(root) && cu != null && cu.AttributeLists.Count == 0;
             }
 
-            public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root)
+            public override SyntaxTree CreateRecoverableTree(
+                ProjectId cacheKey,
+                string filePath,
+                ParseOptions options,
+                ValueSource<TextAndVersion> text,
+                Encoding encoding,
+                SyntaxNode root,
+                ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt)
             {
                 System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
                 return RecoverableSyntaxTree.CreateRecoverableTree(
@@ -76,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     text,
                     encoding,
                     (CompilationUnitSyntax)root,
-                    diagnosticOptions: null);
+                    treeDiagnosticReportingOptionsOpt);
             }
         }
     }

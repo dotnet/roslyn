@@ -703,16 +703,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public class HiddenDiagnosticsCompilationAnalyzer : DiagnosticAnalyzer
+        public class CompilationAnalyzerWithSeverity : DiagnosticAnalyzer
         {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID1000",
-                "Description1",
-                string.Empty,
-                "Analysis",
-                DiagnosticSeverity.Hidden,
-                true,
-                customTags: WellKnownDiagnosticTags.NotConfigurable);
+            public CompilationAnalyzerWithSeverity(
+                DiagnosticSeverity severity,
+                bool configurable)
+            {
+                var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+                Descriptor = new DiagnosticDescriptor(
+                    "ID1000",
+                    "Description1",
+                    string.Empty,
+                    "Analysis",
+                    severity,
+                    true,
+                    customTags: customTags);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
@@ -723,7 +731,7 @@ namespace Microsoft.CodeAnalysis
 
             private void OnCompilation(CompilationAnalysisContext context)
             {
-                // Report the hidden diagnostic on all trees in compilation.
+                // Report the diagnostic on all trees in compilation.
                 foreach (var tree in context.Compilation.SyntaxTrees)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, tree.GetRoot().GetLocation()));
@@ -1390,7 +1398,10 @@ namespace Microsoft.CodeAnalysis
                 _symbolKind = symbolKind;
                 _operationKind = operationKindOpt;
                 _analyzerId = $"Analyzer{(analyzerId.HasValue ? analyzerId.Value : 1)}";
+                SymbolsStarted = new ConcurrentSet<ISymbol>();
             }
+
+            internal ConcurrentSet<ISymbol> SymbolsStarted { get; }
 
             public static readonly DiagnosticDescriptor SymbolStartTopLevelRule = new DiagnosticDescriptor(
                 "SymbolStartTopLevelRuleId",
@@ -1484,7 +1495,6 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 var diagnostics = new ConcurrentBag<Diagnostic>();
-                var symbolsStarted = new ConcurrentSet<ISymbol>();
                 var symbolsEnded = new ConcurrentSet<ISymbol>();
                 var seenOperationContainers = new ConcurrentDictionary<OperationAnalysisContext, ISet<ISymbol>>();
 
@@ -1535,10 +1545,10 @@ namespace Microsoft.CodeAnalysis
 
                 void reportDiagnosticsAtCompilationEnd(CompilationAnalysisContext compilationEndContext)
                 {
-                    if (!symbolsStarted.SetEquals(symbolsEnded))
+                    if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", symbolsStarted.Select(s => s.ToDisplayString()).Order());
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString()).Order());
                         var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
@@ -1553,7 +1563,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     verifySymbolStartOrdering(symbolStartContext);
                     verifySymbolStartAndOperationOrdering(symbolStartContext);
-                    if (!symbolsStarted.Add(symbolStartContext.Symbol))
+                    if (!SymbolsStarted.Add(symbolStartContext.Symbol))
                     {
                         diagnostics.Add(Diagnostic.Create(DuplicateStartActionRule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                     }
@@ -1613,7 +1623,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var member in members.Where(m => !m.IsImplicitlyDeclared))
                     {
-                        if (symbolsStarted.Contains(member))
+                        if (SymbolsStarted.Contains(member))
                         {
                             // Member '{0}' started before container '{1}', Analyzer {2}
                             diagnostics.Add(Diagnostic.Create(SymbolStartedOrderingRule, Location.None, member, symbolStarted, _analyzerId));
@@ -1659,6 +1669,163 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForId : DiagnosticSuppressor
+        {
+            public SuppressionDescriptor SuppressionDescriptor { get; }
+            public DiagnosticSuppressorForId(string suppressedDiagnosticId, string suppressionId = null)
+            {
+                SuppressionDescriptor = new SuppressionDescriptor(
+                    id: suppressionId ?? "SPR0001",
+                    suppressedDiagnosticId: suppressedDiagnosticId,
+                    justification: $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(SuppressionDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(SuppressionDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(SuppressionDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions : DiagnosticSuppressor
+        {
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => throw new NotImplementedException();
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorThrowsExceptionFromReportedSuppressions : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _descriptor;
+            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId)
+            {
+                _descriptor = new SuppressionDescriptor(
+                    "SPR0001",
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_descriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_UnsupportedSuppressionReported : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _supportedDescriptor;
+            private readonly SuppressionDescriptor _unsupportedDescriptor;
+
+            public DiagnosticSuppressor_UnsupportedSuppressionReported(string suppressedDiagnosticId, string supportedSuppressionId, string unsupportedSuppressionId)
+            {
+                _supportedDescriptor = new SuppressionDescriptor(
+                    supportedSuppressionId,
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+
+                _unsupportedDescriptor = new SuppressionDescriptor(
+                    unsupportedSuppressionId,
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_supportedDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(_unsupportedDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(_unsupportedDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_InvalidDiagnosticSuppressionReported : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _supportedDescriptor;
+            private readonly SuppressionDescriptor _unsupportedDescriptor;
+
+            public DiagnosticSuppressor_InvalidDiagnosticSuppressionReported(string suppressedDiagnosticId, string unsupportedSuppressedDiagnosticId)
+            {
+                _supportedDescriptor = new SuppressionDescriptor(
+                    "SPR0001",
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+
+                _unsupportedDescriptor = new SuppressionDescriptor(
+                    "SPR0002",
+                    unsupportedSuppressedDiagnosticId,
+                    $"Suppress {unsupportedSuppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_supportedDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(_supportedDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(_unsupportedDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_NonReportedDiagnosticCannotBeSuppressed : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _descriptor1, _descriptor2;
+            private readonly string _nonReportedDiagnosticId;
+
+            public DiagnosticSuppressor_NonReportedDiagnosticCannotBeSuppressed(string reportedDiagnosticId, string nonReportedDiagnosticId)
+            {
+                _descriptor1 = new SuppressionDescriptor(
+                    "SPR0001",
+                    reportedDiagnosticId,
+                    $"Suppress {reportedDiagnosticId}");
+                _descriptor2 = new SuppressionDescriptor(
+                    "SPR0002",
+                    nonReportedDiagnosticId,
+                    $"Suppress {nonReportedDiagnosticId}");
+                _nonReportedDiagnosticId = nonReportedDiagnosticId;
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_descriptor1, _descriptor2);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                var nonReportedDiagnostic = Diagnostic.Create(
+                    id: _nonReportedDiagnosticId,
+                    category: "Category",
+                    message: "Message",
+                    severity: DiagnosticSeverity.Warning,
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1);
+                context.ReportSuppression(Suppression.Create(_descriptor2, nonReportedDiagnostic));
             }
         }
     }

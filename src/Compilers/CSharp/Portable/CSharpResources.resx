@@ -123,6 +123,9 @@
   <data name="IDS_ThrowExpression" xml:space="preserve">
     <value>&lt;throw expression&gt;</value>
   </data>
+  <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
+    <value>&lt;switch expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -2822,10 +2825,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable, restore or enable</value>
+    <value>Expected 'disable' or 'restore'</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable, restore or enable after #pragma warning</value>
+    <value>Expected 'disable' or 'restore' after #pragma warning</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -4614,12 +4617,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5322,6 +5327,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UnboxPossibleNull_Title" xml:space="preserve">
     <value>Unboxing a possibly null value.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
@@ -5341,19 +5352,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match partial method declaration.</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</value>
+    <value>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implicitly implemented member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</value>
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match implicitly implemented member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</value>
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
@@ -5377,10 +5388,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' is uninitialized.</value>
+    <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field is uninitialized.</value>
+    <value>Non-nullable field is uninitialized. Consider declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -5454,6 +5465,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInArgumentForOutput_Title" xml:space="preserve">
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
+  <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
+    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+  </data>
+  <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
+    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
   </data>
@@ -5488,10 +5505,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContextForAnnotation" xml:space="preserve">
-    <value>The annotation for nullable reference types should only be used in code within a '#nullable' context.</value>
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContextForAnnotation_Title" xml:space="preserve">
-    <value>The annotation for nullable reference types should only be used in code within a '#nullable' context.</value>
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</value>
   </data>
   <data name="ERR_ExplicitNullableAttribute" xml:space="preserve">
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
@@ -5691,12 +5708,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
     <value>Cannot create constructed generic type from non-generic type.</value>
   </data>
-  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
-    <value>'default' is converted to 'null', not 'default({0})'</value>
-  </data>
-  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title" xml:space="preserve">
-    <value>'default' is converted to 'null'</value>
-  </data>
   <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
     <value>unconstrained type parameters in null coalescing operator</value>
   </data>
@@ -5711,9 +5722,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title" xml:space="preserve">
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</value>
-  </data>
-  <data name="IDS_FeatureObjectGenericTypeConstraint" xml:space="preserve">
-    <value>object generic type constraint</value>
   </data>
   <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
     <value>Unexpected character sequence '...'</value>
@@ -5736,6 +5744,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected 'enable', 'disable', or 'restore'</value>
   </data>
+  <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
+    <value>Expected 'warnings', 'annotations', or end of directive</value>
+  </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
   </data>
@@ -5746,7 +5757,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
@@ -5907,13 +5918,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title" xml:space="preserve">
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</value>
   </data>
-  <data name="WRN_SpecialTypeAsBound" xml:space="preserve">
-    <value>Constraint cannot be special class '{0}'</value>
-  </data>
-  <data name="WRN_SpecialTypeAsBound_Title" xml:space="preserve">
-    <value>Constraint cannot be special class</value>
-  </data>
-  <data name="IDS_NotNullGenericTypeConstraint" xml:space="preserve">
+  <data name="IDS_FeatureNotNullGenericTypeConstraint" xml:space="preserve">
     <value>notnull generic type constraint</value>
+  </data>
+  <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
+    <value>Duplicate null suppression operator ('!')</value>
   </data>
 </root>

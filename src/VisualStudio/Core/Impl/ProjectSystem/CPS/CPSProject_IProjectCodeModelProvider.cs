@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
         {
-            private CPSProject _project;
+            private readonly CPSProject _project;
 
             public CPSCodeModelInstanceFactory(CPSProject project)
             {

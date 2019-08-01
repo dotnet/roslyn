@@ -293,9 +293,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // rather than having external new changes map, having snapshot concept
                 // in token stream might be easier to understand.
-                int baseSpaceOrIndentation = _context.TokenStream.GetCurrentColumn(token);
+                var baseSpaceOrIndentation = _context.TokenStream.GetCurrentColumn(token);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var currentToken = list[i];
                     var previousToken = _context.TokenStream.GetPreviousTokenData(currentToken);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private bool ApplyIndentationChangesToDependentTokens(
                 IList<TokenData> tokenWithIndices, Dictionary<SyntaxToken, int> newChangesMap, CancellationToken cancellationToken)
             {
-                for (int i = 0; i < tokenWithIndices.Count; i++)
+                for (var i = 0; i < tokenWithIndices.Count; i++)
                 {
                     var firstToken = tokenWithIndices[i];
 

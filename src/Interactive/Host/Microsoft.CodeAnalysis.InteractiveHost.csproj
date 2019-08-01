@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NullableHelpers\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />

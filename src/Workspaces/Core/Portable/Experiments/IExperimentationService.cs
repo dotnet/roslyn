@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Experiments
     internal static class WellKnownExperimentNames
     {
         public const string RoslynOOP64bit = nameof(RoslynOOP64bit);
-        public const string CompletionAPI = nameof(CompletionAPI);
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string NativeEditorConfigSupport = "Roslyn.NativeEditorConfigSupport";
+        public const string RoslynInlineRenameFile = "Roslyn.FileRename";
     }
 }

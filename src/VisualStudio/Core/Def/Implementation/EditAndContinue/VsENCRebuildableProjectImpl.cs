@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_threadingContext, _encService, _editorAdaptersFactoryService);
                 }
 
-                string outputPath = _project.IntermediateOutputFilePath;
+                var outputPath = _project.IntermediateOutputFilePath;
 
                 // The project doesn't produce a debuggable binary or we can't read it.
                 // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
@@ -476,7 +476,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         // When stopped at exception: All documents are read-only, but the files might be changed outside of VS.
                         // So we start an edit session as usual and report a rude edit for all changes we see.
-                        bool stoppedAtException = encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
+                        var stoppedAtException = encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
 
                         var projectStates = ImmutableDictionary.CreateRange(s_breakStateEnteredProjects);
 
@@ -838,7 +838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         internal static ENCPROG_ACTIVE_STATEMENT_REMAP[] GetRemapActiveStatements(ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> remaps)
         {
             var result = new ENCPROG_ACTIVE_STATEMENT_REMAP[remaps.Length];
-            for (int i = 0; i < remaps.Length; i++)
+            for (var i = 0; i < remaps.Length; i++)
             {
                 result[i] = new ENCPROG_ACTIVE_STATEMENT_REMAP
                 {
@@ -863,7 +863,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             var exceptionRegionCount = nonRemappableRegions.Count(d => d.Region.IsExceptionRegion);
 
             var result = new ENCPROG_EXCEPTION_RANGE[exceptionRegionCount];
-            int i = 0;
+            var i = 0;
             foreach (var (method, region) in nonRemappableRegions)
             {
                 if (region.IsExceptionRegion)
@@ -874,7 +874,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     //   old = new + delta
                     //   new = old – delta
 
-                    int delta = region.LineDelta;
+                    var delta = region.LineDelta;
 
                     result[i++] = new ENCPROG_EXCEPTION_RANGE
                     {
@@ -897,7 +897,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             IDebugUpdateInMemoryPE2 updater,
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Deltas)> edits)
         {
-            int totalEditCount = edits.Sum(e => e.Deltas.Length);
+            var totalEditCount = edits.Sum(e => e.Deltas.Length);
             if (totalEditCount == 0)
             {
                 return;
@@ -906,9 +906,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             var lineUpdates = new LINEUPDATE[totalEditCount];
             fixed (LINEUPDATE* lineUpdatesPtr = lineUpdates)
             {
-                int index = 0;
+                var index = 0;
                 var fileUpdates = new FILEUPDATE[edits.Length];
-                for (int f = 0; f < fileUpdates.Length; f++)
+                for (var f = 0; f < fileUpdates.Length; f++)
                 {
                     var (documentId, deltas) = edits[f];
 
@@ -916,7 +916,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     fileUpdates[f].LineUpdateCount = (uint)deltas.Length;
                     fileUpdates[f].LineUpdates = (IntPtr)(lineUpdatesPtr + index);
 
-                    for (int l = 0; l < deltas.Length; l++)
+                    for (var l = 0; l < deltas.Length; l++)
                     {
                         lineUpdates[index + l].Line = (uint)deltas[l].OldLine;
                         lineUpdates[index + l].UpdatedLine = (uint)deltas[l].NewLine;

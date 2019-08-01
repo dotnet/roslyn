@@ -13,7 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
         AbstractMoveToNamespaceService<NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
         [ImportingConstructor]
-        public CSharpMoveToNamespaceService()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpMoveToNamespaceService(
+            [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService)
+            : base(optionsService)
         {
         }
 

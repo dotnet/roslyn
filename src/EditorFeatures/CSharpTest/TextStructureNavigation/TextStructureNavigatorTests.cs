@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Keyword()
         {
-            for (int i = 7; i <= 7 + 4; i++)
+            for (var i = 7; i <= 7 + 4; i++)
             {
                 AssertExtent(
                     "public class Class1",
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Identifier()
         {
-            for (int i = 13; i <= 13 + 8; i++)
+            for (var i = 13; i <= 13 + 8; i++)
             {
                 AssertExtent(
                     "public class SomeClass : IDisposable",
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void EscapedIdentifier()
         {
-            for (int i = 12; i <= 12 + 9; i++)
+            for (var i = 12; i <= 12 + 9; i++)
             {
                 AssertExtent(
                     "public enum @interface : int",
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Number()
         {
-            for (int i = 37; i <= 37 + 10; i++)
+            for (var i = 37; i <= 37 + 10; i++)
             {
                 AssertExtent(
                     "class Test { private double num   = -1.234678e10; }",
@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         public void String()
         {
             const string TestString = "class Test { private string s1 = \" () test  \"; }";
-            int startOfString = TestString.IndexOf('"');
-            int lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
+            var startOfString = TestString.IndexOf('"');
+            var lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             AssertExtent(
                 TestString,
@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             const string TestString = "class Test { string x = \"hello\"; string s = $\" { x } hello\"; }";
 
-            int startOfFirstString = TestString.IndexOf('"');
-            int endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
-            int startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
-            int lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
+            var startOfFirstString = TestString.IndexOf('"');
+            var endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
+            var startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
+            var lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             // Selects interpolated string start token
             AssertExtent(

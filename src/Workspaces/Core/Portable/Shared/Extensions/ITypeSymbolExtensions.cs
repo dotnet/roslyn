@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type,
             HashSet<INamedTypeSymbol> symbols = null)
         {
-            symbols = symbols ?? new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            symbols ??= new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
             foreach (var interfaceType in type.Interfaces)
             {
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
-            result = result ?? new List<ITypeParameterSymbol>();
+            result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
             return result;
         }
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
-            result = result ?? new List<ITypeParameterSymbol>();
+            result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
             return result;
         }
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // and more specific in at least one.
 
             bool? result = null;
-            for (int i = 0; i < t1.Count; ++i)
+            for (var i = 0; i < t1.Count; ++i)
             {
                 var r = t1[i].IsMoreSpecificThan(t2[i]);
                 if (r == null)

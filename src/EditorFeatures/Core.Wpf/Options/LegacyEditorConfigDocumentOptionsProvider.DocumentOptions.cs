@@ -1,13 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private class DocumentOptions : IDocumentOptions
         {
-            private ICodingConventionsSnapshot _codingConventionSnapshot;
+            private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
             private readonly IErrorLoggerService _errorLogger;
             private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>> s_convertedDictionaryCache =
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>>();
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 _errorLogger = errorLogger;
             }
 
-            public bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value)
+            public bool TryGetDocumentOption(OptionKey option, out object value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 try
                 {
-                    var underlyingOption = underlyingOptions.GetOption(option);
-                    return editorConfigPersistence.TryGetOption(underlyingOption, allRawConventions, option.Option.Type, out value);
+                    return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
                 catch (Exception ex)
                 {
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 public bool TryGetValue(string key, out string value)
                 {
-                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
                         value = objectValue?.ToString();
                         return true;

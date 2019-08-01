@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -189,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
+            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
                                                     ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
                                                     : _commandLineArgumentsForCommandLine.OutputFileName;
 
@@ -205,11 +206,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (useNullableReferenceAnalysisOption == -1)
                 {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
+                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create(CompilerFeatureFlags.RunNullableAnalysis, "false") });
                 }
                 else if (useNullableReferenceAnalysisOption == 1)
                 {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
+                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create(CompilerFeatureFlags.RunNullableAnalysis, "true") });
                 }
             }
 

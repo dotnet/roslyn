@@ -208,6 +208,62 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Class
+{
+    void Method(string? s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+class Class
+{
+    private string? goo;
+
+    void Method(string? s)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    void Method(IEnumerable<string?> s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    private IEnumerable<string?> goo;
+
+    void Method(IEnumerable<string?> s)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleWriteCount()
         {
             await TestExactActionSetOfferedAsync(
@@ -3866,6 +3922,74 @@ class D
     }
 
     static void Goo(int i)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        string? bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(IEnumerable<string?> s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        IEnumerable<string?> bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(IEnumerable<string?> s)
     {
     }
 }",

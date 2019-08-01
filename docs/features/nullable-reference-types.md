@@ -6,10 +6,10 @@ Reference types may be nullable, non-nullable, or null-oblivious (abbreviated he
 
 Project level nullable context can be set by using "nullable" command line switch:
 -nullable[+|-]                        Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}   Specify nullable context option enable|disable|warnings.
 
 Through msbuild the context could be set by supplying an argument for a "Nullable" parameter of Csc build task.
-Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
+Accepted values are "enable", "disable", "warnings", or null (for the default nullable context according to the compiler).
 The Microsoft.CSharp.Core.targets passes value of msbuild property named "Nullable" for that parameter.
 
 Note that in previous preview releases of C# 8.0 this "Nullable" property was successively named "NullableReferenceTypes" then "NullableContextOptions".
@@ -22,70 +22,8 @@ Dictionary<string, object?>? OptDictionaryOptValues; // dictionary may be null, 
 ```
 A warning is reported when annotating a reference type with `?` outside a `#nullable` context.
 
-In metadata, nullable reference types are annotated with a `[Nullable]` attribute.
-```c#
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(
-        AttributeTargets.Class |
-        AttributeTargets.GenericParameter |
-        AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Property |
-        AttributeTargets.Parameter | AttributeTargets.ReturnValue,
-        AllowMultiple = false)]
-    public sealed class NullableAttribute : Attribute
-    {
-        public readonly byte[] NullableFlags;
+[Metadata representation](nullable-metadata.md)
 
-        public NullableAttribute(byte b)
-        {
-            NullableFlags = new byte[] { b };
-        }
-
-        public NullableAttribute(byte[] b)
-        {
-            NullableFlags = b;
-        }
-    }
-}
-```
-
-Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated.
-All value types are marked with flag 0 (oblivious).
-
-To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.
-
-Trivial/optimized cases:
-1)	All parts are NotAnnotated – a NullableAttribute with a single value 1 (rather than an array of 1s)
-2)	All parts are Annotated - a NullableAttribute with a single value 2 (rather than an array of 2s)
-3)	All parts are Oblivious – the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
-    For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
-    but compiler will never emit an attribute like this.
-
-NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
-NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has no `notnull`, `class`, `struct`, `unmanaged` and type constraints and
-is declared in a context where nullable type annotations are allowed, that is equivalent to having an `object?` constraint.
-Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
-
-The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
-
-```c#
-// C# representation of metadata
-[Nullable(2)]
-string OptString; // string?
-[Nullable(new[] { 2, 1, 2 })]
-Dictionary<string, object> OptDictionaryOptValues; // Dictionary<string!, object?>?
-string[] Oblivious1; // string~[]~
-[Nullable(0)] string[] Oblivious2; // string~[]~
-[Nullable(new[] { 0, 0 })] string[] Oblivious3; // string~[]~
-[Nullable(1)] string[] NotNull1; // string![]!
-[Nullable(new[] { 1, 1 })] string[] NotNull2; // string![]!
-[Nullable(new[] { 0, 2 })] string[] ObliviousMaybeNull; // string?[]~
-[Nullable(new[] { 1, 2 })] string[] NotNullMaybeNull; // string?[]!
-int Int; // int
-Nullable<int> NullableInt1; // Nullable<int>
-```
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
 
@@ -101,13 +39,24 @@ If the analysis determines that a null check always (or never) passes, a hidden 
 A number of null checks affect the flow state when tested for:
 - comparisons to `null`: `x == null` and `x != null`
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
+- calls to well-known equality methods, including:
+  - `static bool object.Equals(object, object)`
+  - `static bool object.ReferenceEquals(object, object)`
+  - `bool object.Equals(object)` and overrides
+  - `bool IEquatable<T>(T)` and implementations
+  - `bool IEqualityComparer<T>(T, T)` and implementations
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
 - simple post-conditions: `[MaybeNull]` and `[NotNull]`
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
-- `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
+- `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
+- `[NotNullIfNotNull(string)]`
 See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
+
+The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
+- `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
+- `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -289,7 +238,9 @@ A `class?` constraint is allowed, which, like class, requires the type argument 
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 
-An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable (value or reference type).
+Explicit `object` (or `System.Object`) constraints of any nullability are disallowed. However, type substitution can lead to
+`object!` or `object~` constraints to appear among the constraint types, when their nullability is significant by comparison to
+other constraints. An `object!` constraint requires the type to be non-nullable (value or reference type).
 However, an explicit `object?` constraint is not allowed.
 An unconstrained (here it means - no type constraints, and no `class`, `struct`, or `unmanaged` constraints) type parameter is essentially
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,

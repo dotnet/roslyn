@@ -5,7 +5,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,21 +25,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        private JoinableTaskFactory _joinableTaskFactory;
+        private static JoinableTaskFactory _joinableTaskFactory;
 
         protected InProcComponent() { }
 
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;
 
-        protected JoinableTaskFactory JoinableTaskFactory
+        protected static JoinableTaskFactory JoinableTaskFactory
         {
             get
             {
                 if (_joinableTaskFactory is null)
                 {
-                    var threadingContext = GetComponentModelService<IThreadingContext>();
-                    Interlocked.CompareExchange(ref _joinableTaskFactory, threadingContext.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
+                    Interlocked.CompareExchange(ref _joinableTaskFactory, ThreadHelper.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
                 }
 
                 return _joinableTaskFactory;
@@ -50,17 +48,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected static void InvokeOnUIThread(Action<CancellationToken> action)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            var operation = JoinableTaskFactory.RunAsync(async () =>
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                action(cancellationTokenSource.Token);
+            });
+
+            operation.Task.Wait(cancellationTokenSource.Token);
         }
 
         protected static T InvokeOnUIThread<T>(Func<CancellationToken, T> action)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            return CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            var operation = JoinableTaskFactory.RunAsync(async () =>
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                return action(cancellationTokenSource.Token);
+            });
+
+            operation.Task.Wait(cancellationTokenSource.Token);
+            return operation.Task.Result;
         }
 
         protected static TInterface GetGlobalService<TService, TInterface>()

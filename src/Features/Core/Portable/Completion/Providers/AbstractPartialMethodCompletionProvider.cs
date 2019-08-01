@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 method,
                 token,
                 span.Start,
-                rules: this.GetRules());
+                rules: GetRules());
         }
     }
 }

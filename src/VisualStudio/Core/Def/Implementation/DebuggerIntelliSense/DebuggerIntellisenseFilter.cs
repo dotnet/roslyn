@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
 
             // If the caret is outside our projection, defer to the next command target.
