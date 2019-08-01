@@ -9,6 +9,8 @@ using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - https://github.com/dotnet/roslyn-analyzers/issues/2715
+
     /// <summary>
     /// Base class for all the predicated analysis data.
     /// It tracks <see cref="_lazyPredicateDataMap"/>, which contains the true/false <see cref="PerEntityPredicatedAnalysisData"/> for every predicated <see cref="AnalysisEntity"/>, and
