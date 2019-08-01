@@ -7844,24 +7844,24 @@ unsafe class C
                 .GetDiagnostics()
                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                 .Verify(
-                    // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                    //     object* _object;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
-                    // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                    // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                     //     string* _string;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
-                    // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_string").WithArguments("string").WithLocation(22, 13),
+                    // (27,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                     //     dynamic* _dynamic;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
-                    // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(27, 14),
+                    // (29,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
                     //     D* d;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
-                    // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "d").WithArguments("D").WithLocation(29, 8),
+                    // (31,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
                     //     I* i;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
-                    // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("I").WithLocation(31, 8),
+                    // (32,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                     //     C* c;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"));
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(32, 8),
+                    // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                    //     object* _object;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_object").WithArguments("object").WithLocation(7, 13));
         }
 
         [Fact]
