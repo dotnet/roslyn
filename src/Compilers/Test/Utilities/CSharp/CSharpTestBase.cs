@@ -55,7 +55,6 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(
-        AttributeTargets.Module |
         AttributeTargets.Class |
         AttributeTargets.Delegate |
         AttributeTargets.Interface |
