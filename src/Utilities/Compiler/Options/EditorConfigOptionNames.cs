@@ -70,7 +70,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// Enumeration option to configure unsafe DllImportSearchPath bits when using DefaultDllImportSearchPaths attribute.
-        /// This enumeration allows a bitwise combination of its member values.
+        /// Do not use the OR operator to represent the bitwise combination of its member values, use the integeral value directly.
         /// </summary>
         public const string UnsafeDllImportSearchPathBits = "unsafe_DllImportSearchPath_bits";
     }
