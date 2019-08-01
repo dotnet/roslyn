@@ -5370,5 +5370,102 @@ class C
                 "C.<>c: {<>9__0_0, <F>b__0_0, <<F>b__0_0>d}",
                 "C.<>c.<<F>b__0_0>d: {<>1__state, <>t__builder, <>4__this, <a>5__1, <>s__2, <>u__1, MoveNext, SetStateMachine}");
         }
+
+        [Fact]
+        public void AsyncMethodWithNullableParameterAddingNullCheck()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> G<T>(Func<T> f) => Task.FromResult(f());
+    static T H<T>(Func<T> f) => f();
+
+    public async void F(string? x)
+    <N:4>{</N:4>
+        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
+    }
+}
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source1 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> G<T>(Func<T> f) => Task.FromResult(f());
+    static T H<T>(Func<T> f) => f();
+
+    public async void F(string? x)
+    <N:4>{</N:4>
+        if (x is null) throw new Exception();
+        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
+    }
+}
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass3_0: {x, y, <F>b__1, <F>b__0}",
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "Microsoft: {CodeAnalysis}",
+                "System.Runtime: {CompilerServices, CompilerServices}",
+                "C: {<>c__DisplayClass3_0, <F>d__3}",
+                "<global namespace>: {Microsoft, System, System}",
+                "System: {Runtime, Runtime}",
+                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__4, <z>5__2, <>s__5, <>u__1, MoveNext, SetStateMachine}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__1()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass3_0.x""
+  IL_0006:  call       ""string C.id<string>(string)""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string>..ctor(string)""
+  IL_0010:  ret
+}
+");
+
+            diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__0()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<anonymous type: string A> C.<>c__DisplayClass3_0.y""
+  IL_0006:  callvirt   ""string <>f__AnonymousType0<string>.A.get""
+  IL_000b:  ret
+}
+");
+        }
     }
 }
