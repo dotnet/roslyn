@@ -5230,8 +5230,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
-                AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = -1
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)   ' disable timebox for import completion
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
@@ -5317,7 +5318,9 @@ namespace NS2
 }
 ]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)   ' disable timebox for import completion
 
                 ' trigger completion with import completion enabled
                 state.SendInvokeCompletionList()
@@ -5374,8 +5377,9 @@ namespace NS2
 ]]></Document>)
 
                 ' Enable import completion and set timeout to 0 (so always timeout)
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
-                AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, 0)
 
                 ' trigger completion with import completion enabled, this should timeout so no unimport types should be shown and expander should be unselected
                 ' (but the caculation should continue in background)
@@ -5428,8 +5432,8 @@ namespace NS2
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
-                ' set timeout to 0
-                AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0
+                ' set timeout to 0 (always timeout)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, 0)
 
                 ' select expander
                 state.SetCompletionItemExpanderState(isSelected:=True)
@@ -5809,7 +5813,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", displayTextSuffix:="<>")
@@ -5871,7 +5877,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="Bar")
@@ -5933,7 +5941,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="BitArrayReceiver")
