@@ -806,6 +806,7 @@ class Class
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
                 {
                     var expected =
@@ -838,6 +839,7 @@ using System;
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveLeadingBlankLines()
                 {
                     var expected =
@@ -866,6 +868,7 @@ using System;
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveMoreThanOneTrailingBlankLine()
                 {
                     var expected =
@@ -1472,10 +1475,10 @@ public class SampleEventArgs
 
 class Class
 {
-    // Declare the delegate (if using non-generic pattern). 
+    // Declare the delegate (if using non-generic pattern).
     public delegate void SampleEventHandler(object sender, SampleEventArgs e);
 
-    // Declare the event. 
+    // Declare the event.
     [|public event SampleEventHandler SampleEvent|]
     {
         add { }
