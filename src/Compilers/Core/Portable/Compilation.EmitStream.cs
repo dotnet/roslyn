@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             /// This form of signing occurs in memory using the <see cref="PEBuilder"/> APIs. This is the default 
             /// form of signing and will be used when a strong name key is provided in a file on disk.
             /// </summary>
-            SignedWithBulider,
+            SignedWithBuilder,
 
             /// <summary>
             /// This form of signing occurs using the <see cref="IClrStrongName"/> COM APIs. This form of signing

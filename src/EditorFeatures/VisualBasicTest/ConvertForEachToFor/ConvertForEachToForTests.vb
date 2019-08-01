@@ -395,7 +395,67 @@ Class Test
     End Sub
 End Class
 "
-            Await TestMissingInRegularAndScriptAsync(initial)
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            {|Warning:Dim a = array(i)|}
+            a = 1
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        Public Async Function StructPropertyReadFromAndAssignedToLocal() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a In New Integer?() {1, 2, 3}
+            Dim b = a.Value
+        Next
+    End Sub
+End Class
+"
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer?() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
+            Dim b = a.Value
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        Public Async Function StructPropertyRead() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a In New Integer?() {1, 2, 3}
+            a.Value
+        Next
+    End Sub
+End Class
+"
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer?() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
+            a.Value
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
@@ -412,30 +472,79 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
-        Public Async Function WrongCaretPosition1() As Task
+        Public Async Function TestBefore() As Task
             Dim initial = "
 Class Test
     Sub Method()
-        [||] For Each a In New Integer() {1, 2, 3}
+        Dim array = New Integer() {1, 2, 3}
+       [||] For Each a In array
         Next
     End Sub
 End Class
 "
-            Await TestMissingInRegularAndScriptAsync(initial)
+
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim array = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
-        Public Async Function WrongCaretPosition2() As Task
+        Public Async Function TestAfter() As Task
             Dim initial = "
 Class Test
     Sub Method()
-        For Each a In New Integer() {1, 2, 3} [||] 
+        Dim array = New Integer() {1, 2, 3}
+        For Each a In array [||]
         Next
     End Sub
 End Class
 "
-            Await TestMissingInRegularAndScriptAsync(initial)
+
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim array = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1 
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        Public Async Function TestSelection() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        Dim array = New Integer() {1, 2, 3}
+        [|For Each a In array
+        Next|]
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim array = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>

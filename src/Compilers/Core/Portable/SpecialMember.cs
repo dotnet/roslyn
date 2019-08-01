@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Object__GetHashCode,
         System_Object__Equals,
+        System_Object__EqualsObjectObject,
         System_Object__ToString,
         System_Object__ReferenceEquals,
 

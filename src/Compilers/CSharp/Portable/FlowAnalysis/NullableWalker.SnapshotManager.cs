@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The int key corresponds to <see cref="Snapshot.SharedStateIndex"/>.
             /// </summary>
-            private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
+            private readonly ImmutableArray<SharedWalkerState> _walkerSharedStates;
+
             /// <summary>
             /// The snapshot array should be sorted in ascending order by the position tuple element in order for the binary search algorithm to
             /// function correctly.
@@ -26,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static readonly Func<(int position, Snapshot snapshot), int, int> BinarySearchComparer = (current, target) => current.position.CompareTo(target);
 
-            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
+            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerSharedStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
             {
-                _walkerGlobalStates = walkerGlobalStates;
+                _walkerSharedStates = walkerSharedStates;
                 _incrementalSnapshots = incrementalSnapshots;
 
 #if DEBUG
@@ -43,29 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (NullableWalker, VariableState) RestoreWalkerToAnalyzeNewNode(
+            internal (NullableWalker, VariableState, Symbol) RestoreWalkerToAnalyzeNewNode(
                 int position,
                 BoundNode nodeToAnalyze,
                 Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMap,
+                SnapshotManager.Builder newManagerOpt)
             {
-                var snapshotPosition = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
-
-                if (snapshotPosition < 0)
-                {
-                    // BinarySearch returns the next higher position. Always take the one most close but behind the requested position
-                    snapshotPosition = (~snapshotPosition) - 1;
-
-                    // If there was none in the snapshots before the target position, just take index 0
-                    if (snapshotPosition < 0) snapshotPosition = 0;
-                }
-
-                (_, Snapshot incrementalSnapshot) = _incrementalSnapshots[snapshotPosition];
-                var globalState = _walkerGlobalStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                var method = globalState.Symbol as MethodSymbol;
+                Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
+                var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
+                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
+                var method = sharedState.Symbol as MethodSymbol;
                 return (new NullableWalker(binder.Compilation,
-                                           globalState.Symbol,
+                                           sharedState.Symbol,
                                            useMethodSignatureParameterTypes: !(method is null),
                                            method,
                                            nodeToAnalyze,
@@ -74,9 +66,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            variableState,
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
-                                           snapshotBuilderOpt: null,
+                                           updatedMethodSymbolMap,
+                                           snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
-                        variableState);
+                        variableState,
+                        sharedState.Symbol);
+            }
+
+            internal ImmutableDictionary<Symbol, TypeWithAnnotations> GetVariableTypesForPosition(int position)
+            {
+                var snapshot = GetSnapshotForPosition(position);
+                var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
+                return sharedState.VariableTypes;
+            }
+
+            private Snapshot GetSnapshotForPosition(int position)
+            {
+                var snapshotIndex = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
+
+                if (snapshotIndex < 0)
+                {
+                    // BinarySearch returns the next higher position. Always take the one closest but behind the requested position
+                    snapshotIndex = (~snapshotIndex) - 1;
+
+                    // If there was none in the snapshots before the target position, just take index 0
+                    if (snapshotIndex < 0) snapshotIndex = 0;
+                }
+
+                return _incrementalSnapshots[snapshotIndex].snapshot;
             }
 
 #if DEBUG
@@ -94,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
                 }
-                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
             }
 #endif
 
@@ -108,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SortedDictionary<int, Snapshot> _incrementalSnapshots = new SortedDictionary<int, Snapshot>();
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
-                /// to get to a stable state. Each of these symbols gets a single global state slot, which this
+                /// to get to a stable state. Each of these symbols gets a single shared state slot, which this
                 /// dictionary keeps track of. These slots correspond to indexes into <see cref="_walkerStates"/>.
                 /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
@@ -198,10 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly LocalState VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int globalStateIndex)
+            internal Snapshot(LocalState variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
-                SharedStateIndex = globalStateIndex;
+                SharedStateIndex = sharedStateIndex;
             }
         }
     }

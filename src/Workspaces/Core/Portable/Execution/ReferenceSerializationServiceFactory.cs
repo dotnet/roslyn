@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private sealed class Service : AbstractReferenceSerializationService
         {
-            public Service(ITemporaryStorageService2 service, IDocumentationProviderService documentationService) :
-                base(service, documentationService)
+            public Service(ITemporaryStorageService2 service, IDocumentationProviderService documentationService)
+                : base(service, documentationService)
             {
             }
 

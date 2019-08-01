@@ -52,9 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // We're going to be checking every invocation in the compilation. Cache information
                 // we compute in this object so we don't have to continually recompute it.
                 var infoCache = new InfoCache(compilationContext.Compilation);
-                compilationContext.RegisterOperationAction(
-                    c => AnalyzeInvocation(c, infoCache),
-                    OperationKind.Invocation);
+
+                // The System.Range type is always required to offer this fix.
+                if (infoCache.RangeType != null)
+                {
+                    compilationContext.RegisterOperationAction(
+                        c => AnalyzeInvocation(c, infoCache),
+                        OperationKind.Invocation);
+                }
             });
         }
 

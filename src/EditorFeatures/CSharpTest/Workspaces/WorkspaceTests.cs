@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 await WaitForWorkspaceOperationsToComplete(workspace);
 
                 var solution = workspace.CurrentSolution;
-                bool workspaceChanged = false;
+                var workspaceChanged = false;
 
                 workspace.WorkspaceChanged += (s, e) => workspaceChanged = true;
 
@@ -223,14 +223,14 @@ class D { }
                 workspace.TryApplyChanges(workspace.CurrentSolution);
 
                 // Check that a parse tree for a submission has an empty file path.
-                SyntaxTree tree1 = await workspace.CurrentSolution
+                var tree1 = await workspace.CurrentSolution
                     .GetProjectState(project1.Id)
                     .GetDocumentState(document1.Id)
                     .GetSyntaxTreeAsync(CancellationToken.None);
                 Assert.Equal("", tree1.FilePath);
 
                 // Check that a parse tree for a script does not have an empty file path.
-                SyntaxTree tree2 = await workspace.CurrentSolution
+                var tree2 = await workspace.CurrentSolution
                     .GetProjectState(project2.Id)
                     .GetDocumentState(document2.Id)
                     .GetSyntaxTreeAsync(CancellationToken.None);
@@ -566,7 +566,7 @@ class D { }
                 var buffer1 = document1.GetTextBuffer();
                 buffer1.Replace(new Span(13, 1), "X");
 
-                for (int iter = 0; iter < 10; iter++)
+                for (var iter = 0; iter < 10; iter++)
                 {
                     WaitHelper.WaitForDispatchedOperationsToComplete(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
                     Thread.Sleep(1000);
@@ -623,7 +623,7 @@ class D { }
                 buffer1.Replace(new Span(13, 1), "X");
 
                 var foundTheError = false;
-                for (int iter = 0; iter < 10; iter++)
+                for (var iter = 0; iter < 10; iter++)
                 {
                     WaitHelper.WaitForDispatchedOperationsToComplete(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
                     Thread.Sleep(1000);

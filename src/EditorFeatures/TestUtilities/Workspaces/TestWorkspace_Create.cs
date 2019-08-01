@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var index = 0;
             var extension = "";
 
-            for (int i = 0; i < files.Length; i++)
+            for (var i = 0; i < files.Length; i++)
             {
                 if (language == LanguageNames.CSharp)
                 {

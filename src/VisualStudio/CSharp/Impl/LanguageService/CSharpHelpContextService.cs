@@ -84,8 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 // just find the first "word" that intersects with our position
                 var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                int start = span.Start;
-                int end = span.Start;
+                var start = span.Start;
+                var end = span.Start;
 
                 while (start > 0 && syntaxFacts.IsIdentifierPartCharacter(text[start - 1]))
                 {
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Just use syntaxfacts for operators
-            if (symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
             {
                 text = null;
                 return false;

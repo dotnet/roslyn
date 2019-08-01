@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote
             SetNativeDllSearchDirectories();
         }
 
-        public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 

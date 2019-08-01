@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private bool _disposed;
 
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream) :
-            this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+            : this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
         {
         }
 

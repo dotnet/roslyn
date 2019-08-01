@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (engine.ShowCheckBoxes)
             {
-                __PREVIEWCHANGESITEMCHECKSTATE newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked;
+                var newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked;
                 if (CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked)
                 {
                     newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             if (engine.ShowCheckBoxes)
             {
-                __PREVIEWCHANGESITEMCHECKSTATE newState = Children.Changes[0].CheckState;
+                var newState = Children.Changes[0].CheckState;
                 foreach (var child in Children.Changes)
                 {
                     if (newState != child.CheckState)

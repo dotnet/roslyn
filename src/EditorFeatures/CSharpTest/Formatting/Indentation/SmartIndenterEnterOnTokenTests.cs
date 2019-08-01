@@ -1367,7 +1367,7 @@ class C
                 Assert.True(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line.AsTextLine(), await document.GetOptionsAsync(), CancellationToken.None));
+                        root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
 
                 var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
                 Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1378,7 +1378,6 @@ class C
             string code,
             int indentationLine,
             int? expectedIndentation,
-            int? expectedBlankLineIndentation = null,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
             // create tree service
@@ -1397,11 +1396,9 @@ class C
                 Assert.False(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line.AsTextLine(), await document.GetOptionsAsync(), CancellationToken.None));
+                        root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
 
-                TestIndentation(
-                    workspace, indentationLine,
-                    expectedIndentation, expectedBlankLineIndentation);
+                TestIndentation(workspace, indentationLine, expectedIndentation);
             }
         }
     }

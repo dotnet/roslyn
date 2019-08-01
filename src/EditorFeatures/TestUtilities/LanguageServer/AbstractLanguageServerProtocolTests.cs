@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -30,10 +31,13 @@ namespace Roslyn.Test.Utilities
         {
             var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
+            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes));
+                .WithParts(requestHelperTypes)
+                .WithParts(executeCommandHandlerTypes));
             return exportProviderFactory.CreateExportProvider();
         }
 

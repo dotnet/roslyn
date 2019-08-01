@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
-            using (var session = CreateSession("$$"))
-            {
-                Assert.NotNull(session);
-            }
+            using var session = CreateSession("$$");
+            Assert.NotNull(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -32,10 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     string s = ""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -46,10 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     string s = @""
 $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -59,11 +53,9 @@ $$
 {
     string s = $""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -73,11 +65,9 @@ $$
 {
     string s = $@""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -88,11 +78,9 @@ $$
     string x = ""goo""
     string s = $""{x} $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -103,11 +91,9 @@ $$
     string x = ""goo""
     string s = $@""{x} $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -117,11 +103,9 @@ $$
 {
     string s = $""{{$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -131,11 +115,9 @@ $$
 {
     string s = $""{}$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -145,10 +127,8 @@ $$
 {
     string s = @""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -158,10 +138,8 @@ $$
 {
     string s = ""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -171,10 +149,8 @@ $$
 {
     //$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -184,10 +160,8 @@ $$
 {
     /* $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -197,10 +171,8 @@ $$
 {
     /// $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -210,10 +182,8 @@ $$
 {
     /** $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -226,11 +196,9 @@ $$
         /* */$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -243,12 +211,10 @@ $$
         /** */$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -261,12 +227,10 @@ $$
         var s = """"$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -279,12 +243,10 @@ $$
         var s = @""""$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -292,12 +254,10 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -305,13 +265,11 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -319,13 +277,11 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -333,13 +289,11 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -349,12 +303,10 @@ $$
 {
     void Method() { $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -362,13 +314,11 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 4);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -403,14 +353,12 @@ class C
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckText(session.Session, expectedBeforeReturn);
-                CheckReturn(session.Session, 12, expectedAfterReturn);
-            }
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -448,14 +396,12 @@ class C
         M();
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckText(session.Session, expectedBeforeReturn);
-                CheckReturn(session.Session, 12, expectedAfterReturn);
-            }
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -493,14 +439,12 @@ class C
         M();
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckText(session.Session, expectedBeforeReturn);
-                CheckReturn(session.Session, 12, expectedAfterReturn);
-            }
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -535,14 +479,12 @@ class C
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckText(session.Session, expectedBeforeReturn);
-                CheckReturn(session.Session, 12, expectedAfterReturn);
-            }
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -570,13 +512,11 @@ class C
         }
     };
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -608,13 +548,11 @@ class C
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -643,13 +581,11 @@ class C
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -687,13 +623,11 @@ class Goo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -728,13 +662,11 @@ class Goo
 {
     public int bar;
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -762,13 +694,11 @@ class Goo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -793,13 +723,11 @@ class Goo
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -827,13 +755,11 @@ class Goo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -858,13 +784,11 @@ class Goo
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -892,13 +816,11 @@ class Goo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -923,13 +845,11 @@ class Goo
         }
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckReturn(session.Session, 12, expected);
-            }
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
@@ -962,15 +882,13 @@ class Goo
                                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+            CheckStart(session.Session);
+            Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-                CheckReturn(session.Session, 4, expectedAfterReturn);
-            }
+            CheckReturn(session.Session, 4, expectedAfterReturn);
         }
 
         [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
@@ -993,13 +911,11 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
-            }
+            CheckStart(session.Session);
+            Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
@@ -1030,15 +946,13 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+            CheckStart(session.Session);
+            Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-                CheckReturn(session.Session, 8, expectedAfterReturn);
-            }
+            CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
@@ -1075,15 +989,13 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = CreateSession(code, optionSet))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+            CheckStart(session.Session);
+            Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-                CheckReturn(session.Session, 8, expectedAfterReturn);
-            }
+            CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
         internal Holder CreateSession(string code, Dictionary<OptionKey, object> optionSet = null)

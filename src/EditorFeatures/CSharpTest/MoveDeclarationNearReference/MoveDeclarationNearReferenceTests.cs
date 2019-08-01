@@ -2,8 +2,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new MoveDeclarationNearReferenceCodeRefactoringProvider();
+            => new CSharpMoveDeclarationNearReferenceCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove1()
@@ -295,7 +295,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -312,7 +313,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -360,7 +362,8 @@ class Program
         public async Task TestAvailableInNonHiddenBlock2()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -373,7 +376,8 @@ class Program
         Bar(x);
     }
 }",
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {

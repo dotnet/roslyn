@@ -239,7 +239,7 @@ namespace Roslyn.Utilities
 
         private static double Penalty(string candidateText, string originalText)
         {
-            int lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
+            var lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
             if (lengthDifference != 0)
             {
                 // For all items of the same edit cost, we penalize those that are 
@@ -257,7 +257,7 @@ namespace Roslyn.Utilities
                 // 3            -> .75
                 // 4            -> .8
                 // And so on and so forth.
-                double penalty = 1.0 - (1.0 / (lengthDifference + 1));
+                var penalty = 1.0 - (1.0 / (lengthDifference + 1));
                 return penalty;
             }
 

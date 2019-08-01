@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     .Select(lz => lz.Value)
                     .ToImmutableArray();
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref _providers, providers, default(ImmutableArray<QuickInfoProvider>));
+                ImmutableInterlocked.InterlockedCompareExchange(ref _providers, providers, default);
             }
 
             return _providers;

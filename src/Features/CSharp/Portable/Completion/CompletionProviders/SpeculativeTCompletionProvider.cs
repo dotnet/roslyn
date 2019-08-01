@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (showSpeculativeT)
                 {
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                     const string T = nameof(T);
                     context.AddItem(CommonCompletionItem.Create(
                         T, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.TypeParameter));
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // If we're in a generic type argument context, use the start of the generic type name
             // as the position for the rest of the context checks.
-            int testPosition = position;
+            var testPosition = position;
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(leftToken.Parent, cancellationToken).ConfigureAwait(false);

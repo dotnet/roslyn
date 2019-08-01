@@ -3,89 +3,12 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class CodeRefactoringHelpers
     {
-        /// <summary>
-        /// <para>
-        /// Returns an instance of <typeparamref name="TSyntaxNode"/> for refactoring given specified selection in document or null
-        /// if no such instance exists.
-        /// </para>
-        /// <para>
-        /// A <typeparamref name="TSyntaxNode"/> instance is returned if:
-        /// - Selection is zero-width and inside/touching a Token with direct parent of type <typeparamref name="TSyntaxNode"/>.
-        /// - Selection is zero-width and touching a Token whose ancestor ends/starts precisely on current selection .
-        /// - Token whose direct parent of type <typeparamref name="TSyntaxNode"/> is selected.
-        /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
-        /// </para>
-        /// <para>
-        /// Note: this function strips all whitespace from both the beginning and the end of given <paramref name="selection"/>.
-        /// The stripped version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
-        /// of tokens gracefully.
-        /// </para>
-        /// </summary>
-        public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
-
-            var node = root.FindNode(selectionStripped, getInnermostNodeForTie: true);
-            SyntaxNode prevNode;
-            do
-            {
-                if (node is TSyntaxNode)
-                {
-                    return (TSyntaxNode)node;
-                }
-
-                prevNode = node;
-                node = node.Parent;
-
-            } while (node != null && prevNode.FullWidth() == node.FullWidth());
-
-            // only consider what is direct selection touching when selection is empty 
-            // prevents `[|C|] methodName(){}` from registering as relevant for method Node
-            if (!selection.IsEmpty)
-            {
-                return default;
-            }
-
-            var tokenToLeft = await root.SyntaxTree.GetTouchingTokenToLeftAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
-            var leftNode = tokenToLeft.Parent;
-            do
-            {
-                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span ends on selection
-                if (leftNode is TSyntaxNode)
-                {
-                    return (TSyntaxNode)leftNode;
-                }
-
-                leftNode = leftNode?.Parent;
-            } while (leftNode != null && leftNode.Span.End == selection.Start);
-
-
-            var tokenToRight = await root.SyntaxTree.GetTouchingTokenToRightOrInAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
-            var rightNode = tokenToRight.Parent;
-            do
-            {
-                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span starts on selection
-                if (rightNode is TSyntaxNode)
-                {
-                    return (TSyntaxNode)rightNode;
-                }
-
-                rightNode = rightNode?.Parent;
-            } while (rightNode != null && rightNode.Span.Start == selection.Start);
-
-            return default;
-
-        }
-
         public static Task<bool> RefactoringSelectionIsValidAsync(
             Document document, TextSpan selection, SyntaxNode node, CancellationToken cancellation)
         {
@@ -212,13 +135,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Strips leading and trailing whitespace from <paramref name="span"/>.
+        /// Trims leading and trailing whitespace from <paramref name="span"/>.
         /// </summary>
         /// <remarks>
         /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
         /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
         /// </remarks>
-        private static async Task<TextSpan> GetStrippedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
+        public static async Task<TextSpan> GetTrimmedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (span.IsEmpty)
             {
@@ -239,9 +162,7 @@ namespace Microsoft.CodeAnalysis
                 start++;
             }
 
-            return start == end
-                ? new TextSpan(start, 0)
-                : TextSpan.FromBounds(start, end);
+            return TextSpan.FromBounds(start, end);
         }
     }
 }

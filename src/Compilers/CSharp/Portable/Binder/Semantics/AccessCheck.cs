@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
         {
-            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol is object);
 
             switch (symbol.Kind)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 symbol = symbol.ContainingType;
             }
-            while (!(symbol is null));
+            while (symbol is object);
 
             return true;
         }
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    if (symbol.IsStatic)
+                    if (!symbol.RequiresInstanceReceiver())
                     {
                         // static members aren't accessed "through" an "instance" of any type.  So we
                         // null out the "through" instance here.  This ensures that we'll understand

@@ -512,7 +512,7 @@ class Class
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -577,7 +577,7 @@ class Class
 
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -1543,6 +1543,39 @@ class Class { }
 
                     await TestAsync(initialMarkup, expectedText);
                 }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
+                {
+                    var initialMarkup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+using System;
+
+class Class { }
+
+[|class Class2|] { }
+]]>
+        </Document>
+        <Document FilePath=""GlobalSuppressions.cs""><![CDATA[
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
+]]>
+        </Document>
+    </Project>
+</Workspace>";
+                    var expectedText =
+                        $@"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
+
+";
+
+                    await TestAsync(initialMarkup, expectedText);
+                }
             }
         }
 
@@ -1557,7 +1590,7 @@ class Class { }
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

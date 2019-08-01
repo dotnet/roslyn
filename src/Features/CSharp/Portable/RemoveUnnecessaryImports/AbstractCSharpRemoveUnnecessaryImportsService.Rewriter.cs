@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
 
                 finalTrivia = default;
-                for (int i = 0; i < usings.Count; i++)
+                for (var i = 0; i < usings.Count; i++)
                 {
                     if (usingsToRemove.Contains(usings[i]))
                     {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 Debug.Assert(oldUsings.Count == newUsings.Count);
 
                 var result = new HashSet<UsingDirectiveSyntax>();
-                for (int i = 0; i < oldUsings.Count; i++)
+                for (var i = 0; i < oldUsings.Count; i++)
                 {
                     if (_unnecessaryUsingsDoNotAccessDirectly.Contains(oldUsings[i]))
                     {

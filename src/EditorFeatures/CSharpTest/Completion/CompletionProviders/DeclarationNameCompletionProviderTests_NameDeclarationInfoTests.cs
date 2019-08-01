@@ -780,7 +780,7 @@ namespace ConsoleApp1
         private async Task VerifyNoModifiers(string markup)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(default(DeclarationModifiers), result.Modifiers);
+            Assert.Equal(default, result.Modifiers);
         }
 
         private async Task VerifySymbolKinds(string markup, params SymbolKindOrTypeKind[] expectedSymbolKinds)

@@ -23,14 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Don't bother if there isn't a selection
-            var textSpan = context.Span;
+            var (document, textSpan, cancellationToken) = context;
             if (textSpan.IsEmpty)
             {
                 return;
             }
-
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
 
             var workspace = document.Project.Solution.Workspace;
             if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
@@ -97,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

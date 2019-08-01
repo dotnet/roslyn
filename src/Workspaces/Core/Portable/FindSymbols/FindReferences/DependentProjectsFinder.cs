@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            bool? hasMatch = project.GetAssemblyReferenceType(
+            var hasMatch = project.GetAssemblyReferenceType(
                 a => a.Name == assemblyName ? true : (bool?)null,
                 cancellationToken);
 

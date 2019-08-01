@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNamedArguments
 {
@@ -16,8 +17,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
     {
         protected interface IAnalyzer
         {
-            Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context, SyntaxNode root);
         }
 
         protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
@@ -26,46 +26,17 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             where TArgumentListSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
+                CodeRefactoringContext context, SyntaxNode root)
             {
-                if (context.Span.Length > 0)
-                {
-                    return;
-                }
+                var (document, textSpan, cancellationToken) = context;
 
-                var position = context.Span.Start;
-                var token = root.FindToken(position);
-                if (token.Span.Start == position &&
-                    IsCloseParenOrComma(token))
-                {
-                    token = token.GetPreviousToken();
-                    if (token.Span.End != position)
-                    {
-                        return;
-                    }
-                }
-
-                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                var argument = await context.TryGetRelevantNodeAsync<TBaseArgumentSyntax>().ConfigureAwait(false) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
                 }
 
                 if (!IsPositionalArgument(argument))
-                {
-                    return;
-                }
-
-                // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
-                // line that the argument starts on.
-
-                var document = context.Document;
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
-
-                if (argumentStartLine != caretLine)
                 {
                     return;
                 }
@@ -210,22 +181,19 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, _, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            await _argumentAnalyzer.ComputeRefactoringsAsync(
-                context, root, cancellationToken).ConfigureAwait(false);
+            await _argumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
 
             if (_attributeArgumentAnalyzer != null)
             {
-                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(
-                    context, root, cancellationToken).ConfigureAwait(false);
+                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
             }
         }
 

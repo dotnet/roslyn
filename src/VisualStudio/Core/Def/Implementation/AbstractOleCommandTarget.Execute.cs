@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteAppCommand(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteVisualStudio2014(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteVisualStudio2013(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteVisualStudio97(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -206,10 +206,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (pvaOut == IntPtr.Zero)
                     {
                         // mirror logic in COleUndoManager::Exec
-                        int count = 1;
+                        var count = 1;
                         if (pvaIn != IntPtr.Zero)
                         {
-                            object o = Marshal.GetObjectForNativeVariant(pvaIn);
+                            var o = Marshal.GetObjectForNativeVariant(pvaIn);
                             if (o == null || o is string)
                             {
                                 count = 1;
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteCSharpGroup(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -273,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int ExecuteRoslyn(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected virtual int ExecuteVisualStudio2000(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -558,7 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <remarks>TODO: Revert the change to use standard VS11 command pending https://github.com/dotnet/roslyn/issues/8927 .</remarks>
         private int ExecuteInteractive(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
             void executeNextCommandTarget()
             {
@@ -955,7 +955,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                      VSConstants.VSStd97CmdID.ShellNavBackward :
                      VSConstants.VSStd97CmdID.ShellNavForward);
 
-                OLECMD[] cmds = new[] { new OLECMD() { cmdf = 0, cmdID = cmd } };
+                var cmds = new[] { new OLECMD() { cmdf = 0, cmdID = cmd } };
                 var hr = target.QueryStatus(VSConstants.GUID_VSStandardCommandSet97, 1, cmds, IntPtr.Zero);
                 if (hr == VSConstants.S_OK && (cmds[0].cmdf & (uint)OLECMDF.OLECMDF_ENABLED) != 0)
                 {

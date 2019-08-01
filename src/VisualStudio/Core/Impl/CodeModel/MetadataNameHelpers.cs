@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // Append generic arguments
                 builder.Append('[');
 
-                for (int i = 0; i < typeArguments.Length; i++)
+                for (var i = 0; i < typeArguments.Length; i++)
                 {
                     if (i > 0)
                     {

@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt)
             {
-                options = options ?? GetDefaultParseOptions();
+                options ??= GetDefaultParseOptions();
                 return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, treeDiagnosticReportingOptionsOpt);
             }
 
             public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt, CancellationToken cancellationToken)
             {
-                options = options ?? GetDefaultParseOptions();
+                options ??= GetDefaultParseOptions();
                 return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken: cancellationToken);
             }
 

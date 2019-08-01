@@ -3441,6 +3441,22 @@ public class Test
 
         [Fact]
         [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnable_Error()
+        {
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPWarning); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnable()
         {
             var text = @"#pragma warning enable 114";
@@ -3471,7 +3487,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableNullable()
         {
@@ -3487,7 +3503,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableCSharp7_3()
         {
@@ -3552,7 +3568,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_01()
         {
@@ -3568,7 +3584,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_02()
         {
@@ -3584,7 +3600,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_03()
         {
@@ -3800,7 +3816,7 @@ class A
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithNoCodes()
         {
@@ -4209,7 +4225,7 @@ class A
             var text = @"#nullable enable";
             var node = Parse(text, options: TestOptions.Regular7_3);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureInPreview, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
         }
 

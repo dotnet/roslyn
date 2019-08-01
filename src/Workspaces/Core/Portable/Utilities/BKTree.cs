@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
                     lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
                 }
 
-                threshold = threshold ?? WordSimilarityChecker.GetThreshold(value);
+                threshold ??= WordSimilarityChecker.GetThreshold(value);
                 var result = new List<string>();
                 Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result, recursionCount: 0);
                 return result;

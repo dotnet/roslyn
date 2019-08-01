@@ -489,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return string.Empty;
             }
 
-            OLECMDTEXT* pText = (OLECMDTEXT*)pCmdTextInt;
+            var pText = (OLECMDTEXT*)pCmdTextInt;
 
             // Punt early if there is no text in the structure.
             if (pText->cwActual == 0)
@@ -502,7 +502,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static unsafe void SetText(IntPtr pCmdTextInt, string text)
         {
-            OLECMDTEXT* pText = (OLECMDTEXT*)pCmdTextInt;
+            var pText = (OLECMDTEXT*)pCmdTextInt;
 
             // If, for some reason, we don't get passed an array, we should just bail
             if (pText->cwBuf == 0)
@@ -512,13 +512,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             fixed (char* pinnedText = text)
             {
-                char* src = pinnedText;
-                char* dest = (char*)(&pText->rgwz);
+                var src = pinnedText;
+                var dest = (char*)(&pText->rgwz);
 
                 // Don't copy too much, and make sure to reserve space for the terminator
-                int length = Math.Min(text.Length, (int)pText->cwBuf - 1);
+                var length = Math.Min(text.Length, (int)pText->cwBuf - 1);
 
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     *dest++ = *src++;
                 }

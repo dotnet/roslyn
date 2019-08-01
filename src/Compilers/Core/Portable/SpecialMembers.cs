@@ -834,6 +834,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_Object__EqualsObjectObject
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
                 // System_Object__ToString
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
@@ -1099,6 +1108,7 @@ namespace Microsoft.CodeAnalysis
                 "GetUpperBound",                            // System_Array__GetUpperBound
                 "GetHashCode",                              // System_Object__GetHashCode
                 "Equals",                                   // System_Object__Equals
+                "Equals",                                   // System_Object__EqualsObjectObject
                 "ToString",                                 // System_Object__ToString
                 "ReferenceEquals",                          // System_Object__ReferenceEquals
                 "op_Explicit",                              // System_IntPtr__op_Explicit_ToPointer

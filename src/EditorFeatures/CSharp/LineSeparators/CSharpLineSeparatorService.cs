@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
             // first child needs no separator
             var seenSeparator = true;
-            for (int i = 0; i < children.Count - 1; i++)
+            for (var i = 0; i < children.Count - 1; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

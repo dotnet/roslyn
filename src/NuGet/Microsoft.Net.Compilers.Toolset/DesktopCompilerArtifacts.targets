@@ -8,6 +8,12 @@
 
     Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
     NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+    Assemblies NGEN'd as priority 1 are selected based on how much JIT time they contribute, when not NGEN'd,
+    to the Visual Studio scenarios listed below. The more JIT time required for an assembly, the more likely
+    there will be a noticeable performance impact.
+        1. Start the IDE.
+        2. Load a managed solution.
+        3. Build the solution.
 
     Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
     We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
@@ -18,25 +24,25 @@
     <ItemGroup>
       
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.DiaSymReader.Native.amd64.dll"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.DiaSymReader.Native.x86.dll"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="1"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.rsp"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\csi.exe" NgenArchitecture="all" NgenApplication="csi.exe" NgenPriority="1"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\csi.exe" NgenArchitecture="all" NgenApplication="csi.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\csi.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\csi.rsp"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net472\vbc.exe" NgenArchitecture="all" NgenApplication="vbc.exe" NgenPriority="1"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net472\vbc.exe" NgenArchitecture="all" NgenApplication="vbc.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net472\vbc.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net472\vbc.rsp"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net472\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net472\VBCSCompiler.exe.config"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" />
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.EditorConfig.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.CSharp.Core.targets"/>
@@ -62,6 +68,8 @@
       <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
+      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll" NgenPriority="1" />
+      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll" NgenPriority="1" />
       <DesktopCompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
       <DesktopCompilerArtifact Include="@(_NoNGen)" />
 

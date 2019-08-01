@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
-            IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
                 textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                stateMachine.CanInvokeRename(out var unused);
+                stateMachine.CanInvokeRename(out _);
         }
     }
 }

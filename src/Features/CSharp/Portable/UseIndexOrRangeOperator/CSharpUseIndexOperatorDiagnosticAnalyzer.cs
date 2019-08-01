@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 var compilation = startContext.Compilation;
                 var infoCache = new InfoCache(compilation);
 
+                // The System.Index type is always required to offer this fix.
+                if (infoCache.IndexType == null)
+                {
+                    return;
+                }
+
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
                 context.RegisterOperationAction(
@@ -198,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            lengthLikePropertyOpt = lengthLikePropertyOpt ?? TryGetLengthLikeProperty(infoCache, targetMethodOpt);
+            lengthLikePropertyOpt ??= TryGetLengthLikeProperty(infoCache, targetMethodOpt);
             if (lengthLikePropertyOpt == null ||
                 !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
             {

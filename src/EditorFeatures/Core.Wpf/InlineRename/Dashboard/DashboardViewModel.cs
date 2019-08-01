@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
-            int totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
-            int totalSpansCount = renameLocations.Length;
+            var totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
+            var totalSpansCount = renameLocations.Length;
 
             UpdateSearchText(totalSpansCount, totalFilesCount);
         }
@@ -309,6 +309,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.PreviewChanges, value);
             }
         }
+
+        public string OriginalName => _session.OriginalSymbolName;
 
         public void Dispose()
         {

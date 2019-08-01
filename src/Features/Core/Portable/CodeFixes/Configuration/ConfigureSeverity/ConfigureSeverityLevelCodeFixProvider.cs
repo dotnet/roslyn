@@ -2,19 +2,20 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
-    // https://github.com/dotnet/roslyn/issues/36330 tracks uncommenting the below attributes.
-    //[ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    //[ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
@@ -25,6 +26,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
                 (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
 
+        private readonly bool _performExperimentCheck;
+
+        public ConfigureSeverityLevelCodeFixProvider()
+            : this(performExperimentCheck: true)
+        {
+        }
+
+        // Internal for test purpose.
+        internal ConfigureSeverityLevelCodeFixProvider(bool performExperimentCheck)
+        {
+            _performExperimentCheck = performExperimentCheck;
+        }
+
         // We only offer fix for configurable diagnostics.
         // Also skip suppressed diagnostics defensively, though the code fix engine should ideally never call us for suppressed diagnostics.
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
@@ -34,13 +48,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics, _performExperimentCheck, cancellationToken));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics, _performExperimentCheck, cancellationToken));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, bool performExperimentCheck, CancellationToken cancellationToken)
         {
+            // Bail out if NativeEditorConfigSupport experiment is not enabled.
+            if (performExperimentCheck &&
+                !EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
+            {
+                return ImmutableArray<CodeFix>.Empty;
+            }
+
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {

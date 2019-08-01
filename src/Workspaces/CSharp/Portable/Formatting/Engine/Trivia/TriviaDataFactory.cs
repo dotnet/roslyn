@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal partial class TriviaDataFactory : AbstractTriviaDataFactory
     {
-        public TriviaDataFactory(TreeData treeInfo, OptionSet optionSet) :
-            base(treeInfo, optionSet)
+        public TriviaDataFactory(TreeData treeInfo, OptionSet optionSet)
+            : base(treeInfo, optionSet)
         {
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // only whitespace in between
-            int space = GetSpaceOnSingleLine(result);
+            var space = GetSpaceOnSingleLine(result);
             Contract.ThrowIfFalse(space >= -1);
 
             if (space >= 0)

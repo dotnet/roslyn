@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             type = type.WithSymbol(type.Symbol.OriginalDefinition);
-            projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
+            projects ??= ImmutableHashSet.Create(solution.Projects.ToArray());
             var searchInMetadata = type.Symbol.Locations.Any(s_isInMetadata);
 
             // Note: it is not sufficient to just walk the list of projects passed in,
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
 
-            int index = 0;
+            var index = 0;
 
             var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())

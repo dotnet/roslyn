@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 cancellationToken);
         }
 
-        protected async Task<Document> FixAllWithEditorAsync(
+        internal static async Task<Document> FixAllWithEditorAsync(
             Document document,
             Func<SyntaxEditor, Task> editAsync,
             CancellationToken cancellationToken)
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
         }
+
+        internal abstract CodeFixCategory CodeFixCategory { get; }
 
         protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);

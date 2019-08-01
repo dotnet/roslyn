@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore(Func<AsyncLazy<object>, CancellationToken, object> doGetValue, bool includeSynchronousComputation)
         {
-            int computations = 0;
+            var computations = 0;
             var requestCancellationTokenSource = new CancellationTokenSource();
             object createdObject = null;
 

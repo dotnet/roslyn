@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using (var storage = GetStorage(solution))
             {
                 DoSimultaneousWrites(s => storage.WriteStreamAsync(streamName1, EncodeString(s)));
-                int value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
+                var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
                 Assert.True(value >= 0);
                 Assert.True(value < NumThreads);
             }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using (var storage = GetStorage(solution))
             {
                 DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(s)));
-                int value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)));
+                var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)));
                 Assert.True(value >= 0);
                 Assert.True(value < NumThreads);
             }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using (var storage = GetStorage(solution))
             {
                 DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(s)));
-                int value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)));
+                var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)));
                 Assert.True(value >= 0);
                 Assert.True(value < NumThreads);
             }
@@ -332,11 +332,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
-            for (int i = 0; i < NumThreads; i++)
+            for (var i = 0; i < NumThreads; i++)
             {
                 ThreadPool.QueueUserWorkItem(s =>
                 {
-                    int id = (int)s;
+                    var id = (int)s;
                     barrier.SignalAndWait();
                     write(id + "").Wait();
                     countdown.Signal();
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var countdown = new CountdownEvent(NumThreads);
 
             var exceptions = new List<Exception>();
-            for (int i = 0; i < NumThreads; i++)
+            for (var i = 0; i < NumThreads; i++)
             {
                 Task.Run(async () =>
                 {
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using (stream)
             {
                 var bytes = new byte[stream.Length];
-                int count = 0;
+                var count = 0;
                 while (count < stream.Length)
                 {
                     count = stream.Read(bytes, count, (int)stream.Length - count);

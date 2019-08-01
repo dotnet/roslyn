@@ -122,10 +122,10 @@
     <comment>Used anywhere the string is needed (that is, everywhere.)</comment>
   </data>
   <data name="1012" xml:space="preserve">
-    <value>Microsoft Visual Basic Code Page Editor</value>
+    <value>Visual Basic Editor with Encoding</value>
   </data>
   <data name="1013" xml:space="preserve">
-    <value>Microsoft Visual Basic Editor</value>
+    <value>Visual Basic Editor</value>
   </data>
   <data name="10160" xml:space="preserve">
     <value>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</value>

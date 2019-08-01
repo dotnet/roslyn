@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(string value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(long value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 

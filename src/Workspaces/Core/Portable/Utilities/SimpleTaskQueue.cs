@@ -35,7 +35,7 @@ namespace Roslyn.Utilities
             lock (_gate)
             {
                 _taskCount++;
-                int delay = (_taskCount % 100) == 0 ? 1 : 0;
+                var delay = (_taskCount % 100) == 0 ? 1 : 0;
 
                 var task = taskCreator(delay);
 

@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -18,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider());
 
-        private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
-        private static ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestMissingBeforeCSharp7()
@@ -185,7 +183,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -225,7 +223,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -265,7 +263,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -305,7 +303,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -340,7 +338,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -370,7 +368,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -400,7 +398,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -435,7 +433,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -475,7 +473,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -515,7 +513,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -555,7 +553,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -595,7 +593,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -630,7 +628,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -660,7 +658,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -690,7 +688,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -774,7 +772,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -815,7 +813,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -900,7 +898,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -941,7 +939,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -982,7 +980,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1023,7 +1021,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1064,7 +1062,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1100,7 +1098,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1131,7 +1129,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1162,7 +1160,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1194,7 +1192,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
 
@@ -1228,7 +1226,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
 
@@ -1264,7 +1262,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
             return fibonacci(v - 1, v - 2);
@@ -1299,7 +1297,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             int fibonacciHelper(int n) => fibonacci(n - 1) + fibonacci(v: n - 2);
             return fibonacciHelper(v);
@@ -1337,7 +1335,7 @@ class C
     void M()
     {
         // Leading trivia
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1395,7 +1393,7 @@ class C
 {
     void M()
     {
-        ref readonly int lambda() => throw null;
+        static ref readonly int lambda() => throw null;
     }
 }");
         }
@@ -1447,7 +1445,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Task f(string x) { return Task.CompletedTask; }
+        static Task f(string x) { return Task.CompletedTask; }
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1517,7 +1515,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(object x) => """";
+        static string f(object x) => """";
         M(f);
     }
 
@@ -1548,7 +1546,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(object x) => """";
+        static string f(object x) => """";
         M(f);
     }
 
@@ -1579,7 +1577,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(string x) => """";
+        static string f(string x) => """";
         M(f);
     }
 
@@ -1610,7 +1608,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        object f(object x) => """";
+        static object f(object x) => """";
         M(f);
     }
 
@@ -1767,7 +1765,7 @@ class Enclosing<T> where T : class
     {
         public void Caller()
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             local();
         }
@@ -1806,7 +1804,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
         }
@@ -1848,7 +1846,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
 
@@ -1893,7 +1891,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
 
@@ -1925,7 +1923,7 @@ class C
 {
     void M()
     {
-        void local() => local();
+        static void local() => local();
     }
 }");
         }
@@ -1951,7 +1949,7 @@ class C
 {
     void M()
     {
-        void local() { local(); }
+        static void local() { local(); }
     }
 }");
         }
@@ -1977,7 +1975,7 @@ class C
 {
     void M()
     {
-        string a(string s) => s;
+        static string a(string s) => s;
         a(a(null));
     }
 }");
@@ -2003,7 +2001,7 @@ class C
 {
     void M()
     {
-        string a(string s) => a(a(s));
+        static string a(string s) => a(a(s));
     }
 }");
         }
@@ -2027,7 +2025,7 @@ class C
 
     void M()
     {
-        string local(string s = ""hello"") => s;
+        static string local(string s = ""hello"") => s;
     }
 }");
         }
@@ -2052,7 +2050,7 @@ class C
 
     void M()
     {
-        string local(string s = ""hello"") => s;
+        static string local(string s = ""hello"") => s;
     }
 }");
         }
@@ -2076,7 +2074,7 @@ class C
 
     void M()
     {
-        string local(string s = ""hello"") { return s; }
+        static string local(string s = ""hello"") { return s; }
     }
 }");
         }
@@ -2101,7 +2099,7 @@ class C
 {
     void M()
     {
-        void x(object a, object b) { }
+        static void x(object a, object b) { }
     }
 }");
         }
@@ -2125,7 +2123,7 @@ class C
 {
     void M()
     {
-        void x(string a, int b) { }
+        static void x(string a, int b) { }
     }
 }");
         }
@@ -2151,7 +2149,7 @@ class C
 {
     void M()
     {
-        async Task f() => await Task.Yield();
+        static async Task f() => await Task.Yield();
     }
 }");
         }
@@ -2177,7 +2175,7 @@ class C
 {
     void M()
     {
-        async Task<int> f() { return 0; }
+        static async Task<int> f() { return 0; }
     }
 }");
         }
@@ -2205,7 +2203,7 @@ class C
 {
     void M()
     {
-        void handler(object sender, EventArgs e) { }
+        static void handler(object sender, EventArgs e) { }
 
         E += handler;
     }
@@ -2237,7 +2235,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2, int a3) { }
+        static void x(string a1, int a2, int a3) { }
 
         x(a1: null, 0, 0);
         x(a1: null, 0, 0);
@@ -2269,7 +2267,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2, int a3)
+        static void x(string a1, int a2, int a3)
         {
             x(null, a3: 0, a2: 0);
             x(null, a3: 0, a2: 0);
@@ -2301,7 +2299,7 @@ class C
 {
     void M()
     {
-        void x(int a1, string a2, string a3, object a4) { }
+        static void x(int a1, string a2, string a3, object a4) { }
 
         x(null, a3: 0, a2: 0, arg4: 0);
         x(null, a3: 0, a2: 0, arg4: 0);
@@ -2334,7 +2332,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2)
+        static void x(string a1, int a2)
         {
             x(null, arg3: 0, a2: 0);
             x(null, arg3: 0, a2: 0);
@@ -2368,7 +2366,7 @@ class C
 
     void M()
     {
-        string x(string a1, int a2 = 2, int a3 = 3)
+        static string x(string a1, int a2 = 2, int a3 = 3)
         {
             x(null, a3: 42);
             return x(null, a3: 42);
@@ -2523,7 +2521,7 @@ class C
 {
     void Goo()
     {
-        int[] onUpdateSolutionCancel(int a) { return null; }
+        static int[] onUpdateSolutionCancel(int a) { return null; }
     }
 }");
         }
@@ -2548,7 +2546,7 @@ class C
 {
     void Goo()
     {
-        async Task<int[]> onUpdateSolutionCancel(int a) { return null; }
+        static async Task<int[]> onUpdateSolutionCancel(int a) { return null; }
     }
 }");
         }
@@ -3065,7 +3063,7 @@ class Enclosing<T> : DelegateEnclosing<T>
 
     public void Caller()
     {
-        T local(T x) => x;
+        static T local(T x) => x;
         Callee(local);
     }
 }");
@@ -3106,7 +3104,7 @@ class Enclosing<U> : DelegateEnclosing<U>
 
     public void Caller()
     {
-        U local(U x) => x;
+        static U local(U x) => x;
         Callee(local);
     }
 }");
@@ -3134,7 +3132,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         var f2 = (Func<string>)f;
     }
@@ -3167,7 +3165,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3208,7 +3206,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3256,7 +3254,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         Method((Func<string>)f);
     }
@@ -3304,7 +3302,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         Method(f);
     }
@@ -3418,7 +3416,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3455,7 +3453,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         (Method((Func<int, string>)f);
     }
@@ -3543,7 +3541,7 @@ class C
     void M()
     {
 #warning Declaration Warning
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3591,7 +3589,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", parseOptions: CSharp8ParseOptions);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -3633,7 +3631,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", parseOptions: CSharp8ParseOptions);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -3659,7 +3657,7 @@ class C
     {
         static async Task f() => await Task.Yield();
     }
-}", parseOptions: CSharp8ParseOptions);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -3687,7 +3685,7 @@ class Program
     {
         static string? f(string? s) => s;
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
     }
 }

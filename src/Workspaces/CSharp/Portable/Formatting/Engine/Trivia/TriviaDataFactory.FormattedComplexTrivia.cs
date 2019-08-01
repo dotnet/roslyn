@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 int lineBreaks,
                 int spaces,
                 string originalString,
-                CancellationToken cancellationToken) :
-                base(context.OptionSet, LanguageNames.CSharp)
+                CancellationToken cancellationToken)
+                : base(context.OptionSet, LanguageNames.CSharp)
             {
                 Contract.ThrowIfNull(context);
                 Contract.ThrowIfNull(formattingRules);

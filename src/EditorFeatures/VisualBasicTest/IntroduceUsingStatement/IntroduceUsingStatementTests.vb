@@ -356,5 +356,61 @@ End Class")
     End Sub
 End Class")
         End Function
+
+        <Fact>
+        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Dim buffer = reader.GetBuffer()
+        buffer.Clone()
+        Dim a = 1
+    End Sub
+End Class",
+"Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+        End Using
+        Dim a = 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        Public Async Function ExpandsToIncludeSurroundedMultiVariableDeclarations() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Dim buffer = reader.GetBuffer()
+        Dim a As Integer = buffer(0), b As Integer = a
+        Dim c = b
+        Dim d = 1
+    End Sub
+End Class",
+"Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            Dim a As Integer = buffer(0), b As Integer = a
+            Dim c = b
+        End Using
+        Dim d = 1
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
