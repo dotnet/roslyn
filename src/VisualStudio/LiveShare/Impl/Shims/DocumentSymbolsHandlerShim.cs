@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public override async Task<SymbolInformation[]> HandleAsync(DocumentSymbolParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var clientCapabilities = requestContext.ClientCapabilities?.ToObject<ClientCapabilities>();
+            var clientCapabilities = requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>();
             var hierarchicalSupport = clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport;
             if (hierarchicalSupport == true)
             {
