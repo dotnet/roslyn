@@ -428,6 +428,7 @@ namespace Test.Utilities
             Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject(projectId, projectName, projectName, language)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard)
                 .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
                 .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference)

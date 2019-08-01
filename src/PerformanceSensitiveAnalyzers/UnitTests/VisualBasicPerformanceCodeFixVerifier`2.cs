@@ -62,6 +62,7 @@ End Namespace
                         source,
                         ("PerformanceSensitiveAttribute.vb", PerformanceSensitiveAttributeSource)
                     },
+                    AdditionalReferences = { AdditionalMetadataReferences.Netstandard },
                 },
                 TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
