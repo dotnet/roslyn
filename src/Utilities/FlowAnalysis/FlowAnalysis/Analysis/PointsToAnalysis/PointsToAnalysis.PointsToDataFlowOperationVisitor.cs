@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
                 if (!analysisData.HasAnyAbstractValue &&
                     (forInterproceduralAnalysis || !_defaultPointsToValueGenerator.HasAnyTrackedEntity))

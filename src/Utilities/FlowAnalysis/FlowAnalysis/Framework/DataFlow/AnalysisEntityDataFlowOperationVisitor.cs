@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
         }
 
-        protected void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
+        protected void AddTrackedEntities(HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
             => AddTrackedEntities(CurrentAnalysisData, builder, forInterproceduralAnalysis);
-        protected abstract void AddTrackedEntities(TAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
+        protected abstract void AddTrackedEntities(TAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
         protected abstract void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
         protected abstract void ResetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => IsChildAnalysisEntity(entity, analysisEntity));
         }
 
-        protected static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, PooledHashSet<AnalysisEntity> allEntities)
+        protected static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, HashSet<AnalysisEntity> allEntities)
         {
             foreach (var entity in allEntities)
             {
