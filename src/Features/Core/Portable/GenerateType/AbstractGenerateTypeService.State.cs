@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 // Now, try to infer a possible base type for this new class/interface.
                 InferBaseType(service, semanticDocument, cancellationToken);
-                IsInterface = GenerateInterface(service, cancellationToken);
+                IsInterface = GenerateInterface(service);
                 IsStruct = GenerateStruct(service, semanticModel, cancellationToken);
                 IsAttribute = BaseTypeOrInterfaceOpt != null && BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.AttributeType());
                 IsException = BaseTypeOrInterfaceOpt != null && BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.ExceptionType());
@@ -255,9 +255,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
             }
 
-            private bool GenerateInterface(
-                TService service,
-                CancellationToken cancellationToken)
+            private bool GenerateInterface(TService service)
             {
                 if (!IsAttribute &&
                     !IsException &&

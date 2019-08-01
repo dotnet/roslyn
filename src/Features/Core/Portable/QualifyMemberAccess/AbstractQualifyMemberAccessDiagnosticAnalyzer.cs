@@ -113,8 +113,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var simpleName = instanceOperation.Syntax as TSimpleNameSyntax;
-            if (simpleName == null)
+            if (!(instanceOperation.Syntax is TSimpleNameSyntax simpleName))
             {
                 return;
             }

@@ -398,19 +398,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     => (AbstractFindUsagesCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(columnName);
             }
 
-            private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
-            {
-                const int AdditionalLineCountPerSide = 3;
-
-                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
-                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
-
-                return TextSpan.FromBounds(
-                    sourceText.Lines[firstLineNumber].Start,
-                    sourceText.Lines[lastLineNumber].End);
-            }
-
             private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> customData)
             {
                 // Check if we have any custom reference data to display.
@@ -431,8 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         foreach (var customColumnName in customData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
-                            if (customColumnDefinition == null)
+                            if (!(columnDefinitionManager.GetColumnDefinition(customColumnName) is AbstractFindUsagesCustomColumnDefinition customColumnDefinition))
                             {
                                 Debug.Fail($"{nameof(SourceReferenceItem.ReferenceInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractFindUsagesCustomColumnDefinition)}' with this name.");
                                 continue;

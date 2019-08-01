@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFact, OptionSet options, SemanticModel model,
             TForEachStatement foreachStatement, CancellationToken cancellationToken)
         {
-            var operation = model.GetOperation(foreachStatement, cancellationToken) as IForEachLoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(model.GetOperation(foreachStatement, cancellationToken) is IForEachLoopOperation operation) || operation.Locals.Length != 1)
             {
                 return null;
             }
@@ -149,8 +148,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             // it is okay to omit variable in Next, but if it presents, it must be same as one in the loop
             if (!operation.NextVariables.IsEmpty)
             {
-                var nextVariable = operation.NextVariables[0] as ILocalReferenceOperation;
-                if (nextVariable == null || nextVariable.Local?.Equals(foreachVariable) == false)
+                if (!(operation.NextVariables[0] is ILocalReferenceOperation nextVariable) || nextVariable.Local?.Equals(foreachVariable) == false)
                 {
                     // we do not support anything else than local reference for next variable
                     // operation
@@ -297,10 +295,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 {
                     continue;
                 }
-
-                var countImpl = collectionType.FindImplementationForInterfaceMember(countSymbol) as IMethodSymbol;
-                var indexerImpl = collectionType.FindImplementationForInterfaceMember(indexerSymbol) as IMethodSymbol;
-                if (countImpl == null || indexerImpl == null)
+                if (!(collectionType.FindImplementationForInterfaceMember(countSymbol) is IMethodSymbol countImpl) || !(collectionType.FindImplementationForInterfaceMember(indexerSymbol) is IMethodSymbol indexerImpl))
                 {
                     continue;
                 }

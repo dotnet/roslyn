@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methodGroup = methodGroup.Sort(
                 symbolDisplayService, semanticModel, invocationExpression.SpanStart);
 
-            var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
                     selectedItem);
             }
-            else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
+            else if (semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
                 var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService,
                     documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> selectedMembers,
-                CancellationToken cancellationToken)
+                ImmutableArray<ISymbol> selectedMembers)
             {
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
                 {
