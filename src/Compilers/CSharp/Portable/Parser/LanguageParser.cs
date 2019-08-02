@@ -10975,13 +10975,15 @@ tryAgain:
                     parameterList,
                     _syntaxFactory.Block(
                         openBrace,
-                        default(SyntaxList<StatementSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)));
+                        statements: default,
+                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
+                    expressionBody: null);
             }
 
             var body = this.ParseBlock();
             IsInAsync = parentScopeIsInAsync;
-            return _syntaxFactory.AnonymousMethodExpression(asyncToken, @delegate, parameterList, body);
+            return _syntaxFactory.AnonymousMethodExpression(
+                asyncToken, @delegate, parameterList, body, expressionBody: null);
         }
 
         private LambdaExpressionSyntax ParseLambdaExpression()
@@ -11009,9 +11011,10 @@ tryAgain:
                 var paramList = this.ParseLambdaParameterList();
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
-                var body = ParseLambdaBody();
+                var (block, expression) = ParseLambdaBody();
 
-                return _syntaxFactory.ParenthesizedLambdaExpression(asyncToken, paramList, arrow, body);
+                return _syntaxFactory.ParenthesizedLambdaExpression(
+                    asyncToken, paramList, arrow, block, expression);
             }
             else
             {
@@ -11020,25 +11023,19 @@ tryAgain:
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
 
                 var parameter = _syntaxFactory.Parameter(
-                    default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
+                    attributeLists: default, modifiers: default,
                     type: null, identifier: name, @default: null);
-                var body = ParseLambdaBody();
+                var (block, expression) = ParseLambdaBody();
 
-                return _syntaxFactory.SimpleLambdaExpression(asyncToken, parameter, arrow, body);
+                return _syntaxFactory.SimpleLambdaExpression(
+                    asyncToken, parameter, arrow, block, expression);
             }
         }
 
-        private CSharpSyntaxNode ParseLambdaBody()
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                return this.ParseBlock();
-            }
-            else
-            {
-                return this.ParsePossibleRefExpression();
-            }
-        }
+        private (BlockSyntax, ExpressionSyntax) ParseLambdaBody()
+            => CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? (ParseBlock(), default(ExpressionSyntax))
+                : (default(BlockSyntax), ParsePossibleRefExpression());
 
         private ParameterListSyntax ParseLambdaParameterList()
         {

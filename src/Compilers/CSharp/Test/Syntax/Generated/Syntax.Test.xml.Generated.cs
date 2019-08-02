@@ -150,16 +150,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.CastExpression(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateIdentifierName());
         
         private static Syntax.InternalSyntax.AnonymousMethodExpressionSyntax GenerateAnonymousMethodExpression()
-            => InternalSyntaxFactory.AnonymousMethodExpression(null, InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), null, InternalSyntaxFactory.IdentifierName(InternalSyntaxFactory.Identifier("Body")));
+            => InternalSyntaxFactory.AnonymousMethodExpression(null, InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), null, null, null);
         
         private static Syntax.InternalSyntax.SimpleLambdaExpressionSyntax GenerateSimpleLambdaExpression()
-            => InternalSyntaxFactory.SimpleLambdaExpression(null, GenerateParameter(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), InternalSyntaxFactory.IdentifierName(InternalSyntaxFactory.Identifier("Body")));
+            => InternalSyntaxFactory.SimpleLambdaExpression(null, GenerateParameter(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), null, null);
         
         private static Syntax.InternalSyntax.RefExpressionSyntax GenerateRefExpression()
             => InternalSyntaxFactory.RefExpression(InternalSyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
         
         private static Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax GenerateParenthesizedLambdaExpression()
-            => InternalSyntaxFactory.ParenthesizedLambdaExpression(null, GenerateParameterList(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), InternalSyntaxFactory.IdentifierName(InternalSyntaxFactory.Identifier("Body")));
+            => InternalSyntaxFactory.ParenthesizedLambdaExpression(null, GenerateParameterList(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), null, null);
         
         private static Syntax.InternalSyntax.InitializerExpressionSyntax GenerateInitializerExpression()
             => InternalSyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -1201,7 +1201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.AsyncKeyword);
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind);
             Assert.Null(node.ParameterList);
-            Assert.NotNull(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -1214,7 +1215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.AsyncKeyword);
             Assert.NotNull(node.Parameter);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind);
-            Assert.NotNull(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -1238,7 +1240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.AsyncKeyword);
             Assert.NotNull(node.ParameterList);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind);
-            Assert.NotNull(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -9129,16 +9132,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.CastExpression(SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateIdentifierName());
         
         private static AnonymousMethodExpressionSyntax GenerateAnonymousMethodExpression()
-            => SyntaxFactory.AnonymousMethodExpression(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), default(ParameterListSyntax), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Body")));
+            => SyntaxFactory.AnonymousMethodExpression(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), default(ParameterListSyntax), default(BlockSyntax), default(ExpressionSyntax));
         
         private static SimpleLambdaExpressionSyntax GenerateSimpleLambdaExpression()
-            => SyntaxFactory.SimpleLambdaExpression(default(SyntaxToken), GenerateParameter(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Body")));
+            => SyntaxFactory.SimpleLambdaExpression(default(SyntaxToken), GenerateParameter(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
         
         private static RefExpressionSyntax GenerateRefExpression()
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
         
         private static ParenthesizedLambdaExpressionSyntax GenerateParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), GenerateParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Body")));
+            => SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), GenerateParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
         
         private static InitializerExpressionSyntax GenerateInitializerExpression()
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -10180,8 +10183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.AsyncKeyword.Kind());
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind());
             Assert.Null(node.ParameterList);
-            Assert.NotNull(node.Body);
-            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithDelegateKeyword(node.DelegateKeyword).WithParameterList(node.ParameterList).WithBody(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
+            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithDelegateKeyword(node.DelegateKeyword).WithParameterList(node.ParameterList).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
         }
         
@@ -10193,8 +10197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.AsyncKeyword.Kind());
             Assert.NotNull(node.Parameter);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind());
-            Assert.NotNull(node.Body);
-            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithParameter(node.Parameter).WithArrowToken(node.ArrowToken).WithBody(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
+            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithParameter(node.Parameter).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
         }
         
@@ -10217,8 +10222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.AsyncKeyword.Kind());
             Assert.NotNull(node.ParameterList);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind());
-            Assert.NotNull(node.Body);
-            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithParameterList(node.ParameterList).WithArrowToken(node.ArrowToken).WithBody(node.Body);
+            Assert.Null(node.Block);
+            Assert.Null(node.ExpressionBody);
+            var newNode = node.WithAsyncKeyword(node.AsyncKeyword).WithParameterList(node.ParameterList).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
         }
         

@@ -1229,13 +1229,10 @@
         <summary>Gets the "async" token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode">
-      <PropertyComment>
-        <summary>ExpressionSyntax or BlockSyntax representing the body of the lambda expression.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Block" Type="BlockSyntax" Optional="true"/>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true"/>
   </AbstractNode>
-  <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax">
+  <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="AnonymousMethodExpression"/>
     <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AsyncKeyword"/>
@@ -1254,12 +1251,8 @@
         <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
-      <Kind Name="Block"/>
-      <PropertyComment>
-        <summary>BlockSyntax node representing the body of the anonymous method.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
     <TypeComment>
       <summary>Class which represents the syntax node for anonymous method expression.</summary>
     </TypeComment>
@@ -1300,11 +1293,8 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
-      <PropertyComment>
-        <summary>SyntaxNode representing the body of the lambda expression.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
     <TypeComment>
       <summary>Class which represents the syntax node for a simple lambda expression.</summary>
     </TypeComment>
@@ -1339,11 +1329,8 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
-      <PropertyComment>
-        <summary>SyntaxNode representing the body of the lambda expression.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
     <TypeComment>
       <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
     </TypeComment>
