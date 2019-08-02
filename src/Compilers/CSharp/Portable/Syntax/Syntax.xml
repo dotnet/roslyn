@@ -1229,8 +1229,22 @@
         <summary>Gets the "async" token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax" Optional="true"/>
-    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="Block" Type="BlockSyntax" Optional="true">
+      <PropertyComment>
+        <summary>
+          BlockSyntax node representing the body of the anonymous function.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>
+          ExpressionSyntax node representing the body of the anonymous function.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
   </AbstractNode>
   <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="AnonymousMethodExpression"/>
@@ -1251,8 +1265,22 @@
         <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax" Override="true"/>
-    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
+    <Field Name="Block" Type="BlockSyntax" Override="true">
+      <PropertyComment>
+        <summary>
+          BlockSyntax node representing the body of the anonymous function.
+          This will never be null.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>
+          Inherited from AnonymousFunctionExpressionSyntax, but not used for 
+          AnonymousMethodExpressionSyntax.  Thsi will always be null.
+        </summary>
+      </PropertyComment>
+    </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for anonymous method expression.</summary>
     </TypeComment>
@@ -1293,8 +1321,22 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
-    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
+    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>
+          BlockSyntax node representing the body of the lambda.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>
+          ExpressionSyntax node representing the body of the lambda.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for a simple lambda expression.</summary>
     </TypeComment>
@@ -1329,8 +1371,22 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
-    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
+    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>
+          BlockSyntax node representing the body of the lambda.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>
+          ExpressionSyntax node representing the body of the lambda.
+          Only one of Block or ExpressionBody will be non-null.
+        </summary>
+      </PropertyComment>
+    </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
     </TypeComment>

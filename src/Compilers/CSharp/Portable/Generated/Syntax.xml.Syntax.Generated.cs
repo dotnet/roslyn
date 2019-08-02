@@ -4109,6 +4109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public AnonymousFunctionExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => WithAsyncKeywordCore(asyncKeyword);
     internal abstract AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword);
 
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public abstract BlockSyntax Block { get; }
     public AnonymousFunctionExpressionSyntax WithBlock(BlockSyntax block) => WithBlockCore(block);
     internal abstract AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block);
@@ -4116,6 +4120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public AnonymousFunctionExpressionSyntax AddBlockStatements(params StatementSyntax[] items) => AddBlockStatementsCore(items);
     internal abstract AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items);
 
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public abstract ExpressionSyntax ExpressionBody { get; }
     public AnonymousFunctionExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => WithExpressionBodyCore(expressionBody);
     internal abstract AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody);
@@ -4161,6 +4169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// This will never be null.
+    /// </summary>
     public override BlockSyntax Block 
     {
         get
@@ -4169,6 +4181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>
+    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for 
+    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody 
     {
         get
@@ -4323,6 +4339,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override BlockSyntax Block 
     {
         get
@@ -4331,6 +4351,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody 
     {
         get
@@ -4545,6 +4569,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override BlockSyntax Block 
     {
         get
@@ -4553,6 +4581,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody 
     {
         get

@@ -5990,8 +5990,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the "async" token.</summary>
     public abstract SyntaxToken AsyncKeyword { get; }
 
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public abstract BlockSyntax Block { get; }
 
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public abstract ExpressionSyntax ExpressionBody { get; }
   }
 
@@ -6088,7 +6096,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
     public ParameterListSyntax ParameterList => this.parameterList;
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// This will never be null.
+    /// </summary>
     public override BlockSyntax Block => this.block;
+    /// <summary>
+    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for 
+    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody => this.expressionBody;
 
     internal override GreenNode GetSlot(int index)
@@ -6299,7 +6315,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public ParameterSyntax Parameter => this.parameter;
     /// <summary>SyntaxToken representing equals greater than.</summary>
     public override SyntaxToken ArrowToken => this.arrowToken;
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override BlockSyntax Block => this.block;
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody => this.expressionBody;
 
     internal override GreenNode GetSlot(int index)
@@ -6600,7 +6624,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>SyntaxToken representing equals greater than.</summary>
     public override SyntaxToken ArrowToken => this.arrowToken;
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override BlockSyntax Block => this.block;
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
     public override ExpressionSyntax ExpressionBody => this.expressionBody;
 
     internal override GreenNode GetSlot(int index)
