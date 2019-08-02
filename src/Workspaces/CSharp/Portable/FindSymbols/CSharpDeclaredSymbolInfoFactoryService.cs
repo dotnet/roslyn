@@ -290,8 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     // could either be part of a field declaration or an event field declaration
                     var variableDeclarator = (VariableDeclaratorSyntax)node;
                     var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    var fieldDeclaration = variableDeclaration?.Parent as BaseFieldDeclarationSyntax;
-                    if (fieldDeclaration != null)
+                    if (variableDeclaration?.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
                     {
                         var kind = fieldDeclaration is EventFieldDeclarationSyntax
                             ? DeclaredSymbolInfoKind.Event

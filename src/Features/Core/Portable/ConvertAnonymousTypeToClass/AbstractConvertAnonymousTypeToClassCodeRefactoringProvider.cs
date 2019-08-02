@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 var options = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
-                    autoInsertionLocation: false);
+                    autoInsertionLocation: false,
+                    parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
                     currentContainer, namedTypeSymbol, options, cancellationToken);
@@ -169,8 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                     continue;
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() as IPropertySymbol;
-                if (symbol == null)
+                if (!(semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is IPropertySymbol symbol))
                 {
                     continue;
                 }

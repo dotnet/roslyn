@@ -43,28 +43,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                         IsCheckable = true
                     });
 
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
-                var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
-                    _glyphService,
-                    document.Project.Solution,
-                    selectedMember.ContainingType,
-                    cancellationTokenSource.Token).BaseTypeNodes;
-                var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
-                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
-                var dialog = new PullMemberUpDialog(viewModel);
-                var result = dialog.ShowModal();
+            using var cancellationTokenSource = new CancellationTokenSource();
+            var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
+                _glyphService,
+                document.Project.Solution,
+                selectedMember.ContainingType,
+                cancellationTokenSource.Token).BaseTypeNodes;
+            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
+            var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
+            var dialog = new PullMemberUpDialog(viewModel);
+            var result = dialog.ShowModal();
 
-                // Dialog has finshed its work, cancel finding dependents task.
-                cancellationTokenSource.Cancel();
-                if (result.GetValueOrDefault())
-                {
-                    return dialog.ViewModel.CreatePullMemberUpOptions();
-                }
-                else
-                {
-                    return null;
-                }
+            // Dialog has finshed its work, cancel finding dependents task.
+            cancellationTokenSource.Cancel();
+            if (result.GetValueOrDefault())
+            {
+                return dialog.ViewModel.CreatePullMemberUpOptions();
+            }
+            else
+            {
+                return null;
             }
         }
     }
