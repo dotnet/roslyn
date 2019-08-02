@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using System.Diagnostics;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -51,6 +52,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             ValueContentAnalysisResult valueContentAnalysisResult = null;
             CopyAnalysisResult copyAnalysisResult = null;

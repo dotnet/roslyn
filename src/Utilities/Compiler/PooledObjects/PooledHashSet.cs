@@ -12,7 +12,7 @@ namespace Analyzer.Utilities.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    public class PooledHashSet<T> : HashSet<T>
+    internal class PooledHashSet<T> : HashSet<T>
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 

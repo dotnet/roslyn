@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference)
         {
             // Type can be null for capture of operations with OperationKind.None
-            type = type ?? _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
+            type ??= _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
             if (interproceduralFlowCaptureEntityOpt != null)

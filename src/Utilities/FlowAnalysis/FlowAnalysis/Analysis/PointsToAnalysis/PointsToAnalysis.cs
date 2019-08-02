@@ -57,6 +57,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 CopyAnalysis.CopyAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performPointsToAnalysis: true, exceptionPathsAnalysis) :
                 null;
+
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
                 owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
                 TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
@@ -65,14 +72,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         private static PointsToAnalysisResult TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
-            using (var trackedEntitiesBuilder = new TrackedEntitiesBuilder())
-            {
-                var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
-                var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
-                var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
-                var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
-                return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
-            }
+            using var trackedEntitiesBuilder = new TrackedEntitiesBuilder();
+            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
+            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
+            var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
+            var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
+            return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||

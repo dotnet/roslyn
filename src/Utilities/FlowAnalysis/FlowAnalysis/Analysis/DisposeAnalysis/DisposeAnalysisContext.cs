@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -15,9 +14,9 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
     using DisposeAnalysisData = DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>;
     using InterproceduralDisposeAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>, DisposeAnalysisContext, DisposeAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
     /// Analysis context for execution of <see cref="DisposeAnalysis"/> on a control flow graph.
@@ -109,12 +108,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal bool DisposeOwnershipTransferAtMethodCall { get; }
         internal bool TrackInstanceFields { get; }
 
-        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder.Add(TrackInstanceFields.GetHashCode());
-            builder.Add(DisposeOwnershipTransferAtConstructor.GetHashCode());
-            builder.Add(DisposeOwnershipTransferAtMethodCall.GetHashCode());
-            builder.Add(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
+            addPart(TrackInstanceFields.GetHashCode());
+            addPart(DisposeOwnershipTransferAtConstructor.GetHashCode());
+            addPart(DisposeOwnershipTransferAtMethodCall.GetHashCode());
+            addPart(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
         }
     }
 }

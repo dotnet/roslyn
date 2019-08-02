@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -160,12 +159,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public ImmutableDictionary<INamedTypeSymbol, string> HazardousUsageTypesToNames { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder.Add(TypeToTrackMetadataName.GetHashCode());
-            builder.Add(ConstructorMapper.GetHashCode());
-            builder.Add(PropertyMappers.GetHashCode());
-            builder.Add(HazardousUsageEvaluators.GetHashCode());
+            addPart(TypeToTrackMetadataName.GetHashCode());
+            addPart(ConstructorMapper.GetHashCode());
+            addPart(PropertyMappers.GetHashCode());
+            addPart(HazardousUsageEvaluators.GetHashCode());
         }
 #pragma warning restore CA1307 // Specify StringComparison
     }

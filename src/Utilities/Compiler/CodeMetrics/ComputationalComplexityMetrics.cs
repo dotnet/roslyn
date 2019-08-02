@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (operation.ConstantValue.HasValue)
                 {
                     constantUsageCounts++;
-                    distinctReferencedConstantsBuilder = distinctReferencedConstantsBuilder ?? ImmutableHashSet.CreateBuilder<object>();
+                    distinctReferencedConstantsBuilder ??= ImmutableHashSet.CreateBuilder<object>();
                     distinctReferencedConstantsBuilder.Add(operation.ConstantValue.Value ?? s_nullConstantPlaceholder);
                     continue;
                 }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         continue;
                     case OperationKind.CaseClause:
                         var caseClauseOperation = (ICaseClauseOperation)operation;
-                        distinctCaseKindsBuilder = distinctCaseKindsBuilder ?? ImmutableHashSet.CreateBuilder<CaseKind>();
+                        distinctCaseKindsBuilder ??= ImmutableHashSet.CreateBuilder<CaseKind>();
                         distinctCaseKindsBuilder.Add(caseClauseOperation.CaseKind);
                         if (caseClauseOperation.CaseKind == CaseKind.Relational)
                         {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 distinctReferencedSymbolsBuilder != null ? distinctReferencedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty,
                 distinctReferencedConstantsBuilder != null ? distinctReferencedConstantsBuilder.ToImmutable() : ImmutableHashSet<object>.Empty);
 
-            int getEffectiveLinesOfCode(IOperation operation)
+            static int getEffectiveLinesOfCode(IOperation operation)
             {
                 if (operation.Parent != null)
                 {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 return 0;
             }
 
-            bool hasAnyExplicitExpression(IOperation operation)
+            static bool hasAnyExplicitExpression(IOperation operation)
             {
                 // Check if all descendants are either implicit or are explicit with no constant value or type, indicating it is not user written code.
                 return !operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null));
@@ -302,28 +302,28 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             void countOperator(IOperation operation)
             {
                 operatorUsageCounts++;
-                distinctOperatorKindsBuilder = distinctOperatorKindsBuilder ?? ImmutableHashSet.CreateBuilder<OperationKind>();
+                distinctOperatorKindsBuilder ??= ImmutableHashSet.CreateBuilder<OperationKind>();
                 distinctOperatorKindsBuilder.Add(operation.Kind);
             }
 
             void countOperand(ISymbol symbol)
             {
                 symbolUsageCounts++;
-                distinctReferencedSymbolsBuilder = distinctReferencedSymbolsBuilder ?? ImmutableHashSet.CreateBuilder<ISymbol>();
+                distinctReferencedSymbolsBuilder ??= ImmutableHashSet.CreateBuilder<ISymbol>();
                 distinctReferencedSymbolsBuilder.Add(symbol);
             }
 
             void countBinaryOperator(IOperation operation, BinaryOperatorKind operatorKind)
             {
                 countOperator(operation);
-                distinctBinaryOperatorKindsBuilder = distinctBinaryOperatorKindsBuilder ?? ImmutableHashSet.CreateBuilder<BinaryOperatorKind>();
+                distinctBinaryOperatorKindsBuilder ??= ImmutableHashSet.CreateBuilder<BinaryOperatorKind>();
                 distinctBinaryOperatorKindsBuilder.Add(operatorKind);
             }
 
             void countUnaryOperator(IOperation operation, UnaryOperatorKind operatorKind)
             {
                 countOperator(operation);
-                distinctUnaryOperatorKindsBuilder = distinctUnaryOperatorKindsBuilder ?? ImmutableHashSet.CreateBuilder<UnaryOperatorKind>();
+                distinctUnaryOperatorKindsBuilder ??= ImmutableHashSet.CreateBuilder<UnaryOperatorKind>();
                 distinctUnaryOperatorKindsBuilder.Add(operatorKind);
             }
         }

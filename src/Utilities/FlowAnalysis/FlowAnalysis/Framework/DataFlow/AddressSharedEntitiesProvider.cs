@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return builder.ToImmutableAndFree();
             }
 
-            void AddIfHasKnownInstanceLocation(AnalysisEntity entity, PooledHashSet<AnalysisEntity> builder)
+            static void AddIfHasKnownInstanceLocation(AnalysisEntity entity, PooledHashSet<AnalysisEntity> builder)
             {
                 // Only add entity to address shared entities if they have known instance location.
                 if (!entity.HasUnknownInstanceLocation)
