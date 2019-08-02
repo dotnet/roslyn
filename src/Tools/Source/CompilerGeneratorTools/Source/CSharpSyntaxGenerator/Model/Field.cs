@@ -5,21 +5,27 @@ using System.Xml.Serialization;
 
 namespace CSharpSyntaxGenerator
 {
-    public class FieldOrChoice
+    public class TreeTypeChild
     {
     }
 
-    public class Choice : FieldOrChoice
+    public class Choice : TreeTypeChild
     {
-        [XmlAttribute]
-        public string Optional;
-
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Choice", Type = typeof(Choice))]
-        public List<FieldOrChoice> FieldsAndChoices;
+        [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]
+        public List<TreeTypeChild> Children;
     }
 
-    public class Field : FieldOrChoice
+    public class Sequence : TreeTypeChild
+    {
+        [XmlElement(ElementName = "Field", Type = typeof(Field))]
+        [XmlElement(ElementName = "Choice", Type = typeof(Choice))]
+        [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]
+        public List<TreeTypeChild> Children;
+    }
+
+    public class Field : TreeTypeChild
     {
         [XmlAttribute]
         public string Name;

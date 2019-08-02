@@ -1974,14 +1974,18 @@
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;"/>
-    <Field Name="Body" Type="BlockSyntax" Optional="true"/>
-    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
-    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
-      <PropertyComment>
-        <summary>Gets the optional semicolon token.</summary>
-      </PropertyComment>
-      <Kind Name="SemicolonToken"/>
-    </Field>
+    <Choice>
+      <Field Name="Body" Type="BlockSyntax" Optional="true"/>
+      <Sequence>
+        <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+        <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+          <PropertyComment>
+            <summary>Gets the optional semicolon token.</summary>
+          </PropertyComment>
+          <Kind Name="SemicolonToken"/>
+        </Field>
+      </Sequence>
+    </Choice>
   </Node>
 
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
@@ -2231,8 +2235,10 @@
       <Kind Name="OpenParenToken"/>
     </Field>
     <!-- Declaration and Initializers are mutually exclusive. -->
-    <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
-    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    <Choice>
+      <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
+      <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    </Choice>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>

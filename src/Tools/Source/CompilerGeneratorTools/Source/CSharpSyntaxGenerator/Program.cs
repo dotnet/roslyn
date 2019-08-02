@@ -63,7 +63,7 @@ namespace CSharpSyntaxGenerator
             var reader = XmlReader.Create(inputFile, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
-            FlattenChoices(tree);
+            FlattenChildren(tree);
 
             if (writeSignatures)
             {
@@ -92,24 +92,24 @@ namespace CSharpSyntaxGenerator
             return 0;
         }
 
-        private static void FlattenChoices(Tree tree)
+        private static void FlattenChildren(Tree tree)
         {
             foreach (var type in tree.Types)
             {
                 switch (type)
                 {
                     case AbstractNode node:
-                        FlattenChoices(node.FieldsAndChoices, node.Fields, makeOptional: false);
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
                         break;
                     case Node node:
-                        FlattenChoices(node.FieldsAndChoices, node.Fields, makeOptional: false);
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
                         break;
                 }
             }
         }
 
-        private static void FlattenChoices(
-            List<FieldOrChoice> fieldsAndChoices, List<Field> fields, bool makeOptional)
+        private static void FlattenChildren(
+            List<TreeTypeChild> fieldsAndChoices, List<Field> fields, bool makeOptional)
         {
             foreach (var fieldOrChoice in fieldsAndChoices)
             {
@@ -126,7 +126,10 @@ namespace CSharpSyntaxGenerator
                     case Choice choice:
                         // Children of choices are always optional (since the point is to
                         // chose from one of them and leave out the rest).
-                        FlattenChoices(choice.FieldsAndChoices, fields, makeOptional: true);
+                        FlattenChildren(choice.Children, fields, makeOptional: true);
+                        break;
+                    case Sequence sequence:
+                        FlattenChildren(sequence.Children, fields, makeOptional);
                         break;
                     default:
                         throw new InvalidOperationException("Unknown child type.");

@@ -9,7 +9,8 @@ namespace CSharpSyntaxGenerator
     {
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Choice", Type = typeof(Choice))]
-        public List<FieldOrChoice> FieldsAndChoices;
+        [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]
+        public List<TreeTypeChild> Children;
 
         public readonly List<Field> Fields = new List<Field>();
     }
