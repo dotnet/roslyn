@@ -4259,8 +4259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public new AnonymousMethodExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
     {
-        var block = this.Block ?? SyntaxFactory.Block();
-        return this.WithBlock(block.WithStatements(block.Statements.AddRange(items)));
+        return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
   }
 

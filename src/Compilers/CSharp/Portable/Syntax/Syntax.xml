@@ -1251,7 +1251,7 @@
         <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="Block" Type="BlockSyntax" Override="true"/>
     <Field Name="ExpressionBody" Type="ExpressionSyntax" Optional="true" Override="true"/>
     <TypeComment>
       <summary>Class which represents the syntax node for anonymous method expression.</summary>

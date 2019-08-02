@@ -6020,11 +6020,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
         }
-        if (block != null)
-        {
-            this.AdjustFlagsAndWidth(block);
-            this.block = block;
-        }
+        this.AdjustFlagsAndWidth(block);
+        this.block = block;
         if (expressionBody != null)
         {
             this.AdjustFlagsAndWidth(expressionBody);
@@ -6050,11 +6047,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
         }
-        if (block != null)
-        {
-            this.AdjustFlagsAndWidth(block);
-            this.block = block;
-        }
+        this.AdjustFlagsAndWidth(block);
+        this.block = block;
         if (expressionBody != null)
         {
             this.AdjustFlagsAndWidth(expressionBody);
@@ -6079,11 +6073,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
         }
-        if (block != null)
-        {
-            this.AdjustFlagsAndWidth(block);
-            this.block = block;
-        }
+        this.AdjustFlagsAndWidth(block);
+        this.block = block;
         if (expressionBody != null)
         {
             this.AdjustFlagsAndWidth(expressionBody);
@@ -37302,6 +37293,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(delegateKeyword));
       }
+      if (block == null)
+        throw new ArgumentNullException(nameof(block));
 #endif
 
       return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody, this.context);
@@ -44623,6 +44616,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(delegateKeyword));
       }
+      if (block == null)
+        throw new ArgumentNullException(nameof(block));
 #endif
 
       return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
