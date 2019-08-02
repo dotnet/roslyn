@@ -74,17 +74,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
                 // We don't have anything cached, so we'll just get it now lazily and not hold onto it. The workspace layer will ensure
                 // that we maintain snapshot rules for the document options. We'll also run it on the thread pool
                 // as in some builds the ICodingConventionsManager captures the thread pool.
-                var conventionsAsync = Task.Run(() => GetConventionContextAsync(path, document.Project.Language, cancellationToken));
+                var conventionsAsync = Task.Run(() => GetConventionContextAsync(document, path, document.Project.Language, cancellationToken));
 
                 var options = await conventionsAsync.ConfigureAwait(false);
                 return options;
             }
         }
 
-        private async Task<DocumentOptions> GetConventionContextAsync(string path, string language, CancellationToken cancellationToken)
+        private async Task<DocumentOptions> GetConventionContextAsync(Document document, string path, string language, CancellationToken cancellationToken)
         {
-            var context =  await IOUtilities.PerformIOAsync(
-                () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
+            var context = await IOUtilities.PerformIOAsync<ICodingConventionContext>(
+                async () =>
+                {
+                    var analyzerConfig = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    return new AnalyzerConfigCodingConventionsContext(analyzerConfig.IsEmpty ? null : analyzerConfig);
+                },
                 defaultValue: EmptyCodingConventionContext.Instance).ConfigureAwait(false);
             var options = _optionsApplier.ApplyConventions(_workspace.Options, context.CurrentConventions, language);
             return new DocumentOptions(options);
