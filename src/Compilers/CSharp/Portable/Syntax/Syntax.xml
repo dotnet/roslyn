@@ -3645,11 +3645,13 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Choice>
-      <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true" />
-      <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+      <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" />
       <Sequence>
-        <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
-        <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+        <Choice>
+          <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" />
+          <Field Name="Initializer" Type="EqualsValueClauseSyntax" />
+        </Choice>
+        <Field Name="SemicolonToken" Type="SyntaxToken">
           <Kind Name="SemicolonToken" />
         </Field>
       </Sequence>
