@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
