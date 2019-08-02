@@ -325,5 +325,6 @@ namespace Analyzer.Utilities
         public const string SystemConvert = "System.Convert";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
+        public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
     }
 }
