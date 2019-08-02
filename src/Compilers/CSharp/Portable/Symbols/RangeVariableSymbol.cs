@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitRangeVariable(this);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbol = obj as RangeVariableSymbol;
             return (object)symbol != null
                 && symbol._locations[0].Equals(_locations[0])
-                && Equals(_containingSymbol, symbol.ContainingSymbol);
+                && _containingSymbol.Equals(symbol.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()

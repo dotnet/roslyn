@@ -11,18 +11,19 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
+using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 {
     internal class RoslynClassificationService : ISyntaxClassificationService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
 
-        public RoslynClassificationService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
+        public RoslynClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
                 Range = ProtocolConversions.TextSpanToRange(textSpan, text)
             };
 
-            var request = new LspRequest<ClassificationParams, ClassificationSpan[]>(RoslynMethods.ClassificationsName);
+            var request = new LS.LspRequest<ClassificationParams, ClassificationSpan[]>(RoslynMethods.ClassificationsName);
             var classificationSpans = await lspClient.RequestAsync(request, classificationParams, cancellationToken).ConfigureAwait(false);
             if (classificationSpans == null)
             {

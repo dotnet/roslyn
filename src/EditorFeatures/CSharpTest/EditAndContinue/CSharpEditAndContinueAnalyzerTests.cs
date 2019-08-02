@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     node = node.Parent;
                 }
 
-                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind(), node, EditKind.Update);
+                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpan(node, EditKind.Update);
                 var actualText = source.Substring(actual.Start, actual.Length);
 
-                Assert.True(expected == actual, "\r\n" +
-                    "Expected span: '" + expectedText + "' " + expected + "\r\n" +
-                    "Actual span: '" + actualText + "' " + actual);
+                Assert.True(expected == actual,
+                    $"{Environment.NewLine}Expected span: '{expectedText}' {expected}" +
+                    $"{Environment.NewLine}Actual span: '{actualText}' {actual}");
             }
         }
 
@@ -73,17 +73,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var unhandledKinds = new List<SyntaxKind>();
             foreach (var kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>().Where(hasLabel))
             {
+                TextSpan? span;
                 try
                 {
-                    CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(kind, null, EditKind.Update);
+                    span = CSharpEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl(kind, null, EditKind.Update);
                 }
                 catch (NullReferenceException)
                 {
                     // expected, we passed null node
+                    continue;
                 }
-                catch (Exception)
+
+                // unexpected:
+                if (span == null)
                 {
-                    // unexpected:
                     unhandledKinds.Add(kind);
                 }
             }
@@ -224,7 +227,7 @@ class C
         }
 
         /// <summary>
-        /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
+        /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
         /// </summary>
         [Fact]
         public void ErrorSpansAllKinds()

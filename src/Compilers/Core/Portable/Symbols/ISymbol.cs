@@ -288,5 +288,13 @@ namespace Microsoft.CodeAnalysis
         /// </para>
         /// </summary>
         bool HasUnsupportedMetadata { get; }
+
+        /// <summary>
+        /// Determines if this symbol is equal to another, according to the rules of the provided <see cref="SymbolEqualityComparer"/>
+        /// </summary>
+        /// <param name="other">The other symbol to compare against</param>
+        /// <param name="equalityComparer">The <see cref="SymbolEqualityComparer"/> to use when comparing symbols</param>
+        /// <returns>True if the symbols are equivalent.</returns>
+        bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer);
     }
 }

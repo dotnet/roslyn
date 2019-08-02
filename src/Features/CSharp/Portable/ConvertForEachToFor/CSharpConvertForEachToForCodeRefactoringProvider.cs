@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -123,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                     generator, foreachInfo.ForEachElementType.GenerateTypeSyntax(),
                     foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
+                if (IsForEachVariableWrittenInside)
+                {
+                    variableStatement = variableStatement.WithAdditionalAnnotations(CreateWarningAnnotation());
+                }
+
                 bodyBlock = bodyBlock.InsertNodesBefore(
                     bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(
                         variableStatement.WithAdditionalAnnotations(Formatter.Annotation)));
@@ -130,5 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             return bodyBlock;
         }
+
+        protected override bool IsSupported(ILocalSymbol foreachVariable, IForEachLoopOperation forEachOperation, ForEachStatementSyntax foreachStatement)
+            => true;
     }
 }

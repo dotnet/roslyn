@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An inline rename session is active.
+        ///   Looks up a localized string similar to An inline rename session is active for identifier &apos;{0}&apos;. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time..
         /// </summary>
-        internal static string An_inline_rename_session_is_active {
+        internal static string An_inline_rename_session_is_active_for_identifier_0 {
             get {
-                return ResourceManager.GetString("An_inline_rename_session_is_active", resourceCulture);
+                return ResourceManager.GetString("An_inline_rename_session_is_active_for_identifier_0", resourceCulture);
             }
         }
         

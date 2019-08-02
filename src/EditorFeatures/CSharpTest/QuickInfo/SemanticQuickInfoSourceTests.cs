@@ -6591,5 +6591,26 @@ class X
                 MainDescription($"({FeaturesResources.local_variable}) string s"),
                 NullabilityAnalysis(""));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownInNullableDisableContextEvenIfAnalysisIsRunning()
+        {
+            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "true");
+            await TestWithOptionsAsync(options,
+@"#nullable disable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(""));
+        }
     }
 }

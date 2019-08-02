@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// Note, this must return object instead of ClassificationSpan b/c liveshare uses dynamic to convert handler results.
     /// Unfortunately, ClassificationSpan is an internal type and cannot be defined in the external access layer.
     /// </summary>
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ClassificationsName)]
     internal class ClassificationsHandler : ILspRequestHandler<ClassificationParams, object[], Solution>
     {
         public async Task<object[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)

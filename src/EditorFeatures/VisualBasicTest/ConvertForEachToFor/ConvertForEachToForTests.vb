@@ -395,7 +395,67 @@ Class Test
     End Sub
 End Class
 "
-            Await TestMissingInRegularAndScriptAsync(initial)
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            {|Warning:Dim a = array(i)|}
+            a = 1
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        Public Async Function StructPropertyReadFromAndAssignedToLocal() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a In New Integer?() {1, 2, 3}
+            Dim b = a.Value
+        Next
+    End Sub
+End Class
+"
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer?() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
+            Dim b = a.Value
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        Public Async Function StructPropertyRead() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a In New Integer?() {1, 2, 3}
+            a.Value
+        Next
+    End Sub
+End Class
+"
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer?() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
+            a.Value
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>

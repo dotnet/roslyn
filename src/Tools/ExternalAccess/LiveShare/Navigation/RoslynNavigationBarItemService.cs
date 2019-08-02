@@ -14,15 +14,16 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
 {
     internal class RoslynNavigationBarItemService : AbstractNavigationBarItemService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        internal RoslynNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        internal RoslynNavigationBarItemService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(document.FilePath) }
             };
 
-            var symbols = await lspClient.RequestAsync(Methods.TextDocumentDocumentSymbol, documentSymbolParams, cancellationToken).ConfigureAwait(false);
+            var symbols = await lspClient.RequestAsync(Methods.TextDocumentDocumentSymbol.ToLSRequest(), documentSymbolParams, cancellationToken).ConfigureAwait(false);
             if (symbols == null)
             {
                 return ImmutableArray<NavigationBarItem>.Empty;

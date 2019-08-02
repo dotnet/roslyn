@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         private static readonly ImmutableArray<string> s_KnownInterfaceNames =
             ImmutableArray.Create(typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName);
 
+        protected bool IsForEachVariableWrittenInside { get; private set; }
         protected abstract string Title { get; }
         protected abstract bool ValidLocation(ForEachInfo foreachInfo);
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(TForEachStatement foreachStatement);
@@ -40,10 +41,21 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
         protected abstract bool IsValid(TForEachStatement foreachNode);
 
+        /// <summary>
+        /// Perform language specific checks if the conversion is supported.
+        /// C#: Currently nothing blocking a conversion
+        /// VB: Nested foreach loops sharing a single Next statement, Next statements with multiple variables and next statements
+        /// not using the loop variable are not supported.
+        /// </summary>
+        protected abstract bool IsSupported(ILocalSymbol foreachVariable, IForEachLoopOperation forEachOperation, TForEachStatement foreachStatement);
+
+        protected SyntaxAnnotation CreateWarningAnnotation()
+            => WarningAnnotation.Create(FeaturesResources.Warning_colon_semantics_may_change_when_converting_statement);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var foreachStatement = await context.TryGetSelectedNodeAsync<TForEachStatement>().ConfigureAwait(false);
+            var foreachStatement = await context.TryGetRelevantNodeAsync<TForEachStatement>().ConfigureAwait(false);
             if (foreachStatement == null || !IsValid(foreachStatement))
             {
                 return;
@@ -139,29 +151,14 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 return null;
             }
 
-            // VB can have Next variable. but we only support
-            // simple 1 variable case.
-            if (operation.NextVariables.Length > 1)
+            // Perform language specific checks if the foreachStatement
+            // is using unsupported features
+            if (!IsSupported(foreachVariable, operation, foreachStatement))
             {
                 return null;
             }
 
-            // it is okay to omit variable in Next, but if it presents, it must be same as one in the loop
-            if (!operation.NextVariables.IsEmpty)
-            {
-                var nextVariable = operation.NextVariables[0] as ILocalReferenceOperation;
-                if (nextVariable == null || nextVariable.Local?.Equals(foreachVariable) == false)
-                {
-                    // we do not support anything else than local reference for next variable
-                    // operation
-                    return null;
-                }
-            }
-
-            if (CheckIfForEachVariableIsWrittenInside(model, foreachVariable, foreachStatement))
-            {
-                return null;
-            }
+            IsForEachVariableWrittenInside = CheckIfForEachVariableIsWrittenInside(model, foreachVariable, foreachStatement);
 
             var foreachCollection = RemoveImplicitConversion(operation.Collection);
             if (foreachCollection == null)
