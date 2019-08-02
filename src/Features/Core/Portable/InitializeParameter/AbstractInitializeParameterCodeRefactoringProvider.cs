@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 ++counter;
                 if (parameterNode == null)
                 {
-                    continue;
+                    return;
                 }
 
                 // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                 if (parameter == null || parameter.Name == "")
                 {
-                    continue;
+                    return;
                 }
 
-                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
+                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;  // foo(objact a,
                 if (methodSymbol.IsAbstract ||
                     methodSymbol.IsExtern ||
                     methodSymbol.PartialImplementationPart != null ||
@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
                 }
 
+                //var blockStatementOpt = GetBlockStatmentOpt(syntaxFacts, semanticModel, functionDeclaration, cancellationToken);
+                //if (blockStatementOpt == null)
+                //{
+                //    continue;
+                //}
                 if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
                 {
                     // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
@@ -142,12 +147,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             return Task.FromResult(ImmutableArray<CodeAction>.Empty);
         }
+
         protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<CodeAction>.Empty);
         }
 
-        private bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
+        protected bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
             blockStatementOpt = null;
 
@@ -160,8 +166,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            // In order to get the block operation for the body of an anonymous function, we need to
-            // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
+            //In order to get the block operation for the body of an anonymous function, we need to
+            //get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.GetBlockStatmentOpt does that.
+
             var operation = semanticModel.GetOperation(
                 syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);

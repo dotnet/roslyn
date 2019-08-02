@@ -83,10 +83,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-                    // Updates blockStatementOpt
-                    blockStatementOpt = GetBlockStatmentOpt(document, semanticModel, functionDeclaration, cancellationToken);
-                    if (blockStatementOpt == null)
+                    if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
                     {
                         continue;
                     }
@@ -204,31 +203,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return false;
         }
-
-        protected IBlockOperation GetBlockStatmentOpt(Document document, SemanticModel semanticModel, SyntaxNode functionDeclaration, CancellationToken cancellationToken)
-        {
-
-            var functionBody = GetBody(functionDeclaration);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var operation = semanticModel.GetOperation(syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
-                cancellationToken);
-
-            if (operation == null)
-            {
-                return null;
-            }
-
-            switch (operation.Kind)
-            {
-                case OperationKind.AnonymousFunction:
-                    return ((IAnonymousFunctionOperation)operation).Body;
-                case OperationKind.Block:
-                    return (IBlockOperation)operation;
-                default:
-                    return null;
-            }
-        }
-
 
         protected bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
