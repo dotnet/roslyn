@@ -333,6 +333,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcFiltersIFilterMetadata = "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata";
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
+        public const string MicrosoftAspNetCoreMvcFiltersIAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
         public const string SystemConvert = "System.Convert";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";

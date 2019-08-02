@@ -110,6 +110,11 @@ namespace Microsoft.AspNetCore
             {
                 Task OnAuthorizationAsync (AuthorizationFilterContext context);
             }
+
+            public interface IAuthorizationFilter : IFilterMetadata
+            {
+                Task OnAuthorization (AuthorizationFilterContext context);
+            }
         }
     }
 
