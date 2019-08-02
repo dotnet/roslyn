@@ -4,6 +4,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class AnonymousFunctionExpressionSyntax
     {
-        public CSharpSyntaxNode Body => this.Block ?? (CSharpSyntaxNode)this.ExpressionBody;
+        /// <summary>
+        /// Either the <see cref="Block"/> if it is not <c>null</c> or the
+        /// <see cref="ExpressionBody"/> otherwise.
+        /// </summary>
+        public CSharpSyntaxNode Body => Block ?? (CSharpSyntaxNode)ExpressionBody;
     }
 }
