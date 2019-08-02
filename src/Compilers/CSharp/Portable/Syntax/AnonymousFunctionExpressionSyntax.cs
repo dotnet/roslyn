@@ -9,5 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <see cref="ExpressionBody"/> otherwise.
         /// </summary>
         public CSharpSyntaxNode Body => Block ?? (CSharpSyntaxNode)ExpressionBody;
+
+        public AnonymousFunctionExpressionSyntax WithBody(CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? WithBlock(block)
+                : WithExpressionBody((ExpressionSyntax)body);
     }
 }

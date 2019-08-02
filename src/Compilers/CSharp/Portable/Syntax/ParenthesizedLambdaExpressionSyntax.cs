@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class ParenthesizedLambdaExpressionSyntax
     {
-        public ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+        public new ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
                 ? WithBlock(block)
                 : WithExpressionBody((ExpressionSyntax)body);

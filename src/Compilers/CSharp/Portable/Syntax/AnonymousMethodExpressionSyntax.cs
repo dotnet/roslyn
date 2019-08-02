@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class AnonymousMethodExpressionSyntax
     {
-        public AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
+        public new AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
                 ? WithBlock(block)
                 : WithExpressionBody((ExpressionSyntax)body);
