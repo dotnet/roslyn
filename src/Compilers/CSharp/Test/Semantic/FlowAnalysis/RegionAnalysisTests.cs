@@ -6118,8 +6118,8 @@ class C
             Assert.Equal("this, x", GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
-            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
-            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
             Assert.Equal("y", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadOutside));
@@ -6150,8 +6150,8 @@ class C
             Assert.Equal("this, x", GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
-            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
-            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
             Assert.Equal("y", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("this, x, y", GetSymbolNamesJoined(analysis.ReadOutside));
