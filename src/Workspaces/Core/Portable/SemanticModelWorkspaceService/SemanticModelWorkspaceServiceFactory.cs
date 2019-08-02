@@ -362,17 +362,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
                 using (_gate.DisposableWrite())
                 {
-                    using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                    using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    var set = pooledObject.Object;
+
+                    set.UnionWith(versionMap.Keys);
+                    set.ExceptWith(projectIds);
+
+                    foreach (var projectId in set)
                     {
-                        var set = pooledObject.Object;
-
-                        set.UnionWith(versionMap.Keys);
-                        set.ExceptWith(projectIds);
-
-                        foreach (var projectId in set)
-                        {
-                            versionMap.Remove(projectId);
-                        }
+                        versionMap.Remove(projectId);
                     }
                 }
             }
