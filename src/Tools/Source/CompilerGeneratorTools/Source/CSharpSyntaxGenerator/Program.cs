@@ -63,6 +63,13 @@ namespace CSharpSyntaxGenerator
             var reader = XmlReader.Create(inputFile, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
+
+            // The syntax.xml doc contains some nodes that are useful for other tools, but which are
+            // not needed by this syntax generator.  Specifically, we have `<Choice>` and
+            // `<Sequence>` nodes in the xml file to help others tools understand the relationship
+            // between some fields (i.e. 'only one of these children can be non-null').  To make our
+            // life easier, we just flatten all those nodes, grabbing all the nested `<Field>` nodes
+            // and placing into a single linear list that we can then process.
             FlattenChildren(tree);
 
             if (writeSignatures)
