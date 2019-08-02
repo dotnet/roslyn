@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public new ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? WithBlock(block)
-                : WithExpressionBody((ExpressionSyntax)body);
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
 
         public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
             => body is BlockSyntax block

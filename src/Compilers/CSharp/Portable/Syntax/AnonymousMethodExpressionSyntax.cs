@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public new AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? WithBlock(block)
-                : WithExpressionBody((ExpressionSyntax)body);
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
 
         public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block

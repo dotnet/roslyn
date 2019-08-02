@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public new SimpleLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? WithBlock(block)
-                : WithExpressionBody((ExpressionSyntax)body);
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
 
         public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
             => body is BlockSyntax block
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public new LambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? WithBlock(block)
-                : WithExpressionBody((ExpressionSyntax)body);
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
     }
 }

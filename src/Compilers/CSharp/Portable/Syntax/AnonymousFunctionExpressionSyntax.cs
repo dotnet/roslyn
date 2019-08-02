@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public AnonymousFunctionExpressionSyntax WithBody(CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? WithBlock(block)
-                : WithExpressionBody((ExpressionSyntax)body);
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
     }
 }
