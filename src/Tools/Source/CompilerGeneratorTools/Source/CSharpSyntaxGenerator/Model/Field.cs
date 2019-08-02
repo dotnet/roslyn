@@ -5,7 +5,21 @@ using System.Xml.Serialization;
 
 namespace CSharpSyntaxGenerator
 {
-    public class Field
+    public class FieldOrChoice
+    {
+    }
+
+    public class Choice : FieldOrChoice
+    {
+        [XmlAttribute]
+        public string Optional;
+
+        [XmlElement(ElementName = "Field", Type = typeof(Field))]
+        [XmlElement(ElementName = "Choice", Type = typeof(Choice))]
+        public List<FieldOrChoice> FieldsAndChoices;
+    }
+
+    public class Field : FieldOrChoice
     {
         [XmlAttribute]
         public string Name;

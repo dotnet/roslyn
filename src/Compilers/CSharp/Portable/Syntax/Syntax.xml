@@ -2345,8 +2345,10 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
-    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+    <Choice>
+      <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
+      <Field Name="Expression" Type="ExpressionSyntax"/>
+    </Choice>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
     </Field>

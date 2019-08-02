@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace CSharpSyntaxGenerator
 {
@@ -201,19 +202,13 @@ namespace CSharpSyntaxGenerator
             => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
         protected static bool IsOptional(Field f)
-        {
-            return f.Optional != null && string.Compare(f.Optional, "true", true) == 0;
-        }
+            => Utils.IsTrue(f.Optional);
 
         protected static bool IsOverride(Field f)
-        {
-            return f.Override != null && string.Compare(f.Override, "true", true) == 0;
-        }
+            => Utils.IsTrue(f.Override);
 
         protected static bool IsNew(Field f)
-        {
-            return f.New != null && string.Compare(f.New, "true", true) == 0;
-        }
+            => Utils.IsTrue(f.New);
 
         protected static bool HasErrors(Node n)
         {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -62,6 +63,7 @@ namespace CSharpSyntaxGenerator
             var reader = XmlReader.Create(inputFile, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
+            FlattenChoices(tree);
 
             if (writeSignatures)
             {
@@ -88,6 +90,48 @@ namespace CSharpSyntaxGenerator
             }
 
             return 0;
+        }
+
+        private static void FlattenChoices(Tree tree)
+        {
+            foreach (var type in tree.Types)
+            {
+                switch (type)
+                {
+                    case AbstractNode node:
+                        FlattenChoices(node.FieldsAndChoices, node.Fields, makeOptional: false);
+                        break;
+                    case Node node:
+                        FlattenChoices(node.FieldsAndChoices, node.Fields, makeOptional: false);
+                        break;
+                }
+            }
+        }
+
+        private static void FlattenChoices(
+            List<FieldOrChoice> fieldsAndChoices, List<Field> fields, bool makeOptional)
+        {
+            foreach (var fieldOrChoice in fieldsAndChoices)
+            {
+                switch (fieldOrChoice)
+                {
+                    case Field field:
+                        if (makeOptional)
+                        {
+                            field.Optional = "true";
+                        }
+
+                        fields.Add(field);
+                        break;
+                    case Choice choice:
+                        // Children of choices are always optional (since the point is to
+                        // chose from one of them and leave out the rest).
+                        FlattenChoices(choice.FieldsAndChoices, fields, makeOptional: true);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown child type.");
+                }
+            }
         }
 
         private static void WriteUsage()
