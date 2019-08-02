@@ -237,15 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Assign_out_parameters {
             get {
                 return ResourceManager.GetString("Assign_out_parameters", resourceCulture);
-
-            }
-        }
-
-        ///   Looks up a localized string similar to asynchronous foreach statement.
-        /// </summary>
-        internal static string asynchronous_foreach_statement {
-            get {
-                return ResourceManager.GetString("asynchronous_foreach_statement", resourceCulture);
             }
         }
         
@@ -255,10 +246,19 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Assign_out_parameters_at_start {
             get {
                 return ResourceManager.GetString("Assign_out_parameters_at_start", resourceCulture);
-
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to asynchronous foreach statement.
+        /// </summary>
+        internal static string asynchronous_foreach_statement {
+            get {
+                return ResourceManager.GetString("asynchronous_foreach_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to asynchronous using declaration.
         /// </summary>
         internal static string asynchronous_using_declaration {
