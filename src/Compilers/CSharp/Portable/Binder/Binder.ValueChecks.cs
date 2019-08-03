@@ -3072,7 +3072,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             switch (expression.Kind)
             {
@@ -3199,7 +3199,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             FieldSymbol field = fieldAccess.FieldSymbol;
 

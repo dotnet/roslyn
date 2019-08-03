@@ -593,7 +593,7 @@ public class Program
                     type = attribute.AttributeClass;
                 }
             }
-            if (!(type is null))
+            if (type is object)
             {
                 Assert.Equal(publicDefinition ? Accessibility.Public : Accessibility.Internal, type.DeclaredAccessibility);
             }

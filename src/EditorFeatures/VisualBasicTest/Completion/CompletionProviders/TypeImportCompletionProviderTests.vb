@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Experiments
@@ -19,8 +20,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
+        ' -1 would disable timebox, whereas 0 means always timeout.
+        Private Property TimeoutInMilliseconds As Integer = -1
+
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
-            workspace.Options = workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue)
+            workspace.Options = workspace.Options _
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
         End Sub
 
         Protected Overrides Function GetExportProvider() As ExportProvider
@@ -163,6 +169,46 @@ End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)")
+        End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = $$"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = Foo.Bar$$"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
+        End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = System.Collections.Generic.List(Of $$)"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = System.Collections.Generic.List(Of Foo.Bar$$)"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
         End Function
     End Class
 End Namespace

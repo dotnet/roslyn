@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static T WithoutNullability<T>(this T typeSymbol) where T : ITypeSymbol
+        public static T WithoutNullability<T>(this T typeSymbol) where T : INamespaceOrTypeSymbol
         {
             if (typeSymbol is TypeSymbolWithNullableAnnotation typeSymbolWithNullability)
             {

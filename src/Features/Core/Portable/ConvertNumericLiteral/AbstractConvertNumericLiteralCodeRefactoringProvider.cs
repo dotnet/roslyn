@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
         {
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
-            var literalNode = await context.TryGetSelectedNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
+            var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
             var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
                 ? literalNode
                 : null;
