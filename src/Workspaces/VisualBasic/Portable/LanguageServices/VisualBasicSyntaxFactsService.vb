@@ -1700,6 +1700,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
         Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
             ' VB does not have shebang directives.
             Return False

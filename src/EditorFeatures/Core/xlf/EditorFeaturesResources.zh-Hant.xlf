@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
         <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+        <target state="translated">作業未做好 "{0}" 的準備。如需詳細資料，請查看左下角。</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">該符號沒有任何基底。</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' 個基底</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1307,6 +1307,26 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">智慧權杖格式器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">正在切換區塊註解...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">切換區塊註解</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">正在切換行註解...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">切換行註解</target>
         <note />
       </trans-unit>
     </body>
