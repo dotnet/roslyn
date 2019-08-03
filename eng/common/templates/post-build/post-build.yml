@@ -83,7 +83,15 @@ stages:
       parameters:
         additionalParameters: ${{ parameters.SDLValidationParameters.params }}
 
+- template: \eng\common\templates\post-build\channels\netcore-dev-5.yml
+  parameters:
+    enableSymbolValidation: ${{ parameters.enableSymbolValidation }}
+
 - template: \eng\common\templates\post-build\channels\public-dev-release.yml
+  parameters:
+    enableSymbolValidation: ${{ parameters.enableSymbolValidation }}
+
+- template: \eng\common\templates\post-build\channels\netcore-tools-latest.yml
   parameters:
     enableSymbolValidation: ${{ parameters.enableSymbolValidation }}
 
