@@ -6,7 +6,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
+#If False Then
     <[UseExportProvider]>
     Public Class EditAndContinueWorkspaceServiceTests
         <Fact>
@@ -110,5 +111,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(True, isReadOnly)
         End Sub
     End Class
-
+#End If
 End Namespace

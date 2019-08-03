@@ -408,7 +408,7 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            using var workspace = TestWorkspace.CreateCSharp(
+            var workspace = TestWorkspace.CreateCSharp(
                 source, parseOptions: experimental, compilationOptions: null, exportProvider: null);
             var oldProject = workspace.CurrentSolution.Projects.First();
             var document = oldProject.Documents.First();
@@ -418,7 +418,7 @@ class C
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
             Assert.False(result.HasChangesAndCompilationErrors);
-            Assert.True(result.RudeEditErrors.IsDefaultOrEmpty);
+            Assert.True(result.RudeEditErrors.IsEmpty);
         }
 
         [Fact]

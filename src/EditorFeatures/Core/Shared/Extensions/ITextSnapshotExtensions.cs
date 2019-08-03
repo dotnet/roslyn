@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -60,6 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// 
+        /// for synchronous code path, make sure to use synchronous version 
+        /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
+        /// otherwise, one can get into a deadlock
         /// </summary>
         public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
@@ -88,6 +93,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 // get proper document
                 return snapshot.GetOpenDocumentInCurrentContextWithChanges();
             }
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// </summary>
+        public static Document GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+            this ITextSnapshot snapshot, IUIThreadOperationContext operationContext, IThreadingContext threadingContext)
+        {
+            // make sure this is only called from UI thread
+            threadingContext.ThrowIfNotOnUIThread();
+
+            return threadingContext.JoinableTaskFactory.Run(() =>
+                snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext));
         }
     }
 }

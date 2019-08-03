@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -272,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // During an EnC session, adding import is not supported.
-                var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
-                if (encService?.EditSession != null)
+                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+                if (encService?.IsDebuggingSessionInProgress == true)
                 {
                     return true;
                 }
