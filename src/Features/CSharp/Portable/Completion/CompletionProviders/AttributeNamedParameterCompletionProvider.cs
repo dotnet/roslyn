@@ -54,10 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return;
                 }
-
-                var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
-                var attributeSyntax = token.Parent.Parent as AttributeSyntax;
-                if (attributeSyntax == null || attributeArgumentList == null)
+                if (!(token.Parent.Parent is AttributeSyntax attributeSyntax) || !(token.Parent is AttributeArgumentListSyntax attributeArgumentList))
                 {
                     return;
                 }
@@ -96,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAfterNameColonArgument(SyntaxToken token)
         {
-            var argumentList = token.Parent as AttributeArgumentListSyntax;
-            if (token.Kind() == SyntaxKind.CommaToken && argumentList != null)
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {
@@ -122,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAfterNameEqualsArgument(SyntaxToken token)
         {
-            var argumentList = token.Parent as AttributeArgumentListSyntax;
-            if (token.Kind() == SyntaxKind.CommaToken && argumentList != null)
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {
@@ -216,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
         {
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken).Type as INamedTypeSymbol;
-            if (within != null && attributeType != null)
+            if (within != null && semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType)
             {
                 return attributeType.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                          .Select(c => c.Parameters);

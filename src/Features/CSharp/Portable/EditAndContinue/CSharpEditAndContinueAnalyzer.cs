@@ -939,8 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)
         {
-            var ctor = constructorDeclaration as ConstructorDeclarationSyntax;
-            return ctor != null && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
+            return constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
         }
 
         internal override bool IsPartial(INamedTypeSymbol type)

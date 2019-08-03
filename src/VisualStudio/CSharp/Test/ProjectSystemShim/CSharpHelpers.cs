@@ -133,7 +133,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         private class MockCSharpProjectRoot : ICSharpProjectRoot
         {
-            private IVsHierarchy _hierarchy;
+            private readonly IVsHierarchy _hierarchy;
 
             public MockCSharpProjectRoot(IVsHierarchy hierarchy)
             {

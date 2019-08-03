@@ -1351,27 +1351,25 @@ class C
             int? expectedIndentation)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var hostdoc = workspace.Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var hostdoc = workspace.Documents.First();
 
-                var buffer = hostdoc.GetTextBuffer();
+            var buffer = hostdoc.GetTextBuffer();
 
-                var snapshot = buffer.CurrentSnapshot;
-                var line = snapshot.GetLineFromLineNumber(indentationLine);
+            var snapshot = buffer.CurrentSnapshot;
+            var line = snapshot.GetLineFromLineNumber(indentationLine);
 
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
+            var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-                Assert.True(
-                    CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                        Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+            Assert.True(
+                CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
+                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
 
-                var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
-                Assert.Equal(expectedIndentation.Value, actualIndentation);
-            }
+            var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+            Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
         private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
@@ -1381,25 +1379,23 @@ class C
             IndentStyle indentStyle = IndentStyle.Smart)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                var hostdoc = workspace.Documents.First();
-                var buffer = hostdoc.GetTextBuffer();
-                var snapshot = buffer.CurrentSnapshot;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+            var hostdoc = workspace.Documents.First();
+            var buffer = hostdoc.GetTextBuffer();
+            var snapshot = buffer.CurrentSnapshot;
 
-                var line = snapshot.GetLineFromLineNumber(indentationLine);
+            var line = snapshot.GetLineFromLineNumber(indentationLine);
 
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
-                Assert.False(
-                    CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                        Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+            var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
+            Assert.False(
+                CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
+                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
 
-                TestIndentation(workspace, indentationLine, expectedIndentation);
-            }
+            TestIndentation(workspace, indentationLine, expectedIndentation);
         }
     }
 }

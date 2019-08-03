@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol EnsureNonConflictingNames(
-            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts)
         {
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.

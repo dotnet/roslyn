@@ -3386,7 +3386,6 @@ End Namespace"
 
                     Dim handler = New ExtractMethodCommandHandler(
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                        workspace.GetService(Of IEditorOperationsFactoryService)(),
                         workspace.GetService(Of IInlineRenameService)())
 
                     Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))

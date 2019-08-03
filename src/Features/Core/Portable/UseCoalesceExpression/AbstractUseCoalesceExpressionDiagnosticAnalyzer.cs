@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
             var whenFalseNodeLow = syntaxFacts.WalkDownParentheses(whenFalseNodeHigh);
 
-            var condition = conditionNode as TBinaryExpressionSyntax;
-            if (condition == null)
+            if (!(conditionNode is TBinaryExpressionSyntax condition))
             {
                 return;
             }
