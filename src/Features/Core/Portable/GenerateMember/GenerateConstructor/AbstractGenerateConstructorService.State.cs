@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     : ParameterTypes;
                 ParameterRefKinds ??= Arguments.Select(service.GetRefKind).ToList();
 
-                return !ClashesWithExistingConstructor(document, cancellationToken);
+                return !ClashesWithExistingConstructor(document);
             }
 
-            private bool ClashesWithExistingConstructor(SemanticDocument document, CancellationToken cancellationToken)
+            private bool ClashesWithExistingConstructor(SemanticDocument document)
             {
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();

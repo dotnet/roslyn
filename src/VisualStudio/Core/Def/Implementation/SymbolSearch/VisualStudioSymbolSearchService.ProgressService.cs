@@ -33,14 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             try
             {
-                await OnDownloadFullDatabaseStartedWorkerAsync(title, cancellationToken).ConfigureAwait(false);
+                await OnDownloadFullDatabaseStartedWorkerAsync(title).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
             }
         }
 
-        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title, CancellationToken cancellationToken)
+        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title)
         {
             var options = GetOptions(title);
             var data = new TaskProgressData

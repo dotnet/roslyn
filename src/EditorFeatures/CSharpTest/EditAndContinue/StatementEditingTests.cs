@@ -2762,6 +2762,42 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_Signature_Nullable()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G1(Func<string, string> f) {}
+    void G2(Func<string?, string?> f) {}
+
+    void F()
+    {
+        G1(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<string, string> f) {}
+    void G2(Func<string?, string?> f) {}
+
+    void F()
+    {
+        G2(a => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void Lambdas_Update_Signature_SyntaxOnly1()
         {
             var src1 = @"

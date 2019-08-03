@@ -265,8 +265,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Attempt to place the initialization in a good location in the constructor
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
-            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                parameter, blockStatementOpt, cancellationToken);
+            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
 
             InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
@@ -321,9 +320,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
-            IParameterSymbol parameter,
-            IBlockOperation blockStatementOpt,
-            CancellationToken cancellationToken)
+            IParameterSymbol parameter, IBlockOperation blockStatementOpt)
         {
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);

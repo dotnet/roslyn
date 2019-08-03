@@ -244,25 +244,23 @@ class C{i}
 
             var updatedSignature = new[] { 0, 2 };
 
-            using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
+            using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
+            testState.TestChangeSignatureOptionsService.IsCancelled = false;
+            testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+            var result = testState.ChangeSignature();
+
+            Assert.True(result.Succeeded);
+            Assert.Null(testState.ErrorMessage);
+
+            foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
-                testState.TestChangeSignatureOptionsService.IsCancelled = false;
-                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-                var result = testState.ChangeSignature();
-
-                Assert.True(result.Succeeded);
-                Assert.Null(testState.ErrorMessage);
-
-                foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+                if (updatedDocument.Name == "C5.cs")
                 {
-                    if (updatedDocument.Name == "C5.cs")
-                    {
-                        Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
-                    }
-                    else
-                    {
-                        Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
-                    }
+                    Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+                else
+                {
+                    Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                 }
             }
         }
@@ -277,7 +275,7 @@ class C{i}
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
@@ -289,21 +287,18 @@ class C{i}
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
+            var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
 
-                var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
+            var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
 
-                var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
-
-                state = handler.GetCommandState(new ReorderParametersCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
-            }
+            state = handler.GetCommandState(new ReorderParametersCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
     }
 }

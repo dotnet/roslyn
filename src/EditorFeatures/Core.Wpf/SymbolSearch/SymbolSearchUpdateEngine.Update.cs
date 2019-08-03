@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
 
                 // Convert the database contents in the XML to a byte[].
-                var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
+                var (succeeded, contentBytes) = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
 
-                if (!result.succeeded)
+                if (!succeeded)
                 {
                     // Something was wrong with the full database.  Trying again soon after won't
                     // really help.  We'll just get the same busted XML from the remote service
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return (succeeded: false, failureDelay);
                 }
 
-                var bytes = result.contentBytes;
+                var bytes = contentBytes;
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
