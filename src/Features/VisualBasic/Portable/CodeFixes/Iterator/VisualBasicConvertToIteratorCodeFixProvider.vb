@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
                 Return Nothing
             End If
 
-            ienumerableSymbol = ienumerableSymbol.Construct(method.ReturnType.GetTypeArguments().First())
+            ienumerableSymbol = ienumerableSymbol.ConstructWithNullability(method.ReturnType.GetTypeArguments().First())
 
             If Not method.ReturnType.Equals(ienumerableSymbol) Then
                 Return Nothing

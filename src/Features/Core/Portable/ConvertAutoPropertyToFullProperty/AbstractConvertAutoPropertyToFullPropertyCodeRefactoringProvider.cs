@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
-            var containingProperty = await context.TryGetSelectedNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
             {
                 return null;

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 cancellationToken);
         }
 
-        protected async Task<Document> FixAllWithEditorAsync(
+        internal static async Task<Document> FixAllWithEditorAsync(
             Document document,
             Func<SyntaxEditor, Task> editAsync,
             CancellationToken cancellationToken)

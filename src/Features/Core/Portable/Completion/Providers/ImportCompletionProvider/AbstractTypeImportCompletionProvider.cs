@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
-        // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
-        // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
-        internal int TimeoutInMilliseconds => 1000;
+        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -110,8 +108,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
             // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
+            var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
-            if (await Task.WhenAny(combinedTask, Task.Delay(TimeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+
+            if (timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
             {
                 // No timeout. We now have all completion items ready. 
                 var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            if (ShouldCompleteWithFullyQualifyTypeName(document))
+            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
 
-            static bool ShouldCompleteWithFullyQualifyTypeName(Document document)
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
                 var workspace = document.Project.Solution.Workspace;
 
@@ -286,7 +286,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return true;
                 }
 
-                return false;
+                // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
+                // import container (e.g. namespace/class/etc. declarations).
+                //
+                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
+                // 
+                //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
+                //
+                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
+                // then we can add an using in the outer import container instead (this is not allowed in VB). 
+                //
+                // For example:
+                //
+                //      using System.Collections.Generic;
+                //      using System.Text;
+                //
+                //      namespace Foo
+                //      {
+                //          using CollectionOfStringBuilders = List<StringBuilder>;
+                //      }
+                //
+                // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
+                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 

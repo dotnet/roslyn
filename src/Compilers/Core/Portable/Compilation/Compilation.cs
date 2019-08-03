@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis
 
             checkInCompilationReferences(symbol, nameof(symbol));
             checkInCompilationReferences(within, nameof(within));
-            if (!(throughType is null))
+            if (throughType is object)
             {
                 checkInCompilationReferences(throughType, nameof(throughType));
             }
