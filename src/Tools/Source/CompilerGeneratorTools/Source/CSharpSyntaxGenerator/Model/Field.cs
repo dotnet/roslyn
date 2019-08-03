@@ -42,6 +42,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string New;
 
+        [XmlAttribute]
+        public string MinCount;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 
