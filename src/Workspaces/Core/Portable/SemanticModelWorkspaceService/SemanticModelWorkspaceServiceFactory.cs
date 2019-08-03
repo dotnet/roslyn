@@ -40,12 +40,14 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             private readonly ReaderWriterLockSlim _gate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
+#nullable enable
+
             public async Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
             {
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
-                if (syntaxFactsService == null || semanticFactsService == null || node == null)
+                if (syntaxFactsService == null || semanticFactsService == null)
                 {
                     // it only works if we can track member
                     return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -159,6 +161,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             {
                 return document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
             }
+
+#nullable restore
 
             private Task AddVersionCacheAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
             {
