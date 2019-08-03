@@ -408,7 +408,7 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = TestWorkspace.CreateCSharp(
                 source, parseOptions: experimental, compilationOptions: null, exportProvider: null);
             var oldProject = workspace.CurrentSolution.Projects.First();
             var document = oldProject.Documents.First();
