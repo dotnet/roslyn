@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -23,14 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class CallHierarchyCommandHandler : VSCommanding.ICommandHandler<ViewCallHierarchyCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
 
         public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
 
         [ImportingConstructor]
-        public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider)
+        public CallHierarchyCommandHandler(
+            IThreadingContext threadingContext,
+            [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
+            CallHierarchyProvider provider)
         {
+            _threadingContext = threadingContext;
             _presenter = presenters.FirstOrDefault();
             _provider = provider;
         }
@@ -40,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(cancellationToken);
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
                 if (document == null)
                 {
                     return true;
