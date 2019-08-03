@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
         private const string s_globalSuppressionsFileName = "GlobalSuppressions";
         private const string s_suppressionsFileCommentTemplate =
-@"
-{0} This file is used by Code Analysis to maintain SuppressMessage 
+@"{0} This file is used by Code Analysis to maintain SuppressMessage
 {0} attributes that are applied to this project.
-{0} Project-level suppressions either have no target or are given 
+{0} Project-level suppressions either have no target or are given
 {0} a specific target and scoped to a namespace, type, member, etc.
 
 ";
