@@ -251,7 +251,7 @@
         <summary>SyntaxToken representing the open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;"/>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;" MinCount="1"/>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
       <PropertyComment>
