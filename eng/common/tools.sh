@@ -45,6 +45,10 @@ warn_as_error=${warn_as_error:-true}
 # installed on the machine instead of downloading one.
 use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
 
+# Enable repos to use a particular version of the on-line dotnet-install scripts.
+#    default URL: https://dot.net/v1/dotnet-install.sh
+dotnetInstallScriptVersion=${dotnetInstallScriptVersion:-'v1'}
+
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
 if [[ "$ci" == true ]]; then
   use_global_nuget_cache=${use_global_nuget_cache:-false}
@@ -195,7 +199,7 @@ function InstallDotNet {
 function GetDotNetInstallScript {
   local root=$1
   local install_script="$root/dotnet-install.sh"
-  local install_script_url="https://dot.net/v1/dotnet-install.sh"
+  local install_script_url="https://dot.net/$dotnetInstallScriptVersion/dotnet-install.sh"
 
   if [[ ! -a "$install_script" ]]; then
     mkdir -p "$root"
