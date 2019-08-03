@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol disposeMethod = null;
             if (enumeratorInfoOpt.NeedsDisposal)
             {
-                if (!(enumeratorInfoOpt.DisposeMethod is null))
+                if (enumeratorInfoOpt.DisposeMethod is object)
                 {
                     disposeMethod = enumeratorInfoOpt.DisposeMethod;
                 }
