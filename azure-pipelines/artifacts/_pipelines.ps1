@@ -1,5 +1,5 @@
 # This script translates all the artifacts described by _all.ps1
-# into commands that instruct VSTS to actually collect those artifacts.
+# into commands that instruct Azure Pipelines to actually collect those artifacts.
 
 param (
     [string]$ArtifactNameSuffix
