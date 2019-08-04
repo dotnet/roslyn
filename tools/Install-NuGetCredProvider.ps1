@@ -42,7 +42,7 @@ if ($AccessToken) {
 
     $nugetConfig = [xml](Get-Content -Path "$PSScriptRoot\..\nuget.config")
 
-    $nugetConfig.configuration.packageSources.add |? { $_.value -match '^https://pkgs\.dev\.azure\.com/' } |% {
+    $nugetConfig.configuration.packageSources.add |? { ($_.value -match '^https://pkgs\.dev\.azure\.com/') -or ($_.value -match '^https://[\w\-]+\.pkgs\.visualstudio\.com/') } |% {
         $endpoint = New-Object -TypeName PSObject
         Add-Member -InputObject $endpoint -MemberType NoteProperty -Name endpoint -Value $_.value
         Add-Member -InputObject $endpoint -MemberType NoteProperty -Name username -Value ado
