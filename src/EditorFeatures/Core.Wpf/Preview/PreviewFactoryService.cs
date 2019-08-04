@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var diffService = _differenceSelectorService.GetTextDifferencingService(
                 oldDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? _differenceSelectorService.DefaultTextDifferencingService;
+            diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
             {
                 DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,

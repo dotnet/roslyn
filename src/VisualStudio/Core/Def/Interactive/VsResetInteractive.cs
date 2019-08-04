@@ -174,8 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             hierarchyForProject.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var rawValue);
 
-            var projectName = rawValue as string;
-            if (projectName != null)
+            if (rawValue is string projectName)
             {
                 hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out rawValue);
                 return projectName == (rawValue as string);

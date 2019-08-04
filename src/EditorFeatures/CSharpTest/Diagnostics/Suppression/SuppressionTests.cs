@@ -193,42 +193,40 @@ class Class
     }
 }";
                     var parameters = new TestParameters();
-                    using (var workspace = CreateWorkspaceFromOptions(source, parameters))
-                    {
-                        var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
-                        var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
-                        var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
-                        var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
-                            new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
-                        var fixService = new CodeFixService(
-                            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                            diagnosticService,
-                            SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
-                            SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
-                            SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
-                        var document = GetDocumentAndSelectSpan(workspace, out var span);
-                        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
-                        Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
+                    using var workspace = CreateWorkspaceFromOptions(source, parameters);
+                    var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
+                    var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
+                    var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
+                    var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
+                        new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
+                    var fixService = new CodeFixService(
+                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                        diagnosticService,
+                        SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
+                        SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
+                        SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
+                    var document = GetDocumentAndSelectSpan(workspace, out var span);
+                    var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
+                    Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
-                            .SelectMany(fixCollection => fixCollection.Fixes);
+                    var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
+                        .SelectMany(fixCollection => fixCollection.Fixes);
 
-                        var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
+                    var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
 
-                        // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
-                        Assert.Equal(2, cs0219Fixes.Count());
-                        var cs0219EquivalenceKey = cs0219Fixes.First().Action.EquivalenceKey;
-                        Assert.NotNull(cs0219EquivalenceKey);
-                        Assert.Equal(cs0219EquivalenceKey, cs0219Fixes.Last().Action.EquivalenceKey);
+                    // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
+                    Assert.Equal(2, cs0219Fixes.Count());
+                    var cs0219EquivalenceKey = cs0219Fixes.First().Action.EquivalenceKey;
+                    Assert.NotNull(cs0219EquivalenceKey);
+                    Assert.Equal(cs0219EquivalenceKey, cs0219Fixes.Last().Action.EquivalenceKey);
 
-                        // Ensure that there *is* a fix for the other warning and that it has a *different*
-                        // equivalence key so that it *doesn't* get de-duplicated
-                        Assert.Equal(1, diagnostics.Where(d => d.Id == "CS0168").Count());
-                        var cs0168Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0168");
-                        var cs0168EquivalenceKey = cs0168Fixes.Single().Action.EquivalenceKey;
-                        Assert.NotNull(cs0168EquivalenceKey);
-                        Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
-                    }
+                    // Ensure that there *is* a fix for the other warning and that it has a *different*
+                    // equivalence key so that it *doesn't* get de-duplicated
+                    Assert.Equal(1, diagnostics.Where(d => d.Id == "CS0168").Count());
+                    var cs0168Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0168");
+                    var cs0168EquivalenceKey = cs0168Fixes.Single().Action.EquivalenceKey;
+                    Assert.NotNull(cs0168EquivalenceKey);
+                    Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]

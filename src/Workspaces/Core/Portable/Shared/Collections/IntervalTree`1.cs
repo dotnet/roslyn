@@ -297,11 +297,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             candidates.Push((root, firstTime: true));
             while (candidates.Count != 0)
             {
-                var currentTuple = candidates.Pop();
-                var currentNode = currentTuple.node;
+                var (currentNode, firstTime) = candidates.Pop();
                 if (currentNode != null)
                 {
-                    if (currentTuple.firstTime)
+                    if (firstTime)
                     {
                         // First time seeing this node.  Mark that we've been seen and recurse
                         // down the left side.  The next time we see this node we'll yield it

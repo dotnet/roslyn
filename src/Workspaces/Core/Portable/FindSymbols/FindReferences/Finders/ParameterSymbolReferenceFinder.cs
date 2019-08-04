@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(solution, parameterAndProjectId, result);
-            CascadeBetweenDelegateMethodParameters(solution, parameterAndProjectId, result);
+            CascadeBetweenPropertyAndAccessorParameters(parameterAndProjectId, result);
+            CascadeBetweenDelegateMethodParameters(parameterAndProjectId, result);
             CascadeBetweenPartialMethodParameters(parameterAndProjectId, result);
 
             return result.ToImmutableAndFree();
@@ -221,7 +221,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenPropertyAndAccessorParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -252,7 +251,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenDelegateMethodParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
