@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
-            => Update(semanticModel, (TDeclaration)declaration, options, parseOptions, useExpressionBody);
+        public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody)
+            => Update(semanticModel, (TDeclaration)declaration, useExpressionBody);
 
         public override Location GetDiagnosticLocation(SyntaxNode declaration)
             => GetDiagnosticLocation((TDeclaration)declaration);
@@ -206,9 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return (canOffer, fixesError: false);
         }
 
-        public TDeclaration Update(
-            SemanticModel semanticModel, TDeclaration declaration, OptionSet options,
-            ParseOptions parseOptions, bool useExpressionBody)
+        public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody)
         {
             if (useExpressionBody)
             {
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithGenerateBody(semanticModel, declaration, options, parseOptions),
+                               WithGenerateBody(semanticModel, declaration),
                                expressionBody: null),
                            default);
             }
@@ -249,8 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
         protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
 
-        protected virtual TDeclaration WithGenerateBody(
-            SemanticModel semanticModel, TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
+        protected virtual TDeclaration WithGenerateBody(SemanticModel semanticModel, TDeclaration declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
 
@@ -265,8 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return declaration;
         }
 
-        protected TDeclaration WithAccessorList(
-            SemanticModel semanticModel, TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
+        protected TDeclaration WithAccessorList(SemanticModel semanticModel, TDeclaration declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
