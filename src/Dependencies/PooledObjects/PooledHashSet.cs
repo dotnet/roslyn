@@ -50,21 +50,20 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         internal struct PooledHashSetDisposer : IDisposable
         {
-            private bool _disposed;
-            private readonly PooledHashSet<T> _pooledItem;
+            private PooledHashSet<T> _pooledItem;
 
             public PooledHashSetDisposer(PooledHashSet<T> instance)
             {
-                _disposed = false;
                 _pooledItem = instance;
             }
 
             public void Dispose()
             {
-                if (!_disposed)
+                var item = _pooledItem;
+                if (item != null)
                 {
-                    _disposed = true;
-                    _pooledItem.Free();
+                    item.Free();
+                    _pooledItem = null;
                 }
             }
         }

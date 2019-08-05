@@ -104,21 +104,20 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         internal struct PooledStringBuilderDisposer : IDisposable
         {
-            private bool _disposed;
-            private readonly PooledStringBuilder _pooledItem;
+            private PooledStringBuilder _pooledItem;
 
             public PooledStringBuilderDisposer(PooledStringBuilder instance)
             {
-                _disposed = false;
                 _pooledItem = instance;
             }
 
             public void Dispose()
             {
-                if (!_disposed)
+                var item = _pooledItem;
+                if (item != null)
                 {
-                    _disposed = true;
-                    _pooledItem.Free();
+                    item.Free();
+                    _pooledItem = null;
                 }
             }
         }
