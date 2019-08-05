@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            using var result = ArrayBuilder<string>.GetInstance();
+            using var resultDisposer = ArrayBuilder<string>.GetInstance(out var result);
             foreach (var span in parts)
             {
                 result.Add(identifier.Substring(span.Start, span.Length));
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
-            using var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            using var matchesDisposer = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
             PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
 
             if (matches.Count == 0)

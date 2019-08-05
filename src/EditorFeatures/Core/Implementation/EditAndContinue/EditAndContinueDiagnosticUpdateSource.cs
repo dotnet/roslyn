@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             Debug.Assert(projectId != null);
 
             var updateEvent = DiagnosticsUpdated;
-            using var documentIds = PooledHashSet<DocumentId>.GetInstance();
-            using var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            using var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var documentIdsDisposer = PooledHashSet<DocumentId>.GetInstance(out var documentIds);
+            using var documentDiagnosticDataDisposer = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var projectDiagnosticDataDisposer = ArrayBuilder<DiagnosticData>.GetInstance(out var projectDiagnosticData);
 
             foreach (var diagnostic in diagnostics)
             {

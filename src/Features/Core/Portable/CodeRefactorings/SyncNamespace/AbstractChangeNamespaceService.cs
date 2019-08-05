@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
             var documents = ids.SelectAsArray(id => solution.GetDocument(id));
-            using var containers = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length);
-            using var spanForContainers = PooledHashSet<TextSpan>.GetInstance();
+            using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
+            using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
             foreach (var document in documents)
             {
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            using var builder = ArrayBuilder<SyntaxNode>.GetInstance(names.Length);
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
             for (var i = 0; i < names.Length; ++i)
             {
                 builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));

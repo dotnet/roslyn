@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<CodeFixCollection>.Empty;
             }
 
-            using var result = ArrayBuilder<CodeFixCollection>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
             }
 
-            using var result = ArrayBuilder<CodeFixCollection>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document, TextSpan span, CodeFixProvider fixer,
             ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            using var fixes = ArrayBuilder<CodeFix>.GetInstance();
+            using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
             var context = new CodeFixContext(document, span, diagnostics,
                 // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
                 (action, applicableDiagnostics) =>
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(List<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
-                using var builder = ArrayBuilder<IConfigurationFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
                 {

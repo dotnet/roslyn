@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             var offset = 0;
             var numCounts = ReadInt16(bytes, ref offset);
 
-            using var builder = ArrayBuilder<short>.GetInstance(numCounts);
+            using var builderDisposer = ArrayBuilder<short>.GetInstance(numCounts, out var builder);
             for (var i = 0; i < numCounts; i++)
             {
                 builder.Add(ReadInt16(bytes, ref offset));
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             var bucketCount = ReadInt32(bytes, ref offset);
 
-            using var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
+            using var builderDisposer = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount, out var builder);
             for (var i = 0; i < bucketCount; i++)
             {
                 var startOffset = ReadInt32(bytes, ref offset);
@@ -234,13 +234,15 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             const int FlagBytesCount = 64;
 
-            using var flagsBuilder = ArrayBuilder<bool>.GetInstance(FlagBytesCount);
-            using var pooledNameBuilder = PooledStringBuilder.GetInstance();
+            using var flagsBuilderDisposer = ArrayBuilder<bool>.GetInstance(FlagBytesCount, out var flagsBuilder);
+            using var pooledNameBuilderDisposer = PooledStringBuilder.GetInstance(out var pooledNameBuilder);
+
             var nameBuilder = pooledNameBuilder.Builder;
 
             var offset = 0;
             var bucketCount = ReadInt32(bytes, ref offset);
-            using var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
+            using var builderDisposer = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount, out var builder);
+
 
             for (var i = 0; i < bucketCount; i++)
             {
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             var offset = 0;
             var n = ReadInt32(bytes, ref offset);
-            using var builder = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n);
+            using var builderDisposer = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n, out var builder);
             for (var i = 0; i < n; i++)
             {
                 builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
         {
             var n = ReadInt32(bytes, ref offset);
-            using var builder = ArrayBuilder<string>.GetInstance(n);
+            using var builderDisposer = ArrayBuilder<string>.GetInstance(n, out var builder);
             for (var i = 0; i < n; i++)
             {
                 var value = ReadUtf8String(bytes, ref offset);
@@ -425,8 +427,8 @@ RETRY:
             var importStrings = getMethodImportStrings(methodToken, arg);
             Debug.Assert(!importStrings.IsDefault);
 
-            using var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
-            using var groupBuilder = ArrayBuilder<string>.GetInstance();
+            using var resultBuilderDisposer = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length, out var resultBuilder);
+            using var groupBuilderDispoer = ArrayBuilder<string>.GetInstance(out var groupBuilder);
             var pos = 0;
 
             foreach (var groupSize in groupSizes)

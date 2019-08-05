@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
-            using var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length, out var builder);
             for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];

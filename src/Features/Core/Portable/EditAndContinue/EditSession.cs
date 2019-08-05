@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var instructionMap = baseActiveStatements.InstructionMap;
-                using var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count);
+                using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
                 foreach (var activeStatement in instructionMap.Values)

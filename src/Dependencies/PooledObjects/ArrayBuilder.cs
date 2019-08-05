@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, IDisposable
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
     {
         #region DebuggerProxy
 
@@ -347,11 +347,23 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
+        public static ArrayBuilderDisposer GetInstance(out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance();
+            return new ArrayBuilderDisposer(instance);
+        }
+
         public static ArrayBuilder<T> GetInstance(int capacity)
         {
             var builder = GetInstance();
             builder.EnsureCapacity(capacity);
             return builder;
+        }
+
+        public static ArrayBuilderDisposer GetInstance(int capacity, out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance(capacity);
+            return new ArrayBuilderDisposer(instance);
         }
 
         public static ArrayBuilder<T> GetInstance(int capacity, T fillWithValue)
@@ -365,6 +377,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             return builder;
+        }
+
+        public static ArrayBuilderDisposer GetInstance(int capacity, T fillWithValue, out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance(capacity, fillWithValue);
+            return new ArrayBuilderDisposer(instance);
         }
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool()
@@ -565,7 +583,26 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         #region IDisposable Support
-        public void Dispose() => Free();
+        internal struct ArrayBuilderDisposer : IDisposable
+        {
+            private bool _disposed;
+            private readonly ArrayBuilder<T> _pooledObject;
+
+            public ArrayBuilderDisposer(ArrayBuilder<T> instance)
+            {
+                _disposed = false;
+                _pooledObject = instance;
+            }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _disposed = true;
+                    _pooledObject.Free();
+                }
+            }
+        }
         #endregion
     }
 }

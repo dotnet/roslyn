@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                using var builder = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                using var builder = ArrayBuilder<CodeAction>.GetInstance(2);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
                 var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
                 {
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            using var builder = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length);
+            using var builderDisposer = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are

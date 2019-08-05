@@ -288,10 +288,10 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
-            using var list = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count);
+            using var listDisposer = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                using var spans = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count);
+                using var spansDisposer = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
                 foreach (var span in kvp.Value)
                 {
                     spans.Add(span);

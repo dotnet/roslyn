@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            using var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial

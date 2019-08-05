@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                using var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<CodeFixProvider>.GetInstance(out var builder);
 
                 try
                 {

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                             var textVersion = VersionStamp.ReadFrom(reader);
                             var dataVersion = VersionStamp.ReadFrom(reader);
 
-                            using var list = ArrayBuilder<TodoItem>.GetInstance();
+                            using var listDisposer = ArrayBuilder<TodoItem>.GetInstance(out var list);
                             AppendItems(reader, value, list, cancellationToken);
 
                             return new Data(textVersion, dataVersion, list.ToImmutable());
