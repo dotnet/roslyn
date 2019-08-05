@@ -25,7 +25,7 @@ steps:
     arguments: --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
     testRunTitle: net472-$(Agent.JobName)
     workingDirectory: src
-  condition: eq(variables['Agent.OS'], 'Windows_NT')
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - task: DotNetCoreCLI@2
   displayName: dotnet test -f netcoreapp2.1
