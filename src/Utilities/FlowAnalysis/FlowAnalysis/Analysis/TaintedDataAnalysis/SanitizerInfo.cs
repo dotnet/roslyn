@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -43,6 +44,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Methods that untaint tainted instance.
         /// </summary>
         public ImmutableHashSet<string> SanitizingInstanceMethods { get; }
+
+        /// <summary>
+        /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        public bool RequiresValueContentAnalysis => false;
 
         public override int GetHashCode()
         {

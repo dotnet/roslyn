@@ -79,6 +79,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         operation.GetEnclosingControlFlowGraph(),
                         compilation,
                         symbol,
+                        new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                         propertySetAnalysisParameters.TypeToTrack,
                         propertySetAnalysisParameters.ConstructorMapper,
                         propertySetAnalysisParameters.PropertyMapperCollection,

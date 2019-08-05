@@ -9,6 +9,8 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -224,22 +226,51 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
-                if (this.IsSanitizingMethod(method))
+                PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis = null;
+                PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis = null;
+                try
                 {
-                    return TaintedDataAbstractValue.NotTainted;
-                }
-                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method))
-                {
-                    return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
-                }
-                else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
-                {
-                    if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                    if (this.IsSanitizingMethod(method))
                     {
-                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+                    else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
+                    {
+                        if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                        {
+                            this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                        }
+
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+                    else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
+                        method,
+                        out evaluateWithPointsToAnalysis,
+                        out evaluateWithValueContentAnalysis))
+                    {
+                        ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
+                        IEnumerable<PointsToAbstractValue> pointsToAnalysisResult = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
+                        IEnumerable<ValueContentAbstractValue> valueContentAnalysisResult = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
+                        if ((evaluateWithPointsToAnalysis != null && evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResult)))
+                            || (evaluateWithValueContentAnalysis != null && evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResult, valueContentAnalysisResult))))
+                        {
+                            return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                        }
+
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+                }
+                finally
+                {
+                    if (evaluateWithPointsToAnalysis != null)
+                    {
+                        evaluateWithPointsToAnalysis.Free();
                     }
 
-                    return TaintedDataAbstractValue.NotTainted;
+                    if (evaluateWithValueContentAnalysis != null)
+                    {
+                        evaluateWithValueContentAnalysis.Free();
+                    }
                 }
 
                 return baseVisit;
@@ -306,9 +337,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     taintedAbstractValues = taintedAbstractValues.Concat(baseAbstractValue);
                 }
 
+                TaintedDataAbstractValue result = null;
                 if (taintedAbstractValues.Any())
                 {
-                    return TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
+                    result = TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
+                }
+
+                IArrayCreationOperation arrayCreationOperation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
+                if (arrayCreationOperation?.Type is IArrayTypeSymbol arrayTypeSymbol
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol)
+                    && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
+                {
+                    TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(arrayTypeSymbol, arrayCreationOperation.Syntax, this.OwningSymbol);
+                    result = result == null ? taintedDataAbstractValue : TaintedDataAbstractValue.MergeTainted(result, taintedDataAbstractValue);
+                }
+
+                if (result != null)
+                {
+                    return result;
                 }
                 else
                 {
