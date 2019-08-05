@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFixedStatement = 1 << 10,
             IsEndOfTryBlock = 1 << 11,
             IsEndOfCatchClause = 1 << 12,
-            IsEndOfilterClause = 1 << 13,
+            IsEndOfFilterClause = 1 << 13,
             IsEndOfCatchBlock = 1 << 14,
             IsEndOfDoWhileExpression = 1 << 15,
             IsEndOfForStatementArgument = 1 << 16,
@@ -90,176 +90,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             for (int i = 1; i <= LastTerminatorState; i <<= 1)
             {
-                TerminatorState isolated = _termState & (TerminatorState)i;
-                if (isolated != 0)
+                switch (_termState & (TerminatorState)i)
                 {
-                    switch (isolated)
-                    {
-                        case TerminatorState.IsNamespaceMemberStartOrStop:
-                            if (this.IsNamespaceMemberStartOrStop())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsAttributeDeclarationTerminator:
-                            if (this.IsAttributeDeclarationTerminator())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsPossibleAggregateClauseStartOrStop:
-                            if (this.IsPossibleAggregateClauseStartOrStop())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsPossibleMemberStartOrStop:
-                            if (this.IsPossibleMemberStartOrStop())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfReturnType:
-                            if (this.IsEndOfReturnType())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfParameterList:
-                            if (this.IsEndOfParameterList())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfFieldDeclaration:
-                            if (this.IsEndOfFieldDeclaration())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsPossibleEndOfVariableDeclaration:
-                            if (this.IsPossibleEndOfVariableDeclaration())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfTypeArgumentList:
-                            if (this.IsEndOfTypeArgumentList())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsPossibleStatementStartOrStop:
-                            if (this.IsPossibleStatementStartOrStop())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfFixedStatement:
-                            if (this.IsEndOfFixedStatement())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfTryBlock:
-                            if (this.IsEndOfTryBlock())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfCatchClause:
-                            if (this.IsEndOfCatchClause())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfilterClause:
-                            if (this.IsEndOfFilterClause())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfCatchBlock:
-                            if (this.IsEndOfCatchBlock())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfDoWhileExpression:
-                            if (this.IsEndOfDoWhileExpression())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfForStatementArgument:
-                            if (this.IsEndOfForStatementArgument())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfDeclarationClause:
-                            if (this.IsEndOfDeclarationClause())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsEndOfArgumentList:
-                            if (this.IsEndOfArgumentList())
-                            {
-                                return true;
-                            }
-
-                            break;
-                        case TerminatorState.IsSwitchSectionStart:
-                            if (this.IsPossibleSwitchSection())
-                            {
-                                return true;
-                            }
-
-                            break;
-
-                        case TerminatorState.IsEndOfTypeParameterList:
-                            if (this.IsEndOfTypeParameterList())
-                            {
-                                return true;
-                            }
-
-                            break;
-
-                        case TerminatorState.IsEndOfMethodSignature:
-                            if (this.IsEndOfMethodSignature())
-                            {
-                                return true;
-                            }
-
-                            break;
-
-                        case TerminatorState.IsEndOfNameInExplicitInterface:
-                            if (this.IsEndOfNameInExplicitInterface())
-                            {
-                                return true;
-                            }
-
-                            break;
-                    }
+                    case TerminatorState.IsNamespaceMemberStartOrStop when this.IsNamespaceMemberStartOrStop():
+                    case TerminatorState.IsAttributeDeclarationTerminator when this.IsAttributeDeclarationTerminator():
+                    case TerminatorState.IsPossibleAggregateClauseStartOrStop when this.IsPossibleAggregateClauseStartOrStop():
+                    case TerminatorState.IsPossibleMemberStartOrStop when this.IsPossibleMemberStartOrStop():
+                    case TerminatorState.IsEndOfReturnType when this.IsEndOfReturnType():
+                    case TerminatorState.IsEndOfParameterList when this.IsEndOfParameterList():
+                    case TerminatorState.IsEndOfFieldDeclaration when this.IsEndOfFieldDeclaration():
+                    case TerminatorState.IsPossibleEndOfVariableDeclaration when this.IsPossibleEndOfVariableDeclaration():
+                    case TerminatorState.IsEndOfTypeArgumentList when this.IsEndOfTypeArgumentList():
+                    case TerminatorState.IsPossibleStatementStartOrStop when this.IsPossibleStatementStartOrStop():
+                    case TerminatorState.IsEndOfFixedStatement when this.IsEndOfFixedStatement():
+                    case TerminatorState.IsEndOfTryBlock when this.IsEndOfTryBlock():
+                    case TerminatorState.IsEndOfCatchClause when this.IsEndOfCatchClause():
+                    case TerminatorState.IsEndOfFilterClause when this.IsEndOfFilterClause():
+                    case TerminatorState.IsEndOfCatchBlock when this.IsEndOfCatchBlock():
+                    case TerminatorState.IsEndOfDoWhileExpression when this.IsEndOfDoWhileExpression():
+                    case TerminatorState.IsEndOfForStatementArgument when this.IsEndOfForStatementArgument():
+                    case TerminatorState.IsEndOfDeclarationClause when this.IsEndOfDeclarationClause():
+                    case TerminatorState.IsEndOfArgumentList when this.IsEndOfArgumentList():
+                    case TerminatorState.IsSwitchSectionStart when this.IsPossibleSwitchSection():
+                    case TerminatorState.IsEndOfTypeParameterList when this.IsEndOfTypeParameterList():
+                    case TerminatorState.IsEndOfMethodSignature when this.IsEndOfMethodSignature():
+                    case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
+                        return true;
                 }
             }
 
@@ -7514,7 +7370,7 @@ done:;
                     whenKeyword = AddTrailingSkippedSyntax(whenKeyword, EatToken());
                 }
                 whenKeyword = CheckFeatureAvailability(whenKeyword, MessageID.IDS_FeatureExceptionFilter);
-                _termState |= TerminatorState.IsEndOfilterClause;
+                _termState |= TerminatorState.IsEndOfFilterClause;
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var filterExpression = this.ParseExpressionCore();
 
