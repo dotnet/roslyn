@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         #region IDisposable Support
         internal struct ArrayBuilderDisposer : IDisposable
         {
-            private readonly ArrayBuilder<T> _pooledObject;
+            private ArrayBuilder<T> _pooledObject;
 
             public ArrayBuilderDisposer(ArrayBuilder<T> instance)
             {
@@ -594,11 +594,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             public void Dispose()
             {
-                var item = _pooledItem;
-                if (item != null)
+                var pooledObject = _pooledObject;
+                if (pooledObject != null)
                 {
-                    item.Free();
-                    _pooledItem = null;
+                    pooledObject.Free();
+                    _pooledObject = null;
                 }
             }
         }
