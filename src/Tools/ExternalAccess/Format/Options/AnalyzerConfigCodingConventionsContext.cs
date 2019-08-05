@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
                 return false;
             }
 
-            _analyzerConfigOptions.TryGetValue(conventionName, out conventionValue);
+            _analyzerConfigOptions.TryGetValue(conventionName, out var optionValue);
+            conventionValue = (T)(object)optionValue;
             return conventionValue is object;
         }
     }
