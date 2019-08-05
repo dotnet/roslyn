@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
-            using var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start);
+            using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
             for (var i = start; i < end; i++)
             {
                 result.Add(pieces[i]);

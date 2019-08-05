@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    internal sealed class PooledHashSet<T> : HashSet<T>, IDisposable
+    internal sealed class PooledHashSet<T> : HashSet<T>
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 
@@ -42,6 +42,31 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return instance;
         }
 
-        public void Dispose() => Free();
+        public static PooledHashSetDisposer GetInstance(out PooledHashSet<T> instance)
+        {
+            instance = GetInstance();
+            return new PooledHashSetDisposer(instance);
+        }
+
+        internal struct PooledHashSetDisposer : IDisposable
+        {
+            private bool _disposed;
+            private readonly PooledHashSet<T> _pooledItem;
+
+            public PooledHashSetDisposer(PooledHashSet<T> instance)
+            {
+                _disposed = false;
+                _pooledItem = instance;
+            }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _disposed = true;
+                    _pooledItem.Free();
+                }
+            }
+        }
     }
 }

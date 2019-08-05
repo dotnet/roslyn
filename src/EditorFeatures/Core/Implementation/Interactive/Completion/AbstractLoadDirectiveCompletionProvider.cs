@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         private static ImmutableArray<char> GetCommitCharacters()
         {
-            using var builder = ArrayBuilder<char>.GetInstance();
+            using var builderDisposer = ArrayBuilder<char>.GetInstance(out var builder);
             builder.Add('"');
             if (PathUtilities.IsUnixLikePlatform)
             {

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            using var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
             var properties = GetProperties(definition);
 

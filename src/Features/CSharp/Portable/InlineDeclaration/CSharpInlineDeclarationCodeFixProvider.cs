@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 originalNodes,
                 t =>
                 {
-                    using var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
+                    using var additionalNodesToTrackDisposer = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
 

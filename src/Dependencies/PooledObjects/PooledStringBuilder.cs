@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     ///        ... sb.ToString() ...
     ///        inst.Free();
     /// </summary>
-    internal class PooledStringBuilder : IDisposable
+    internal class PooledStringBuilder
     {
         public readonly StringBuilder Builder = new StringBuilder();
         private readonly ObjectPool<PooledStringBuilder> _pool;
@@ -91,11 +91,36 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
-        public void Dispose() => Free();
+        public static PooledStringBuilderDisposer GetInstance(out PooledStringBuilder instance)
+        {
+            instance = GetInstance();
+            return new PooledStringBuilderDisposer(instance);
+        }
 
         public static implicit operator StringBuilder(PooledStringBuilder obj)
         {
             return obj.Builder;
+        }
+
+        internal struct PooledStringBuilderDisposer : IDisposable
+        {
+            private bool _disposed;
+            private readonly PooledStringBuilder _pooledItem;
+
+            public PooledStringBuilderDisposer(PooledStringBuilder instance)
+            {
+                _disposed = false;
+                _pooledItem = instance;
+            }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _disposed = true;
+                    _pooledItem.Free();
+                }
+            }
         }
     }
 }

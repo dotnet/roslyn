@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         {
             get
             {
-                using var result = ArrayBuilder<IOption>.GetInstance();
+                using var resultDisposer = ArrayBuilder<IOption>.GetInstance(out var result);
                 foreach (var id in (FunctionId[])Enum.GetValues(typeof(FunctionId)))
                 {
                     result.Add(FunctionIdOptions.GetOption(id));

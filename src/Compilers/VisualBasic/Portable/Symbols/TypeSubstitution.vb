@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(originalDefinition.Arity > 0)
 
             Dim current As TypeSubstitution = Me
-            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, Nothing)
+            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, fillWithValue:=Nothing)
             hasTypeArgumentsCustomModifiers = False
 
             Do
