@@ -55,23 +55,23 @@ namespace Microsoft.AspNetCore
         {
         }
 
-        public class HttpPostAttribute : Attribute
+        public class HttpPostAttribute : Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute
         {
         }
 
-        public class HttpPutAttribute : Attribute
+        public class HttpPutAttribute : Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute
         {
         }
 
-        public class HttpDeleteAttribute : Attribute
+        public class HttpDeleteAttribute : Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute
         {
         }
 
-        public class HttpPatchAttribute : Attribute
+        public class HttpPatchAttribute : Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute
         {
         }
 
-        public class HttpGetAttribute : Attribute
+        public class HttpGetAttribute : Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute
         {
         }
 
@@ -114,6 +114,13 @@ namespace Microsoft.AspNetCore
             public interface IAuthorizationFilter : IFilterMetadata
             {
                 Task OnAuthorization (AuthorizationFilterContext context);
+            }
+        }
+        
+        namespace Routing
+        {
+            public class HttpMethodAttribute : Attribute
+            {
             }
         }
     }

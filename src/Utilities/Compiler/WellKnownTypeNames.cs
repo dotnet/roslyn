@@ -326,6 +326,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
         public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
         public const string MicrosoftAspNetCoreMvcNonActionAttribute = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
+        public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
         public const string MicrosoftAspNetCoreMvcHttpDeleteAttribute = "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute";
