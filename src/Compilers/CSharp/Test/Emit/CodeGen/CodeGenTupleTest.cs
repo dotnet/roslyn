@@ -6377,7 +6377,7 @@ class C
 
             tuple2 = comp.CreateTupleTypeSymbol(
                 underlyingType,
-                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable));
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
             Assert.True(tuple1.Equals(tuple2));
             Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
 
@@ -6390,7 +6390,7 @@ class C
 
             tuple2 = comp.CreateTupleTypeSymbol(
                 underlyingType,
-                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotApplicable));
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
             Assert.True(tuple1.Equals(tuple2));
             Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
         }
@@ -6415,7 +6415,7 @@ class C
             var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
             Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
 
-            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Disabled, 9));
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
             Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
             Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
 
@@ -6446,7 +6446,7 @@ class C
 
             tuple2 = comp.CreateTupleTypeSymbol(
                 elementTypes,
-                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable));
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
             Assert.True(tuple1.Equals(tuple2));
             Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
 
@@ -6459,7 +6459,7 @@ class C
 
             tuple2 = comp.CreateTupleTypeSymbol(
                 elementTypes,
-                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotApplicable));
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
             Assert.True(tuple1.Equals(tuple2));
             Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
         }
@@ -6484,7 +6484,7 @@ class C
             var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
             Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
 
-            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Disabled, 9));
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
             Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
             Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
 

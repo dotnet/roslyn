@@ -200,7 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
-                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(diagnostics, method.Locations[0]);
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(
+                    diagnostics,
+                    method.DeclaringCompilation,
+                    method.Locations[0]);
             }
         }
 
@@ -689,8 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
         internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!(expr is null));
-            Debug.Assert(!(expr.Type is null));
+            Debug.Assert(expr is object);
+            Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             // Don't try and lookup if we're not enabled

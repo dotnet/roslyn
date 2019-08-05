@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteWorkspace;
         private readonly IThreadingContext _threadingContext;
 
         public RoslynGotoDefinitionService(
             IStreamingFindUsagesPresenter streamingPresenter,
-            RoslynLspClientServiceFactory roslynLspClientServiceFactory,
+            AbstractLspClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace,
             IThreadingContext threadingContext)
         {

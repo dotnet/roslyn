@@ -300,8 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 #endif
-                _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.NullableAnnotation.ToPublicAnnotation(),
-                                                                        result.RValueType.State.ToPublicFlowState()),
+                _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.ToPublicAnnotation(), result.RValueType.State.ToPublicFlowState()),
                                                     // https://github.com/dotnet/roslyn/issues/35046 We're dropping the result if the type doesn't match up completely
                                                     // with the existing type
                                                     expr.Type?.Equals(result.RValueType.Type, TypeCompareKind.AllIgnoreOptions) == true ? result.RValueType.Type : expr.Type);
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ParameterSymbol methodThisParameter = MethodThisParameter;
                 EnterParameters(); // assign parameters
-                if (!(methodThisParameter is null))
+                if (methodThisParameter is object)
                 {
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
@@ -510,7 +509,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
-            Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            try
+            {
+                Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            }
+            finally
+            {
+                walker.Free();
+            }
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
@@ -610,7 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     updatedMethodSymbolMapOpt,
                                                     snapshotBuilderOpt);
 
-            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            try
+            {
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            }
+            finally
+            {
+                walker.Free();
+            }
         }
 
         private static void Analyze(
@@ -633,10 +646,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
-            }
-            finally
-            {
-                walker.Free();
             }
         }
 
@@ -1410,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (method.IsGenericTaskReturningAsync(compilation))
+            if (returnType.Type.IsGenericTaskType(compilation))
             {
                 type = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
                 return true;
@@ -1860,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
 
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
-                    if (!(currentDeclaration is null))
+                    if (currentDeclaration is object)
                     {
                         TakeIncrementalSnapshot(currentDeclaration);
                         SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
@@ -2500,7 +2509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
-                Debug.Assert(!(rightType is null));
+                Debug.Assert(rightType is object);
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
@@ -6362,7 +6371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 #pragma warning restore IDE0055 // Fix formatting
 
-            if (!(node.DeconstructionOpt is null))
+            if (node.DeconstructionOpt is object)
             {
                 var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
@@ -6418,6 +6427,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
                         SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
                         state = result.State;
+
+                        // If we inferred the type of this variable, then record the inferred type of the variable for later use by the SemanticModel.
+                        if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
+                        {
+                            _variableTypes[iterationVariable] = result.ToTypeWithAnnotations();
+                        }
                     }
 
                     int slot = GetOrCreateSlot(iterationVariable);

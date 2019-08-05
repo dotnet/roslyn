@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            _reducedFrom.Parameters[0].TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+            _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {

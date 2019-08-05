@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class CSharpLspSignatureHelpProvider : RoslynSignatureHelpProvider
     {
         [ImportingConstructor]
-        public CSharpLspSignatureHelpProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        public CSharpLspSignatureHelpProvider(CSharpLspClientServiceFactory csharpLspClientServiceFactory)
+            : base(csharpLspClientServiceFactory)
         {
         }
     }
@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class VBLspSignatureHelpProvider : RoslynSignatureHelpProvider
     {
         [ImportingConstructor]
-        public VBLspSignatureHelpProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
-            : base(roslynLspClientServiceFactory)
+        public VBLspSignatureHelpProvider(VisualBasicLspClientServiceFactory vbLspClientServiceFactory)
+            : base(vbLspClientServiceFactory)
         {
         }
     }

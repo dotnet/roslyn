@@ -316,6 +316,18 @@
     <value>foreach statement</value>
     <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="asynchronous_foreach_statement" xml:space="preserve">
+    <value>asynchronous foreach statement</value>
+    <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="using_declaration" xml:space="preserve">
+    <value>using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="asynchronous_using_declaration" xml:space="preserve">
+    <value>asynchronous using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="checked_statement" xml:space="preserve">
     <value>checked statement</value>
     <comment>{Locked="checked"} "checked" is a C# keyword and should not be localized.</comment>
@@ -324,9 +336,13 @@
     <value>unchecked statement</value>
     <comment>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="yield_statement" xml:space="preserve">
-    <value>yield statement</value>
-    <comment>{Locked="yield"} "yield" is a C# keyword and should not be localized.</comment>
+  <data name="yield_return_statement" xml:space="preserve">
+    <value>yield return statement</value>
+    <comment>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="yield_break_statement" xml:space="preserve">
+    <value>yield break statement</value>
+    <comment>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="await_expression" xml:space="preserve">
     <value>await expression</value>
@@ -393,8 +409,9 @@
     <value>ref local or expression</value>
     <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="v7_switch" xml:space="preserve">
-    <value>C# 7 enhanced switch statement</value>
+  <data name="switch_statement" xml:space="preserve">
+    <value>switch statement</value>
+    <comment>{Locked="switch"} "switch" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
@@ -633,5 +650,12 @@
   </data>
   <data name="_0_may_be_null_here" xml:space="preserve">
     <value>'{0}' may be null here.</value>
+  </data>
+  <data name="local_variable_declaration" xml:space="preserve">
+    <value>local variable declaration</value>
+  </data>
+  <data name="switch_statement_case_clause" xml:space="preserve">
+    <value>switch statement case clause</value>
+    <comment>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</comment>
   </data>
 </root>

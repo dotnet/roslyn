@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
 {
     internal class RoslynDocumentHighlightsService : IDocumentHighlightsService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynDocumentHighlightsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynDocumentHighlightsService(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }

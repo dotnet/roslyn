@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
 
-        public RoslynCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+        public RoslynCompletionProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
