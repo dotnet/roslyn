@@ -528,6 +528,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpVerbs);
         }
 
+        public static INamedTypeSymbol ImmutableArray(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.ImmutableArray<>).FullName);
+        }
+
         public static INamedTypeSymbol IImmutableDictionary(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableDictionary<,>).FullName);
