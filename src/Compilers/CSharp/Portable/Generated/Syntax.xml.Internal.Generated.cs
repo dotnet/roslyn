@@ -6103,7 +6103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override BlockSyntax Block => this.block;
     /// <summary>
     /// Inherited from AnonymousFunctionExpressionSyntax, but not used for
-    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// AnonymousMethodExpressionSyntax.  This will always be null.
     /// </summary>
     public override ExpressionSyntax ExpressionBody => this.expressionBody;
 

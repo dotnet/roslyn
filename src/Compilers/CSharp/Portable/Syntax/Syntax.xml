@@ -1279,7 +1279,7 @@
       <PropertyComment>
         <summary>
           Inherited from AnonymousFunctionExpressionSyntax, but not used for
-          AnonymousMethodExpressionSyntax.  Thsi will always be null.
+          AnonymousMethodExpressionSyntax.  This will always be null.
         </summary>
       </PropertyComment>
     </Field>
