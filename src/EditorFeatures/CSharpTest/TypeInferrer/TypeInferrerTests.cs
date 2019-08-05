@@ -3047,7 +3047,41 @@ class Program
     static T Identity<T>(T value) { return value; }
 }";
 
-            await TestAsync(text, "global::System.String?", testPosition: false);
+            await TestAsync(text, "global::System.String?");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringThroughGenericFunctionMissingArgument()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        string s = Identity([||]);
+    }
+
+    static T Identity<T>(T value) { return value; }
+}";
+
+            await TestAsync(text, "global::System.String", testNode: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringThroughGenericFunctionTooManyArguments()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        string s = Identity(""test"", [||]);
+    }
+
+    static T Identity<T>(T value) { return value; }
+}";
+
+            await TestAsync(text, "global::System.Object");
         }
     }
 }
