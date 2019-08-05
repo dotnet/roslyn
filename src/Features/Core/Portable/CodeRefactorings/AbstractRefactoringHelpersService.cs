@@ -51,12 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // want the whole node `var a = b;`
 
                 // Handle selections:
-                // - The smallest node whose FullSpan includes the whole (trimmed) selection
+                // - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
+                //   - The smallest node whose FullSpan includes the whole (trimmed) selection
                 //   - Using FullSpan is important because it handles over-selection with comments
-                // - Travels upwards through same-sized (FullSpan) nodes, extracting
-                // - Handles situations where:
-                //  - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
-                //  - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
+                //   - Travels upwards through same-sized (FullSpan) nodes, extracting
+                // - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
                 // Note: Whether we have selection or location has to be checked against original selection because selecting just
                 // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
                 // registering as `   [||]token`.
@@ -108,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
                     if (IsWantedTypeExpressionLike<TSyntaxNode>())
                     {
+                        // Reason to treat Arguments (and potentially others) as Expression-like: 
+                        // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
                         await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -464,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             //      //Comment1
             //      [||]object Property1 { get; set; }
             //     the comment node being part of the next token's (`object`) leading trivia and not the AttributeList's node.
+            // - In case only attribute is written we need to be careful to not to use next (unrelated) token as beginning current the node.
             var attributeList = syntaxFacts.GetAttributeLists(node);
             if (attributeList.Any())
             {
