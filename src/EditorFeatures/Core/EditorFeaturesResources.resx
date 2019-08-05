@@ -754,9 +754,9 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
-  <data name="An_inline_rename_session_is_active" xml:space="preserve">
-    <value>An inline rename session is active</value>
-    <comment>For screenreaders</comment>
+  <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
+    <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
+    <comment>For screenreaders. {0} is the identifier being renamed.</comment>
   </data>
   <data name="Inline_Rename_Conflict" xml:space="preserve">
     <value>Inline Rename Conflict</value>

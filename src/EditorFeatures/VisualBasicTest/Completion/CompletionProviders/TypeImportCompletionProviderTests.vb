@@ -170,5 +170,45 @@ End Class]]></Text>.Value
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)")
         End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = $$"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = Foo.Bar$$"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
+        End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = System.Collections.Generic.List(Of $$)"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = System.Collections.Generic.List(Of Foo.Bar$$)"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
+        End Function
     End Class
 End Namespace

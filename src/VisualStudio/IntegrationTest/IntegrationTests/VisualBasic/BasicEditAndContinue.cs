@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void UpdateActiveStatementLeafNode()
@@ -68,7 +68,7 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void AddTryCatchAroundActiveStatement()
@@ -99,7 +99,7 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EditLambdaExpression()
@@ -134,7 +134,7 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EnCWhileDebuggingFromImmediateWindow()
@@ -214,7 +214,7 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        // Also https://github.com/dotnet/roslyn/issues/36763
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
@@ -240,7 +240,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        // Also https://github.com/dotnet/roslyn/issues/36763
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
@@ -276,8 +276,8 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        // Also https://github.com/dotnet/roslyn/issues/36763
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/37689")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {

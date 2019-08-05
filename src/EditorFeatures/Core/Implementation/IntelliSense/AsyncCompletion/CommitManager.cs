@@ -340,6 +340,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
+                    // textTypedSoFar is concatenated from individual chars typed.
+                    // '\n' is the enter char.
+                    // That is why, there is no need to check for '\r\n'.
+                    if (textTypedSoFar.LastOrDefault() == '\n')
+                    {
+                        textTypedSoFar = textTypedSoFar.Substring(0, textTypedSoFar.Length - 1);
+                    }
+
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
         }

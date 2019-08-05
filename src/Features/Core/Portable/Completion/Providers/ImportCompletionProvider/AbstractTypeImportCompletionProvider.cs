@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
-        internal override bool IsExpandItemProvider => true;
+        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
+        internal override bool IsExpandItemProvider => true;
+        
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            if (ShouldCompleteWithFullyQualifyTypeName(document))
+            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
 
-            static bool ShouldCompleteWithFullyQualifyTypeName(Document document)
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
                 var workspace = document.Project.Solution.Workspace;
 
@@ -296,7 +298,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return true;
                 }
 
-                return false;
+                // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
+                // import container (e.g. namespace/class/etc. declarations).
+                //
+                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
+                // 
+                //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
+                //
+                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
+                // then we can add an using in the outer import container instead (this is not allowed in VB). 
+                //
+                // For example:
+                //
+                //      using System.Collections.Generic;
+                //      using System.Text;
+                //
+                //      namespace Foo
+                //      {
+                //          using CollectionOfStringBuilders = List<StringBuilder>;
+                //      }
+                //
+                // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
+                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 

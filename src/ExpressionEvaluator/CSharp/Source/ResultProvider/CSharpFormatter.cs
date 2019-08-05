@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SyntaxFacts.IsWhitespace(c);
         }
 
+        // TODO: https://github.com/dotnet/roslyn/issues/37536 
+        // This parsing is imprecise and may result in bad expressions.
         internal override string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers)
         {
             expression = RemoveComments(expression);
@@ -47,7 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var builder = pooledBuilder.Builder;
             var inMultilineComment = false;
             int length = expression.Length;
-            for (int i = 0; i < length; i++)
+
+            // Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+            // Do not remove any comments that might be in a string. 
+            // This won't work when there are quotes in the comment, but that's not that common.
+            int lastQuote = expression.LastIndexOf('"') + 1;
+            builder.Append(expression, 0, lastQuote);
+
+            for (int i = lastQuote; i < length; i++)
             {
                 var ch = expression[i];
                 if (inMultilineComment)

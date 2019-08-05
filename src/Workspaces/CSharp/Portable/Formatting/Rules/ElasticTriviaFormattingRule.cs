@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // current implementation of engine gives higher priority on new line operations over space operations if
                 // two are conflicting.
-                // ex) new line operation says add 1 line between tokens, and 
+                // ex) new line operation says add 1 line between tokens, and
                 //     space operation says give 1 space between two tokens (basically means remove new lines)
                 //     then, engine will pick new line operation and ignore space operation
 
@@ -276,15 +276,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    // Assembly and module-level attributes followed by non-attributes should have
-                    // a blank line after them.
+                    // Assembly and module-level attributes followed by non-attributes should have a blank line after
+                    // them, unless it's the end of the file which will already have a blank line.
                     if (previousToken.Parent is AttributeListSyntax parent)
                     {
                         if (parent.Target != null &&
                             (parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.AssemblyKeyword) ||
                              parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.ModuleKeyword)))
                         {
-                            if (!(currentToken.Parent is AttributeListSyntax))
+                            if (!currentToken.IsKind(SyntaxKind.EndOfFileToken) && !(currentToken.Parent is AttributeListSyntax))
                             {
                                 return 2;
                             }
