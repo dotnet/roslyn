@@ -2,21 +2,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
 {
     internal class AnalyzerConfigCodingConventionsContext : ICodingConventionContext, ICodingConventionsSnapshot
     {
-        private readonly AnalyzerConfigOptions _analyzerConfigOptions;
+        private readonly ImmutableDictionary<string, string> _analyzerConfigOptions;
 
-        public AnalyzerConfigCodingConventionsContext(AnalyzerConfigOptions analyzerConfigOptions)
+        public AnalyzerConfigCodingConventionsContext(ImmutableDictionary<string, string> analyzerConfigOptions)
         {
             _analyzerConfigOptions = analyzerConfigOptions;
         }
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
                 return false;
             }
 
-            conventionValue = _analyzerConfigOptions.TryGetValue(conventionName);
+            _analyzerConfigOptions.TryGetValue(conventionName, out conventionValue);
             return conventionValue is object;
         }
     }

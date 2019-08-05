@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -23,11 +24,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
 
         private readonly Workspace _workspace;
         private readonly ICodingConventionsManager _codingConventionsManager;
+        private readonly bool _useCompilerEditorConfigApi;
 
         internal CachingEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
         {
             _workspace = workspace;
             _codingConventionsManager = codingConventionsManager;
+
+            // If any of the projects have analyzer config documents then we know that the build system is providing support
+            // for the compiler's built-in editorconfig api.
+            _useCompilerEditorConfigApi = _workspace.CurrentSolution.Projects.Any(project => project.AnalyzerConfigDocuments.Any());
         }
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
@@ -83,11 +89,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format.Options
 
         private async Task<DocumentOptions> GetConventionContextAsync(Document document, string path, string language, CancellationToken cancellationToken)
         {
-            var context = await IOUtilities.PerformIOAsync<ICodingConventionContext>(
+            var context = await IOUtilities.PerformIOAsync(
                 async () =>
                 {
-                    var analyzerConfig = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
-                    return new AnalyzerConfigCodingConventionsContext(analyzerConfig.IsEmpty ? null : analyzerConfig);
+                    if (_useCompilerEditorConfigApi)
+                    {
+                        var analyzerConfig = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
+                        return new AnalyzerConfigCodingConventionsContext(analyzerConfig.IsEmpty ? null : analyzerConfig);
+                    }
+
+                    // Fallback to legacy editorconfig api
+                    return await _codingConventionsManager.GetConventionContextAsync(path, cancellationToken).ConfigureAwait(false);
                 },
                 defaultValue: EmptyCodingConventionContext.Instance).ConfigureAwait(false);
             var options = _optionsApplier.ApplyConventions(_workspace.Options, context.CurrentConventions, language);
