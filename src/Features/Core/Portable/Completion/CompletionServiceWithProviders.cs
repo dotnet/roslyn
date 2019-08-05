@@ -210,17 +210,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return providers.FirstOrDefault(p => p.Name == providerName);
         }
 
-        internal override Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
-            Document document,
-            int caretPosition,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            return GetCompletionsWorkerAsync(document, caretPosition, trigger, roles, options, cancellationToken);
-        }
-
         public override async Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
@@ -229,11 +218,11 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            var (completionList, _) = await GetCompletionsWorkerAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
             return completionList;
         }
 
-        private async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWorkerAsync(
+        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
