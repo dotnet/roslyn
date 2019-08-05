@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            bool isEmpty = filteredList.Count == 0;
+            var isEmpty = filteredList.Count == 0;
             if (!selectedItem.HasValue || isEmpty)
             {
                 return (isEmpty ? items.ToList() : filteredList, selectedItem);

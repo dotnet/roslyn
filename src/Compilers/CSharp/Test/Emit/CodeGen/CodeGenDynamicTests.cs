@@ -2363,6 +2363,40 @@ public class C
 ");
         }
 
+        [Fact]
+        public void TestThrowDynamic()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M(new Exception());
+        M(new ArgumentException());
+        M(string.Empty);
+    }
+    static void M(dynamic d)
+    {
+        try
+        {
+            throw d;
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+";
+            CompileAndVerifyWithCSharp(source, expectedOutput:
+@"NullReferenceException
+Exception
+ArgumentException
+RuntimeBinderException");
+        }
+
         #endregion
 
         #region Operators

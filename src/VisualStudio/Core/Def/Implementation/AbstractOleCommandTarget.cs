@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             var vsTextView = _editorAdaptersFactory.GetViewAdapter(_wpfTextView);
             // Add command filter to IVsTextView. If something goes wrong, throw.
-            int returnValue = vsTextView.AddCommandFilter(this, out var nextCommandTarget);
+            var returnValue = vsTextView.AddCommandFilter(this, out var nextCommandTarget);
             Marshal.ThrowExceptionForHR(returnValue);
             Contract.ThrowIfNull(nextCommandTarget);
 

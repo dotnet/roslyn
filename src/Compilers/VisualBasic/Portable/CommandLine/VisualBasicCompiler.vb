@@ -239,9 +239,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
                 ElseIf v = latestVersion Then
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
-                ElseIf v = LanguageVersion.VisualBasic16 Then
-                    ' https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move VB 16 out of beta
-                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*")
                 Else
                     consoleOutput.WriteLine(v.ToDisplayString())
                 End If

@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private string GetTestOutputFilePath(string filepath)
         {
-            string outputFilePath = @"Z:\";
+            var outputFilePath = @"Z:\";
 
             try
             {

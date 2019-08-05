@@ -397,9 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool IsColonInSwitchLabel(SyntaxToken token)
         {
-            var switchLabel = token.Parent as SwitchLabelSyntax;
             return token.Kind() == SyntaxKind.ColonToken &&
-                switchLabel != null &&
+                token.Parent is SwitchLabelSyntax switchLabel &&
                 switchLabel.ColonToken == token;
         }
 

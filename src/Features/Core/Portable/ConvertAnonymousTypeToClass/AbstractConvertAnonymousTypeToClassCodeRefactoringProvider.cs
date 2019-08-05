@@ -41,11 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
-            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(
-                document, context.Span, cancellationToken).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (anonymousObject == null || anonymousType == null)
             {
@@ -64,36 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToClassAsync(document, context.Span, c)));
+                c => ConvertToClassAsync(document, textSpan, c)));
         }
 
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            // Span actually has to be within the token (i.e. not in trivia around it).
-            if (!token.Span.IntersectsWith(position))
-            {
-                return default;
-            }
-
-            if (!span.IsEmpty && span != token.Span)
-            {
-                // if there is a selection, it has to be of the whole token.
-                return default;
-            }
-
-            var anonymousObject = token.Parent as TAnonymousObjectCreationExpressionSyntax;
+            // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
+            // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
+            // it matches even when caret is next to some tokens within the anonymous object creation node.
+            // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
+            var anonymousObject = await document.TryGetRelevantNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
+                span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
-            {
-                return default;
-            }
-
-            // The position/selection must be of the 'new' token of the anonymous object.
-            if (anonymousObject.GetFirstToken() != token)
             {
                 return default;
             }
@@ -104,11 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             return (anonymousObject, anonymousType);
         }
 
-        private async Task<Document> ConvertToClassAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> ConvertToClassAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(
-                document, span, cancellationToken).ConfigureAwait(false);
+            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(anonymousObject != null);
             Debug.Assert(anonymousType != null);
@@ -161,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 var options = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
-                    autoInsertionLocation: false);
+                    autoInsertionLocation: false,
+                    parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
                     currentContainer, namedTypeSymbol, options, cancellationToken);

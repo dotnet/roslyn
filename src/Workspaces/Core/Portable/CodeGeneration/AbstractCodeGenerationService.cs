@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var (destinationDeclaration, availableIndices) =
                 await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             var adder = this.CreateImportsAdder(document);
             var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
@@ -339,20 +339,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // The difficulty lies with ensuring that we properly understand the position we're
             // inserting into, even as we change the type by adding multiple members.  Not
             // impossible to figure out, but out of scope right now.
-            options = new CodeGenerationOptions(
-                options.ContextLocation,
-                addImports: options.AddImports,
-                placeSystemNamespaceFirst: options.PlaceSystemNamespaceFirst,
-                additionalImports: options.AdditionalImports,
-                generateMembers: options.GenerateMembers,
-                mergeNestedNamespaces: options.MergeNestedNamespaces,
-                mergeAttributes: options.MergeAttributes,
-                generateDefaultAccessibility: options.GenerateDefaultAccessibility,
-                generateMethodBodies: options.GenerateMethodBodies,
-                generateDocumentationComments: options.GenerateDocumentationComments,
-                autoInsertionLocation: options.AutoInsertionLocation,
-                reuseSyntax: options.ReuseSyntax,
-                sortMembers: options.SortMembers);
+            options = options.With(afterThisLocation: null, beforeThisLocation: null);
             return options;
         }
 

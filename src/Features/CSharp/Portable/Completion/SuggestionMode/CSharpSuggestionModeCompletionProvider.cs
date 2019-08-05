@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
         {
-            ITypeSymbol typeSymbol = typeInferenceInfo.InferredType;
+            var typeSymbol = typeInferenceInfo.InferredType;
             if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
             {
                 typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;

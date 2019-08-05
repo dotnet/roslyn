@@ -454,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndLine = textSpan.iStartLine;
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
-                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
+                var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
 

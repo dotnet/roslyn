@@ -80,8 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             project = null;
             frameworkName = null;
 
-            IntPtr hierarchyPointer = IntPtr.Zero;
-            IntPtr selectionContainerPointer = IntPtr.Zero;
+            var hierarchyPointer = IntPtr.Zero;
+            var selectionContainerPointer = IntPtr.Zero;
 
             try
             {
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 Marshal.ThrowExceptionForHR(
                     hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out var targetFrameworkMonikerObject));
 
-                string targetFrameworkMoniker = targetFrameworkMonikerObject as string;
+                var targetFrameworkMoniker = targetFrameworkMonikerObject as string;
                 frameworkName = new System.Runtime.Versioning.FrameworkName(targetFrameworkMoniker);
 
                 project = extensibilityObject as EnvDTE.Project;

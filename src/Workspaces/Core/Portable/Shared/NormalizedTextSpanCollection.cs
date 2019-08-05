@@ -79,17 +79,17 @@ namespace Microsoft.CodeAnalysis.Shared
                 return left;
             }
 
-            OrderedSpanList spans = new OrderedSpanList();
+            var spans = new OrderedSpanList();
 
-            int index1 = 0;
-            int index2 = 0;
+            var index1 = 0;
+            var index2 = 0;
 
-            int start = -1;
-            int end = int.MaxValue;
-            while ((index1 < left.Count) && (index2 < right.Count))
+            var start = -1;
+            var end = int.MaxValue;
+            while (index1 < left.Count && index2 < right.Count)
             {
-                TextSpan span1 = left[index1];
-                TextSpan span2 = right[index2];
+                var span1 = left[index1];
+                var span2 = right[index2];
 
                 if (span1.Start < span2.Start)
                 {
@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.Shared
                 return right;
             }
 
-            OrderedSpanList spans = new OrderedSpanList();
-            for (int index1 = 0, index2 = 0; (index1 < left.Count) && (index2 < right.Count);)
+            var spans = new OrderedSpanList();
+            for (int index1 = 0, index2 = 0; index1 < left.Count && index2 < right.Count;)
             {
-                TextSpan span1 = left[index1];
-                TextSpan span2 = right[index2];
+                var span1 = left[index1];
+                var span2 = right[index2];
 
                 if (span1.OverlapsWith(span2))
                 {
@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.Shared
                 return right;
             }
 
-            OrderedSpanList spans = new OrderedSpanList();
+            var spans = new OrderedSpanList();
             for (int index1 = 0, index2 = 0; (index1 < left.Count) && (index2 < right.Count);)
             {
-                TextSpan span1 = left[index1];
-                TextSpan span2 = right[index2];
+                var span1 = left[index1];
+                var span2 = right[index2];
 
                 if (span1.IntersectsWith(span2))
                 {
@@ -271,15 +271,15 @@ namespace Microsoft.CodeAnalysis.Shared
                 return left;
             }
 
-            OrderedSpanList spans = new OrderedSpanList();
+            var spans = new OrderedSpanList();
 
-            int index1 = 0;
-            int index2 = 0;
-            int lastEnd = -1;
+            var index1 = 0;
+            var index2 = 0;
+            var lastEnd = -1;
             do
             {
-                TextSpan span1 = left[index1];
-                TextSpan span2 = right[index2];
+                var span1 = left[index1];
+                var span2 = right[index2];
 
                 if ((span2.Length == 0) || (span1.Start >= span2.End))
                 {
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Shared
 
             while (index1 < left.Count)
             {
-                TextSpan span1 = left[index1++];
+                var span1 = left[index1++];
                 spans.Add(TextSpan.FromBounds(Math.Max(lastEnd, span1.Start), span1.End));
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Shared
                 return true;
             }
 
-            if (object.ReferenceEquals(left, null) || object.ReferenceEquals(right, null))
+            if (left is null || right is null)
             {
                 return false;
             }
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Shared
                 return false;
             }
 
-            for (int i = 0; i < left.Count; ++i)
+            for (var i = 0; i < left.Count; ++i)
             {
                 if (left[i] != right[i])
                 {
@@ -395,8 +395,8 @@ namespace Microsoft.CodeAnalysis.Shared
 
             for (int index1 = 0, index2 = 0; (index1 < this.Count) && (index2 < set.Count);)
             {
-                TextSpan span1 = this[index1];
-                TextSpan span2 = set[index2];
+                var span1 = this[index1];
+                var span2 = set[index2];
 
                 if (span1.OverlapsWith(span2))
                 {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Shared
         public bool OverlapsWith(TextSpan span)
         {
             // TODO: binary search
-            for (int index = 0; index < this.Count; ++index)
+            for (var index = 0; index < this.Count; ++index)
             {
                 if (this[index].OverlapsWith(span))
                 {
@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.Shared
 
             for (int index1 = 0, index2 = 0; (index1 < this.Count) && (index2 < set.Count);)
             {
-                TextSpan span1 = this[index1];
-                TextSpan span2 = set[index2];
+                var span1 = this[index1];
+                var span2 = set[index2];
 
                 if (span1.IntersectsWith(span2))
                 {
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Shared
         public bool IntersectsWith(TextSpan span)
         {
             // TODO: binary search
-            for (int index = 0; index < this.Count; ++index)
+            for (var index = 0; index < this.Count; ++index)
             {
                 if (this[index].IntersectsWith(span))
                 {
@@ -502,8 +502,8 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <returns>A 32-bit hash code associated with the set.</returns>
         public override int GetHashCode()
         {
-            int hc = 0;
-            foreach (TextSpan s in this)
+            var hc = 0;
+            foreach (var s in this)
             {
                 hc ^= s.GetHashCode();
             }
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <returns><c>true</c> if the two objects are equal, otherwise <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            NormalizedTextSpanCollection set = obj as NormalizedTextSpanCollection;
+            var set = obj as NormalizedTextSpanCollection;
 
             return this == set;
         }
@@ -529,8 +529,8 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <returns>The string representation of the set.</returns>
         public override string ToString()
         {
-            StringBuilder value = new StringBuilder("{");
-            foreach (TextSpan s in this)
+            var value = new StringBuilder("{");
+            foreach (var s in this)
             {
                 value.Append(s.ToString());
             }
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Shared
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            List<TextSpan> sorted = new List<TextSpan>(spans);
+            var sorted = new List<TextSpan>(spans);
             if (sorted.Count <= 1)
             {
                 return sorted;
@@ -598,12 +598,12 @@ namespace Microsoft.CodeAnalysis.Shared
 
                 IList<TextSpan> normalized = new List<TextSpan>(sorted.Count);
 
-                int oldStart = sorted[0].Start;
-                int oldEnd = sorted[0].End;
-                for (int i = 1; i < sorted.Count; ++i)
+                var oldStart = sorted[0].Start;
+                var oldEnd = sorted[0].End;
+                for (var i = 1; i < sorted.Count; ++i)
                 {
-                    int newStart = sorted[i].Start;
-                    int newEnd = sorted[i].End;
+                    var newStart = sorted[i].Start;
+                    var newEnd = sorted[i].End;
                     if (oldEnd < newStart)
                     {
                         normalized.Add(TextSpan.FromBounds(oldStart, oldEnd));

@@ -42,6 +42,16 @@
         <target state="translated">튜플 요소 이름 '{0}' 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">명시적 인터페이스 지정자를 사용하여 메서드를 추가하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -77,9 +87,29 @@
         <target state="translated">전역 네임스페이스로 변경</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="translated">코드 품질</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -262,6 +292,11 @@
         <target state="new">{0} must return a stream that supports read and seek operations.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="new">Move contents to namespace...</target>
@@ -392,6 +427,11 @@
         <target state="new">Stream must support read and seek operations.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="new">Target type matches</target>
@@ -432,6 +472,11 @@
         <target state="translated">인수 목록 줄 바꿈 조정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">식 줄 바꿈 조정</target>
@@ -440,6 +485,11 @@
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
         <target state="translated">매개 변수 목록 줄 바꿈 조정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
@@ -517,9 +567,29 @@
         <target state="translated">경고: 네임스페이스를 변경하면 잘못된 코드가 발생하고 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
         <target state="new">Wrap and align expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -540,6 +610,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">긴 인수 목록 줄 바꿈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1177,11 +1252,6 @@
         <target state="translated">원래 메서드에서 활성 문이 제거되었습니다. 변경 내용을 취소하고 계속하거나 디버깅 세션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위의 '{0}' 문을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">활성 문 주위의 async 또는 iterator 한정자를 업데이트하면 디버그 세션이 계속되지 않습니다.</target>
@@ -1501,11 +1571,6 @@ Do you want to continue?</source>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">스타일</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">{0}을(를) 표시하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
@@ -2423,21 +2488,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">인수 이름 '{0}' 추가(후행 인수 포함)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">읽기 전용 구조체를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">ref struct를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">읽기 전용 참조를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">

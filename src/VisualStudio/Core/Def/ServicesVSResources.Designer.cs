@@ -470,6 +470,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Build + live analysis (NuGet package).
+        /// </summary>
+        internal static string Build_plus_live_analysis_NuGet_package {
+            get {
+                return ResourceManager.GetString("Build_plus_live_analysis_NuGet_package", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to built-in types.
         /// </summary>
         internal static string built_in_types {
@@ -1342,6 +1351,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues.
+        /// </summary>
+        internal static string Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues {
+            get {
+                return ResourceManager.GetString("Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnosti" +
+                        "cs_and_fixes_for_common_API_design_security_performance_and_reliability_issues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing &apos;{0}&apos;.
         /// </summary>
         internal static string Installing_0 {
@@ -1457,6 +1476,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Live_analysis {
             get {
                 return ResourceManager.GetString("Live_analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live analysis (VSIX extension).
+        /// </summary>
+        internal static string Live_analysis_VSIX_extension {
+            get {
+                return ResourceManager.GetString("Live_analysis_VSIX_extension", resourceCulture);
             }
         }
         
@@ -3212,16 +3240,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
             get {
                 return ResourceManager.GetString("To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragrap" +
                         "h_follows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues.
-        /// </summary>
-        internal static string Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues {
-            get {
-                return ResourceManager.GetString("Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_f" +
-                        "ixes_for_common_API_design_naming_performance_and_reliability_issues", resourceCulture);
             }
         }
         

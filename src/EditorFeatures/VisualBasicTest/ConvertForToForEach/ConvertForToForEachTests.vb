@@ -81,15 +81,25 @@ class C
 end class")
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
-        Public Async Function TestMissingBeforeFor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestBeforeFor() As Task
+            Await TestInRegularAndScript1Async(
 "imports System
 
 class C
     sub Test(array as string())
        [||] For i = 0 to array.Length - 1
             Console.WriteLine(array(i))
+        next
+    end sub
+end class",
+"imports System
+
+class C
+    sub Test(array as string())
+        For Each {|Rename:v|} In array
+            Console.WriteLine(v)
         next
     end sub
 end class")

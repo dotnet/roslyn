@@ -390,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
         private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)

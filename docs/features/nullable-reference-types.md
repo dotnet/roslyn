@@ -39,13 +39,24 @@ If the analysis determines that a null check always (or never) passes, a hidden 
 A number of null checks affect the flow state when tested for:
 - comparisons to `null`: `x == null` and `x != null`
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
+- calls to well-known equality methods, including:
+  - `static bool object.Equals(object, object)`
+  - `static bool object.ReferenceEquals(object, object)`
+  - `bool object.Equals(object)` and overrides
+  - `bool IEquatable<T>(T)` and implementations
+  - `bool IEqualityComparer<T>(T, T)` and implementations
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
 - simple post-conditions: `[MaybeNull]` and `[NotNull]`
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
-- `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
+- `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
+- `[NotNullIfNotNull(string)]`
 See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
+
+The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
+- `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
+- `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.

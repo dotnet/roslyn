@@ -63,28 +63,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void OnAddSuppressionsStatus(object sender, EventArgs e)
         {
-            MenuCommand command = sender as MenuCommand;
+            var command = sender as MenuCommand;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntries;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnRemoveSuppressionsStatus(object sender, EventArgs e)
         {
-            MenuCommand command = sender as MenuCommand;
+            var command = sender as MenuCommand;
             command.Visible = _suppressionStateService.CanRemoveSuppressionsSelectedEntries;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnAddSuppressionsInSourceStatus(object sender, EventArgs e)
         {
-            MenuCommand command = sender as MenuCommand;
+            var command = sender as MenuCommand;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSource;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnAddSuppressionsInSuppressionFileStatus(object sender, EventArgs e)
         {
-            MenuCommand command = sender as MenuCommand;
+            var command = sender as MenuCommand;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSuppressionFiles;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }

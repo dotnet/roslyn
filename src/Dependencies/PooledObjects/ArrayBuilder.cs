@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 get
                 {
                     var result = new T[_builder.Count];
-                    for (int i = 0; i < result.Length; i++)
+                    for (var i = 0; i < result.Length; i++)
                     {
                         result[i] = _builder[i];
                     }
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder = ImmutableArray.CreateBuilder<T>(size);
         }
 
-        public ArrayBuilder() :
-            this(8)
+        public ArrayBuilder()
+            : this(8)
         { }
 
-        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool) :
-            this()
+        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool)
+            : this()
         {
             _pool = pool;
         }
@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public int FindIndex(int startIndex, int count, Predicate<T> match)
         {
-            int endIndex = startIndex + count;
-            for (int i = startIndex; i < endIndex; i++)
+            var endIndex = startIndex + count;
+            for (var i = startIndex; i < endIndex; i++)
             {
                 if (match(_builder[i]))
                 {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var builder = GetInstance();
             builder.EnsureCapacity(capacity);
 
-            for (int i = 0; i < capacity; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 builder.Add(fillWithValue);
             }
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             if (this.Count == 1)
             {
                 var dictionary1 = new Dictionary<K, ImmutableArray<T>>(1, comparer);
-                T value = this[0];
+                var value = this[0];
                 dictionary1.Add(keySelector(value), ImmutableArray.Create(value));
                 return dictionary1;
             }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             // bucketize
             // prevent reallocation. it may not have 'count' entries, but it won't have more. 
             var accumulator = new Dictionary<K, ArrayBuilder<T>>(Count, comparer);
-            for (int i = 0; i < Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 var item = this[i];
                 var key = keySelector(item);
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddMany(T item, int count)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 Add(item);
             }
@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             var set = PooledHashSet<T>.GetInstance();
 
-            int j = 0;
-            for (int i = 0; i < Count; i++)
+            var j = 0;
+            for (var i = 0; i < Count; i++)
             {
                 if (set.Add(this[i]))
                 {

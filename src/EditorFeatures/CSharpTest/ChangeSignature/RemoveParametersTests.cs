@@ -189,7 +189,7 @@ public class DP20<T>
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
 
-            for (int i = 0; i <= 4; i++)
+            for (var i = 0; i <= 4; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">
@@ -218,7 +218,7 @@ public static class C5Ext
 }
 </Document>";
 
-            for (int i = 6; i <= 9; i++)
+            for (var i = 6; i <= 9; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">

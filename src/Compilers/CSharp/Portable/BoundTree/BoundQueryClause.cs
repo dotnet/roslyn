@@ -58,12 +58,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundQueryClause(this.Syntax, this.Value, this.DefinedSymbol, this.Operation, this.Cast, this.Binder, this.UnoptimizedForm, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 }

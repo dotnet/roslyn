@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private SyntaxNode GetNode(SyntaxNode root)
                 {
                     var current = root;
-                    int spanStart = _textSpan.Start;
+                    var spanStart = _textSpan.Start;
 
                     while (current.FullSpan.Contains(spanStart))
                     {

@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            if (item is NavigationBarPresentedItem presentedItem)
+            if (item is NavigationBarPresentedItem)
             {
                 // Presented items are not navigable, but they may be selected due to a race
                 // documented in Bug #1174848. Protect all INavigationBarItemService implementers

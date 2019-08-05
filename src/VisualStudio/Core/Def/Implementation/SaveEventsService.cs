@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         {
                             // OK, we want to go and raise a save event. Currently, CommandArgs demands that we have a view, so let's try to go and find one.
                             _textManager.EnumViews(textBufferAdapter, out var enumTextViews);
-                            IVsTextView[] views = new IVsTextView[1];
+                            var views = new IVsTextView[1];
                             uint fetched = 0;
 
                             if (ErrorHandler.Succeeded(enumTextViews.Next(1, views, ref fetched)) && fetched == 1)

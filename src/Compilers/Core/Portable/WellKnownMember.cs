@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         System_IEquatable_T__Equals,
 
+        System_Collections_Generic_IEqualityComparer_T__Equals,
+
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
         System_Collections_Generic_EqualityComparer_T__get_Default,
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis
         System_Activator__CreateInstance,
         System_Activator__CreateInstance_T,
 
+        System_Threading_Interlocked__CompareExchange,
         System_Threading_Interlocked__CompareExchange_T,
 
         System_Threading_Monitor__Enter, //Monitor.Enter(object)

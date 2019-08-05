@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global Nullable context options.
         /// </summary>
-        public NullableContextOptions NullableContextOptions { get; private set; }
+        public override NullableContextOptions NullableContextOptions { get; protected set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.

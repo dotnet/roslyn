@@ -1,7 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Globalization;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Completion
 {

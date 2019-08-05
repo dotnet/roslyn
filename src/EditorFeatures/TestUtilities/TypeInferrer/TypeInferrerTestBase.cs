@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
     public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected TWorkspaceFixture fixture;
+        protected readonly TWorkspaceFixture fixture;
 
         protected TypeInferrerTestBase(TWorkspaceFixture workspaceFixture)
         {

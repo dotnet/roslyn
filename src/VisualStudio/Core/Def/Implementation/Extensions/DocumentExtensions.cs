@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var text = document.GetTextSynchronously(cancellationToken);
 
-            int start = 0;
+            var start = 0;
             uint cookie = 0;
 
             foreach (var line in text.Lines)

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            string documentation = GetDocumentation(symbol, cancellationToken);
+            var documentation = GetDocumentation(symbol, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)

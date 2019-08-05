@@ -73,15 +73,150 @@ class C
             comp.VerifyDiagnostics();
             comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,13): error CS8652: The feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         _ = s[i];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[i]").WithArguments("index operator").WithLocation(12, 13),
-                // (13,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "s[i]").WithArguments("index operator", "8.0").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         _ = s[r];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[r]").WithArguments("index operator").WithLocation(13, 13),
-                // (14,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "s[r]").WithArguments("index operator", "8.0").WithLocation(13, 13),
+                // (14,13): error CS8652: The feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         _ = new S()[r];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()[r]").WithArguments("index operator").WithLocation(14, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new S()[r]").WithArguments("index operator", "8.0").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_01()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int this[int i] => 0;
+    public int Length => 0;
+    public int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i]; // 1, 2
+        _ = this[r]; // 3, 4
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1, 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
+                // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1, 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 3, 4
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 3, 4
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_02()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int this[int i] => 0;
+    public readonly int Length => 0;
+    public int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i]; // 1
+        _ = this[r]; // 2
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_03()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public readonly int this[int i] => 0;
+    public int Length => 0;
+    public readonly int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i]; // 1
+        _ = this[r]; // 2
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_04()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public readonly int this[int i] => 0;
+    public int Count => 0;
+    public readonly int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i]; // 1
+        _ = this[r]; // 2
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8656: Call to non-readonly member 'S.Count.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Count.get", "this").WithLocation(11, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Count.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Count.get", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_05()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public readonly int this[int i] => 0;
+    public readonly int Length => 0;
+    public readonly int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i];
+        _ = this[r];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -843,9 +978,9 @@ public class Test
         {
             var expected = new[]
             {
-                // (6,17): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,17): error CS8652: The feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = ^1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^1").WithArguments("index operator").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17)
             };
             const string source = @"
 class Test
@@ -856,7 +991,6 @@ class Test
     }
 }";
             var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
             compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
@@ -1326,21 +1460,20 @@ class Test
 }";
             var expected = new[]
             {
-                // (6,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,17): error CS8652: The feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..2").WithArguments("range operator").WithLocation(6, 17),
-                // (7,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..2").WithArguments("range operator", "8.0").WithLocation(6, 17),
+                // (7,17): error CS8652: The feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..").WithArguments("range operator").WithLocation(7, 17),
-                // (8,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..").WithArguments("range operator", "8.0").WithLocation(7, 17),
+                // (8,17): error CS8652: The feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..2").WithArguments("range operator").WithLocation(8, 17),
-                // (9,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..2").WithArguments("range operator", "8.0").WithLocation(8, 17),
+                // (9,17): error CS8652: The feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var d = ..;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..").WithArguments("range operator").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17)
             };
             CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
             CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 

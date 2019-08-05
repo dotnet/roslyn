@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 HashSet<DocumentId> set = null;
                 foreach (var state in GetActiveFileStates(projectId))
                 {
-                    set = set ?? new HashSet<DocumentId>();
+                    set ??= new HashSet<DocumentId>();
                     set.Add(state.DocumentId);
                 }
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
 
-                set = set ?? new HashSet<DocumentId>();
+                set ??= new HashSet<DocumentId>();
                 set.UnionWith(projectState.GetDocumentsWithDiagnostics());
 
                 return set;

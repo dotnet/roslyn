@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken token2,
             string originalString,
             int lineBreaks,
-            int spaces) :
-            base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
+            int spaces)
+            : base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
         {
         }
 

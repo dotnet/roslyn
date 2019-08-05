@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousTypeToClass
@@ -1186,6 +1187,159 @@ class Test
         {
             var t2 = new {|Rename:NewClass|}(3, 4);
         }
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewClass other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertSingleAnonymousTypeSelection1()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [|new { a = 1, b = 2 }|];
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewClass other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertSingleAnonymousTypeSelection2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        [|var t1 = new { a = 1, b = 2 };|]
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewClass other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertSingleAnonymousTypeSelection3()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [|new { a = 1, b = 2 };|]
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
     }
 }
 

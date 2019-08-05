@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return null;
             }
 
-            _lazyTrackedNewNodesOpt = _lazyTrackedNewNodesOpt ?? new HashSet<SyntaxNode>();
+            _lazyTrackedNewNodesOpt ??= new HashSet<SyntaxNode>();
             foreach (var descendant in node.DescendantNodesAndSelf())
             {
                 _lazyTrackedNewNodesOpt.Add(descendant);

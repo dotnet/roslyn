@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Storage
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly object _gate = new object();
         private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         [ImportingConstructor]

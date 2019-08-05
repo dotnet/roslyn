@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var result = await GetEditAsync(cancellationToken).ConfigureAwait(false);
-                return result.document;
+                var (document, _) = await GetEditAsync(cancellationToken).ConfigureAwait(false);
+                return document;
             }
 
             public async Task<(Document document, bool addedFields)> GetEditAsync(CancellationToken cancellationToken)

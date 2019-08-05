@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly object Key;
         public readonly int Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName) :
-            base(analyzer)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName)
+            : base(analyzer)
         {
             Contract.ThrowIfNull(key);
 
@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool Equals(object obj)
         {
-            var other = obj as LiveDiagnosticUpdateArgsId;
-            if (other == null)
+            if (!(obj is LiveDiagnosticUpdateArgsId other))
             {
                 return false;
             }

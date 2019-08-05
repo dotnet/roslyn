@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        internal static async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+        internal static Diagnostic TryGetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
         {
             try
             {
@@ -121,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        return await stateMachine.GetDiagnostic(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
+                        return stateMachine.TryGetDiagnostic(tree, diagnosticDescriptor, cancellationToken);
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                return null;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
-            IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
                 textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                stateMachine.CanInvokeRename(out var unused);
+                stateMachine.CanInvokeRename(out _);
         }
     }
 }

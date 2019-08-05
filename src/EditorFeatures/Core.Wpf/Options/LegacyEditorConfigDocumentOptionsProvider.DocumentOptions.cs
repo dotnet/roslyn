@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private class DocumentOptions : IDocumentOptions
         {
-            private ICodingConventionsSnapshot _codingConventionSnapshot;
+            private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
             private readonly IErrorLoggerService _errorLogger;
             private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>> s_convertedDictionaryCache =
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>>();
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 public bool TryGetValue(string key, out string value)
                 {
-                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
                         value = objectValue?.ToString();
                         return true;

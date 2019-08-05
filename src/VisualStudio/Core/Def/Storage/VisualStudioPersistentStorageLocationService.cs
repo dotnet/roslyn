@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
                 if (!_solutionEventsAdvised)
                 {
-                    solution.AdviseSolutionEvents(new EventSink(this, visualStudioWorkspace), out uint cookie);
+                    solution.AdviseSolutionEvents(new EventSink(this, visualStudioWorkspace), out var cookie);
                     _solutionEventsAdvised = true;
                 }
 

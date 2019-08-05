@@ -1035,9 +1035,10 @@ class Convertible
         throw null;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "new Convertible()"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

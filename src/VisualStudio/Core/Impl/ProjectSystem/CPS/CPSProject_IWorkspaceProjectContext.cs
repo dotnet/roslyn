@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace, externalErrorDiagnosticUpdateSource) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
             });
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));

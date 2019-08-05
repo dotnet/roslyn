@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly SyntaxTrivia _trivia;
             private readonly TreeData _treeData;
 
-            public StructuredTrivia(SyntaxTrivia trivia, int initialColumn) :
-                base(trivia.GetStructure())
+            public StructuredTrivia(SyntaxTrivia trivia, int initialColumn)
+                : base(trivia.GetStructure())
             {
                 Contract.ThrowIfFalse(trivia.HasStructure);
 

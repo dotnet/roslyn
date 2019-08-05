@@ -57,6 +57,11 @@
         <target state="translated">Назад</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Вычисление зависимостей…</target>
@@ -102,6 +107,11 @@
         <target state="translated">В других операторах</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">Интерфейс не может содержать поле.</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Live_analysis">
         <source>Live analysis</source>
         <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1791,11 +1806,6 @@ Additional information: {1}</source>
       <trans-unit id="Options">
         <source>Options</source>
         <target state="translated">Параметры</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Оцените предварительную версию нашего расширения для динамического анализа кода, которое исправляет многие проблемы с именованием, производительностью, надежностью и структурой распространенных API</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_show_this_again">

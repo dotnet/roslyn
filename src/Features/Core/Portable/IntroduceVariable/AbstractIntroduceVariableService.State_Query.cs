@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool IsInQueryContext(
                 CancellationToken cancellationToken)
             {
-                if (!_service.IsInNonFirstQueryClause(this.Expression))
+                if (!_service.IsInNonFirstQueryClause(Expression))
                 {
                     return false;
                 }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken);
+                var info = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
                 if (info.Type == null || info.Type.SpecialType == SpecialType.System_Void)
                 {
                     return false;

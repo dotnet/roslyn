@@ -6,15 +6,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -28,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var stringType = semanticModel.Compilation.GetSpecialType(SpecialType.System_String);
             if (stringType == null)
@@ -47,20 +47,20 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService == null)
             {
                 return;
             }
 
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (TryFindInvocation(context.Span, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out var invocation, out var invocationSymbol) &&
-                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (TryFindInvocation(textSpan, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out var invocation, out var invocationSymbol) &&
+                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, cancellationToken))
             {
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
                         FeaturesResources.Convert_to_interpolated_string,
-                        c => CreateInterpolatedString(invocation, context.Document, syntaxFactsService, c)));
+                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)));
             }
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             ISyntaxFactsService syntaxFactsService)
         {
             var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
-            for (int i = 1; i < arguments.Count; i++)
+            for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
@@ -260,8 +260,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
         {
-            public ConvertToInterpolatedStringCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public ConvertToInterpolatedStringCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

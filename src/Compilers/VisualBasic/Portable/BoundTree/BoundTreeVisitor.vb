@@ -123,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New()
         End Sub
 
+        <DebuggerHidden>
         Public Overridable Function Visit(node As BoundNode) As BoundNode
             If node IsNot Nothing Then
                 Return node.Accept(Me)
@@ -131,6 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        <DebuggerHidden>
         Public Overridable Function DefaultVisit(node As BoundNode) As BoundNode
             Return Nothing
         End Function
@@ -164,6 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Consumers must provide implementation for <see cref="VisitExpressionWithoutStackGuard"/>.
         ''' </summary>
+        <DebuggerStepThrough>
         Protected Function VisitExpressionWithStackGuard(ByRef recursionDepth As Integer, node As BoundExpression) As BoundExpression
             Dim result As BoundExpression
             recursionDepth += 1
@@ -190,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        <DebuggerStepThrough>
         Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
             Try
                 Return VisitExpressionWithoutStackGuard(node)

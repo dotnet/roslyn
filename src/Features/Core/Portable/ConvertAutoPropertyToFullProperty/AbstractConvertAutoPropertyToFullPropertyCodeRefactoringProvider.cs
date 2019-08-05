@@ -10,14 +10,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
-    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode>
         : CodeRefactoringProvider
+        where TPropertyDeclarationNode : SyntaxNode
+        where TTypeDeclarationNode : SyntaxNode
     {
-        internal abstract SyntaxNode GetProperty(SyntaxToken token);
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
@@ -28,12 +31,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
 
-            var property = GetProperty(token);
+            var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
             {
                 return;
@@ -41,8 +42,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var propertySymbol = semanticModel.GetDeclaredSymbol(property) as IPropertySymbol;
-            if (propertySymbol == null)
+            if (!(semanticModel.GetDeclaredSymbol(property) is IPropertySymbol propertySymbol))
             {
                 return;
             }
@@ -65,6 +65,17 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             return field != null;
         }
 
+        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
+        {
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
+            if (!(containingProperty?.Parent is TTypeDeclarationNode))
+            {
+                return null;
+            }
+
+            return containingProperty;
+        }
+
         private async Task<Document> ExpandToFullPropertyAsync(
             Document document,
             SyntaxNode property,
@@ -79,13 +90,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var accessorTuple = GetNewAccessors(options, property, fieldName, generator);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(options, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
-                    accessorTuple.newSetAccessor == null
-                        ? new SyntaxNode[] { accessorTuple.newGetAccessor }
-                        : new SyntaxNode[] { accessorTuple.newGetAccessor, accessorTuple.newSetAccessor })
+                    newSetAccessor == null
+                        ? new SyntaxNode[] { newGetAccessor }
+                        : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(options, fullProperty);
             var editor = new SyntaxEditor(root, workspace);

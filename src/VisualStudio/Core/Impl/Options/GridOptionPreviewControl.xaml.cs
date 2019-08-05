@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 FileName = ".editorconfig",
                 Title = ServicesVSResources.Save_dot_editorconfig_file,
                 InitialDirectory = GetInitialDirectory()
-        })
+            })
             {
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {

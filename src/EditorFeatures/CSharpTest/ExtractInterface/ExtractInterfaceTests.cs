@@ -1239,5 +1239,89 @@ class $$TestClass
     void M<T>() where T : notnull;
 }");
         }
+
+        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithCopyright1()
+        {
+            var markup =
+@"// Copyright
+
+public class $$Goo
+{
+    public void Test()
+    {
+    }
+}";
+
+            var updatedMarkup =
+@"// Copyright
+
+public class Goo : IGoo
+{
+    public void Test()
+    {
+    }
+}";
+
+            var expectedInterfaceCode =
+@"// Copyright
+
+public interface IGoo
+{
+    void Test();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithCopyright2()
+        {
+            var markup =
+@"// Copyright
+
+public class Goo
+{
+    public class $$A
+    {
+        public void Test()
+        {
+        }
+    }
+}";
+
+            var updatedMarkup =
+@"// Copyright
+
+public class Goo
+{
+    public class A : IA
+    {
+        public void Test()
+        {
+        }
+    }
+}";
+
+            var expectedInterfaceCode =
+@"// Copyright
+
+public interface IA
+{
+    void Test();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
     }
 }

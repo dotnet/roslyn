@@ -43,8 +43,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                    bool initializeLazily,
                     Registration registration,
-                    int highBackOffTimeSpanInMs, int normalBackOffTimeSpanInMs, int lowBackOffTimeSpanInMs, CancellationToken shutdownToken)
+                    int highBackOffTimeSpanInMs,
+                    int normalBackOffTimeSpanInMs,
+                    int lowBackOffTimeSpanInMs,
+                    CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
 
@@ -59,6 +63,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // create analyzers lazily.
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
+
+                    if (!initializeLazily)
+                    {
+                        // realize all analyzer right away
+                        _ = lazyActiveFileAnalyzers.Value;
+                        _ = lazyAllAnalyzers.Value;
+                    }
 
                     // event and worker queues
                     _documentTracker = _registration.GetService<IDocumentTrackingService>();

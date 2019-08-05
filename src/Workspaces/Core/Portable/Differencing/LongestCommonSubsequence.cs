@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -11,48 +12,182 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal abstract class LongestCommonSubsequence<TSequence>
     {
-        // VArray struct enables array indexing in range [-d...d].
-        private struct VArray
+        /// <summary>
+        /// Underlying storage for <see cref="VArray"/>s allocated on <see cref="VStack"/>.
+        /// </summary>
+        /// <remarks>
+        /// The LCS algorithm allocates <see cref="VArray"/>s of sizes (3, 2*1 + 1, ..., 2*D + 1), always in this order, 
+        /// where D is at most the sum of lengths of the compared sequences.
+        /// The arrays get pushed on a stack as they are built up, then all consumed in the reverse order (stack pop).
+        /// 
+        /// Since the exact length of each array in the above sequence is known we avoid allocating each individual array.
+        /// Instead we allocate a large buffer serving as a a backing storage of a contiguous sequence of arrays 
+        /// corresponding to stack depths <see cref="MinDepth"/> to <see cref="MaxDepth"/>.
+        /// If more storage is needed we chain next large buffer to the previous one in a linked list.
+        /// 
+        /// We pool a few of these linked buffers on <see cref="VStack"/> to conserve allocations.
+        /// </remarks>
+        private sealed class VBuffer
         {
+            /// <summary>
+            /// The max stack depth backed by the fist buffer.
+            /// Size of the buffer for 100 is ~10K. 
+            /// For 150 it'd be 91KB, which would be allocated on LOH.
+            /// The buffers grow by factor of <see cref="GrowFactor"/>, so the next buffer will be allocated on LOH.
+            /// </summary>
+            private const int FirstBufferMaxDepth = 100;
+
+            // 3 + Sum { d = 1..maxDepth : 2*d+1 } = (maxDepth + 1)^2 + 2
+            private const int FirstBufferLength = (FirstBufferMaxDepth + 1) * (FirstBufferMaxDepth + 1) + 2;
+
+            internal const int GrowFactor = 2;
+
+            public VBuffer Previous { get; }
+            public VBuffer Next { get; private set; }
+
+            public readonly int MinDepth;
+            public readonly int MaxDepth;
+
             private readonly int[] _array;
 
-            public VArray(int d)
+            public VBuffer()
             {
-                _array = new int[2 * d + 1];
+                _array = new int[FirstBufferLength];
+                MaxDepth = FirstBufferMaxDepth;
             }
 
-            public void CopyFrom(VArray otherVArray)
+            public VBuffer(VBuffer previous)
             {
-                int copyDelta = Offset - otherVArray.Offset;
+                Debug.Assert(previous != null);
+
+                int minDepth = previous.MaxDepth + 1;
+                int maxDepth = previous.MaxDepth * GrowFactor;
+
+                Debug.Assert(minDepth > 0);
+                Debug.Assert(minDepth <= maxDepth);
+
+                Previous = previous;
+                _array = new int[GetNextBufferLength(minDepth - 1, maxDepth)];
+                MinDepth = minDepth;
+                MaxDepth = maxDepth;
+
+                previous.Next = this;
+            }
+
+            public VArray GetVArray(int depth)
+            {
+                var length = GetVArrayLength(depth);
+                var start = GetVArrayStart(depth) - GetVArrayStart(MinDepth);
+
+                Debug.Assert(start >= 0);
+                Debug.Assert(start + length <= _array.Length);
+                return new VArray(_array, start, length);
+            }
+
+            private static int GetVArrayLength(int depth)
+                => 2 * Math.Max(depth, 1) + 1;
+
+            // 3 + Sum { d = 1..depth-1 : 2*d+1 } = depth^2 + 2
+            private static int GetVArrayStart(int depth)
+                => (depth == 0) ? 0 : depth * depth + 2;
+
+            // Sum { d = previousChunkDepth..maxDepth : 2*d+1 } = (maxDepth + 1)^2 - precedingBufferMaxDepth^2
+            private static int GetNextBufferLength(int precedingBufferMaxDepth, int maxDepth)
+                => (maxDepth + 1) * (maxDepth + 1) - precedingBufferMaxDepth * precedingBufferMaxDepth;
+        }
+
+        private struct VStack
+        {
+            private static readonly ObjectPool<VBuffer> s_bufferPool = new ObjectPool<VBuffer>(() => new VBuffer());
+
+            private VBuffer _currentBuffer;
+            private int _depth;
+
+            public VStack(bool _)
+            {
+                _currentBuffer = s_bufferPool.Allocate();
+                _depth = 0;
+            }
+
+            public VArray Push()
+            {
+                var depth = _depth++;
+                if (depth > _currentBuffer.MaxDepth)
+                {
+                    _currentBuffer = _currentBuffer.Next ?? new VBuffer(_currentBuffer);
+                }
+
+                return _currentBuffer.GetVArray(depth);
+            }
+
+            public IEnumerable<(VArray Array, int Depth)> ConsumeArrays()
+            {
+                var buffer = _currentBuffer;
+                for (int depth = _depth - 1; depth >= 0; depth--)
+                {
+                    if (depth < buffer.MinDepth)
+                    {
+                        buffer = buffer.Previous;
+                    }
+
+                    yield return (buffer.GetVArray(depth), depth);
+                }
+
+                s_bufferPool.Free(_currentBuffer);
+                _currentBuffer = null;
+            }
+        }
+
+        // VArray struct enables array indexing in range [-d...d].
+        private readonly struct VArray
+        {
+            private readonly int[] _buffer;
+            private readonly int _start;
+            private readonly int _length;
+
+            public VArray(int[] buffer, int start, int length)
+            {
+                _buffer = buffer;
+                _start = start;
+                _length = length;
+            }
+
+            public void InitializeFrom(VArray other)
+            {
+                int dstCopyStart, srcCopyStart, copyLength;
+
+                var copyDelta = Offset - other.Offset;
                 if (copyDelta >= 0)
                 {
-                    Array.Copy(otherVArray._array, 0, _array, copyDelta, otherVArray._array.Length);
+                    srcCopyStart = 0;
+                    dstCopyStart = copyDelta;
+                    copyLength = other._length;
                 }
                 else
                 {
-                    Array.Copy(otherVArray._array, -copyDelta, _array, 0, _array.Length);
+                    srcCopyStart = -copyDelta;
+                    dstCopyStart = 0;
+                    copyLength = _length;
                 }
+
+                // since we might be reusing previously used arrays, we need to clear slots that are not copied over from the other array:
+                Array.Clear(_buffer, _start, dstCopyStart);
+                Array.Copy(other._buffer, other._start + srcCopyStart, _buffer, _start + dstCopyStart, copyLength);
+                Array.Clear(_buffer, _start + dstCopyStart + copyLength, _length - dstCopyStart - copyLength);
+            }
+
+            internal void Initialize()
+            {
+                Array.Clear(_buffer, _start, _length);
             }
 
             public int this[int index]
             {
-                get
-                {
-                    return _array[index + Offset];
-                }
-                set
-                {
-                    _array[index + Offset] = value;
-                }
+                get => _buffer[_start + index + Offset];
+                set => _buffer[_start + index + Offset] = value;
             }
 
-            private int Offset
-            {
-                get
-                {
-                    return _array.Length / 2;
-                }
-            }
+            private int Offset => _length / 2;
         }
 
         protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
@@ -60,33 +195,37 @@ namespace Microsoft.CodeAnalysis.Differencing
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            VStack stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
-            int x = oldLength;
-            int y = newLength;
+            var x = oldLength;
+            var y = newLength;
+
+            var varrays = stack.ConsumeArrays().GetEnumerator();
 
             while (x > 0 || y > 0)
             {
-                VArray currentV = stackOfVs.Pop();
-                int d = stackOfVs.Count;
-                int k = x - y;
+                bool hasNext = varrays.MoveNext();
+                Debug.Assert(hasNext);
+
+                var (currentV, d) = varrays.Current;
+                var k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
                 // snake end point is in V
-                int yEnd = currentV[k];
-                int xEnd = yEnd + k;
+                var yEnd = currentV[k];
+                var xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                int kPrev = right ? k - 1 : k + 1;
+                var right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
+                var kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
-                int yStart = currentV[kPrev];
-                int xStart = yStart + kPrev;
+                var yStart = currentV[kPrev];
+                var xStart = yStart + kPrev;
 
                 // snake mid point
-                int yMid = right ? yStart : yStart + 1;
-                int xMid = yMid + k;
+                var yMid = right ? yStart : yStart + 1;
+                var xMid = yMid + k;
 
                 // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
                 while (xEnd > xMid)
@@ -100,38 +239,41 @@ namespace Microsoft.CodeAnalysis.Differencing
                 x = xStart;
                 y = yStart;
             }
-
         }
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            var stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
-            int x = oldLength;
-            int y = newLength;
+            var x = oldLength;
+            var y = newLength;
+
+            var varrays = stack.ConsumeArrays().GetEnumerator();
 
             while (x > 0 || y > 0)
             {
-                VArray currentV = stackOfVs.Pop();
-                int d = stackOfVs.Count;
-                int k = x - y;
+                bool hasNext = varrays.MoveNext();
+                Debug.Assert(hasNext);
+
+                var (currentV, d) = varrays.Current;
+                var k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
                 // snake end point is in V
-                int yEnd = currentV[k];
-                int xEnd = yEnd + k;
+                var yEnd = currentV[k];
+                var xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                int kPrev = right ? k - 1 : k + 1;
+                var right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
+                var kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
-                int yStart = currentV[kPrev];
-                int xStart = yStart + kPrev;
+                var yStart = currentV[kPrev];
+                var xStart = yStart + kPrev;
 
                 // snake mid point
-                int yMid = right ? yStart : yStart + 1;
-                int xMid = yMid + k;
+                var yMid = right ? yStart : yStart + 1;
+                var xMid = yMid + k;
 
                 // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
                 while (xEnd > xMid)
@@ -188,13 +330,13 @@ namespace Microsoft.CodeAnalysis.Differencing
                 return 1.0;
             }
 
-            int lcsLength = 0;
+            var lcsLength = 0;
             foreach (var pair in GetMatchingPairs(oldSequence, oldLength, newSequence, newLength))
             {
                 lcsLength++;
             }
 
-            int max = Math.Max(oldLength, newLength);
+            var max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
             return 1.0 - (double)lcsLength / (double)max;
         }
@@ -233,46 +375,46 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// 
         /// VArrays store just the y index because x can be calculated: x = y + k.
         /// </remarks>
-        private Stack<VArray> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        private VStack ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Stack<VArray> stackOfVs = new Stack<VArray>();
+            var reachedEnd = false;
+            VArray currentV = default;
 
-            // special-case: the first "snake" to start at (-1,0 )
-            VArray previousV = new VArray(1);
-            VArray currentV;
+            var stack = new VStack(default);
 
-            bool reachedEnd = false;
-
-            for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
+            for (var d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
-                // V is in range [-d...d] => use d to offset the k-based array indices to non-negative values
                 if (d == 0)
                 {
-                    currentV = previousV;
+                    // the first "snake" to start at (-1, 0)
+                    currentV = stack.Push();
+                    currentV.Initialize();
                 }
                 else
                 {
-                    currentV = new VArray(d);
-                    currentV.CopyFrom(previousV);
+                    // V is in range [-d...d] => use d to offset the k-based array indices to non-negative values
+                    var previousV = currentV;
+                    currentV = stack.Push();
+                    currentV.InitializeFrom(previousV);
                 }
 
-                for (int k = -d; k <= d; k += 2)
+                for (var k = -d; k <= d; k += 2)
                 {
                     // down or right? 
-                    bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
-                    int kPrev = right ? k - 1 : k + 1;
+                    var right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
+                    var kPrev = right ? k - 1 : k + 1;
 
                     // start point
-                    int yStart = currentV[kPrev];
-                    int xStart = yStart + kPrev;
+                    var yStart = currentV[kPrev];
+                    var xStart = yStart + kPrev;
 
                     // mid point
-                    int yMid = right ? yStart : yStart + 1;
-                    int xMid = yMid + k;
+                    var yMid = right ? yStart : yStart + 1;
+                    var xMid = yMid + k;
 
                     // end point
-                    int xEnd = xMid;
-                    int yEnd = yMid;
+                    var xEnd = xMid;
+                    var yEnd = yMid;
 
                     // follow diagonal
                     while (xEnd < oldLength && yEnd < newLength && ItemsEqual(oldSequence, xEnd, newSequence, yEnd))
@@ -291,10 +433,9 @@ namespace Microsoft.CodeAnalysis.Differencing
                         reachedEnd = true;
                     }
                 }
-                stackOfVs.Push(currentV);
-                previousV = currentV;
             }
-            return stackOfVs;
+
+            return stack;
         }
     }
 }

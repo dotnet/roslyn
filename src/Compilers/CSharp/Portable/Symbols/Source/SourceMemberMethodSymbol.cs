@@ -385,6 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull
+            => GetDecodedReturnTypeWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
+
         public sealed override MethodKind MethodKind
         {
             get
@@ -951,7 +954,7 @@ done:
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected MethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -959,7 +962,7 @@ done:
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1170,11 +1173,11 @@ done:
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
             {
-                AttributeData.DecodeMethodImplAttribute<CommonMethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
+                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
             {
@@ -1182,11 +1185,11 @@ done:
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
@@ -1194,11 +1197,11 @@ done:
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicSecurityMethodAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
             }
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.ObsoleteAttribute))
             {
@@ -1238,15 +1241,30 @@ done:
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
+            {
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDoesNotReturnAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
                 if (attribute.IsSecurityAttribute(compilation))
                 {
-                    attribute.DecodeSecurityAttribute<CommonMethodWellKnownAttributeData>(this, compilation, ref arguments);
+                    attribute.DecodeSecurityAttribute<MethodWellKnownAttributeData>(this, compilation, ref arguments);
                 }
             }
         }
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
+            }
+        }
+
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(MethodWellKnownAttributeData attributeData)
+            => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
@@ -1264,7 +1282,7 @@ done:
                     }
                     else
                     {
-                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt.Location);
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
 
@@ -1384,6 +1402,10 @@ done:
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasNotNullAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+            {
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
+            }
         }
 
         private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -1485,7 +1507,7 @@ done:
 
             if (!hasErrors)
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetDllImport(
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetDllImport(
                     arguments.Index,
                     moduleName,
                     importName,
@@ -1631,7 +1653,7 @@ done:
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             var attributesBag = this.GetAttributesBag();
-            var wellKnownData = (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
                 SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;

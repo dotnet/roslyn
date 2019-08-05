@@ -46,7 +46,7 @@ namespace Roslyn.Utilities
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
-                lastSeparator = lastSeparator - 1;
+                lastSeparator -= 1;
             }
 
             if (lastSeparator != s.Length)

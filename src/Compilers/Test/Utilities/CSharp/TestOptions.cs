@@ -5,16 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public static class TestOptions
     {
-        // Disable diagnosing documentation comments by default so that we don't need to
-        // document every public member of every test input.
-        // https://github.com/dotnet/roslyn/issues/29819 revert explicit C# 8 langversion
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse, languageVersion: LanguageVersion.CSharp8);
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
@@ -24,15 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularDefault = Regular.WithLanguageVersion(LanguageVersion.Default);
         public static readonly CSharpParseOptions RegularPreview = Regular.WithLanguageVersion(LanguageVersion.Preview);
         public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
-        public static readonly CSharpParseOptions Regular8WithNullableAnalysis = Regular8.WithFeature("run-nullable-analysis");
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature("UseLegacyStrongNameProvider");
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
-            // https://github.com/dotnet/roslyn/issues/29819 revert explicit C# 8 langversion
-            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp8).WithFeatures(s_experimentalFeatures);
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Preview).WithFeatures(s_experimentalFeatures);
 
         // Enable pattern-switch translation even for switches that use no new syntax. This is used
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
@@ -96,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
         {
             return options;
+        }
+
+        public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
+        {
+            return options.WithFeature("nullablePublicOnly");
         }
 
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")

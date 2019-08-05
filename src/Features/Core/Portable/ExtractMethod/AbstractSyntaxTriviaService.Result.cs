@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private int GetFirstEndOfLineIndex(List<SyntaxTrivia> list)
             {
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     if (list[i].RawKind == _endOfLineKind)
                     {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 // if there are dup, duplicated one will be ignored.
                 var set = new HashSet<PreviousNextTokenPair>();
-                for (int i = (int)TriviaLocation.BeforeBeginningOfSpan; i <= (int)TriviaLocation.AfterEndOfSpan; i++)
+                for (var i = (int)TriviaLocation.BeforeBeginningOfSpan; i <= (int)TriviaLocation.AfterEndOfSpan; i++)
                 {
                     var location = (TriviaLocation)i;
                     var key = tokenPairs[location];
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     yield break;
                 }
 
-                for (int i = startIndex; i <= endIndex; i++)
+                for (var i = startIndex; i <= endIndex; i++)
                 {
                     yield return list[i];
                 }

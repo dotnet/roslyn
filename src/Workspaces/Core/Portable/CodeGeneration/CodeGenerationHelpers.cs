@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (forward)
             {
-                for (int i = index; i < availableIndices.Count; i++)
+                for (var i = index; i < availableIndices.Count; i++)
                 {
                     if (availableIndices[i])
                     {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
             else
             {
-                for (int i = index; i >= 0; i--)
+                for (var i = index; i >= 0; i--)
                 {
                     if (availableIndices[i])
                     {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                Option<bool> option = _isDebugger
+                var option = _isDebugger
                     ? EditorCompletionOptions.UseSuggestionMode_Debugger
                     : EditorCompletionOptions.UseSuggestionMode;
 
