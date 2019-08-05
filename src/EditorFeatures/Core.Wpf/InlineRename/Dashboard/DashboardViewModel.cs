@@ -310,6 +310,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        public string OriginalName => _session.OriginalSymbolName;
+
         public void Dispose()
         {
             _session.ReplacementTextChanged -= OnReplacementTextChanged;

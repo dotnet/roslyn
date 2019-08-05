@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var parameterNode = await context.TryGetSelectedNodeAsync<TParameterSyntax>().ConfigureAwait(false);
+            var parameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;

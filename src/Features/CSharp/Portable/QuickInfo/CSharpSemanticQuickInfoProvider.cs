@@ -56,6 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
+            // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
+            // warnings. If the user has annotations off then things that are oblivious might become non-null (which is a lie) and if the user has warnings off then
+            // that probably implies they're not actually trying to know if their code is correct. We can revisit this if we have specific user scenarios.
+            if (semanticModel.GetNullableContext(token.SpanStart) != NullableContext.Enabled)
+            {
+                return default;
+            }
+
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
             var bindableParent = syntaxFacts.GetBindableParent(token);
             var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);

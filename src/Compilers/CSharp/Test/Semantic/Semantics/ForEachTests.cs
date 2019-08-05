@@ -3162,7 +3162,7 @@ ref struct DisposableEnumerator
 
                 if (enumeratorInfo.NeedsDisposal)
                 {
-                    if (!(enumeratorInfo.DisposeMethod is null))
+                    if (enumeratorInfo.DisposeMethod is object)
                     {
                         Assert.Equal(enumeratorInfo.DisposeMethod, statementInfo.DisposeMethod);
                     }

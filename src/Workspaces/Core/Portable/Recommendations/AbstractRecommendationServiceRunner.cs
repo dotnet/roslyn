@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 ? _context.SemanticModel.LookupStaticMembers(position, container)
                 : SuppressDefaultTupleElements(
                     container,
-                    _context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
+                    _context.SemanticModel.LookupSymbols(position, container.WithoutNullability(), includeReducedExtensionMethods: true));
         }
 
         /// <summary>

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var @case in switchCases)
             {
                 var type = @case.Value.Type;
-                if (!(type is null) && seenTypes.Add(type))
+                if (type is object && seenTypes.Add(type))
                 {
                     typesInOrder.Add(type);
                 }

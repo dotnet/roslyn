@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     {
         protected abstract string LanguageSpecificProviderName { get; }
 
+        protected abstract RoslynLSPClientLifeTimeService LspClientLifeTimeService { get; }
+
         public ILanguageServerClient ActiveLanguageServerClient { get; private set; }
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         TextDocumentSync = null,
                     })));
 
-            var lifeTimeService = new RoslynLSPClientLifeTimeService();
+            var lifeTimeService = LspClientLifeTimeService;
             lifeTimeService.Disposed += (s, e) =>
             {
                 ActiveLanguageServerClient?.Dispose();
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             return Task.FromResult<ICollaborationService>(lifeTimeService);
         }
 
-        protected class RoslynLSPClientLifeTimeService : ICollaborationService, IDisposable
+        protected abstract class RoslynLSPClientLifeTimeService : ICollaborationService, IDisposable
         {
             public event EventHandler Disposed;
 
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     }
 
     [Export]
-    [ExportCollaborationService(typeof(RoslynLSPClientLifeTimeService),
+    [ExportCollaborationService(typeof(CSharpLSPClientLifeTimeService),
                                 Scope = SessionScope.Guest,
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
@@ -134,10 +136,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         protected override string LanguageSpecificProviderName => StringConstants.CSharpProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new CSharpLSPClientLifeTimeService();
+
+        private class CSharpLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
+        }
     }
 
     [Export]
-    [ExportCollaborationService(typeof(RoslynLSPClientLifeTimeService),
+    [ExportCollaborationService(typeof(VisualBasicLSPClientLifeTimeService),
                                 Scope = SessionScope.Guest,
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
@@ -145,10 +153,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         protected override string LanguageSpecificProviderName => StringConstants.VisualBasicProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new VisualBasicLSPClientLifeTimeService();
+
+        private class VisualBasicLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
+        }
     }
 
     [Export]
-    [ExportCollaborationService(typeof(RoslynLSPClientLifeTimeService),
+    [ExportCollaborationService(typeof(TypeScriptLSPClientLifeTimeService),
                                 Scope = SessionScope.Guest,
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
@@ -156,5 +170,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         protected override string LanguageSpecificProviderName => StringConstants.TypeScriptProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new TypeScriptLSPClientLifeTimeService();
+
+        private class TypeScriptLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
+        }
     }
 }
