@@ -2359,6 +2359,87 @@ b --> BAD
             Assert.Equal(expected, actual);
         }
 
+        [Fact]
+        public void TestUnspecifiedUncheckedConversions()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        unchecked
+        {
+            _ = (ulong)double.NaN;
+            _ = (uint)double.NaN;
+            _ = (ulong)float.NaN;
+            _ = (uint)float.NaN;
+
+            _ = (ulong)double.NegativeInfinity;
+            _ = (uint)double.NegativeInfinity;
+            _ = (ulong)float.NegativeInfinity;
+            _ = (uint)float.NegativeInfinity;
+
+            _ = (ulong)double.PositiveInfinity;
+            _ = (uint)double.PositiveInfinity;
+            _ = (ulong)float.PositiveInfinity;
+            _ = (uint)float.PositiveInfinity;
+
+            _ = (ulong)1e100;
+            _ = (uint)1e100;
+            _ = (ulong)1e38f;
+            _ = (uint)1e38f;
+
+            _ = (ulong)-1e100;
+            _ = (uint)-1e100;
+            _ = (ulong)-1e38f;
+            _ = (uint)-1e38f;
+
+            _ = (short)65535.17567;
+        }
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+            var expected =
+@"(ulong)double.NaN --> 0
+double.NaN --> NaN
+(uint)double.NaN --> 0
+double.NaN --> NaN
+(ulong)float.NaN --> 0
+float.NaN --> NaN
+(uint)float.NaN --> 0
+float.NaN --> NaN
+(ulong)double.NegativeInfinity --> 0
+double.NegativeInfinity --> -Infinity
+(uint)double.NegativeInfinity --> 0
+double.NegativeInfinity --> -Infinity
+(ulong)float.NegativeInfinity --> 0
+float.NegativeInfinity --> -Infinity
+(uint)float.NegativeInfinity --> 0
+float.NegativeInfinity --> -Infinity
+(ulong)double.PositiveInfinity --> 0
+double.PositiveInfinity --> Infinity
+(uint)double.PositiveInfinity --> 0
+double.PositiveInfinity --> Infinity
+(ulong)float.PositiveInfinity --> 0
+float.PositiveInfinity --> Infinity
+(uint)float.PositiveInfinity --> 0
+float.PositiveInfinity --> Infinity
+(ulong)1e100 --> 0
+(uint)1e100 --> 0
+(ulong)1e38f --> 0
+(uint)1e38f --> 0
+(ulong)-1e100 --> 0
+-1e100 --> -1E+100
+(uint)-1e100 --> 0
+-1e100 --> -1E+100
+(ulong)-1e38f --> 0
+-1e38f --> -1E+38
+(uint)-1e38f --> 0
+-1e38f --> -1E+38
+(short)65535.17567 --> 0";
+            Assert.Equal(expected, actual);
+        }
+
         // Constant fields should be bound in the declaration phase.
         [Fact]
         public void TestConstantEvalAtDeclarationPhase()
@@ -2511,6 +2592,30 @@ class c1
 
             symbol = compilation.GlobalNamespace.GetTypeMembers("c1").First().GetMembers("Z2").First();
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
+        }
+
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [Fact]
+        public void NoConstantValueForOverflows_02()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class c1
+{
+    void M()
+    {
+        _ = checked((decimal)1e100);
+        _ = unchecked((decimal)1e100);
+    }
+}");
+
+            var compilation = CreateCompilation(tree);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0031: Constant value '1E+100' cannot be converted to a 'decimal'
+                //         _ = checked((decimal)1e100);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)1e100").WithArguments("1E+100", "decimal").WithLocation(6, 21),
+                // (7,23): error CS0031: Constant value '1E+100' cannot be converted to a 'decimal'
+                //         _ = unchecked((decimal)1e100);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)1e100").WithArguments("1E+100", "decimal").WithLocation(7, 23));
         }
 
         [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
@@ -2796,35 +2901,6 @@ class MyClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        // We used to return constant zero in unchecked conversion from a floating-point type to an integral type
-        // in a constant expression if the value being converted is not within the target type.
-        // The C# spec says that in this case the result of the conversion is an unspecified value of the destination type.
-        // Zero is a perfectly valid unspecified value, so that behavior was formally correct.
-        // But it did not agree with the behavior of the native C# compiler, that apparently returned a value that
-        // would resulted from a runtime conversion with normal CLR overflow behavior.
-        // To avoid breaking programs that might accidentally rely on that unspecified behavior
-        // we now match the native compiler behavior, and we are going to keep this behavior for compatibility.
-        [Fact, WorkItem(1020273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020273")]
-        public void Bug1020273()
-        {
-            string source = @"
-using System;
- 
-class Program
-{
-    static void Main()
-    {
-        double aslocal = 65535.17567;
-        Console.WriteLine(""As local: {0}"", unchecked((short)aslocal));
-        Console.WriteLine(""Inline  : {0}"", unchecked((short)65535.17567));
-    }
-}";
-            string expectedOutput = @"As local: -1
-Inline  : -1";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
