@@ -865,6 +865,11 @@ namespace CSharpSyntaxGenerator
                 {
                     type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + type;
                 }
+                else
+                {
+                    type = GetFieldType(field, green: true);
+                }
+
                 Write("{0} {1}", type, CamelCase(field.Name));
             }
         }
