@@ -2185,8 +2185,10 @@ class C
             }
         }
 
-        [Fact, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
-        public void InvalidCodeVar_GetsCorrectSymbol()
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
+        public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
         {
             var source = @"
 public class C
@@ -2199,34 +2201,21 @@ public class C
 }
 ";
 
-            var comp1 = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis"));
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis", "false"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis", flagState));
 
-            var syntaxTree1 = comp1.SyntaxTrees[0];
-            var root1 = syntaxTree1.GetRoot();
-            var model1 = comp1.GetSemanticModel(syntaxTree1);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
 
-            var syntaxTree2 = comp2.SyntaxTrees[0];
-            var root2 = syntaxTree2.GetRoot();
-            var model2 = comp2.GetSemanticModel(syntaxTree2);
+            var sRef = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "s").Single();
 
-            var sRef1 = root1.DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "s").Single();
-            var sRef2 = root2.DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "s").Single();
+            var info = model.GetSpeculativeSymbolInfo(sRef.Position, sRef, SpeculativeBindingOption.BindAsExpression);
 
-            var symbolInfo1 = model1.GetSpeculativeSymbolInfo(sRef1.Position, sRef1, SpeculativeBindingOption.BindAsExpression);
-            var symbolInfo2 = model2.GetSpeculativeSymbolInfo(sRef2.Position, sRef2, SpeculativeBindingOption.BindAsExpression);
-
-            verifySymbol(symbolInfo1);
-            verifySymbol(symbolInfo2);
-
-            void verifySymbol(SymbolInfo info)
-            {
-                IParameterSymbol symbol = (IParameterSymbol)info.Symbol;
-                Assert.True(info.CandidateSymbols.IsEmpty);
-                Assert.NotNull(symbol);
-                Assert.Equal("s", symbol.Name);
-                Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
-            }
+            IParameterSymbol symbol = (IParameterSymbol)info.Symbol;
+            Assert.True(info.CandidateSymbols.IsEmpty);
+            Assert.NotNull(symbol);
+            Assert.Equal("s", symbol.Name);
+            Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
         }
     }
 }
