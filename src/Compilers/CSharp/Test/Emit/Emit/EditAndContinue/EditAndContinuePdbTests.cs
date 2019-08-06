@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class EditAndContinuePdbTests : EditAndContinueTestBase
     {
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void MethodExtents(DebugInformationFormat format)
         {
             var source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""

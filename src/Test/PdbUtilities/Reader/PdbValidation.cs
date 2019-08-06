@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             PdbValidationOptions options = PdbValidationOptions.Default,
             string qualifiedMethodName = "",
-            bool portable = false)
+            bool portable = true)
         {
             var peStream = new MemoryStream();
             var pdbStream = new MemoryStream();

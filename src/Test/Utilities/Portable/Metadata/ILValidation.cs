@@ -302,7 +302,7 @@ namespace Roslyn.Test.Utilities
 
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {
-            string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            string[] lines = source?.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
             var doc = new XmlDocument() { XmlResolver = null };
             using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
             {
