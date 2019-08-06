@@ -329,21 +329,19 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
 
-                if (string.IsNullOrEmpty(expectedContent))
-                {
-                    await AssertNoContentAsync(workspace, document, position);
-                }
-                else
-                {
-                    await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
-                }
+            if (string.IsNullOrEmpty(expectedContent))
+            {
+                await AssertNoContentAsync(workspace, document, position);
+            }
+            else
+            {
+                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

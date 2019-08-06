@@ -447,8 +447,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 newSemanticDocument.Document,
                                 expandInsideNode: node =>
                                 {
-                                    var expression = node as TExpressionSyntax;
-                                    return expression == null
+                                    return !(node is TExpressionSyntax expression)
                                         || !newMatches.Contains(expression);
                                 },
                                 cancellationToken: ct)

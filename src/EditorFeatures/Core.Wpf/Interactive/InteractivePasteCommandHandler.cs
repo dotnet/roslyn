@@ -106,35 +106,33 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 text = "<bad clipboard data>";
             }
 
-            using (var transaction = _textUndoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste))
+            using var transaction = _textUndoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste);
+            editorOperations.AddBeforeTextBufferChangePrimitive();
+            if (dataHasLineCutCopyTag && textView.Selection.IsEmpty)
             {
-                editorOperations.AddBeforeTextBufferChangePrimitive();
-                if (dataHasLineCutCopyTag && textView.Selection.IsEmpty)
+                editorOperations.MoveToStartOfLine(extendSelection: false);
+                editorOperations.InsertText(text);
+            }
+            else if (dataHasBoxCutCopyTag)
+            {
+                // If the caret is on a blank line, treat this like a normal stream insertion
+                if (textView.Selection.IsEmpty && !HasNonWhiteSpaceCharacter(textView.Caret.Position.BufferPosition.GetContainingLine()))
                 {
-                    editorOperations.MoveToStartOfLine(extendSelection: false);
-                    editorOperations.InsertText(text);
-                }
-                else if (dataHasBoxCutCopyTag)
-                {
-                    // If the caret is on a blank line, treat this like a normal stream insertion
-                    if (textView.Selection.IsEmpty && !HasNonWhiteSpaceCharacter(textView.Caret.Position.BufferPosition.GetContainingLine()))
-                    {
-                        // trim the last newline before paste
-                        var trimmed = text.Remove(text.LastIndexOf(textView.Options.GetNewLineCharacter()));
-                        editorOperations.InsertText(trimmed);
-                    }
-                    else
-                    {
-                        editorOperations.InsertTextAsBox(text, out var unusedStart, out var unusedEnd);
-                    }
+                    // trim the last newline before paste
+                    var trimmed = text.Remove(text.LastIndexOf(textView.Options.GetNewLineCharacter()));
+                    editorOperations.InsertText(trimmed);
                 }
                 else
                 {
-                    editorOperations.InsertText(text);
+                    editorOperations.InsertTextAsBox(text, out var unusedStart, out var unusedEnd);
                 }
-                editorOperations.AddAfterTextBufferChangePrimitive();
-                transaction.Complete();
             }
+            else
+            {
+                editorOperations.InsertText(text);
+            }
+            editorOperations.AddAfterTextBufferChangePrimitive();
+            transaction.Complete();
         }
 
         private static bool HasNonWhiteSpaceCharacter(ITextSnapshotLine line)

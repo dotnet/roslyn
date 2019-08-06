@@ -753,7 +753,6 @@ class C
 }";
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
-
         #endregion
 
         #region Extractions general
@@ -1014,7 +1013,6 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
-
         #endregion
 
         #region Test predicate
@@ -1511,7 +1509,6 @@ class C
 }";
             await TestAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax);
         }
-
         #endregion
     }
 }
