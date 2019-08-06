@@ -468,6 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeProjectInfo:
                     return true;
 
                 default:

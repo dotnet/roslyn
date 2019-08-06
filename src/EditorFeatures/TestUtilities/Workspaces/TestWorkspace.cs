@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeProjectInfo:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:
