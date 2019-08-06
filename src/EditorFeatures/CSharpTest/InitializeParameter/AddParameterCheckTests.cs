@@ -366,7 +366,7 @@ class C
         {
             await TestInRegularAndScript1Async(
 
-        @"
+@"
 using System;
 
 class C
@@ -375,7 +375,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -400,7 +400,7 @@ class C
         {
             await TestInRegularAndScript1Async(
 
-        @"
+@"
 using System;
 
 class C
@@ -409,7 +409,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -434,7 +434,7 @@ class C
         {
             await TestInRegularAndScript1Async(
 
-        @"
+@"
 using System;
 
 class C
@@ -443,7 +443,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -473,7 +473,7 @@ class C
         {
             await TestInRegularAndScript1Async(
 
-        @"
+@"
 using System;
 
 class C
@@ -482,7 +482,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -512,7 +512,7 @@ class C
         {
             await TestInRegularAndScript1Async(
 
-        @"
+@"
 using System;
 
 class C
@@ -521,7 +521,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -550,7 +550,7 @@ class C
         public async Task TestUpdateExistingPropertyAssignment()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -562,7 +562,7 @@ class C
         S = s;
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -580,7 +580,7 @@ class C
         public async Task DoNotUseThrowExpressionBeforeCSharp7()
         {
             await TestAsync(
-        @"
+@"
 using System;
 
 class C
@@ -592,7 +592,7 @@ class C
         S = s;
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -615,7 +615,7 @@ class C
         public async Task RespectUseThrowExpressionOption()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -627,7 +627,7 @@ class C
         S = s;
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -644,14 +644,14 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-        Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExpressionBody1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -661,7 +661,7 @@ class C
     public C([||]string s)
         => S = s;
 }",
-        @"
+@"
 using System;
 
 class C
@@ -677,7 +677,7 @@ class C
         public async Task TestUpdateExpressionBody2()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -685,7 +685,7 @@ class C
     public C([||]string s)
         => Init();
 }",
-        @"
+@"
 using System;
 
 class C
@@ -706,7 +706,7 @@ class C
         public async Task TestUpdateExpressionBody3()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -714,7 +714,7 @@ class C
     public C([||]string s)
         => Init();
 }",
-        @"
+@"
 using System;
 
 class C
@@ -729,7 +729,7 @@ class C
         Init();
     }
 }", parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)));
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
@@ -737,7 +737,7 @@ class C
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -747,7 +747,7 @@ class C
         int F([||]string s) => Init();
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -772,7 +772,7 @@ class C
         public async Task TestUpdateLocalFunctionExpressionBody_Void()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -782,7 +782,7 @@ class C
         void F([||]string s) => Init();
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -807,7 +807,7 @@ class C
         public async Task TestUpdateLambdaExpressionBody_NonVoid()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -819,7 +819,7 @@ class C
         int GetValue() => 0;
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -846,7 +846,7 @@ class C
         public async Task TestUpdateLambdaExpressionBody_Void()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -858,7 +858,7 @@ class C
         void NoValue() { }
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -884,7 +884,7 @@ class C
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -896,7 +896,7 @@ class C
         }
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -919,7 +919,7 @@ class C
         public async Task TestInsertBeforeExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -931,7 +931,7 @@ class C
         }
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -954,7 +954,7 @@ class C
         public async Task TestMissingWithExistingNullCheck1()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -973,7 +973,7 @@ class C
         public async Task TestMissingWithExistingNullCheck2()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -989,7 +989,7 @@ class C
         public async Task TestMissingWithExistingNullCheck3()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1007,7 +1007,7 @@ class C
         public async Task TestMissingWithExistingNullCheck4()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1025,7 +1025,7 @@ class C
         public async Task TestMissingWithExistingNullCheck5()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1044,7 +1044,7 @@ class C
         public async Task TestMissingWithExistingNullCheck6()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1064,7 +1064,7 @@ class C
         public async Task TestMissingWithExistingNullCheckInLocalFunction()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1087,7 +1087,7 @@ class C
         public async Task TestMissingWithExistingNullCheckInLambda()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1103,7 +1103,7 @@ class C
         public async Task TestMissingWithoutParameterName()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C
@@ -1118,7 +1118,7 @@ class C
         public async Task TestInMethod()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1127,7 +1127,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1146,7 +1146,7 @@ class C
         public async Task TestInOperator()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1155,7 +1155,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1175,7 +1175,7 @@ class C
         public async Task TestOnSimpleLambdaParameter()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1185,7 +1185,7 @@ class C
         Func<string, int> f = [||]s => { return 0; };
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1210,7 +1210,7 @@ class C
         public async Task TestOnSimpleLambdaParameter_EmptyBlock()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1220,7 +1220,7 @@ class C
         Action<string> f = [||]s => { };
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1243,7 +1243,7 @@ class C
         public async Task TestOnParenthesizedLambdaParameter()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1253,7 +1253,7 @@ class C
         Func<string, int> f = ([||]string s) => { return 0; };
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1278,7 +1278,7 @@ class C
         public async Task TestOnAnonymousMethodParameter()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1288,7 +1288,7 @@ class C
         Func<string, int> f = delegate ([||]string s) { return 0; };
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1313,7 +1313,7 @@ class C
         public async Task TestOnLocalFunctionParameter()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1325,7 +1325,7 @@ class C
         }
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1347,7 +1347,7 @@ class C
         public async Task TestNotOnIndexerParameter()
         {
             await TestMissingAsync(
-        @"
+@"
 class C
 {
     int this[[||]string s]
@@ -1364,7 +1364,7 @@ class C
         public async Task TestSpecialStringCheck1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1373,7 +1373,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1392,7 +1392,7 @@ class C
         public async Task TestSpecialStringCheck2()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1401,7 +1401,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1421,7 +1421,7 @@ class C
         public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
         {
             await TestMissingAsync(
-        @"
+@"
 class C
 {
     public C(String [||]s)
@@ -1439,7 +1439,7 @@ class C
         public async Task TestRespectPredefinedTypePreferences()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class Program
@@ -1448,7 +1448,7 @@ class Program
     {
     }
 }",
-        @"
+@"
 using System;
 
 class Program
@@ -1461,7 +1461,7 @@ class Program
         }
     }
 }", index: 1,
-        parameters: new TestParameters(
+    parameters: new TestParameters(
         options: Option(
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
             CodeStyleOptions.FalseWithSuggestionEnforcement)));
@@ -1474,7 +1474,7 @@ class Program
         public async Task TestPreferNoBlock(int preferBraces)
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1483,7 +1483,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1494,7 +1494,7 @@ class C
             throw new ArgumentNullException(nameof(s));
     }
 }",
-        parameters: new TestParameters(options:
+    parameters: new TestParameters(options:
         Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption.Silent))));
         }
 
@@ -1503,14 +1503,14 @@ class C
         public async Task TestNoBlock()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
 {
     public C(string s[||])
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1530,7 +1530,7 @@ class C
         public async Task TestInArrowExpression1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1541,7 +1541,7 @@ class C
             .OrderBy(x => x)
             .Count();
 }",
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1566,7 +1566,7 @@ class C
         public async Task TestInArrowExpression2()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1577,7 +1577,7 @@ class C
             .OrderBy(x => x)
             .Count(); /* Bar */
 }",
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1602,7 +1602,7 @@ class C
         public async Task TestMissingInArrowExpression1()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1622,7 +1622,7 @@ class C
         public async Task TestMissingInArrowExpression2()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1646,7 +1646,7 @@ class C
         public async Task TestInArrowExpression3()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1657,7 +1657,7 @@ class C
             .OrderBy(x => x)
             .Count();
 }",
-        @"
+@"
 using System;
 using System.Linq;
 
@@ -1682,7 +1682,7 @@ class C
         public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
         {
             await TestInRegularAndScript1Async(
-        @"
+@"
 using System;
 
 class C
@@ -1691,7 +1691,7 @@ class C
     {
     }
 }",
-        @"
+@"
 using System;
 
 class C
@@ -1711,7 +1711,7 @@ class C
         public async Task TestLambdaWithIncorrectNumberOfParameters()
         {
             await TestMissingInRegularAndScriptAsync(
-        @"
+@"
 using System;
 
 class C

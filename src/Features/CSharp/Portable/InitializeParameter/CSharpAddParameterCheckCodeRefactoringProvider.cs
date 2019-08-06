@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return true;
         }
 
-        protected override SyntaxNode GetParameterNodeAtIndex(int ordinal, SyntaxNode functionDecleration)
+        protected override SyntaxNode GetParameterNodeAtIndex(SyntaxNode functionDecleration, int ordinal)
         {
             var listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration);
 

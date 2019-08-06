@@ -32,20 +32,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
-            IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+            IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
         {
-
-            if (listOfParameterNodes == null)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
 
             // List to keep track of the valid parameters
             var listOfParametersOrdinals = new List<int>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var parameterNode in listOfParameterNodes)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                 if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
                 {
@@ -53,7 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
-            if (!listOfParametersOrdinals.Any())
+            if (listOfParametersOrdinals.Count < 2)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var firstparameterNode = GetParameterNode(token, position);
                     functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
 
-                    var currentNode = GetParameterNodeAtIndex(index, functionDeclaration);
+                    var currentNode = GetParameterNodeAtIndex(functionDeclaration, index);
                     if (currentNode == null)
                     {
                         continue;
@@ -106,7 +101,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
         }
 
-        protected abstract SyntaxNode GetParameterNodeAtIndex(int position, SyntaxNode functionDeclaration);
+        protected abstract SyntaxNode GetParameterNodeAtIndex(SyntaxNode functionDeclaration, int index);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -143,6 +138,53 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected abstract bool CanOffer(SyntaxNode body);
+
+        private async Task<Document> UpdateDocumetForRefactoring(
+            Document document,
+            SyntaxNode functionDeclaration,
+            IBlockOperation blockStatementOpt,
+            List<int> listOfParametersOrdinals,
+            int position,
+            CancellationToken cancellationToken)
+        {
+
+            foreach (var index in listOfParametersOrdinals)
+            {
+                // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var token = root.FindToken(position);
+                var firstparameterNode = GetParameterNode(token, position);
+                functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+
+                var currentNode = GetParameterNodeAtIndex(functionDeclaration, index);
+                if (currentNode == null)
+                {
+                    continue;
+                }
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
+                {
+                    continue;
+                }
+
+                // If parameter is a string, default check would be IsNullOrEmpty - updates document
+                if (parameter.Type.SpecialType == SpecialType.System_String)
+                {
+                    document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                // For all other parameters, add null check - updates document
+                document = await AddNullCheckAsync(document, parameter, functionDeclaration,
+                    (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
+        }
 
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,

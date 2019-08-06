@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // List with parameterNodes that pass all checks
-            var listOfPotentiallyValidParametersNodes = new List<SyntaxNode>();
+            var listOfPotentiallyValidParametersNodes = new ImmutableArray<SyntaxNode>();
             var counter = 0;
 
             foreach (var parameterNode in parameterNodes)
@@ -113,11 +113,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
                 }
 
-                //var blockStatementOpt = GetBlockStatmentOpt(syntaxFacts, semanticModel, functionDeclaration, cancellationToken);
-                //if (blockStatementOpt == null)
-                //{
-                //    continue;
-                //}
                 if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
                 {
                     // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
@@ -134,7 +129,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
 
                     // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
-                    if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count())
+                    if (listOfPotentiallyValidParametersNodes.Length > 1 && counter == parameterNodes.Count())
                     {
                         context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
                             document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
@@ -143,7 +138,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
         }
 
-        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<CodeAction>.Empty);
         }
