@@ -1432,6 +1432,12 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyParseOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions!);
             }
 
+            // changed default namespace
+            if (projectChanges.OldProject.DefaultNamespace != projectChanges.NewProject.DefaultNamespace)
+            {
+                this.ApplyDefaultNamespaceChanged(projectChanges.ProjectId, projectChanges.NewProject.DefaultNamespace);
+            }
+
             // removed project references
             foreach (var removedProjectReference in projectChanges.GetRemovedProjectReferences())
             {
@@ -1671,6 +1677,17 @@ namespace Microsoft.CodeAnalysis
 #endif
 
             this.OnCompilationOptionsChanged(projectId, options);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to change the default namespace.
+        ///
+        /// Override this method to implement the capability of changing default namespace.
+        /// </summary>
+        protected virtual void ApplyDefaultNamespaceChanged(ProjectId projectId, string defaultNamespace)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDefaultNamespace));
+            this.OnDefaultNamespaceChanged(projectId, defaultNamespace);
         }
 
         /// <summary>

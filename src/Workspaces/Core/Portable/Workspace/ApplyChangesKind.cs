@@ -28,5 +28,6 @@ namespace Microsoft.CodeAnalysis
         ChangeAnalyzerConfigDocument = 19,
         AddSolutionAnalyzerReference = 20,
         RemoveSolutionAnalyzerReference = 21,
+        ChangeDefaultNamespace = 22
     }
 }
