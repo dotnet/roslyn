@@ -1802,7 +1802,15 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
                 if (field.Type == "SyntaxToken")
                 {
-                    Write("(Syntax.InternalSyntax.SyntaxToken){0}.Node", CamelCase(field.Name));
+                    if (IsOptional(field))
+                    {
+                        Write("(Syntax.InternalSyntax.SyntaxToken?){0}.Node", CamelCase(field.Name));
+                    }
+                    else
+                    {
+                        // We know the GreenNode is not null because it gets a type check earlier in the generated method
+                        Write("(Syntax.InternalSyntax.SyntaxToken){0}.Node!", CamelCase(field.Name));
+                    }
                 }
                 else if (field.Type == "SyntaxList<SyntaxToken>")
                 {
