@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// Override this method to implement the capability of changing default namespace.
         /// </summary>
-        protected virtual void ApplyDefaultNamespaceChanged(ProjectId projectId, string defaultNamespace)
+        protected virtual void ApplyDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDefaultNamespace));
             this.OnDefaultNamespaceChanged(projectId, defaultNamespace);
