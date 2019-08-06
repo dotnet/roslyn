@@ -2553,6 +2553,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.SwitchStatement(expression, default(SyntaxList<SwitchSectionSyntax>));
         }
 
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(parameter, block, null)
+                : SimpleLambdaExpression(parameter, null, (ExpressionSyntax)body);
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, null)
+                : SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(CSharpSyntaxNode body)
+            => ParenthesizedLambdaExpression(parameterList: null, body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(parameterList, block, null)
+                : ParenthesizedLambdaExpression(parameterList, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, null)
+                : ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, null, (ExpressionSyntax)body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(CSharpSyntaxNode body)
+            => AnonymousMethodExpression(parameterList: null, body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                : AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, null, (ExpressionSyntax)null);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, null)
+                : AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, null, (ExpressionSyntax)body);
+
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
