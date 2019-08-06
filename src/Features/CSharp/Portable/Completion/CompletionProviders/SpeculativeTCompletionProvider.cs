@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var orgSpanStart = spanStart;
 
                 spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
-                // spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
+                spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
                 spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
 
                 if (spanStart == orgSpanStart)
@@ -157,7 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static int WalkOutOfTupleType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.IsPossibleTupleOpenParenOrComma())
+            {
+                return prevToken.Parent.SpanStart;
+            }
+
+            return position;
         }
     }
 }
