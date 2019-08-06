@@ -94,9 +94,13 @@ namespace IOperationGenerator
                     WriteUsing("System");
                     WriteUsing("System.Collections.Immutable");
 
-                    if (grouping.Key is object)
+                    if (@namespace != "Operations")
                     {
                         WriteUsing("Microsoft.CodeAnalysis.Operations");
+                    }
+                    else
+                    {
+                        WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
                     }
 
                     Blank();
@@ -105,6 +109,11 @@ namespace IOperationGenerator
                     foreach (var node in grouping)
                     {
                         WriteInterface(node);
+                    }
+
+                    if (@namespace == "Operations")
+                    {
+                        WriteVisitors();
                     }
 
                     WriteEndNamespace();
@@ -154,11 +163,7 @@ namespace IOperationGenerator
         {
             WriteComments(node.Comments, writeReservedRemark: true);
 
-            if (node.Obsolete is { } obsolete)
-            {
-                WriteLine($"[Obsolete({obsolete.Message}, error: {obsolete.ErrorText})]");
-            }
-
+            WriteObsoleteIfNecessary(node.Obsolete);
             WriteLine($"{(node.IsInternal ? "internal" : "public")} interface {node.Name} : {node.Base}");
             Brace();
 
@@ -273,7 +278,7 @@ namespace IOperationGenerator
                 else
                 {
                     var currentEntry = elementsToKindEnumerator.Current;
-                    writeEnumElement(GetKindName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
+                    writeEnumElement(GetBaseName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
                     Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
                 }
             }
@@ -298,11 +303,56 @@ namespace IOperationGenerator
             }
         }
 
-        private string GetKindName(string operationName) => operationName[1..^9];
+        private string GetBaseName(string operationName) => operationName[1..^9];
 
-        private bool IsImmutableArray(string typeName)
+        private void WriteVisitors()
         {
-            return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
+            WriteLine(@"public abstract partial class OperationVisitor
+    {
+        public virtual void Visit(IOperation operation) => operation?.Accept(this);
+        public virtual void DefaultVisit(IOperation operation) { /* no-op */ }
+        internal virtual void VisitNoneOperation(IOperation operation) { /* no-op */ }");
+            Indent();
+
+            var types = _tree.Types.OfType<Node>();
+            foreach (var type in types)
+            {
+                if (type.SkipInVisitor) continue;
+
+                WriteObsoleteIfNecessary(type.Obsolete);
+                var accessibility = type.IsInternal ? "internal" : "public";
+                var baseName = GetBaseName(type.Name);
+                WriteLine($"{accessibility} virtual void Visit{baseName}({type.Name} operation) => DefaultVisit(operation);");
+            }
+
+            Unbrace();
+
+            WriteLine(@"public abstract partial class OperationVisitor<TArgument, TResult>
+    {
+        public virtual TResult Visit(IOperation operation, TArgument argument) => operation is null ? default(TResult) : operation.Accept(this, argument);
+        public virtual TResult DefaultVisit(IOperation operation, TArgument argument) => default(TResult);
+        internal virtual TResult VisitNoneOperation(IOperation operation, TArgument argument) => default(TResult);");
+            Indent();
+
+            foreach (var type in types)
+            {
+                if (type.SkipInVisitor) continue;
+
+                WriteObsoleteIfNecessary(type.Obsolete);
+                var accessibility = type.IsInternal ? "internal" : "public";
+                var baseName = GetBaseName(type.Name);
+                WriteLine($"{accessibility} virtual TResult Visit{baseName}({type.Name} operation, TArgument argument) => DefaultVisit(operation, argument);");
+            }
+
+            Unbrace();
+        }
+
+        private void WriteObsoleteIfNecessary(ObsoleteTag? tag)
+        {
+            if (tag is object)
+            {
+                WriteLine($"[Obsolete({tag.Message}, error: {tag.ErrorText})]");
+            }
         }
     }
 }

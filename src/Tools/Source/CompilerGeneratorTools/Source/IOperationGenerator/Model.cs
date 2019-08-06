@@ -53,7 +53,12 @@ namespace IOperationGenerator
         [XmlElement(ElementName = "OperationKind", Type = typeof(OperationKind))]
         public OperationKind? OperationKind;
 
+        [XmlAttribute(AttributeName = "SkipInVisitor")]
+        public string SkipInVisitorText;
+        public bool SkipInVisitor => SkipInVisitorText == "true";
+
         public virtual bool IsAbstract => true;
+
     }
 
     public class Node : AbstractNode

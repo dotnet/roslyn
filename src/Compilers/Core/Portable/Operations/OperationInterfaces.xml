@@ -831,7 +831,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUnaryOperation" Base="IOperation">
+  <Node Name="IUnaryOperation" Base="IOperation" SkipInVisitor="true">
     <OperationKind>
       <Entry Name="Unary" Value="0x1f" />
       <Entry Name="UnaryOperator" Value="0x1f" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Unary&quot;/&gt; instead." />
@@ -879,7 +879,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IBinaryOperation" Base="IOperation">
+  <Node Name="IBinaryOperation" Base="IOperation" SkipInVisitor="true">
     <OperationKind>
       <Entry Name="Binary" Value="0x20" />
       <Entry Name="BinaryOperator" Value="0x20" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Binary&quot;/&gt; instead." />
@@ -2367,7 +2367,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleBinaryOperation" Base="IOperation">
+  <Node Name="ITupleBinaryOperation" Base="IOperation" SkipInVisitor="true">
     <OperationKind>
       <Entry Name="TupleBinary" Value="0x57" />
       <Entry Name="TupleBinaryOperator" Value="0x57" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;TupleBinary&quot;/&gt; instead." />
@@ -2418,7 +2418,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="IMethodBodyOperation" Base="IMethodBodyBaseOperation">
+  <Node Name="IMethodBodyOperation" Base="IMethodBodyBaseOperation" SkipInVisitor="true">
     <OperationKind>
       <Entry Name="MethodBody" Value="0x58" />
       <Entry Name="MethodBodyOperation" Value="0x58" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;MethodBody&quot;/&gt; instead." />
@@ -2433,7 +2433,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IConstructorBodyOperation" Base="IMethodBodyBaseOperation">
+  <Node Name="IConstructorBodyOperation" Base="IMethodBodyBaseOperation" SkipInVisitor="true">
     <OperationKind>
       <Entry Name="ConstructorBody" Value="0x59" />
       <Entry Name="ConstructorBodyOperation" Value="0x59" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;ConstructorBody&quot;/&gt; instead." />
@@ -2458,7 +2458,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDiscardOperation" Base="IOperation">
+  <Node Name="IDiscardOperation" Base="IOperation" SkipInVisitor="true">
     <Comments>
       <summary>
         Represents a discard operation.
@@ -2577,7 +2577,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IRangeOperation" Base="IOperation">
+  <Node Name="IRangeOperation" Base="IOperation" SkipInVisitor="true">
     <Comments>
       <summary>
         Represents a range operation.
@@ -2658,7 +2658,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IRecursivePatternOperation" Base="IPatternOperation">
+  <Node Name="IRecursivePatternOperation" Base="IPatternOperation" SkipInVisitor="true">
     <Comments>
       <summary>Represents a C# recursive pattern.</summary>
     </Comments>
@@ -2748,7 +2748,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IPropertySubpatternOperation" Base="IOperation">
+  <Node Name="IPropertySubpatternOperation" Base="IOperation" SkipInVisitor="true">
     <Comments>
       <summary>
         Represents an element of a property subpattern, which identifies a member to be matched and the
@@ -2776,7 +2776,7 @@
     <Property Name="Group" Type="IOperation" />
     <Property Name="Aggregation" Type="IOperation" />
   </Node>
-  <Node Name="IFixedOperation" Base="IOperation" Internal="true">
+  <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor ="true">
     <Comments>
       <summary>Represents a C# fixed statement.</summary>
     </Comments>
