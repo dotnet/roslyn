@@ -314,6 +314,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
 </Project>
