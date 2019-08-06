@@ -58,64 +58,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            // First, we look at simple cases where we have just T
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(leftToken.Parent, cancellationToken).ConfigureAwait(false);
-
-            // If we're in a ref type or a generic type argument context, use the start of the ref/generic type
-            // as the position for the rest of the context checks.
-            var testPosition = position;
-            var prevToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-
-            if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
+            if (IsStartOfSpeculativeTContext(syntaxTree, position, allowAsyncKeyword: false, cancellationToken))
             {
-                // Walk out until we find the start of the partial written generic
-                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out var nameToken))
-                {
-                    testPosition = nameToken.SpanStart;
-                }
-
-                // If the user types Goo<T, automatic brace completion will insert the close brace
-                // and the generic won't be "partially written".
-                if (testPosition == position)
-                {
-                    testPosition = leftToken.GetAncestor<GenericNameSyntax>()?.SpanStart ?? testPosition;
-                }
-
-                var tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
-                if (tokenLeftOfType.IsKind(SyntaxKind.DotToken) && tokenLeftOfType.Parent.IsKind(SyntaxKind.QualifiedName))
-                {
-                    testPosition = tokenLeftOfType.Parent.SpanStart;
-                    tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
-                }
-                testPosition = GetTestPositionForRefType(tokenLeftOfType, testPosition);
-            }
-            else
-            {
-                testPosition = GetTestPositionForRefType(prevToken, testPosition);
+                return true;
             }
 
-            if ((!prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken)) ||
-                syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
-                syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-                syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
-                syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))
+            // Now we may have cases where we are in the middle of a ref/generic/tuple type.
+            // We solve this by getting the SpanStart of the out-most type and treating it as our simple case's position.
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+
+            var spanStart = position;
+            while (true)
+            {
+                var orgSpanStart = spanStart;
+
+                spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
+                // spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
+                spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
+
+                if (spanStart == orgSpanStart)
+                {
+                    break;
+                }
+            }
+
+            if (spanStart != position && IsStartOfSpeculativeTContext(syntaxTree, spanStart, allowAsyncKeyword: true, cancellationToken))
             {
                 return true;
             }
 
             return false;
+        }
 
-            static int GetTestPositionForRefType(SyntaxToken tokenLeftOfType, int testPosition)
+        private static bool IsStartOfSpeculativeTContext(SyntaxTree syntaxTree, int position, bool allowAsyncKeyword, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (((allowAsyncKeyword || !prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword)) &&
+                syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsStatementContext(position, token, cancellationToken) ||
+                syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
+                syntaxTree.IsDelegateReturnTypeContext(position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken))
             {
-                if (tokenLeftOfType.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && tokenLeftOfType.Parent.IsKind(SyntaxKind.RefType))
+                return true;
+            }
+
+            return false;
+        }
+
+        private static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var spanStart = position;
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+
+            if (syntaxTree.IsGenericTypeArgumentContext(position, token, cancellationToken, semanticModel))
+            {
+                // Walk out until we find the start of the partial written generic
+                while (syntaxTree.IsInPartiallyWrittenGeneric(spanStart, cancellationToken, out var nameToken))
                 {
-                    return tokenLeftOfType.Parent.SpanStart;
+                    spanStart = nameToken.SpanStart;
                 }
 
-                return testPosition;
+                // If the user types Goo<T, automatic brace completion will insert the close brace
+                // and the generic won't be "partially written".
+                if (spanStart == position)
+                {
+                    spanStart = token.GetAncestor<GenericNameSyntax>()?.SpanStart ?? spanStart;
+                }
+
+                var tokenLeftOfGenericName = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
+                if (tokenLeftOfGenericName.IsKind(SyntaxKind.DotToken) && tokenLeftOfGenericName.Parent.IsKind(SyntaxKind.QualifiedName))
+                {
+                    spanStart = tokenLeftOfGenericName.Parent.SpanStart;
+                }
             }
+
+            return spanStart;
+        }
+
+        private static int WalkOutOfRefType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            {
+                return prevToken.SpanStart;
+            }
+
+            return position;
+        }
+
+        private static int WalkOutOfTupleType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
