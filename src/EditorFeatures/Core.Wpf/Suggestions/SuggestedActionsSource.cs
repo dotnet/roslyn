@@ -641,9 +641,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // We are combining the spans and categories of the given set of suggested action sets
                     // to generate a result span containing the spans of individual suggested action sets and
                     // a result category which is the maximum severity category amongst the set
-                    int minStart = -1;
-                    int maxEnd = -1;
-                    string category = PredefinedSuggestedActionCategoryNames.CodeFix;
+                    var minStart = -1;
+                    var maxEnd = -1;
+                    var category = PredefinedSuggestedActionCategoryNames.CodeFix;
 
                     foreach (var set in sets)
                     {
@@ -710,17 +710,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
-            {
-                switch (key)
+                => key switch
                 {
-                    case CodeActionPriority.None: return SuggestedActionSetPriority.None;
-                    case CodeActionPriority.Low: return SuggestedActionSetPriority.Low;
-                    case CodeActionPriority.Medium: return SuggestedActionSetPriority.Medium;
-                    case CodeActionPriority.High: return SuggestedActionSetPriority.High;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                    CodeActionPriority.None => SuggestedActionSetPriority.None,
+                    CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                    CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                    CodeActionPriority.High => SuggestedActionSetPriority.High,
+                    _ => throw new InvalidOperationException(),
+                };
 
             private ImmutableArray<SuggestedActionSet> GetRefactorings(
                 ITextBufferSupportsFeatureService supportsFeatureService,
@@ -1081,40 +1078,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 var provider = _owner;
-                using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
+                using var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
+                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        return null;
-                    }
-
-                    using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-                    {
-                        var linkedToken = linkedTokenSource.Token;
-
-                        var errorTask = Task.Run(
-                            () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
-
-                        var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
-
-                        var refactoringTask = SpecializedTasks.Default<string>();
-                        if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
-                        {
-                            refactoringTask = Task.Run(
-                                () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken), linkedToken);
-                        }
-
-                        // If we happen to get the result of the error task before the refactoring task,
-                        // and that result is non-null, we can just cancel the refactoring task.
-                        var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
-                        linkedTokenSource.Cancel();
-
-                        return result == null
-                            ? null
-                            : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
-                    }
+                    return null;
                 }
+
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var linkedToken = linkedTokenSource.Token;
+
+                var errorTask = Task.Run(
+                    () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
+
+                var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
+
+                var refactoringTask = SpecializedTasks.Default<string>();
+                if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                {
+                    refactoringTask = Task.Run(
+                        () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken), linkedToken);
+                }
+
+                // If we happen to get the result of the error task before the refactoring task,
+                // and that result is non-null, we can just cancel the refactoring task.
+                var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
+                linkedTokenSource.Cancel();
+
+                return result == null
+                    ? null
+                    : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
             }
         }
     }

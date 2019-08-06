@@ -14,12 +14,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default)
         {
-            using (var query = SearchQuery.Create(name, ignoreCase))
-            {
-                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    project, query, SymbolFilter.All, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
-            }
+            using var query = SearchQuery.Create(name, ignoreCase);
+            var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, query, SymbolFilter.All, cancellationToken).ConfigureAwait(false);
+            return declarations.SelectAsArray(t => t.Symbol);
         }
 
         /// <summary>
@@ -28,12 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (var query = SearchQuery.Create(name, ignoreCase))
-            {
-                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    project, query, filter, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
-            }
+            using var query = SearchQuery.Create(name, ignoreCase);
+            var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, query, filter, cancellationToken).ConfigureAwait(false);
+            return declarations.SelectAsArray(t => t.Symbol);
         }
     }
 }

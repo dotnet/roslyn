@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
-        private static Func<ParameterSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
+        private static readonly Func<ParameterSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
 
         private static SyntaxNode SimplifyParameter(
             ParameterSyntax node,

@@ -84,13 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            switch (diagnostic.CustomTags[0])
+            return diagnostic.CustomTags[0] switch
             {
-                case WellKnownDiagnosticTags.EditAndContinue:
-                    return EditAndContinueErrorTypeDefinition.Name;
-            }
-
-            return null;
+                WellKnownDiagnosticTags.EditAndContinue => EditAndContinueErrorTypeDefinition.Name,
+                _ => null,
+            };
         }
 
         private static string GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)

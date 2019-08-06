@@ -189,9 +189,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
                 // Remember the newly activated frame so it can be read from another thread.
-                var frame = varValueNew as IVsWindowFrame;
 
-                if (frame != null)
+                if (varValueNew is IVsWindowFrame frame)
                 {
                     TrackNewActiveWindowFrame(frame);
                 }
