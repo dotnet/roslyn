@@ -32,5 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             //    : SourceCodeKind.Regular;
             AddFile(filePath, linkMetadata, SourceCodeKind.Regular);
         }
+
+        public void SetProperty([MarshalAs(UnmanagedType.LPWStr)] string property, [MarshalAs(UnmanagedType.LPWStr)] string value)
+        {
+            // TODO: Handle the properties we care about.
+        }
     }
 }

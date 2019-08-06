@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly AssetSource _source;
 
-        public SnapshotService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public SnapshotService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
             _source = new JsonRpcAssetSource(this);
 

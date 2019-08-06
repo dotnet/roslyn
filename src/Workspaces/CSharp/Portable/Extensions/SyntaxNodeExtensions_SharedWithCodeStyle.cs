@@ -27,24 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind)
-        {
-            return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
-        }
+            => CodeAnalysis.CSharpExtensions.IsKind(node?.Parent, kind);
 
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            return node != null && IsKind(node.Parent, kind1, kind2);
-        }
+            => IsKind(node?.Parent, kind1, kind2);
 
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-        {
-            return node != null && IsKind(node.Parent, kind1, kind2, kind3);
-        }
+            => IsKind(node?.Parent, kind1, kind2, kind3);
 
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
-        {
-            return node != null && IsKind(node.Parent, kind1, kind2, kind3, kind4);
-        }
+            => IsKind(node?.Parent, kind1, kind2, kind3, kind4);
 
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
         {
@@ -214,21 +206,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case DoStatementSyntax n: return n.Statement;
-                case ElseClauseSyntax n: return n.Statement;
-                case FixedStatementSyntax n: return n.Statement;
-                case CommonForEachStatementSyntax n: return n.Statement;
-                case ForStatementSyntax n: return n.Statement;
-                case IfStatementSyntax n: return n.Statement;
-                case LabeledStatementSyntax n: return n.Statement;
-                case LockStatementSyntax n: return n.Statement;
-                case UsingStatementSyntax n: return n.Statement;
-                case WhileStatementSyntax n: return n.Statement;
-                default: return null;
-            }
-        }
+                DoStatementSyntax n => n.Statement,
+                ElseClauseSyntax n => n.Statement,
+                FixedStatementSyntax n => n.Statement,
+                CommonForEachStatementSyntax n => n.Statement,
+                ForStatementSyntax n => n.Statement,
+                IfStatementSyntax n => n.Statement,
+                LabeledStatementSyntax n => n.Statement,
+                LockStatementSyntax n => n.Statement,
+                UsingStatementSyntax n => n.Statement,
+                WhileStatementSyntax n => n.Statement,
+                _ => null,
+            };
     }
 }

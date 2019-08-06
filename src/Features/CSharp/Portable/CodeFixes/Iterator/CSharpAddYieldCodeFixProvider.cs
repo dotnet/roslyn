@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
-            var method = symbol as IMethodSymbol;
-            if (method == null || method.ReturnsVoid)
+            if (!(symbol is IMethodSymbol method) || method.ReturnsVoid)
             {
                 return false;
             }
@@ -116,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return false;
             }
 
-            ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArgument);
-            ienumeratorGenericSymbol = ienumeratorGenericSymbol.Construct(typeArgument);
+            ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability(typeArgument);
+            ienumeratorGenericSymbol = ienumeratorGenericSymbol.ConstructWithNullability(typeArgument);
 
             if (!CanConvertTypes(typeArgument, returnExpressionType, model))
             {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private bool CanConvertTypes(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, SemanticModel model)
         {
             // return false if there is no conversion for the top level type
-            if (!model.Compilation.ClassifyConversion(typeArgument, returnExpressionType).Exists)
+            if (!model.Compilation.ClassifyConversion(typeArgument.WithoutNullability(), returnExpressionType.WithoutNullability()).Exists)
             {
                 return false;
             }
@@ -209,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument) :
-                base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(string title, Document newDocument)
+                : base(title, c => Task.FromResult(newDocument))
             {
             }
         }

@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
                 result.Sort((d1, d2) =>
                 {
-                    if (priorityMap.TryGetValue((CodeFixProvider)d1.Provider, out int priority1))
+                    if (priorityMap.TryGetValue((CodeFixProvider)d1.Provider, out var priority1))
                     {
-                        if (priorityMap.TryGetValue((CodeFixProvider)d2.Provider, out int priority2))
+                        if (priorityMap.TryGetValue((CodeFixProvider)d2.Provider, out var priority2))
                         {
                             return priority1 - priority2;
                         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ArrayBuilder<CodeFixCollection> result,
             CancellationToken cancellationToken)
         {
-            bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out var fixerMap);
+            var hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out var fixerMap);
 
             var projectFixersMap = GetProjectFixers(document.Project);
             var hasAnyProjectFixer = projectFixersMap.Any();
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var allFixers = new List<CodeFixProvider>();
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            bool isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
+            var isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
 
             foreach (var diagnosticId in diagnostics.Select(d => d.Id).Distinct())
             {

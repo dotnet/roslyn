@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
+            Visit(node.DeclaredType);
             VisitAll(node.Deconstruction);
             VisitAll(node.Properties);
             Visit(node.VariableAccess);
@@ -180,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.SwitchLabels)
             {
                 TakeIncrementalSnapshot(label);
+                VisitPatternForRewriting(label.Pattern);
                 VisitLabel(label.Label, node);
             }
 
@@ -469,7 +471,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            bool inferType = node.NaturalTypeOpt is object && node.NaturalTypeOpt.Equals(node.Type, TypeCompareKind.ConsiderEverything);
+            VisitSwitchExpressionCore(node, inferType);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            VisitSwitchExpressionCore(node, inferType: true);
+            return null;
+        }
+
+        private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
             int slot = MakeSlot(node.Expression);
@@ -505,6 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
+                VisitPatternForRewriting(arm.Pattern);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
@@ -519,9 +535,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
             TypeSymbol inferredType =
-                BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
-                node.Type.SetUnknownNullabilityForReferenceTypes();
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
+                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
+                    ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
+
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
@@ -551,13 +570,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             labelStateMap.Free();
             SetState(endState);
             SetResult(node, resultType, inferredTypeWithAnnotations);
-            return null;
         }
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
+            VisitPatternForRewriting(node.Pattern);
             var expressionState = VisitRvalueWithState(node.Expression);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
             var trueState = labelStateMap.TryGetValue(node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();

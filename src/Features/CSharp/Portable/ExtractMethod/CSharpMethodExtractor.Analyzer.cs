@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return analyzer.AnalyzeAsync();
             }
 
-            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken) :
-                base(selectionResult, cancellationToken)
+            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken)
+                : base(selectionResult, cancellationToken)
             {
             }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var outSymbolIndex = -1;
                 var refSymbolIndex = -1;
 
-                for (int i = 0; i < variableInfo.Count; i++)
+                for (var i = 0; i < variableInfo.Count; i++)
                 {
                     var variable = variableInfo[i];
 

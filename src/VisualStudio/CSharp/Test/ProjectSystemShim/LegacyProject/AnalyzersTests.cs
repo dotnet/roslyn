@@ -244,7 +244,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
         public void RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
-            string ruleSetSource =
+            var ruleSetSource =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
   <IncludeAll Action=""Error"" />

@@ -65,12 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             // Get the host back for the project
             var projectSiteGuid = typeof(ICSharpProjectSite).GUID;
-            var projectSite = project.GetProjectSite(ref projectSiteGuid) as CSharpProjectShim;
 
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by
             // the project system.
-            if (projectSite == null)
+            if (!(project.GetProjectSite(ref projectSiteGuid) is CSharpProjectShim projectSite))
             {
                 throw new ArgumentException($"{project} was not properly sited with the language service.", nameof(project));
             }

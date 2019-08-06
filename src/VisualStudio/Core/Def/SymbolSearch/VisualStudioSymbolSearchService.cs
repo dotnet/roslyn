@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSourceUri));
+            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)

@@ -157,6 +157,68 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        Public Sub NestedLambdaFunction()
+            Dim source = "
+Class C
+    Sub F()
+        Dim f = Function(a) Function(b) b + 1
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll)
+
+            ' Notice the that breakpoint spans of the inner function overlap with the breakpoint span of the outer function body
+            ' and that the two sequence points have the same start position.
+            ' Dim f = Function(a) [|[|Function(b)|] b + 1|]
+
+            compilation.VerifyPdb("C+_Closure$__._Lambda$__1-0",
+ <symbols>
+     <files>
+         <file id="1" name="" language="VB"/>
+     </files>
+     <methods>
+         <method containingType="C+_Closure$__" name="_Lambda$__1-0" parameterNames="a">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="21" offset="8"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="4" startColumn="17" endLine="4" endColumn="28" document="1"/>
+                 <entry offset="0x1" startLine="4" startColumn="29" endLine="4" endColumn="46" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x2a">
+                 <importsforward declaringType="C" methodName="F"/>
+             </scope>
+         </method>
+     </methods>
+ </symbols>)
+
+            compilation.VerifyPdb("C+_Closure$__._Lambda$__1-1",
+<symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
+    <methods>
+        <method containingType="C+_Closure$__" name="_Lambda$__1-1" parameterNames="b">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="20"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="29" endLine="4" endColumn="40" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="41" endLine="4" endColumn="46" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x12">
+                <importsforward declaringType="C" methodName="F"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(544000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544000")>
         Public Sub TestLambdaNameStability()
             Dim source =

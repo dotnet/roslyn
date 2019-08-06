@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }
@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var result = new Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules>();
 
-            for (int importDirective = 0; importDirective < 2; importDirective++)
+            for (var importDirective = 0; importDirective < 2; importDirective++)
             {
-                for (int preselect = 0; preselect < 2; preselect++)
+                for (var preselect = 0; preselect < 2; preselect++)
                 {
-                    for (int tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
+                    for (var tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
                     {
                         if (importDirective == 1 && tupleLiteral == 1)
                         {

@@ -103,6 +103,15 @@ namespace Microsoft.CodeAnalysis
 
                 if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                 {
+                    // If this config is a root config, then clear earlier options since they don't apply
+                    // to this source file.
+                    if (config.IsRoot)
+                    {
+                        analyzerOptionsBuilder.Clear();
+                        treeOptionsBuilder.Clear();
+                        diagnosticBuilder.Clear();
+                    }
+
                     int dirLength = config.NormalizedDirectory.Length;
                     // Leave '/' if the normalized directory ends with a '/'. This can happen if
                     // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
@@ -119,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, config.PathToFile);
+                            addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, diagnosticBuilder, config.PathToFile);
                         }
                     }
                 }
@@ -130,10 +139,11 @@ namespace Microsoft.CodeAnalysis
                 analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                 diagnosticBuilder.ToImmutableAndFree());
 
-            void addOptions(
+            static void addOptions(
                 AnalyzerConfig.Section section,
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
+                ArrayBuilder<Diagnostic> diagnosticBuilder,
                 string analyzerConfigPath)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";

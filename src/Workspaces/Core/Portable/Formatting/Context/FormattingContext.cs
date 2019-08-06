@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
+                valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
             }
 
             valuePairs.Do(v =>

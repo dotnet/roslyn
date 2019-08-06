@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 string languageVersion = null,
                 string metadataLanguageVersion = null)
             {
-                projectLanguage = projectLanguage ?? LanguageNames.CSharp;
-                metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
+                projectLanguage ??= LanguageNames.CSharp;
+                metadataSources ??= SpecializedCollections.EmptyEnumerable<string>();
                 metadataSources = !metadataSources.Any()
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null, bool allowDecompilation = false)
             {
-                project = project ?? this.DefaultProject;
+                project ??= this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
                 return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null, bool allowDecompilation = false)
             {
-                symbolMetadataName = symbolMetadataName ?? AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
-                project = project ?? this.DefaultProject;
+                symbolMetadataName ??= AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
+                project ??= this.DefaultProject;
 
                 // Get an ISymbol corresponding to the metadata name
                 var compilation = await project.GetCompilationAsync();
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 xmlString += ">";
 
-                metadataSources = metadataSources ?? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
+                metadataSources ??= new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
 
                 foreach (var source in metadataSources)
                 {

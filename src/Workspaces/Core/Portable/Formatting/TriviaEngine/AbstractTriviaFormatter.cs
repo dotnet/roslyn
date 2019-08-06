@@ -536,40 +536,24 @@ namespace Microsoft.CodeAnalysis.Formatting
             // next trivia is moved to next line or already on a new line, use indentation
             if (rule.Lines > 0 || lineColumnAfterExistingWhitespace.WhitespaceOnly)
             {
-                switch (rule.IndentationOperation)
+                return rule.IndentationOperation switch
                 {
-                    case LineColumnRule.IndentationOperations.Absolute:
-                        return Math.Max(0, rule.Indentation);
-
-                    case LineColumnRule.IndentationOperations.Default:
-                        return this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart);
-
-                    case LineColumnRule.IndentationOperations.Given:
-                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation);
-
-                    case LineColumnRule.IndentationOperations.Follow:
-                        return Math.Max(0, lineColumnBeforeTrivia1.Column);
-
-                    case LineColumnRule.IndentationOperations.Preserve:
-                        return existingWhitespaceBetween.Spaces;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation);
-                }
+                    LineColumnRule.IndentationOperations.Absolute => Math.Max(0, rule.Indentation),
+                    LineColumnRule.IndentationOperations.Default => this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart),
+                    LineColumnRule.IndentationOperations.Given => (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation),
+                    LineColumnRule.IndentationOperations.Follow => Math.Max(0, lineColumnBeforeTrivia1.Column),
+                    LineColumnRule.IndentationOperations.Preserve => existingWhitespaceBetween.Spaces,
+                    _ => throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation),
+                };
             }
 
             // okay, we are not on a its own line, use space information
-            switch (rule.SpaceOperation)
+            return rule.SpaceOperation switch
             {
-                case LineColumnRule.SpaceOperations.Preserve:
-                    return Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces);
-
-                case LineColumnRule.SpaceOperations.Force:
-                    return Math.Max(rule.Spaces, 0);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation);
-            }
+                LineColumnRule.SpaceOperations.Preserve => Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces),
+                LineColumnRule.SpaceOperations.Force => Math.Max(rule.Spaces, 0),
+                _ => throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation),
+            };
         }
 
         private int GetRuleLines(LineColumnRule rule, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween)

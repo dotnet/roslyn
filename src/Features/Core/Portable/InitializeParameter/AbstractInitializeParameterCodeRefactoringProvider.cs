@@ -38,42 +38,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = root.FindToken(position);
-            var parameterNode = GetParameterNode(token, position);
+            var parameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;
             }
 
-            // Only offered when there isn't a selection, or the selection exactly selects
-            // a parameter name.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!context.Span.IsEmpty)
-            {
-                var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                if (parameterName == null || parameterName.Value.Span != context.Span)
-                {
-                    return;
-                }
-            }
-
             var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
             if (functionDeclaration == null)
-            {
-                return;
-            }
-
-            var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
-            // Don't offer inside the "=initializer" of a parameter
-            if (parameterDefault?.Span.Contains(position) == true)
             {
                 return;
             }
@@ -97,6 +73,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
@@ -143,24 +120,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return true;
-        }
-
-        private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
-        {
-            var parameterNode = token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            if (parameterNode != null)
-            {
-                return parameterNode;
-            }
-
-            // We may be on the comma of a param list.  Try the position before us.
-            token = token.GetPreviousToken();
-            if (position == token.FullSpan.End)
-            {
-                return token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            }
-
-            return null;
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)

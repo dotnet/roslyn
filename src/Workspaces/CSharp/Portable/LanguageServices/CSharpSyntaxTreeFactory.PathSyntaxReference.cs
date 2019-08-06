@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private int GetChildIndex(SyntaxNodeOrToken child)
                 {
                     var parent = child.Parent;
-                    int index = 0;
+                    var index = 0;
 
                     foreach (var nodeOrToken in parent.ChildNodesAndTokens())
                     {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private int GetTriviaIndex(SyntaxTrivia trivia)
                 {
                     var token = trivia.Token;
-                    int index = 0;
+                    var index = 0;
 
                     foreach (var tr in token.LeadingTrivia)
                     {

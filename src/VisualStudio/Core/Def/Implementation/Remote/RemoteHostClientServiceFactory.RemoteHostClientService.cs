@@ -17,8 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class RemoteHostClientServiceFactory
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService

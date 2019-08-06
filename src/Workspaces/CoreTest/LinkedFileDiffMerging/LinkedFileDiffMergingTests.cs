@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             var startSourceText = SourceText.From(startText);
             var documentIds = new List<DocumentId>();
 
-            for (int i = 0; i < updatedTexts.Count; i++)
+            for (var i = 0; i < updatedTexts.Count; i++)
             {
                 var projectId = ProjectId.CreateNewId();
                 var documentId = DocumentId.CreateNewId(projectId);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             var startingSolution = solution;
             var updatedSolution = solution;
 
-            for (int i = 0; i < updatedTexts.Count; i++)
+            for (var i = 0; i < updatedTexts.Count; i++)
             {
                 var text = updatedTexts[i];
                 if (text != startText)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             }
 
             var mergedSolution = updatedSolution.WithMergedLinkedFileChangesAsync(startingSolution).Result;
-            for (int i = 0; i < updatedTexts.Count; i++)
+            for (var i = 0; i < updatedTexts.Count; i++)
             {
                 Assert.Equal(expectedMergedText, mergedSolution.GetDocument(documentIds[i]).GetTextAsync().Result.ToString());
             }

@@ -6929,9 +6929,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "a").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 26));
         }
 
         [Fact]
@@ -8054,9 +8054,9 @@ unsafe class C
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc").WithArguments("stackalloc in nested expressions").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(4, 14)
                 );
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.

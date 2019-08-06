@@ -19,9 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Creates a speculative SemanticModel for a TypeSyntax node at a position within an existing MemberSemanticModel.
             /// </summary>
-            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, int position)
-                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt: null, speculatedPosition: position)
+            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, int position)
+                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, speculatedPosition: position)
             {
+            }
+
+            protected override NullableWalker.SnapshotManager GetSnapshotManager()
+            {
+                // In this override, current nullability state cannot influence anything of speculatively bound expressions.
+                return _parentSnapshotManagerOpt;
             }
 
             protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)

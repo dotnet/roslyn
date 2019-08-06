@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 IEnumerable<TaggedText> separatorParts,
                 IEnumerable<TaggedText> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<TaggedText> descriptionParts) :
-                base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<TaggedText> descriptionParts)
+                : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 SymbolKey = symbol?.GetSymbolKey();
             }

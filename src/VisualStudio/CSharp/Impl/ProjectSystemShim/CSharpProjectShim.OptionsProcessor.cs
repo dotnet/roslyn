@@ -236,37 +236,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             public void SetOutputFileType(OutputFileType fileType)
             {
-                OutputKind newOutputKind;
-                switch (fileType)
+                var newOutputKind = fileType switch
                 {
-                    case OutputFileType.Console:
-                        newOutputKind = OutputKind.ConsoleApplication;
-                        break;
-
-                    case OutputFileType.Windows:
-                        newOutputKind = OutputKind.WindowsApplication;
-                        break;
-
-                    case OutputFileType.Library:
-                        newOutputKind = OutputKind.DynamicallyLinkedLibrary;
-                        break;
-
-                    case OutputFileType.Module:
-                        newOutputKind = OutputKind.NetModule;
-                        break;
-
-                    case OutputFileType.AppContainer:
-                        newOutputKind = OutputKind.WindowsRuntimeApplication;
-                        break;
-
-                    case OutputFileType.WinMDObj:
-                        newOutputKind = OutputKind.WindowsRuntimeMetadata;
-                        break;
-
-                    default:
-
-                        throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType));
-                }
+                    OutputFileType.Console => OutputKind.ConsoleApplication,
+                    OutputFileType.Windows => OutputKind.WindowsApplication,
+                    OutputFileType.Library => OutputKind.DynamicallyLinkedLibrary,
+                    OutputFileType.Module => OutputKind.NetModule,
+                    OutputFileType.AppContainer => OutputKind.WindowsRuntimeApplication,
+                    OutputFileType.WinMDObj => OutputKind.WindowsRuntimeMetadata,
+                    _ => throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType)),
+                };
 
                 if (_outputKind != newOutputKind)
                 {

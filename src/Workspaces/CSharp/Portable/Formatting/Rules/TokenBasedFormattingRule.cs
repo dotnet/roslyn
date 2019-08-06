@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
-                    int space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
+                    var space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 

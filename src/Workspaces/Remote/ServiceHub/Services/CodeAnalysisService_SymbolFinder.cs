@@ -78,13 +78,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var project = solution.GetProject(projectId);
 
-                    using (var query = SearchQuery.Create(name, searchKind))
-                    {
-                        var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
-                            project, query, criteria, cancellationToken).ConfigureAwait(false);
+                    using var query = SearchQuery.Create(name, searchKind);
 
-                        return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
-                    }
+                    var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                        project, query, criteria, cancellationToken).ConfigureAwait(false);
+
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
                 }
             }, cancellationToken);
         }

@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, object>
     {
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
+            CancellationToken cancellationToken, bool keepThreadContext = false)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
@@ -29,10 +30,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.CompletionItem>();
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
 
             var completionService = document.Project.LanguageServices.GetService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(keepThreadContext);
             if (list == null)
             {
                 return Array.Empty<LSP.CompletionItem>();

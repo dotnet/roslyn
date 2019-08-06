@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Editor.Commands
     [ExcludeFromCodeCoverage]
     internal class PasteCommandArgs : CommandArgs
     {
-        public PasteCommandArgs(ITextView textView, ITextBuffer subjectBuffer) :
-            base(textView, subjectBuffer)
+        public PasteCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
+            : base(textView, subjectBuffer)
         {
         }
     }

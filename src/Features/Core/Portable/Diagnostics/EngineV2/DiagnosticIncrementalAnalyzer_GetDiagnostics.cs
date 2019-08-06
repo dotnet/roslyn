@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var argsId = Id as LiveDiagnosticUpdateArgsId;
-                if (argsId == null)
+                if (!(Id is LiveDiagnosticUpdateArgsId argsId))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
@@ -233,13 +232,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private class IDECachedDiagnosticGetter : DiagnosticGetter
         {
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
             }
 
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
             }
 
@@ -335,25 +334,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             private readonly ImmutableHashSet<string> _diagnosticIds;
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
                 _diagnosticIds = null;
             }
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
                 _diagnosticIds = null;
             }
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, bool includeSuppressedDiagnostics) :
-                this(owner, diagnosticIds, solution, projectId, documentId: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, bool includeSuppressedDiagnostics)
+                : this(owner, diagnosticIds, solution, projectId, documentId: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
             }
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
                 _diagnosticIds = diagnosticIds;
             }

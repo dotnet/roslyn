@@ -98,9 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     _fileChangeTrackers.Add(filePath, tracker);
                 }
 
-                DateTime assemblyUpdatedTime;
-
-                if (_assemblyUpdatedTimesUtc.TryGetValue(filePath, out assemblyUpdatedTime))
+                if (_assemblyUpdatedTimesUtc.TryGetValue(filePath, out var assemblyUpdatedTime))
                 {
                     var currentFileUpdateTime = GetLastUpdateTimeUtc(filePath);
 

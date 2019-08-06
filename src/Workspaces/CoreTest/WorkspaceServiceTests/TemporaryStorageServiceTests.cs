@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var temporaryStorage = service.CreateTemporaryStreamStorage(System.Threading.CancellationToken.None);
 
             using var data = SerializableBytes.CreateWritableStream();
-            for (int i = 0; i < SharedPools.ByteBufferSize; i++)
+            for (var i = 0; i < SharedPools.ByteBufferSize; i++)
             {
                 data.WriteByte((byte)(i % 2));
             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var result = temporaryStorage.ReadStreamAsync().Result;
             Assert.Equal(data.Length, result.Length);
 
-            for (int i = 0; i < SharedPools.ByteBufferSize; i++)
+            for (var i = 0; i < SharedPools.ByteBufferSize; i++)
             {
                 Assert.Equal(i % 2, result.ReadByte());
             }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var buffer = new MemoryStream(257 * 1024 + 1);
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 buffer.WriteByte((byte)i);
             }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Do a relatively cheap concurrent stress test of the backing MemoryMappedFile management
             var tasks = Enumerable.Range(1, 257).Select(async i =>
             {
-                for (int j = 1; j < 5; j++)
+                for (var j = 1; j < 5; j++)
                 {
                     using ITemporaryStreamStorage storage1 = service.CreateTemporaryStreamStorage(CancellationToken.None),
                         storage2 = service.CreateTemporaryStreamStorage(CancellationToken.None);
@@ -179,15 +179,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
                 using var data = SerializableBytes.CreateWritableStream();
-                for (int i = 0; i < 1024 * 128; i++)
+                for (var i = 0; i < 1024 * 128; i++)
                 {
                     data.WriteByte(1);
                 }
 
                 // Create 4GB of memory mapped files
-                int fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
+                var fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
                 var storageHandles = new List<ITemporaryStreamStorage>(fileCount);
-                for (int i = 0; i < fileCount; i++)
+                for (var i = 0; i < fileCount; i++)
                 {
                     var s = service.CreateTemporaryStreamStorage(CancellationToken.None);
                     storageHandles.Add(s);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     s.WriteStreamAsync(data).Wait();
                 }
 
-                for (int i = 0; i < 1024 * 5; i++)
+                for (var i = 0; i < 1024 * 5; i++)
                 {
                     using var s = storageHandles[i].ReadStreamAsync().Result;
                     Assert.Equal(1, s.ReadByte());
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var stream = storage.ReadStream();
             Assert.Equal(expected.Length, stream.Length);
 
-            int index = 0;
+            var index = 0;
             int count;
             var bytes = new byte[1000];
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var stream = storage.ReadStream();
             Assert.Equal(expected.Length, stream.Length);
 
-            for (int i = 0; i < expected.Length; i++)
+            for (var i = 0; i < expected.Length; i++)
             {
                 var value = expected.ReadByte();
                 if (value != 0)

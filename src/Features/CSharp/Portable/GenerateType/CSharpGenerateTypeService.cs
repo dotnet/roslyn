@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
         {
-            for (int i = 0; i < namespaceContainers.Count; ++i)
+            for (var i = 0; i < namespaceContainers.Count; ++i)
             {
                 if (namespaceContainers[i] != containers[indexDone + i])
                 {

@@ -208,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         public override RefKind RefKind => _refKind;
 
         internal void ComputeReturnType()
@@ -225,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Skip some diagnostics when the local function is not associated with a compilation
             // (specifically, local functions nested in expressions in the EE).
-            if (!(compilation is null))
+            if (compilation is object)
             {
                 if (this.IsAsync)
                 {
@@ -495,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _syntax.GetHashCode();
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 

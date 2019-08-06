@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             stream.Position = 0;
 
-            int index = 0;
+            var index = 0;
             int count;
             var bytes = new byte[1000];
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             stream.Position = 0;
 
-            int index = 0;
+            var index = 0;
             int count;
             var bytes = new byte[1000];
 

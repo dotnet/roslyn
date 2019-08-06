@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();

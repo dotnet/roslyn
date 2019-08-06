@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
             var cancellationToken = context.CancellationToken;
 
             // the provider might be invoked in non-interactive context:
-            Workspace ws;
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
+            if (Workspace.TryGetWorkspace(sourceText.Container, out var ws))
             {
                 if (ws is InteractiveWorkspace workspace)
                 {

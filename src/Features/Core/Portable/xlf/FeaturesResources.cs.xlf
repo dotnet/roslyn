@@ -42,6 +42,16 @@
         <target state="translated">Přidat název elementu řazené kolekce členů {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Přidání metody s explicitním specifikátorem rozhraní zabrání v pokračování relace ladění.</target>
@@ -75,6 +85,16 @@
       <trans-unit id="Change_to_global_namespace">
         <source>Change to global namespace</source>
         <target state="translated">Změnit na globální obor názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -272,6 +292,11 @@
         <target state="new">{0} must return a stream that supports read and seek operations.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="new">Move contents to namespace...</target>
@@ -447,6 +472,11 @@
         <target state="translated">Zrušit zalomení seznamu argumentů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Zrušit zalomení výrazu</target>
@@ -455,6 +485,11 @@
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
         <target state="translated">Zrušit zalomení seznamu parametrů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
@@ -532,9 +567,29 @@
         <target state="translated">Upozornění: Změna oboru názvů může vést k vytvoření neplatného kódu a změnit význam kódu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
         <target state="new">Wrap and align expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -555,6 +610,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Zalomit dlouhý seznam argumentů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1190,11 +1250,6 @@
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
         <target state="translated">Aktivní příkaz je odstraněný z jeho původní metody. Pro pokračování musíte vzít zpátky změny nebo restartovat ladicí relaci.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace příkazu {0} v okolí aktivního příkazu zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -2433,21 +2488,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Přidat název argumentu {0} (včetně koncových argumentů)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Použití struktur jen pro čtení zabrání ladicí relaci dál pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Použití struktur REF zabrání ladicí relaci dál pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Použití odkazů jen pro čtení zabrání ladicí relaci dál pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">

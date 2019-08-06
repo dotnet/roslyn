@@ -546,11 +546,10 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 stream.Position = 0;
 
-                using (var objectReader = ObjectReader.TryGetReader(stream))
-                {
-                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                    Assert.Equal(sourceText.ToString(), newText.ToString());
-                }
+                using var objectReader = ObjectReader.TryGetReader(stream);
+
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
             // test with wrong encoding that doesn't support serialization
@@ -564,18 +563,17 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 stream.Position = 0;
 
-                using (var objectReader = ObjectReader.TryGetReader(stream))
-                {
-                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                    Assert.Equal(sourceText.ToString(), newText.ToString());
-                }
+                using var objectReader = ObjectReader.TryGetReader(stream);
+
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
 
         [Fact]
         public void TestCompilationOptions_NullableAndImport()
         {
-            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
             var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
@@ -726,8 +724,8 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
         private class MissingMetadataReference : PortableExecutableReference
         {
-            public MissingMetadataReference() :
-                base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
+            public MissingMetadataReference()
+                : base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
             {
             }
 

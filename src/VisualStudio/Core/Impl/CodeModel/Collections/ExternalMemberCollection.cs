@@ -46,8 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     throw Exceptions.ThrowEFail();
                 }
 
-                var typeSymbol = _typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol as ITypeSymbol;
-                if (typeSymbol == null)
+                if (!(_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is ITypeSymbol typeSymbol))
                 {
                     throw Exceptions.ThrowEFail();
                 }

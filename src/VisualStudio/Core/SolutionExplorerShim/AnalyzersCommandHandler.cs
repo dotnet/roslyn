@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateOtherMenuItemsVisibility()
         {
-            bool selectedProjectSupportsAnalyzers = SelectedProjectSupportsAnalyzers();
+            var selectedProjectSupportsAnalyzers = SelectedProjectSupportsAnalyzers();
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return;
             }
 
-            HashSet<ReportDiagnostic> selectedItemSeverities = new HashSet<ReportDiagnostic>();
+            var selectedItemSeverities = new HashSet<ReportDiagnostic>();
 
             var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.ProjectId);
 
@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsEnabled()
         {
-            bool configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
+            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
 
             _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;
@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                     try
                     {
-                        EnvDTE.DTE dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+                        var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
                         dte.ItemOperations.OpenFile(ruleSetFile);
                     }
                     catch (Exception e)
@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void SetSeverityHandler(object sender, EventArgs args)
         {
             var selectedItem = (MenuCommand)sender;
-            ReportDiagnostic? selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
+            var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
 
             if (!selectedAction.HasValue)
             {
@@ -486,8 +486,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (_tracker.SelectedHierarchy.TryGetProject(out var project) &&
                 _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out var ruleSetFileFullPath))
             {
-                string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
-                string ruleSetFileRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
+                var projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
+                var ruleSetFileRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
 
                 UpdateProjectConfigurationsToUseRuleSetFile(project, ruleSetFileRelativePath);
             }
@@ -495,9 +495,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private string CreateCopyOfRuleSetForProject(string pathToRuleSet, EnvDTE.Project envDteProject)
         {
-            string fileName = GetNewRuleSetFileNameForProject(envDteProject);
-            string projectDirectory = Path.GetDirectoryName(envDteProject.FullName);
-            string fullFilePath = Path.Combine(projectDirectory, fileName);
+            var fileName = GetNewRuleSetFileNameForProject(envDteProject);
+            var projectDirectory = Path.GetDirectoryName(envDteProject.FullName);
+            var fullFilePath = Path.Combine(projectDirectory, fileName);
             File.Copy(pathToRuleSet, fullFilePath);
             UpdateProjectConfigurationsToUseRuleSetFile(envDteProject, fileName);
             envDteProject.ProjectItems.AddFromFile(fullFilePath);
@@ -509,11 +509,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             foreach (EnvDTE.Configuration config in envDteProject.ConfigurationManager)
             {
-                EnvDTE.Properties properties = config.Properties;
+                var properties = config.Properties;
 
                 try
                 {
-                    EnvDTE.Property codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
+                    var codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
                     if (codeAnalysisRuleSetFileProperty != null)
                     {
@@ -531,21 +531,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private string GetNewRuleSetFileNameForProject(EnvDTE.Project envDteProject)
         {
-            string projectName = envDteProject.Name;
+            var projectName = envDteProject.Name;
 
-            HashSet<string> projectItemNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var projectItemNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (ProjectItem item in envDteProject.ProjectItems)
             {
                 projectItemNames.Add(item.Name);
             }
 
-            string ruleSetName = projectName + ".ruleset";
+            var ruleSetName = projectName + ".ruleset";
             if (!projectItemNames.Contains(ruleSetName))
             {
                 return ruleSetName;
             }
 
-            for (int i = 1; i < int.MaxValue; i++)
+            for (var i = 1; i < int.MaxValue; i++)
             {
                 ruleSetName = projectName + i + ".ruleset";
                 if (!projectItemNames.Contains(ruleSetName))

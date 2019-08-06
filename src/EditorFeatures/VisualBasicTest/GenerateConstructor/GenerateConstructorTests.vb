@@ -1864,7 +1864,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -1893,7 +1893,7 @@ Class A
     End Sub
 
     Shared Property _p As Integer
-End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
         End Function
 
         <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
@@ -1917,7 +1917,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
         End Function
     End Class
 End Namespace

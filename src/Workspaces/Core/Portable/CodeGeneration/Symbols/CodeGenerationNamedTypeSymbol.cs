@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations
         {
             get
             {

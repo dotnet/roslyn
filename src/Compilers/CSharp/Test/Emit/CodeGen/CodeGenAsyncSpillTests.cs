@@ -3340,5 +3340,146 @@ test
 4
 ");
         }
+
+        [Fact, WorkItem(36856, "https://github.com/dotnet/roslyn/issues/36856")]
+        public void Crash36856()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    private static async Task Serialize()
+    {
+        System.Text.Json.Serialization.JsonSerializer.Parse<string>(await TestAsync());
+    }
+
+    private static Task<byte[]> TestAsync()
+    {
+        return null;
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public static implicit operator ReadOnlySpan<T>(T[] array)
+        {
+            throw null;
+        }
+    }
+}
+namespace System.Text.Json.Serialization
+{
+    public static class JsonSerializer
+    {
+        public static TValue Parse<TValue>(ReadOnlySpan<byte> utf8Json, JsonSerializerOptions options = null)
+        {
+            throw null;
+        }
+    }
+    public sealed class JsonSerializerOptions
+    {
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe);
+
+            v.VerifyIL("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+    // Code size      184 (0xb8)
+    .maxstack  3
+    .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter<byte[]> V_1,
+                Program.<Serialize>d__1 V_2,
+                System.Exception V_3)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_0006:  stloc.0
+    .try
+    {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0047
+    IL_000e:  nop
+    IL_000f:  call       ""System.Threading.Tasks.Task<byte[]> Program.TestAsync()""
+    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> System.Threading.Tasks.Task<byte[]>.GetAwaiter()""
+    IL_0019:  stloc.1
+    IL_001a:  ldloca.s   V_1
+    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<byte[]>.IsCompleted.get""
+    IL_0021:  brtrue.s   IL_0063
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.1
+    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_0033:  ldarg.0
+    IL_0034:  stloc.2
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+    IL_003b:  ldloca.s   V_1
+    IL_003d:  ldloca.s   V_2
+    IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<byte[]>, Program.<Serialize>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<byte[]>, ref Program.<Serialize>d__1)""
+    IL_0044:  nop
+    IL_0045:  leave.s    IL_00b7
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_004d:  stloc.1
+    IL_004e:  ldarg.0
+    IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<byte[]>""
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_0063:  ldarg.0
+    IL_0064:  ldloca.s   V_1
+    IL_0066:  call       ""byte[] System.Runtime.CompilerServices.TaskAwaiter<byte[]>.GetResult()""
+    IL_006b:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0076:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+    IL_007b:  ldnull
+    IL_007c:  call       ""string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)""
+    IL_0081:  pop
+    IL_0082:  ldarg.0
+    IL_0083:  ldnull
+    IL_0084:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0089:  leave.s    IL_00a3
+    }
+    catch System.Exception
+    {
+    IL_008b:  stloc.3
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.s   -2
+    IL_008f:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_0094:  ldarg.0
+    IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+    IL_009a:  ldloc.3
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a0:  nop
+    IL_00a1:  leave.s    IL_00b7
+    }
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+    IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+    IL_00b6:  nop
+    IL_00b7:  ret
+}
+", sequencePoints: "Program.Serialize");
+        }
     }
 }

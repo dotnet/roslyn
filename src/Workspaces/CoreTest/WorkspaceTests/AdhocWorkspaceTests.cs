@@ -146,7 +146,7 @@ language: LanguageNames.CSharp);
         public void TestAddProject_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
-            ProjectId pid = ProjectId.CreateNewId();
+            var pid = ProjectId.CreateNewId();
 
             var docInfo = DocumentInfo.Create(
                             DocumentId.CreateNewId(pid),

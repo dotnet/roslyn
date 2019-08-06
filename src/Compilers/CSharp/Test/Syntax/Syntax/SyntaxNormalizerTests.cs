@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+
+            TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
 
         private void TestNormalizeExpression(string text, string expected)

@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 ? (AbstractCodeElement)this.Parent
                 : null;
 
-            int currentIndex = 0;
+            var currentIndex = 0;
 
             // Option statements
             var optionNodes = CodeModelService.GetOptionNodes(node);

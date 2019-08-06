@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceAnalyzerOptions == null)
+            if (!(analyzerOptions is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
                 return new ValueTask<OptionSet>(default(OptionSet));
             }
@@ -506,15 +505,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            switch (kind)
+            return kind switch
             {
-                case AnalysisKind.Syntax:
-                    return analyzer.SupportsSyntaxDiagnosticAnalysis();
-                case AnalysisKind.Semantic:
-                    return analyzer.SupportsSemanticDiagnosticAnalysis();
-                default:
-                    return Contract.FailWithReturn<bool>("shouldn't reach here");
-            }
+                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
+                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
+                _ => Contract.FailWithReturn<bool>("shouldn't reach here"),
+            };
         }
 
         public static async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
@@ -530,21 +526,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                Task<ImmutableArray<Diagnostic>> analyzeAsync;
 
-                switch (kind)
+                var analyzeAsync = kind switch
                 {
-                    case AnalysisKind.Syntax:
-                        analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
-                        break;
-
-                    case AnalysisKind.Semantic:
-                        analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                    AnalysisKind.Syntax => analyzer.AnalyzeSyntaxAsync(document, cancellationToken),
+                    AnalysisKind.Semantic => analyzer.AnalyzeSemanticsAsync(document, cancellationToken),
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind),
+                };
 
                 var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
                 if (compilationOpt != null)
@@ -859,8 +847,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 public bool IsCompilationEndAnalyzer { get; private set; } = false;
 
-                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken) :
-                    base(compilation, options, cancellationToken)
+                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+                    : base(compilation, options, cancellationToken)
                 {
                 }
 

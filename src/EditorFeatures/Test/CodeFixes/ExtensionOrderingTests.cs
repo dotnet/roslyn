@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36330")]
+        [Fact]
         public void TestNoCyclesInSuppressionProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our suppression fix providers.

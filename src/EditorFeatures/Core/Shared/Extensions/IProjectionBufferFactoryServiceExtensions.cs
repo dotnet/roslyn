@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static IList<SnapshotSpan> CreateSnapshotSpans(ITextSnapshot snapshot, LineSpan lineSpan)
         {
             var result = new List<SnapshotSpan>();
-            for (int i = lineSpan.Start; i < lineSpan.End; i++)
+            for (var i = lineSpan.Start; i < lineSpan.End; i++)
             {
                 var line = snapshot.GetLineFromLineNumber(i);
                 result.Add(line.Extent);

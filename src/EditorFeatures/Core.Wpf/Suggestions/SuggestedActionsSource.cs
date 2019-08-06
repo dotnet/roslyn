@@ -343,9 +343,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    // We only include suppressions if light bulb is asking for everything.
-                    // If the light bulb is only asking for code fixes, then we don't include suppressions.
-                    var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
+                    // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
+                    // See https://github.com/dotnet/roslyn/issues/29589
+                    const bool includeSuppressionFixes = true;
 
                     var fixes = Task.Run(
                         () => _owner._codeFixService.GetFixesAsync(

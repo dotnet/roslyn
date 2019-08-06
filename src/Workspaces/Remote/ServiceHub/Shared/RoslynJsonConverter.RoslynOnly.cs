@@ -357,22 +357,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                switch (kind)
+                return kind switch
                 {
-                    case AddImportFixKind.ProjectSymbol:
-                        return AddImportFixData.CreateForProjectSymbol(textChanges, title, tags, priority, projectReferenceToAdd);
-
-                    case AddImportFixKind.MetadataSymbol:
-                        return AddImportFixData.CreateForMetadataSymbol(textChanges, title, tags, priority, portableExecutableReferenceProjectId, portableExecutableReferenceFilePathToAdd);
-
-                    case AddImportFixKind.PackageSymbol:
-                        return AddImportFixData.CreateForPackageSymbol(textChanges, packageSource, packageName, packageVersionOpt);
-
-                    case AddImportFixKind.ReferenceAssemblySymbol:
-                        return AddImportFixData.CreateForReferenceAssemblySymbol(textChanges, title, assemblyReferenceAssemblyName, assemblyReferenceFullyQualifiedTypeName);
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                    AddImportFixKind.ProjectSymbol => AddImportFixData.CreateForProjectSymbol(textChanges, title, tags, priority, projectReferenceToAdd),
+                    AddImportFixKind.MetadataSymbol => AddImportFixData.CreateForMetadataSymbol(textChanges, title, tags, priority, portableExecutableReferenceProjectId, portableExecutableReferenceFilePathToAdd),
+                    AddImportFixKind.PackageSymbol => AddImportFixData.CreateForPackageSymbol(textChanges, packageSource, packageName, packageVersionOpt),
+                    AddImportFixKind.ReferenceAssemblySymbol => AddImportFixData.CreateForReferenceAssemblySymbol(textChanges, title, assemblyReferenceAssemblyName, assemblyReferenceFullyQualifiedTypeName),
+                    _ => throw ExceptionUtilities.Unreachable,
+                };
             }
 
             protected override void WriteValue(JsonWriter writer, AddImportFixData source, JsonSerializer serializer)

@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         private class LocalSymbolDumper
         {
-            private CSharpCompilation _compilation;
+            private readonly CSharpCompilation _compilation;
             public LocalSymbolDumper(CSharpCompilation compilation)
             {
                 _compilation = compilation;

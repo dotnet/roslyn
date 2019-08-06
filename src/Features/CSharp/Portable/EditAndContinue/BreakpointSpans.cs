@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var text = line.ToString();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!SyntaxFacts.IsWhitespace(text[i]))
                 {

@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder = ImmutableArray.CreateBuilder<T>(size);
         }
 
-        public ArrayBuilder() :
-            this(8)
+        public ArrayBuilder()
+            : this(8)
         { }
 
-        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool) :
-            this()
+        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool)
+            : this()
         {
             _pool = pool;
         }

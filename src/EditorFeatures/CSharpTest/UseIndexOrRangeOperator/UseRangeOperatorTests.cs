@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
@@ -58,11 +59,27 @@ class C
 </Workspace>");
         }
 
+        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNotWithoutSystemRange()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([||]1, s.Length - 1);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestSimple()
         {
             await TestAsync(
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s)
@@ -71,6 +88,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s)
@@ -85,6 +103,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s, int bar, int baz)
@@ -93,6 +112,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s, int bar, int baz)
@@ -107,6 +127,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s)
@@ -115,6 +136,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s)
@@ -183,6 +205,7 @@ class C
             // simplify even further.
             await TestAsync(
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s, string t)
@@ -191,6 +214,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Range { } }
 class C
 {
     void Goo(string s, string t)

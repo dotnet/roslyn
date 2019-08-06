@@ -64,9 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 var interactiveWorkspace = (InteractiveWorkspace)workspace;
                 var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
-                ITextUndoHistory textUndoHistory;
 
-                Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out textUndoHistory));
+                Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));
 
                 return textUndoHistory;
             }

@@ -1549,6 +1549,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementNullableAnnotationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementNullableAnnotationCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuples must have at least two elements..
         /// </summary>
         internal static string TuplesNeedAtLeastTwoElements {

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
+        private bool _usesNullableAttributes;
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
@@ -42,10 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 
-        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
+        private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
+        }
+
+        internal bool GetUsesNullableAttributes()
+        {
+            _needsGeneratedAttributes_IsFrozen = true;
+            return _usesNullableAttributes;
+        }
+
+        private void SetUsesNullableAttributes()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            _usesNullableAttributes = true;
         }
 
         /// <summary>
@@ -456,6 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetNeedsGeneratedAttributes(attribute);
             }
+
+            if ((attribute & (EmbeddableAttributes.NullableAttribute | EmbeddableAttributes.NullableContextAttribute)) != 0 &&
+                modifyCompilation)
+            {
+                SetUsesNullableAttributes();
+            }
         }
 
         internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
@@ -481,11 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureNullableContextAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
-        }
-
-        internal void EnsureNullablePublicOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, DiagnosticBag diagnosticsOpt, Location locationOpt)
@@ -684,6 +698,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeWithAnnotations.Create(stringType));
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
+        }
+
+        internal SynthesizedAttributeData SynthesizeAttributeUsageAttribute(AttributeTargets targets, bool allowMultiple, bool inherited)
+        {
+            var attributeTargetsType = GetWellKnownType(WellKnownType.System_AttributeTargets);
+            var boolType = GetSpecialType(SpecialType.System_Boolean);
+            var arguments = ImmutableArray.Create(
+                new TypedConstant(attributeTargetsType, TypedConstantKind.Enum, targets));
+            var namedArguments = ImmutableArray.Create(
+                new KeyValuePair<WellKnownMember, TypedConstant>(WellKnownMember.System_AttributeUsageAttribute__AllowMultiple, new TypedConstant(boolType, TypedConstantKind.Primitive, allowMultiple)),
+                new KeyValuePair<WellKnownMember, TypedConstant>(WellKnownMember.System_AttributeUsageAttribute__Inherited, new TypedConstant(boolType, TypedConstantKind.Primitive, inherited)));
+            return TrySynthesizeAttribute(WellKnownMember.System_AttributeUsageAttribute__ctor, arguments, namedArguments);
         }
 
         internal static class TupleNamesEncoder

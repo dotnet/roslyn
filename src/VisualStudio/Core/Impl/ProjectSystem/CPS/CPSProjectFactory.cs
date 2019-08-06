@@ -21,20 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly ExternalErrorDiagnosticUpdateSource _externalErrorDiagnosticUpdateSource;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CPSProjectFactory(
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
-            IProjectCodeModelFactory projectCodeModelFactory,
-            [Import(AllowDefault = true)] /* not present in unit tests */ ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
+            IProjectCodeModelFactory projectCodeModelFactory)
         {
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
-            _externalErrorDiagnosticUpdateSource = externalErrorDiagnosticUpdateSource;
         }
 
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
@@ -46,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath)
         {
             var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid);
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, _externalErrorDiagnosticUpdateSource, projectGuid, binOutputPath);
+            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
         }
 
         private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)

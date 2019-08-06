@@ -51,7 +51,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Children()
         {
-            CodeNamespace testObject = GetCodeNamespace("Goo");
+            var testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(3, testObject.Children.Count);
         }
@@ -60,7 +60,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Members()
         {
-            CodeNamespace testObject = GetCodeNamespace("Goo");
+            var testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(3, testObject.Members.Count);
         }
@@ -69,8 +69,8 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
-            CodeNamespace outer = GetCodeNamespace("Goo");
-            CodeNamespace inner = outer.Members.Item("Bar") as CodeNamespace;
+            var outer = GetCodeNamespace("Goo");
+            var inner = outer.Members.Item("Bar") as CodeNamespace;
 
             Assert.Equal(outer.Name, ((CodeNamespace)inner.Parent).Name);
         }
@@ -79,7 +79,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
-            CodeNamespace testObject = GetCodeNamespace("Goo");
+            var testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(vsCMElement.vsCMElementNamespace, testObject.Kind);
         }
@@ -88,7 +88,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
-            CodeNamespace testObject = GetCodeNamespace(2);
+            var testObject = GetCodeNamespace(2);
 
             Assert.Equal("Goo", testObject.Name);
         }
@@ -97,7 +97,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name_Dotted()
         {
-            CodeNamespace testObject = GetCodeNamespace(3);
+            var testObject = GetCodeNamespace(3);
 
             Assert.Equal("A.B", testObject.Name);
         }
@@ -106,7 +106,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -114,7 +114,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -122,9 +122,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(20, startPoint.Line);
             Assert.Equal(1, startPoint.LineCharOffset);
@@ -134,7 +134,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -142,7 +142,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -150,7 +150,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -158,7 +158,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -166,9 +166,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(18, startPoint.Line);
             Assert.Equal(11, startPoint.LineCharOffset);
@@ -178,7 +178,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -186,8 +186,8 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var testObject = GetCodeNamespace("A.B");
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(18, startPoint.Line);
             Assert.Equal(1, startPoint.LineCharOffset);
@@ -197,7 +197,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -205,7 +205,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -213,9 +213,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(27, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
@@ -225,7 +225,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -233,7 +233,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -241,7 +241,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -249,7 +249,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -257,9 +257,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(18, endPoint.Line);
             Assert.Equal(14, endPoint.LineCharOffset);
@@ -269,7 +269,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -277,9 +277,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(27, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
@@ -289,9 +289,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint startPoint = testObject.StartPoint;
+            var startPoint = testObject.StartPoint;
 
             Assert.Equal(18, startPoint.Line);
             Assert.Equal(1, startPoint.LineCharOffset);
@@ -301,9 +301,9 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
-            TextPoint endPoint = testObject.EndPoint;
+            var endPoint = testObject.EndPoint;
 
             Assert.Equal(27, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
@@ -313,7 +313,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Language()
         {
-            CodeNamespace testObject = GetCodeNamespace("A.B");
+            var testObject = GetCodeNamespace("A.B");
 
             Assert.Equal(CodeModelLanguageConstants.vsCMLanguageCSharp, testObject.Language);
         }

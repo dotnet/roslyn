@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public async Task<bool> ApplyAsync(
+        public bool Apply(
             Workspace workspace, Document fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
@@ -121,9 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    // ConfigureAwait(true) so we come back to the same thread as 
-                    // we do all application on the UI thread.                    
-                    if (!await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(true))
+                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
                     {
                         documentErrorLookup.Add(document.Id);
                     }
@@ -147,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+                var text = singleChangedDocument.GetTextSynchronously(cancellationToken);
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {

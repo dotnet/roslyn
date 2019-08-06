@@ -70,10 +70,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read))
-                    {
-                        assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
-                    }
+                    using var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read);
+
+                    assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                 }
                 catch (Exception e)
                 {

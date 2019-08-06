@@ -36,36 +36,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
 
-            if (!token.Span.Contains(textSpan))
+            var variableDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
+            if (variableDeclarator == default)
             {
                 return;
             }
 
-            var node = token.Parent;
-
-            if (!node.IsKind(SyntaxKind.VariableDeclarator) ||
-                !node.IsParentKind(SyntaxKind.VariableDeclaration) ||
-                !node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration) ||
+                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
 
-            var variableDeclarator = (VariableDeclaratorSyntax)node;
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
-            if (variableDeclarator.Identifier != token ||
-                variableDeclarator.Initializer == null ||
+            if (variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
                 variableDeclarator.Initializer.Value.IsKind(SyntaxKind.StackAllocArrayCreationExpression))
             {
@@ -506,44 +498,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             Dictionary<SyntaxNode, SyntaxNode> replacementNodesWithChangedSemantics = null;
             using (var originalNodesEnum = originalIdentifierNodes.GetEnumerator())
             {
-                using (var inlinedNodesOrTokensEnum = inlinedExprNodes.GetEnumerator())
+                using var inlinedNodesOrTokensEnum = inlinedExprNodes.GetEnumerator();
+
+                while (originalNodesEnum.MoveNext())
                 {
-                    while (originalNodesEnum.MoveNext())
+                    inlinedNodesOrTokensEnum.MoveNext();
+                    var originalNode = originalNodesEnum.Current;
+
+                    // expressionToInline is Parenthesized prior to replacement, so get the parenting parenthesized expression.
+                    var inlinedNode = (ExpressionSyntax)inlinedNodesOrTokensEnum.Current.Parent;
+                    Debug.Assert(inlinedNode.IsKind(SyntaxKind.ParenthesizedExpression));
+
+                    // inlinedNode is the expanded form of the actual initializer expression in the original document.
+                    // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
+                    // Get this annotated node and compute the symbol info for this node in the inlined document.
+                    var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
+
+                    var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
+                        innerInitializerInInlineNodeOrToken.AsNode() :
+                        innerInitializerInInlineNodeOrToken.AsToken().Parent);
+                    var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
+
+                    // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
+                    if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                     {
-                        inlinedNodesOrTokensEnum.MoveNext();
-                        var originalNode = originalNodesEnum.Current;
-
-                        // expressionToInline is Parenthesized prior to replacement, so get the parenting parenthesized expression.
-                        var inlinedNode = (ExpressionSyntax)inlinedNodesOrTokensEnum.Current.Parent;
-                        Debug.Assert(inlinedNode.IsKind(SyntaxKind.ParenthesizedExpression));
-
-                        // inlinedNode is the expanded form of the actual initializer expression in the original document.
-                        // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
-                        // Get this annotated node and compute the symbol info for this node in the inlined document.
-                        var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
-
-                        var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
-                            innerInitializerInInlineNodeOrToken.AsNode() :
-                            innerInitializerInInlineNodeOrToken.AsToken().Parent);
-                        var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
-
-                        // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
+                        newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                         if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
-                        {
-                            newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
-                            if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
-                            {
-                                replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
-                                replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
-                            }
-                        }
-
-                        // Verification: Do not inline a variable into the left side of a deconstruction-assignment
-                        if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
                         {
                             replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
                             replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
+                    }
+
+                    // Verification: Do not inline a variable into the left side of a deconstruction-assignment
+                    if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
+                    {
+                        replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
+                        replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                     }
                 }
             }
@@ -589,8 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

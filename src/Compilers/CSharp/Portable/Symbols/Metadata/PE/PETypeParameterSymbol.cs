@@ -447,7 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // https://github.com/dotnet/roslyn/issues/29821 Support external annotations.
                 if (!HasReferenceTypeConstraint)
                 {
                     return false;

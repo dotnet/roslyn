@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -4916,10 +4918,11 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(37097, "https://github.com/dotnet/roslyn/issues/37097")]
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
@@ -6345,6 +6348,269 @@ class X
     }
 }",
                 MainDescription("void M<T>() where T : notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableParameterThatIsMaybeNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    void N(string? s)
+    {
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.parameter}) string? s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableParameterThatIsNotNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    void N(string? s)
+    {
+        s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.parameter}) string? s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableFieldThatIsMaybeNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    string? s = null;
+
+    void N()
+    {
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.field}) string? X.s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableFieldThatIsNotNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    string? s = null;
+
+    void N()
+    {
+        s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.field}) string? X.s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullablePropertyThatIsMaybeNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    string? S { get; set; }
+
+    void N()
+    {
+        string s2 = $$S;
+    }
+}",
+                MainDescription("string? X.S { get; set; }"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "S")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullablePropertyThatIsNotNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+class X
+{
+    string? S { get; set; }
+
+    void N()
+    {
+        S = """";
+        string s2 = $$S;
+    }
+}",
+                MainDescription("string? X.S { get; set; }"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "S")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableRangeVariableThatIsMaybeNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        IEnumerable<string?> enumerable;
+
+        foreach (var s in enumerable)
+        {
+            string s2 = $$s;
+        }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableRangeVariableThatIsNotNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        IEnumerable<string> enumerable;
+
+        foreach (var s in enumerable)
+        {
+            string s2 = $$s;
+        }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableLocalThatIsMaybeNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string? s = null;
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableLocalThatIsNotNull()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string? s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownPriorToLanguageVersion8()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular7_3,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownWithoutFeatureFlag()
+        {
+            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "false");
+            await TestWithOptionsAsync(options,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownInNullableDisableContextEvenIfAnalysisIsRunning()
+        {
+            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "true");
+            await TestWithOptionsAsync(options,
+@"#nullable disable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(""));
         }
     }
 }

@@ -69,19 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
-                    isEdit => IsRegionReadOnly(documentId, isEdit)));
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
 
-                readOnlyEdit.Apply();
-            }
+            _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
+                isEdit => IsRegionReadOnly(documentId, isEdit)));
+
+            readOnlyEdit.Apply();
         }
 
         private bool IsRegionReadOnly(DocumentId documentId, bool isEdit)
         {
             AssertIsForeground();
-            bool isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
+            var isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
 
             if (isEdit && isReadOnly)
             {
@@ -112,11 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             AssertIsForeground();
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                readOnlyEdit.RemoveReadOnlyRegion(region);
-                readOnlyEdit.Apply();
-            }
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
+
+            readOnlyEdit.RemoveReadOnlyRegion(region);
+            readOnlyEdit.Apply();
         }
 
         private static ITextBuffer GetTextBuffer(Workspace workspace, DocumentId documentId)

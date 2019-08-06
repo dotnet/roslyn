@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum infoChecksum, ProjectChecksumCollection projectChecksums) :
-            this((object)infoChecksum, projectChecksums)
+        public SolutionStateChecksums(Checksum infoChecksum, ProjectChecksumCollection projectChecksums)
+            : this((object)infoChecksum, projectChecksums)
         {
         }
 
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             MetadataReferenceChecksumCollection metadataReferenceChecksums,
             AnalyzerReferenceChecksumCollection analyzerReferenceChecksums,
             TextDocumentChecksumCollection additionalDocumentChecksums,
-            AnalyzerConfigDocumentChecksumCollection analyzerConfigDocumentChecksumCollection) :
-            this(
+            AnalyzerConfigDocumentChecksumCollection analyzerConfigDocumentChecksumCollection)
+            : this(
                 (object)infoChecksum,
                 compilationOptionsChecksum,
                 parseOptionsChecksum,
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
     internal class DocumentStateChecksums : ChecksumWithChildren
     {
-        public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum) :
-            this((object)infoChecksum, textChecksum)
+        public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
+            : this((object)infoChecksum, textChecksum)
         {
         }
 

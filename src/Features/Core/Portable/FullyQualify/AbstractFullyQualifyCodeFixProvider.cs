@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                                           .Take(MaxResults);
 
                 var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
-                var codeActions = CreateActions(context, document, diagnostic, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
+                var codeActions = CreateActions(document, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
 
                 if (codeActions.Length > 1)
                 {
@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private IEnumerable<CodeAction> CreateActions(
-            CodeFixContext context, Document document, Diagnostic diagnostic,
-            SyntaxNode node, SemanticModel semanticModel,
+            Document document, SyntaxNode node, SemanticModel semanticModel,
             IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
             ISymbolDisplayService displayService)
         {
@@ -332,8 +331,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }

@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
         private sealed class TestTag : TextMarkerTag
         {
-            public TestTag() :
-                base("Test")
+            public TestTag()
+                : base("Test")
             {
             }
         }
@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
-            public TestTaggerEventSource() :
-                base(delay: TaggerDelay.NearImmediate)
+            public TestTaggerEventSource()
+                : base(delay: TaggerDelay.NearImmediate)
             {
             }
 
