@@ -817,7 +817,7 @@ class C
         [Fact]
         public void UpdateAsync_NoVariables()
         {
-            var source0 = @"
+            var source0 = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -827,8 +827,8 @@ class C
         await Task.FromResult(1);
         return 2;
     }
-}";
-            var source1 = @"
+}");
+            var source1 = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -838,7 +838,7 @@ class C
         await Task.FromResult(10);
         return 20;
     }
-}";
+}");
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 

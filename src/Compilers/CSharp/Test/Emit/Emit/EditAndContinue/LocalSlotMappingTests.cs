@@ -101,7 +101,7 @@ class C
         [Fact]
         public void OutOfOrderUserLocals()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 public class C
@@ -114,7 +114,7 @@ public class C
         int j;
         for (j = 1; j < 3; j++) Console.WriteLine(3);
     }
-}";
+}");
             var compilation0 = CreateCompilation(source, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
@@ -320,7 +320,7 @@ public class C
         [Fact]
         public void DebugOnly()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static System.IDisposable F()
@@ -332,7 +332,7 @@ public class C
         lock (F()) { }
         using (F()) { }
     }
-}";
+}");
             var debug = CreateCompilation(source, options: TestOptions.DebugDll);
             var release = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
@@ -399,7 +399,7 @@ public class C
         [Fact]
         public void Using()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C : System.IDisposable
 {
     public void Dispose()
@@ -421,7 +421,7 @@ public class C
             }
         }
     }
-}";
+}");
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
@@ -2432,7 +2432,7 @@ class C
         [Fact]
         public void Switch_Integer()
         {
-            var source0 =
+            var source0 = WithWindowsLineBreaks(
 @"class C
 {
     static int F() { return 1; }
@@ -2445,9 +2445,9 @@ class C
             case 2: System.Console.WriteLine(2); break; 
         }
     }
-}";
-            var source1 =
-            @"class C
+}");
+            var source1 = WithWindowsLineBreaks(
+@"class C
 {
     static int F() { return 1; }
     
@@ -2459,7 +2459,7 @@ class C
             case 2: System.Console.WriteLine(20); break; 
         }
     }
-}";
+}");
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
@@ -2567,7 +2567,7 @@ class C
         [Fact]
         public void Switch_Patterns()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using static System.Console;
 class C
 {
@@ -2586,7 +2586,7 @@ class C
             case object o: WriteLine(o); break; 
         }
     }
-}";
+}");
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
@@ -2775,7 +2775,7 @@ class C
         [Fact]
         public void If()
         {
-            var source0 = @"
+            var source0 = WithWindowsLineBreaks(@"
 class C
 {
     static bool F() { return true; }
@@ -2787,8 +2787,8 @@ class C
             System.Console.WriteLine(1);
         }
     }
-}";
-            var source1 = @"
+}");
+            var source1 = WithWindowsLineBreaks(@"
 class C
 {
     static bool F() { return true; }
@@ -2800,7 +2800,7 @@ class C
             System.Console.WriteLine(10);
         }
     }
-}";
+}");
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
@@ -2992,7 +2992,7 @@ class C
         [Fact]
         public void Do1()
         {
-            var source0 = @"
+            var source0 = WithWindowsLineBreaks(@"
 class C
 {
     static bool F() { return true; }
@@ -3005,8 +3005,8 @@ class C
         }
         while (F());
     }
-}";
-            var source1 = @"
+}");
+            var source1 = WithWindowsLineBreaks(@"
 class C
 {
     static bool F() { return true; }
@@ -3019,7 +3019,8 @@ class C
         }
         while (F());
     }
-}";
+}");
+
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
