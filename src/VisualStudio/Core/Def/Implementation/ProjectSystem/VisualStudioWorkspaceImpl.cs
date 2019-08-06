@@ -1889,11 +1889,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void SetMaxLanguageVersion(ProjectId projectId, string maxLangVer)
+        internal void SetMaxLanguageVersion(ProjectId projectId, string maxLanguageVersion)
         {
             lock (_gate)
             {
-                _projectToMaxSupportedLangVersionMap[projectId] = maxLangVer;
+                _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
             }
         }
     }

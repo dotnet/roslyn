@@ -3,6 +3,7 @@
 #nullable enable 
 
 using System.Composition;
+using System.Drawing.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -25,20 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
             var oldCSharpOptions = (CSharpParseOptions)oldOptions;
             var newCSharpOptions = (CSharpParseOptions)newOptions;
 
-            LanguageVersion parsedMaxLanguageVersion;
+            // Currently, only changes to the LanguageVersion of parse options are supported.
+            if (oldCSharpOptions.WithLanguageVersion(newCSharpOptions.SpecifiedLanguageVersion) != newOptions)
+            {
+                return false;
+            }
 
             if (string.IsNullOrEmpty(maxLangVersion))
             {
-                parsedMaxLanguageVersion = LanguageVersion.Latest;
+                return true;
             }
             else
             {
-                Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(maxLangVersion, out parsedMaxLanguageVersion));
+                Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(maxLangVersion, out var parsedMaxLanguageVersion));
+                return newCSharpOptions.LanguageVersion <= parsedMaxLanguageVersion;
             }
-
-            // Currently, only changes to the LanguageVersion of parse options are supported.
-            return oldCSharpOptions.WithLanguageVersion(newCSharpOptions.SpecifiedLanguageVersion) == newOptions &&
-                newCSharpOptions.LanguageVersion <= parsedMaxLanguageVersion;
         }
 
         public void Apply(ParseOptions options, ProjectPropertyStorage storage)

@@ -33,47 +33,37 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 => environment.Workspace.CurrentSolution.Projects.Single().DefaultNamespace;
         }
 
-        [WpfFact]
+        [WpfTheory]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void SetProperty_MaxSupportedLangVersion_CPS()
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [InlineData(LanguageVersion.LatestMajor)]
+        [InlineData(LanguageVersion.Preview)]
+        public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion maxSupportedLangVersion)
         {
             var catalog = TestEnvironment.s_exportCatalog.Value
                 .WithParts(
                     typeof(CSharpParseOptionsChangingService));
 
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
             var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
 
             using (var environment = new TestEnvironment(exportProviderFactory: factory))
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
-            {
-                Assert.True(CanApplyVersionChange(environment, LanguageVersion.CSharp8));
-
-                // Test max version is less than attempted version
-                var maxSupportedLangVersion = LanguageVersion.CSharp7_3;
-                project.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.ToDisplayString());
-                Assert.False(CanApplyVersionChange(environment, LanguageVersion.CSharp8));
-
-                // Test max version equals attempted version
-                maxSupportedLangVersion = LanguageVersion.CSharp8;
-                project.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.ToDisplayString());
-                Assert.True(CanApplyVersionChange(environment, LanguageVersion.CSharp8));
-
-                // Test max version is greater than attempted version
-                maxSupportedLangVersion = LanguageVersion.Preview;
-                project.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.ToDisplayString());
-                Assert.True(CanApplyVersionChange(environment, LanguageVersion.CSharp8));
-
-            }
-
-            static bool CanApplyVersionChange(TestEnvironment environment, LanguageVersion newVersion)
+            using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                return environment.Workspace.CanApplyParseOptionChange(
+                cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.ToDisplayString());
+
+                var canApply = environment.Workspace.CanApplyParseOptionChange(
                     oldParseOptions,
-                    oldParseOptions.WithLanguageVersion(newVersion),
+                    oldParseOptions.WithLanguageVersion(attemptedVersion),
                     project);
+
+                Assert.Equal(attemptedVersion <= maxSupportedLangVersion, canApply);
             }
         }
     }
