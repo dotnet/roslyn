@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.IdentifierNameSyntax)this.Green).identifier, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -487,14 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PredefinedTypeSyntax)this.Green).keyword, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableTypeSyntax)this.Green).questionToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1061,14 +1061,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.OmittedTypeArgumentSyntax)this.Green).omittedTypeArgumentToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1339,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1495,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1668,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1837,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1845,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1908,7 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2004,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2081,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2160,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2254,7 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2263,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2364,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2374,7 +2374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2458,14 +2458,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ThisExpressionSyntax)this.Green).token, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2517,14 +2517,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionSyntax)this.Green).token, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2576,14 +2576,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LiteralExpressionSyntax)this.Green).token, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2658,7 +2658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2666,7 +2666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2757,7 +2757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2765,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2872,7 +2872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2881,7 +2881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -2983,7 +2983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -2991,7 +2991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3082,7 +3082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3090,7 +3090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3181,7 +3181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3189,7 +3189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3280,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3288,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3371,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3380,7 +3380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3459,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3468,7 +3468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3570,7 +3570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3578,7 +3578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3669,7 +3669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3677,7 +3677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3775,7 +3775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3784,7 +3784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3859,7 +3859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3867,7 +3867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -3939,7 +3939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -3948,7 +3948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4034,7 +4034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4043,7 +4043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4165,7 +4165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4174,7 +4174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4302,7 +4302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4311,7 +4311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4401,7 +4401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4409,7 +4409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4501,7 +4501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4510,7 +4510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4608,7 +4608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4616,7 +4616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4715,7 +4715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4725,7 +4725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4815,7 +4815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4824,7 +4824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -4910,7 +4910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -4918,7 +4918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5012,7 +5012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5021,7 +5021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5126,7 +5126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5134,7 +5134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5238,7 +5238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5247,7 +5247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5334,7 +5334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5342,7 +5342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5443,7 +5443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5452,7 +5452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5537,7 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5547,7 +5547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5645,7 +5645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5654,7 +5654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5747,7 +5747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5755,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -5888,7 +5888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -5900,7 +5900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6006,14 +6006,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.JoinIntoClauseSyntax)this.Green).identifier, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6078,7 +6078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6086,7 +6086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6156,7 +6156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6164,7 +6164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6242,7 +6242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6250,7 +6250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6316,7 +6316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6324,7 +6324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6404,7 +6404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6413,7 +6413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6496,7 +6496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6504,7 +6504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6572,14 +6572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.OmittedArraySizeExpressionSyntax)this.Green).omittedArraySizeExpressionToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6647,7 +6647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6655,7 +6655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6743,7 +6743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6752,7 +6752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6824,7 +6824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6832,7 +6832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6898,7 +6898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -6906,7 +6906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -6970,14 +6970,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7041,7 +7041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7050,7 +7050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7117,7 +7117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7125,7 +7125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7213,7 +7213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7224,7 +7224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7324,7 +7324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7332,7 +7332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7417,7 +7417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7425,7 +7425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7505,7 +7505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7514,7 +7514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7577,7 +7577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7585,7 +7585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7645,14 +7645,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InterpolatedStringTextSyntax)this.Green).textToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7735,7 +7735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7745,7 +7745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7828,7 +7828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7836,7 +7836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7898,14 +7898,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InterpolationFormatClauseSyntax)this.Green).formatStringToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -7986,7 +7986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -7995,7 +7995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8095,7 +8095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8103,7 +8103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8250,7 +8250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8263,7 +8263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8433,7 +8433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8441,7 +8441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8540,7 +8540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8549,7 +8549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8631,7 +8631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8640,7 +8640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8718,7 +8718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8726,7 +8726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8790,14 +8790,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SingleVariableDesignationSyntax)this.Green).identifier, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8847,14 +8847,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardDesignationSyntax)this.Green).underscoreToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -8923,7 +8923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -8931,7 +8931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9007,7 +9007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9015,7 +9015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9071,14 +9071,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EmptyStatementSyntax)this.Green).semicolonToken, this.Position, 0); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9146,7 +9146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9154,7 +9154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9257,7 +9257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.GotoStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9265,7 +9265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9336,14 +9336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9403,14 +9403,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9480,7 +9480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9488,7 +9488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9564,7 +9564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9572,7 +9572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9653,7 +9653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.YieldStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9661,7 +9661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9756,7 +9756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9765,7 +9765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -9876,7 +9876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DoStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -9885,7 +9885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10041,7 +10041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10053,7 +10053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10260,7 +10260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10270,7 +10270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10431,7 +10431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10441,7 +10441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10586,7 +10586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10596,7 +10596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10708,7 +10708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10717,7 +10717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10804,7 +10804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10812,7 +10812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10883,7 +10883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10891,7 +10891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -10981,7 +10981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -10990,7 +10990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11121,7 +11121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11131,7 +11131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11223,7 +11223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11231,7 +11231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11362,7 +11362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeBraceToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11371,7 +11371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11479,7 +11479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11488,7 +11488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11607,7 +11607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).colonToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11616,7 +11616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11705,7 +11705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11713,7 +11713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11783,14 +11783,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DefaultSwitchLabelSyntax)this.Green).colonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11880,7 +11880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -11889,7 +11889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -11994,7 +11994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12004,7 +12004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12100,7 +12100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12110,7 +12110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12216,7 +12216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12226,7 +12226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12326,7 +12326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12334,7 +12334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12420,7 +12420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12428,7 +12428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12504,7 +12504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12512,7 +12512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12611,7 +12611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CompilationUnitSyntax)this.Green).endOfFileToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12622,7 +12622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12738,14 +12738,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).semicolonToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -12846,7 +12846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -12855,7 +12855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13033,7 +13033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13045,7 +13045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13207,7 +13207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax)this.Green).closeBracketToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13216,7 +13216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13296,14 +13296,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).colonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13374,7 +13374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13383,7 +13383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13469,7 +13469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13477,7 +13477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13568,7 +13568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13578,7 +13578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13653,7 +13653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13661,7 +13661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13740,7 +13740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13748,7 +13748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -13839,7 +13839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeParameterSyntax)this.Green).identifier, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -13847,7 +13847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -14089,7 +14089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -14101,7 +14101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -14342,7 +14342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -14354,7 +14354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -14595,7 +14595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -14607,7 +14607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -14836,7 +14836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -14846,7 +14846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15045,7 +15045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).semicolonToken, this.GetChildPosition(8), this.GetChildIndex(8)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15057,7 +15057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15214,7 +15214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15223,7 +15223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15321,7 +15321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15329,7 +15329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15408,7 +15408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15416,7 +15416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15500,7 +15500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15509,7 +15509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15604,14 +15604,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15686,14 +15686,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15755,7 +15755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15763,7 +15763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -15871,7 +15871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.FieldDeclarationSyntax)this.Green).semicolonToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -15880,7 +15880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16005,7 +16005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EventFieldDeclarationSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -16014,7 +16014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16118,7 +16118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -16126,7 +16126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16324,7 +16324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -16339,7 +16339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16568,7 +16568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -16580,7 +16580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16786,7 +16786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -16798,7 +16798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -16997,7 +16997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17009,7 +17009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -17148,7 +17148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17156,7 +17156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -17292,7 +17292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17303,7 +17303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -17536,7 +17536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17549,7 +17549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -17680,7 +17680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17688,7 +17688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -17811,7 +17811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -17822,7 +17822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18015,7 +18015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18028,7 +18028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18168,7 +18168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18176,7 +18176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18300,7 +18300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18310,7 +18310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18443,7 +18443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18451,7 +18451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18541,7 +18541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18549,7 +18549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18661,7 +18661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18671,7 +18671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18780,7 +18780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18789,7 +18789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18872,14 +18872,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -18944,7 +18944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -18952,7 +18952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19037,7 +19037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19045,7 +19045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19122,7 +19122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19131,7 +19131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19228,7 +19228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19237,7 +19237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19314,7 +19314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19322,7 +19322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19405,7 +19405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19413,7 +19413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19508,7 +19508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19517,7 +19517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19634,7 +19634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19642,7 +19642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19734,7 +19734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19742,7 +19742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19832,7 +19832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19840,7 +19840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -19927,7 +19927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -19937,7 +19937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20034,7 +20034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlElementStartTagSyntax)this.Green).greaterThanToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20043,7 +20043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20130,7 +20130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20138,7 +20138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20223,7 +20223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlEmptyElementSyntax)this.Green).slashGreaterThanToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20232,7 +20232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20314,7 +20314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlNameSyntax)this.Green).localName, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20322,7 +20322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20383,14 +20383,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlPrefixSyntax)this.Green).colonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20501,7 +20501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20509,7 +20509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20618,7 +20618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).endQuoteToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20627,7 +20627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20732,7 +20732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).endQuoteToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -20741,7 +20741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20824,14 +20824,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -20903,14 +20903,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlCDataSectionSyntax)this.Green).endCDataToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21002,7 +21002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -21010,7 +21010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21098,14 +21098,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.XmlCommentSyntax)this.Green).minusMinusGreaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21241,7 +21241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool ConditionValue { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -21249,7 +21249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21359,7 +21359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool ConditionValue { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -21367,7 +21367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21465,14 +21465,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool BranchTaken { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).BranchTaken; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21556,14 +21556,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21642,14 +21642,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21728,14 +21728,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21814,14 +21814,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21900,14 +21900,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -21986,14 +21986,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22077,14 +22077,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22173,14 +22173,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22281,14 +22281,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22401,7 +22401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
@@ -22409,7 +22409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22529,14 +22529,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22640,14 +22640,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22736,14 +22736,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22827,14 +22827,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {
@@ -22930,14 +22930,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive; } }
 
-    internal override SyntaxNode GetNodeSlot(int index)
+    internal override SyntaxNode? GetNodeSlot(int index)
     {
         switch (index)
         {
             default: return null;
         }
     }
-    internal override SyntaxNode GetCachedSlot(int index)
+    internal override SyntaxNode? GetCachedSlot(int index)
     {
         switch (index)
         {

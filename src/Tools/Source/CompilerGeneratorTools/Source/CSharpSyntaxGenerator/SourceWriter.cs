@@ -273,7 +273,7 @@ namespace CSharpSyntaxGenerator
 
                 // GetSlot
                 WriteLine();
-                WriteLine("    internal override GreenNode GetSlot(int index)");
+                WriteLine("    internal override GreenNode? GetSlot(int index)");
                 WriteLine("    {");
                 WriteLine("        switch (index)");
                 WriteLine("        {");
@@ -1158,7 +1158,7 @@ namespace CSharpSyntaxGenerator
                 }
 
                 //GetNodeSlot forces creation of a red node.
-                WriteLine("    internal override SyntaxNode GetNodeSlot(int index)");
+                WriteLine("    internal override SyntaxNode? GetNodeSlot(int index)");
                 WriteLine("    {");
                 WriteLine("        switch (index)");
                 WriteLine("        {");
@@ -1183,7 +1183,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    }");
 
                 //GetCachedSlot returns a red node if we have it.
-                WriteLine("    internal override SyntaxNode GetCachedSlot(int index)");
+                WriteLine("    internal override SyntaxNode? GetCachedSlot(int index)");
                 WriteLine("    {");
                 WriteLine("        switch (index)");
                 WriteLine("        {");
