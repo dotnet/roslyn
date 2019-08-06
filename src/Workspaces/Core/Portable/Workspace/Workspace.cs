@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void ApplyDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
         {
-            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDefaultNamespace));
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeProjectInfo));
             this.OnDefaultNamespaceChanged(projectId, defaultNamespace);
         }
 

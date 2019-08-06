@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis
         AddAnalyzerConfigDocument = 17,
         RemoveAnalyzerConfigDocument = 18,
         ChangeAnalyzerConfigDocument = 19,
-        ChangeDefaultNamespace = 20
+        ChangeProjectInfo = 20
     }
 }
