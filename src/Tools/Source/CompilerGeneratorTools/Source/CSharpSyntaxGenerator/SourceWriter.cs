@@ -1818,7 +1818,12 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    Write("{0} == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
+                    if (IsAnyList(field.Type) || IsOptional(field))
+                    {
+                        Write("{0} == null ? null : ", CamelCase(field.Name));
+                    }
+
+                    Write("(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
                 }
             }
 
