@@ -238,25 +238,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                     If newArgumentList IsNot oldArgumentList Then
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList)
-                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                     End If
-                End If
-
-                If newNode.Kind = SyntaxKind.AsNewClause Then
-                    ' Speculation is not supported for AsNewClauseSyntax nodes (see https://github.com/dotnet/roslyn/issues/15593).
-                    ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
-                    
-                    ' The SpeculationAnalyzer would do the work of creating the EqualsValueSyntax for us if we passed the AsNewClause,
-                    ' but we need to build it ourself so that we can locate the newTypeName node in the new tree. This way we can
-                    ' GetSymbolInfo for it.
-
-                    Dim asNewClauseNode = DirectCast(newNode, AsNewClauseSyntax)
-                    newNode = SyntaxFactory.EqualsValue(asNewClauseNode.NewExpression)
-                    newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                 End If
 
                 Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel)
                 If speculativeModel IsNot Nothing Then
+                    ' Since the SpeculationAnalyzer will generate a new tree when speculating an AsNewClause, always find the newTypeName
+                    ' node from the tree the speculation model is generated from.
+                    newTypeName = speculativeModel.SyntaxTree.GetRoot().GetAnnotatedNodes(Of TypeSyntax)(s_annotation).Single()
+
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken)
                     Return GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
