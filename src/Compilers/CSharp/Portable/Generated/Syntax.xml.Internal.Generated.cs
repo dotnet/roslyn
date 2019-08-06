@@ -129,11 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -246,23 +243,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var left = (NameSyntax)reader.ReadValue();
-      if (left != null)
-      {
-         AdjustFlagsAndWidth(left);
-         this.left = left;
-      }
+      AdjustFlagsAndWidth(left);
+      this.left = left;
       var dotToken = (SyntaxToken)reader.ReadValue();
-      if (dotToken != null)
-      {
-         AdjustFlagsAndWidth(dotToken);
-         this.dotToken = dotToken;
-      }
+      AdjustFlagsAndWidth(dotToken);
+      this.dotToken = dotToken;
       var right = (SimpleNameSyntax)reader.ReadValue();
-      if (right != null)
-      {
-         AdjustFlagsAndWidth(right);
-         this.right = right;
-      }
+      AdjustFlagsAndWidth(right);
+      this.right = right;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -367,17 +355,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeArgumentList = (TypeArgumentListSyntax)reader.ReadValue();
-      if (typeArgumentList != null)
-      {
-         AdjustFlagsAndWidth(typeArgumentList);
-         this.typeArgumentList = typeArgumentList;
-      }
+      AdjustFlagsAndWidth(typeArgumentList);
+      this.typeArgumentList = typeArgumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -500,11 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var lessThanToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanToken);
-         this.lessThanToken = lessThanToken;
-      }
+      AdjustFlagsAndWidth(lessThanToken);
+      this.lessThanToken = lessThanToken;
       var arguments = (GreenNode?)reader.ReadValue();
       if (arguments != null)
       {
@@ -512,11 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arguments = arguments;
       }
       var greaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (greaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(greaterThanToken);
-         this.greaterThanToken = greaterThanToken;
-      }
+      AdjustFlagsAndWidth(greaterThanToken);
+      this.greaterThanToken = greaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -631,23 +607,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var alias = (IdentifierNameSyntax)reader.ReadValue();
-      if (alias != null)
-      {
-         AdjustFlagsAndWidth(alias);
-         this.alias = alias;
-      }
+      AdjustFlagsAndWidth(alias);
+      this.alias = alias;
       var colonColonToken = (SyntaxToken)reader.ReadValue();
-      if (colonColonToken != null)
-      {
-         AdjustFlagsAndWidth(colonColonToken);
-         this.colonColonToken = colonColonToken;
-      }
+      AdjustFlagsAndWidth(colonColonToken);
+      this.colonColonToken = colonColonToken;
       var name = (SimpleNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -760,11 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -876,11 +840,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var elementType = (TypeSyntax)reader.ReadValue();
-      if (elementType != null)
-      {
-         AdjustFlagsAndWidth(elementType);
-         this.elementType = elementType;
-      }
+      AdjustFlagsAndWidth(elementType);
+      this.elementType = elementType;
       var rankSpecifiers = (GreenNode?)reader.ReadValue();
       if (rankSpecifiers != null)
       {
@@ -1005,11 +966,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var sizes = (GreenNode?)reader.ReadValue();
       if (sizes != null)
       {
@@ -1017,11 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.sizes = sizes;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1126,17 +1081,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var elementType = (TypeSyntax)reader.ReadValue();
-      if (elementType != null)
-      {
-         AdjustFlagsAndWidth(elementType);
-         this.elementType = elementType;
-      }
+      AdjustFlagsAndWidth(elementType);
+      this.elementType = elementType;
       var asteriskToken = (SyntaxToken)reader.ReadValue();
-      if (asteriskToken != null)
-      {
-         AdjustFlagsAndWidth(asteriskToken);
-         this.asteriskToken = asteriskToken;
-      }
+      AdjustFlagsAndWidth(asteriskToken);
+      this.asteriskToken = asteriskToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1240,17 +1189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var elementType = (TypeSyntax)reader.ReadValue();
-      if (elementType != null)
-      {
-         AdjustFlagsAndWidth(elementType);
-         this.elementType = elementType;
-      }
+      AdjustFlagsAndWidth(elementType);
+      this.elementType = elementType;
       var questionToken = (SyntaxToken)reader.ReadValue();
-      if (questionToken != null)
-      {
-         AdjustFlagsAndWidth(questionToken);
-         this.questionToken = questionToken;
-      }
+      AdjustFlagsAndWidth(questionToken);
+      this.questionToken = questionToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1372,11 +1315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var elements = (GreenNode?)reader.ReadValue();
       if (elements != null)
       {
@@ -1384,11 +1324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.elements = elements;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1502,11 +1439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var identifier = (SyntaxToken?)reader.ReadValue();
       if (identifier != null)
       {
@@ -1606,11 +1540,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var omittedTypeArgumentToken = (SyntaxToken)reader.ReadValue();
-      if (omittedTypeArgumentToken != null)
-      {
-         AdjustFlagsAndWidth(omittedTypeArgumentToken);
-         this.omittedTypeArgumentToken = omittedTypeArgumentToken;
-      }
+      AdjustFlagsAndWidth(omittedTypeArgumentToken);
+      this.omittedTypeArgumentToken = omittedTypeArgumentToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1730,11 +1661,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var refKeyword = (SyntaxToken)reader.ReadValue();
-      if (refKeyword != null)
-      {
-         AdjustFlagsAndWidth(refKeyword);
-         this.refKeyword = refKeyword;
-      }
+      AdjustFlagsAndWidth(refKeyword);
+      this.refKeyword = refKeyword;
       var readOnlyKeyword = (SyntaxToken?)reader.ReadValue();
       if (readOnlyKeyword != null)
       {
@@ -1742,11 +1670,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.readOnlyKeyword = readOnlyKeyword;
       }
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1879,23 +1804,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2019,11 +1935,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var arguments = (GreenNode?)reader.ReadValue();
       if (arguments != null)
       {
@@ -2031,11 +1944,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arguments = arguments;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2140,17 +2050,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var operand = (ExpressionSyntax)reader.ReadValue();
-      if (operand != null)
-      {
-         AdjustFlagsAndWidth(operand);
-         this.operand = operand;
-      }
+      AdjustFlagsAndWidth(operand);
+      this.operand = operand;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2254,17 +2158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var awaitKeyword = (SyntaxToken)reader.ReadValue();
-      if (awaitKeyword != null)
-      {
-         AdjustFlagsAndWidth(awaitKeyword);
-         this.awaitKeyword = awaitKeyword;
-      }
+      AdjustFlagsAndWidth(awaitKeyword);
+      this.awaitKeyword = awaitKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2368,17 +2266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var operand = (ExpressionSyntax)reader.ReadValue();
-      if (operand != null)
-      {
-         AdjustFlagsAndWidth(operand);
-         this.operand = operand;
-      }
+      AdjustFlagsAndWidth(operand);
+      this.operand = operand;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2492,23 +2384,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var name = (SimpleNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2623,23 +2506,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var whenNotNull = (ExpressionSyntax)reader.ReadValue();
-      if (whenNotNull != null)
-      {
-         AdjustFlagsAndWidth(whenNotNull);
-         this.whenNotNull = whenNotNull;
-      }
+      AdjustFlagsAndWidth(whenNotNull);
+      this.whenNotNull = whenNotNull;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2744,17 +2618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var name = (SimpleNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2848,11 +2716,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var argumentList = (BracketedArgumentListSyntax)reader.ReadValue();
-      if (argumentList != null)
-      {
-         AdjustFlagsAndWidth(argumentList);
-         this.argumentList = argumentList;
-      }
+      AdjustFlagsAndWidth(argumentList);
+      this.argumentList = argumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -2989,11 +2854,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.leftOperand = leftOperand;
       }
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var rightOperand = (ExpressionSyntax?)reader.ReadValue();
       if (rightOperand != null)
       {
@@ -3094,11 +2956,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var argumentList = (BracketedArgumentListSyntax)reader.ReadValue();
-      if (argumentList != null)
-      {
-         AdjustFlagsAndWidth(argumentList);
-         this.argumentList = argumentList;
-      }
+      AdjustFlagsAndWidth(argumentList);
+      this.argumentList = argumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3211,23 +3070,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var left = (ExpressionSyntax)reader.ReadValue();
-      if (left != null)
-      {
-         AdjustFlagsAndWidth(left);
-         this.left = left;
-      }
+      AdjustFlagsAndWidth(left);
+      this.left = left;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var right = (ExpressionSyntax)reader.ReadValue();
-      if (right != null)
-      {
-         AdjustFlagsAndWidth(right);
-         this.right = right;
-      }
+      AdjustFlagsAndWidth(right);
+      this.right = right;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3342,23 +3192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var left = (ExpressionSyntax)reader.ReadValue();
-      if (left != null)
-      {
-         AdjustFlagsAndWidth(left);
-         this.left = left;
-      }
+      AdjustFlagsAndWidth(left);
+      this.left = left;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var right = (ExpressionSyntax)reader.ReadValue();
-      if (right != null)
-      {
-         AdjustFlagsAndWidth(right);
-         this.right = right;
-      }
+      AdjustFlagsAndWidth(right);
+      this.right = right;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3493,35 +3334,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var questionToken = (SyntaxToken)reader.ReadValue();
-      if (questionToken != null)
-      {
-         AdjustFlagsAndWidth(questionToken);
-         this.questionToken = questionToken;
-      }
+      AdjustFlagsAndWidth(questionToken);
+      this.questionToken = questionToken;
       var whenTrue = (ExpressionSyntax)reader.ReadValue();
-      if (whenTrue != null)
-      {
-         AdjustFlagsAndWidth(whenTrue);
-         this.whenTrue = whenTrue;
-      }
+      AdjustFlagsAndWidth(whenTrue);
+      this.whenTrue = whenTrue;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var whenFalse = (ExpressionSyntax)reader.ReadValue();
-      if (whenFalse != null)
-      {
-         AdjustFlagsAndWidth(whenFalse);
-         this.whenFalse = whenFalse;
-      }
+      AdjustFlagsAndWidth(whenFalse);
+      this.whenFalse = whenFalse;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3636,11 +3462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var token = (SyntaxToken)reader.ReadValue();
-      if (token != null)
-      {
-         AdjustFlagsAndWidth(token);
-         this.token = token;
-      }
+      AdjustFlagsAndWidth(token);
+      this.token = token;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3733,11 +3556,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var token = (SyntaxToken)reader.ReadValue();
-      if (token != null)
-      {
-         AdjustFlagsAndWidth(token);
-         this.token = token;
-      }
+      AdjustFlagsAndWidth(token);
+      this.token = token;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3830,11 +3650,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var token = (SyntaxToken)reader.ReadValue();
-      if (token != null)
-      {
-         AdjustFlagsAndWidth(token);
-         this.token = token;
-      }
+      AdjustFlagsAndWidth(token);
+      this.token = token;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -3957,29 +3774,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4105,29 +3910,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4273,41 +4066,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 6;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var comma = (SyntaxToken)reader.ReadValue();
-      if (comma != null)
-      {
-         AdjustFlagsAndWidth(comma);
-         this.comma = comma;
-      }
+      AdjustFlagsAndWidth(comma);
+      this.comma = comma;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4435,29 +4210,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4583,29 +4346,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4731,29 +4482,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -4879,29 +4618,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5007,17 +4734,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var argumentList = (ArgumentListSyntax)reader.ReadValue();
-      if (argumentList != null)
-      {
-         AdjustFlagsAndWidth(argumentList);
-         this.argumentList = argumentList;
-      }
+      AdjustFlagsAndWidth(argumentList);
+      this.argumentList = argumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5121,17 +4842,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var argumentList = (BracketedArgumentListSyntax)reader.ReadValue();
-      if (argumentList != null)
-      {
-         AdjustFlagsAndWidth(argumentList);
-         this.argumentList = argumentList;
-      }
+      AdjustFlagsAndWidth(argumentList);
+      this.argumentList = argumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5275,11 +4990,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var arguments = (GreenNode?)reader.ReadValue();
       if (arguments != null)
       {
@@ -5287,11 +4999,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arguments = arguments;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5415,11 +5124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var arguments = (GreenNode?)reader.ReadValue();
       if (arguments != null)
       {
@@ -5427,11 +5133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arguments = arguments;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5576,11 +5279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.refKindKeyword = refKindKeyword;
       }
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5685,17 +5385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var name = (IdentifierNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5798,17 +5492,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var designation = (VariableDesignationSyntax)reader.ReadValue();
-      if (designation != null)
-      {
-         AdjustFlagsAndWidth(designation);
-         this.designation = designation;
-      }
+      AdjustFlagsAndWidth(designation);
+      this.designation = designation;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -5932,29 +5620,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6128,11 +5804,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.asyncKeyword = asyncKeyword;
       }
       var delegateKeyword = (SyntaxToken)reader.ReadValue();
-      if (delegateKeyword != null)
-      {
-         AdjustFlagsAndWidth(delegateKeyword);
-         this.delegateKeyword = delegateKeyword;
-      }
+      AdjustFlagsAndWidth(delegateKeyword);
+      this.delegateKeyword = delegateKeyword;
       var parameterList = (ParameterListSyntax?)reader.ReadValue();
       if (parameterList != null)
       {
@@ -6140,11 +5813,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameterList = parameterList;
       }
       var body = (CSharpSyntaxNode)reader.ReadValue();
-      if (body != null)
-      {
-         AdjustFlagsAndWidth(body);
-         this.body = body;
-      }
+      AdjustFlagsAndWidth(body);
+      this.body = body;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6306,23 +5976,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.asyncKeyword = asyncKeyword;
       }
       var parameter = (ParameterSyntax)reader.ReadValue();
-      if (parameter != null)
-      {
-         AdjustFlagsAndWidth(parameter);
-         this.parameter = parameter;
-      }
+      AdjustFlagsAndWidth(parameter);
+      this.parameter = parameter;
       var arrowToken = (SyntaxToken)reader.ReadValue();
-      if (arrowToken != null)
-      {
-         AdjustFlagsAndWidth(arrowToken);
-         this.arrowToken = arrowToken;
-      }
+      AdjustFlagsAndWidth(arrowToken);
+      this.arrowToken = arrowToken;
       var body = (CSharpSyntaxNode)reader.ReadValue();
-      if (body != null)
-      {
-         AdjustFlagsAndWidth(body);
-         this.body = body;
-      }
+      AdjustFlagsAndWidth(body);
+      this.body = body;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6425,17 +6086,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var refKeyword = (SyntaxToken)reader.ReadValue();
-      if (refKeyword != null)
-      {
-         AdjustFlagsAndWidth(refKeyword);
-         this.refKeyword = refKeyword;
-      }
+      AdjustFlagsAndWidth(refKeyword);
+      this.refKeyword = refKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6574,23 +6229,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.asyncKeyword = asyncKeyword;
       }
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var arrowToken = (SyntaxToken)reader.ReadValue();
-      if (arrowToken != null)
-      {
-         AdjustFlagsAndWidth(arrowToken);
-         this.arrowToken = arrowToken;
-      }
+      AdjustFlagsAndWidth(arrowToken);
+      this.arrowToken = arrowToken;
       var body = (CSharpSyntaxNode)reader.ReadValue();
-      if (body != null)
-      {
-         AdjustFlagsAndWidth(body);
-         this.body = body;
-      }
+      AdjustFlagsAndWidth(body);
+      this.body = body;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6715,11 +6361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var expressions = (GreenNode?)reader.ReadValue();
       if (expressions != null)
       {
@@ -6727,11 +6370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expressions = expressions;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -6874,17 +6514,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var newKeyword = (SyntaxToken)reader.ReadValue();
-      if (newKeyword != null)
-      {
-         AdjustFlagsAndWidth(newKeyword);
-         this.newKeyword = newKeyword;
-      }
+      AdjustFlagsAndWidth(newKeyword);
+      this.newKeyword = newKeyword;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var argumentList = (ArgumentListSyntax?)reader.ReadValue();
       if (argumentList != null)
       {
@@ -7016,11 +6650,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.nameEquals = nameEquals;
       }
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -7153,17 +6784,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var newKeyword = (SyntaxToken)reader.ReadValue();
-      if (newKeyword != null)
-      {
-         AdjustFlagsAndWidth(newKeyword);
-         this.newKeyword = newKeyword;
-      }
+      AdjustFlagsAndWidth(newKeyword);
+      this.newKeyword = newKeyword;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var initializers = (GreenNode?)reader.ReadValue();
       if (initializers != null)
       {
@@ -7171,11 +6796,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.initializers = initializers;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -7300,17 +6922,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var newKeyword = (SyntaxToken)reader.ReadValue();
-      if (newKeyword != null)
-      {
-         AdjustFlagsAndWidth(newKeyword);
-         this.newKeyword = newKeyword;
-      }
+      AdjustFlagsAndWidth(newKeyword);
+      this.newKeyword = newKeyword;
       var type = (ArrayTypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var initializer = (InitializerExpressionSyntax?)reader.ReadValue();
       if (initializer != null)
       {
@@ -7460,17 +7076,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var newKeyword = (SyntaxToken)reader.ReadValue();
-      if (newKeyword != null)
-      {
-         AdjustFlagsAndWidth(newKeyword);
-         this.newKeyword = newKeyword;
-      }
+      AdjustFlagsAndWidth(newKeyword);
+      this.newKeyword = newKeyword;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var commas = (GreenNode?)reader.ReadValue();
       if (commas != null)
       {
@@ -7478,17 +7088,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.commas = commas;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
       var initializer = (InitializerExpressionSyntax)reader.ReadValue();
-      if (initializer != null)
-      {
-         AdjustFlagsAndWidth(initializer);
-         this.initializer = initializer;
-      }
+      AdjustFlagsAndWidth(initializer);
+      this.initializer = initializer;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -7614,17 +7218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var stackAllocKeyword = (SyntaxToken)reader.ReadValue();
-      if (stackAllocKeyword != null)
-      {
-         AdjustFlagsAndWidth(stackAllocKeyword);
-         this.stackAllocKeyword = stackAllocKeyword;
-      }
+      AdjustFlagsAndWidth(stackAllocKeyword);
+      this.stackAllocKeyword = stackAllocKeyword;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var initializer = (InitializerExpressionSyntax?)reader.ReadValue();
       if (initializer != null)
       {
@@ -7755,29 +7353,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var stackAllocKeyword = (SyntaxToken)reader.ReadValue();
-      if (stackAllocKeyword != null)
-      {
-         AdjustFlagsAndWidth(stackAllocKeyword);
-         this.stackAllocKeyword = stackAllocKeyword;
-      }
+      AdjustFlagsAndWidth(stackAllocKeyword);
+      this.stackAllocKeyword = stackAllocKeyword;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
       var initializer = (InitializerExpressionSyntax)reader.ReadValue();
-      if (initializer != null)
-      {
-         AdjustFlagsAndWidth(initializer);
-         this.initializer = initializer;
-      }
+      AdjustFlagsAndWidth(initializer);
+      this.initializer = initializer;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -7914,17 +7500,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var fromClause = (FromClauseSyntax)reader.ReadValue();
-      if (fromClause != null)
-      {
-         AdjustFlagsAndWidth(fromClause);
-         this.fromClause = fromClause;
-      }
+      AdjustFlagsAndWidth(fromClause);
+      this.fromClause = fromClause;
       var body = (QueryBodySyntax)reader.ReadValue();
-      if (body != null)
-      {
-         AdjustFlagsAndWidth(body);
-         this.body = body;
-      }
+      AdjustFlagsAndWidth(body);
+      this.body = body;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -8058,11 +7638,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.clauses = clauses;
       }
       var selectOrGroup = (SelectOrGroupClauseSyntax)reader.ReadValue();
-      if (selectOrGroup != null)
-      {
-         AdjustFlagsAndWidth(selectOrGroup);
-         this.selectOrGroup = selectOrGroup;
-      }
+      AdjustFlagsAndWidth(selectOrGroup);
+      this.selectOrGroup = selectOrGroup;
       var continuation = (QueryContinuationSyntax?)reader.ReadValue();
       if (continuation != null)
       {
@@ -8207,11 +7784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var fromKeyword = (SyntaxToken)reader.ReadValue();
-      if (fromKeyword != null)
-      {
-         AdjustFlagsAndWidth(fromKeyword);
-         this.fromKeyword = fromKeyword;
-      }
+      AdjustFlagsAndWidth(fromKeyword);
+      this.fromKeyword = fromKeyword;
       var type = (TypeSyntax?)reader.ReadValue();
       if (type != null)
       {
@@ -8219,23 +7793,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.type = type;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var inKeyword = (SyntaxToken)reader.ReadValue();
-      if (inKeyword != null)
-      {
-         AdjustFlagsAndWidth(inKeyword);
-         this.inKeyword = inKeyword;
-      }
+      AdjustFlagsAndWidth(inKeyword);
+      this.inKeyword = inKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -8358,29 +7923,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var letKeyword = (SyntaxToken)reader.ReadValue();
-      if (letKeyword != null)
-      {
-         AdjustFlagsAndWidth(letKeyword);
-         this.letKeyword = letKeyword;
-      }
+      AdjustFlagsAndWidth(letKeyword);
+      this.letKeyword = letKeyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -8574,11 +8127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 10;
       var joinKeyword = (SyntaxToken)reader.ReadValue();
-      if (joinKeyword != null)
-      {
-         AdjustFlagsAndWidth(joinKeyword);
-         this.joinKeyword = joinKeyword;
-      }
+      AdjustFlagsAndWidth(joinKeyword);
+      this.joinKeyword = joinKeyword;
       var type = (TypeSyntax?)reader.ReadValue();
       if (type != null)
       {
@@ -8586,47 +8136,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.type = type;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var inKeyword = (SyntaxToken)reader.ReadValue();
-      if (inKeyword != null)
-      {
-         AdjustFlagsAndWidth(inKeyword);
-         this.inKeyword = inKeyword;
-      }
+      AdjustFlagsAndWidth(inKeyword);
+      this.inKeyword = inKeyword;
       var inExpression = (ExpressionSyntax)reader.ReadValue();
-      if (inExpression != null)
-      {
-         AdjustFlagsAndWidth(inExpression);
-         this.inExpression = inExpression;
-      }
+      AdjustFlagsAndWidth(inExpression);
+      this.inExpression = inExpression;
       var onKeyword = (SyntaxToken)reader.ReadValue();
-      if (onKeyword != null)
-      {
-         AdjustFlagsAndWidth(onKeyword);
-         this.onKeyword = onKeyword;
-      }
+      AdjustFlagsAndWidth(onKeyword);
+      this.onKeyword = onKeyword;
       var leftExpression = (ExpressionSyntax)reader.ReadValue();
-      if (leftExpression != null)
-      {
-         AdjustFlagsAndWidth(leftExpression);
-         this.leftExpression = leftExpression;
-      }
+      AdjustFlagsAndWidth(leftExpression);
+      this.leftExpression = leftExpression;
       var equalsKeyword = (SyntaxToken)reader.ReadValue();
-      if (equalsKeyword != null)
-      {
-         AdjustFlagsAndWidth(equalsKeyword);
-         this.equalsKeyword = equalsKeyword;
-      }
+      AdjustFlagsAndWidth(equalsKeyword);
+      this.equalsKeyword = equalsKeyword;
       var rightExpression = (ExpressionSyntax)reader.ReadValue();
-      if (rightExpression != null)
-      {
-         AdjustFlagsAndWidth(rightExpression);
-         this.rightExpression = rightExpression;
-      }
+      AdjustFlagsAndWidth(rightExpression);
+      this.rightExpression = rightExpression;
       var into = (JoinIntoClauseSyntax?)reader.ReadValue();
       if (into != null)
       {
@@ -8742,17 +8271,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var intoKeyword = (SyntaxToken)reader.ReadValue();
-      if (intoKeyword != null)
-      {
-         AdjustFlagsAndWidth(intoKeyword);
-         this.intoKeyword = intoKeyword;
-      }
+      AdjustFlagsAndWidth(intoKeyword);
+      this.intoKeyword = intoKeyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -8853,17 +8376,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var whereKeyword = (SyntaxToken)reader.ReadValue();
-      if (whereKeyword != null)
-      {
-         AdjustFlagsAndWidth(whereKeyword);
-         this.whereKeyword = whereKeyword;
-      }
+      AdjustFlagsAndWidth(whereKeyword);
+      this.whereKeyword = whereKeyword;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -8973,11 +8490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var orderByKeyword = (SyntaxToken)reader.ReadValue();
-      if (orderByKeyword != null)
-      {
-         AdjustFlagsAndWidth(orderByKeyword);
-         this.orderByKeyword = orderByKeyword;
-      }
+      AdjustFlagsAndWidth(orderByKeyword);
+      this.orderByKeyword = orderByKeyword;
       var orderings = (GreenNode?)reader.ReadValue();
       if (orderings != null)
       {
@@ -9093,11 +8607,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var ascendingOrDescendingKeyword = (SyntaxToken?)reader.ReadValue();
       if (ascendingOrDescendingKeyword != null)
       {
@@ -9204,17 +8715,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var selectKeyword = (SyntaxToken)reader.ReadValue();
-      if (selectKeyword != null)
-      {
-         AdjustFlagsAndWidth(selectKeyword);
-         this.selectKeyword = selectKeyword;
-      }
+      AdjustFlagsAndWidth(selectKeyword);
+      this.selectKeyword = selectKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9333,29 +8838,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var groupKeyword = (SyntaxToken)reader.ReadValue();
-      if (groupKeyword != null)
-      {
-         AdjustFlagsAndWidth(groupKeyword);
-         this.groupKeyword = groupKeyword;
-      }
+      AdjustFlagsAndWidth(groupKeyword);
+      this.groupKeyword = groupKeyword;
       var groupExpression = (ExpressionSyntax)reader.ReadValue();
-      if (groupExpression != null)
-      {
-         AdjustFlagsAndWidth(groupExpression);
-         this.groupExpression = groupExpression;
-      }
+      AdjustFlagsAndWidth(groupExpression);
+      this.groupExpression = groupExpression;
       var byKeyword = (SyntaxToken)reader.ReadValue();
-      if (byKeyword != null)
-      {
-         AdjustFlagsAndWidth(byKeyword);
-         this.byKeyword = byKeyword;
-      }
+      AdjustFlagsAndWidth(byKeyword);
+      this.byKeyword = byKeyword;
       var byExpression = (ExpressionSyntax)reader.ReadValue();
-      if (byExpression != null)
-      {
-         AdjustFlagsAndWidth(byExpression);
-         this.byExpression = byExpression;
-      }
+      AdjustFlagsAndWidth(byExpression);
+      this.byExpression = byExpression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9468,23 +8961,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var intoKeyword = (SyntaxToken)reader.ReadValue();
-      if (intoKeyword != null)
-      {
-         AdjustFlagsAndWidth(intoKeyword);
-         this.intoKeyword = intoKeyword;
-      }
+      AdjustFlagsAndWidth(intoKeyword);
+      this.intoKeyword = intoKeyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var body = (QueryBodySyntax)reader.ReadValue();
-      if (body != null)
-      {
-         AdjustFlagsAndWidth(body);
-         this.body = body;
-      }
+      AdjustFlagsAndWidth(body);
+      this.body = body;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9579,11 +9063,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var omittedArraySizeExpressionToken = (SyntaxToken)reader.ReadValue();
-      if (omittedArraySizeExpressionToken != null)
-      {
-         AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
-         this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
-      }
+      AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
+      this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9704,11 +9185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var stringStartToken = (SyntaxToken)reader.ReadValue();
-      if (stringStartToken != null)
-      {
-         AdjustFlagsAndWidth(stringStartToken);
-         this.stringStartToken = stringStartToken;
-      }
+      AdjustFlagsAndWidth(stringStartToken);
+      this.stringStartToken = stringStartToken;
       var contents = (GreenNode?)reader.ReadValue();
       if (contents != null)
       {
@@ -9716,11 +9194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.contents = contents;
       }
       var stringEndToken = (SyntaxToken)reader.ReadValue();
-      if (stringEndToken != null)
-      {
-         AdjustFlagsAndWidth(stringEndToken);
-         this.stringEndToken = stringEndToken;
-      }
+      AdjustFlagsAndWidth(stringEndToken);
+      this.stringEndToken = stringEndToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9834,23 +9309,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var isKeyword = (SyntaxToken)reader.ReadValue();
-      if (isKeyword != null)
-      {
-         AdjustFlagsAndWidth(isKeyword);
-         this.isKeyword = isKeyword;
-      }
+      AdjustFlagsAndWidth(isKeyword);
+      this.isKeyword = isKeyword;
       var pattern = (PatternSyntax)reader.ReadValue();
-      if (pattern != null)
-      {
-         AdjustFlagsAndWidth(pattern);
-         this.pattern = pattern;
-      }
+      AdjustFlagsAndWidth(pattern);
+      this.pattern = pattern;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -9952,17 +9418,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var throwKeyword = (SyntaxToken)reader.ReadValue();
-      if (throwKeyword != null)
-      {
-         AdjustFlagsAndWidth(throwKeyword);
-         this.throwKeyword = throwKeyword;
-      }
+      AdjustFlagsAndWidth(throwKeyword);
+      this.throwKeyword = throwKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10063,17 +9523,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var whenKeyword = (SyntaxToken)reader.ReadValue();
-      if (whenKeyword != null)
-      {
-         AdjustFlagsAndWidth(whenKeyword);
-         this.whenKeyword = whenKeyword;
-      }
+      AdjustFlagsAndWidth(whenKeyword);
+      this.whenKeyword = whenKeyword;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10182,11 +9636,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var underscoreToken = (SyntaxToken)reader.ReadValue();
-      if (underscoreToken != null)
-      {
-         AdjustFlagsAndWidth(underscoreToken);
-         this.underscoreToken = underscoreToken;
-      }
+      AdjustFlagsAndWidth(underscoreToken);
+      this.underscoreToken = underscoreToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10286,17 +9737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var designation = (VariableDesignationSyntax)reader.ReadValue();
-      if (designation != null)
-      {
-         AdjustFlagsAndWidth(designation);
-         this.designation = designation;
-      }
+      AdjustFlagsAndWidth(designation);
+      this.designation = designation;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10397,17 +9842,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var varKeyword = (SyntaxToken)reader.ReadValue();
-      if (varKeyword != null)
-      {
-         AdjustFlagsAndWidth(varKeyword);
-         this.varKeyword = varKeyword;
-      }
+      AdjustFlagsAndWidth(varKeyword);
+      this.varKeyword = varKeyword;
       var designation = (VariableDesignationSyntax)reader.ReadValue();
-      if (designation != null)
-      {
-         AdjustFlagsAndWidth(designation);
-         this.designation = designation;
-      }
+      AdjustFlagsAndWidth(designation);
+      this.designation = designation;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10705,11 +10144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var subpatterns = (GreenNode?)reader.ReadValue();
       if (subpatterns != null)
       {
@@ -10717,11 +10153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.subpatterns = subpatterns;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10841,11 +10274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var subpatterns = (GreenNode?)reader.ReadValue();
       if (subpatterns != null)
       {
@@ -10853,11 +10283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.subpatterns = subpatterns;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -10974,11 +10401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.nameColon = nameColon;
       }
       var pattern = (PatternSyntax)reader.ReadValue();
-      if (pattern != null)
-      {
-         AdjustFlagsAndWidth(pattern);
-         this.pattern = pattern;
-      }
+      AdjustFlagsAndWidth(pattern);
+      this.pattern = pattern;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11071,11 +10495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11184,11 +10605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var textToken = (SyntaxToken)reader.ReadValue();
-      if (textToken != null)
-      {
-         AdjustFlagsAndWidth(textToken);
-         this.textToken = textToken;
-      }
+      AdjustFlagsAndWidth(textToken);
+      this.textToken = textToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11333,17 +10751,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var alignmentClause = (InterpolationAlignmentClauseSyntax?)reader.ReadValue();
       if (alignmentClause != null)
       {
@@ -11357,11 +10769,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.formatClause = formatClause;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11465,17 +10874,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var commaToken = (SyntaxToken)reader.ReadValue();
-      if (commaToken != null)
-      {
-         AdjustFlagsAndWidth(commaToken);
-         this.commaToken = commaToken;
-      }
+      AdjustFlagsAndWidth(commaToken);
+      this.commaToken = commaToken;
       var value = (ExpressionSyntax)reader.ReadValue();
-      if (value != null)
-      {
-         AdjustFlagsAndWidth(value);
-         this.value = value;
-      }
+      AdjustFlagsAndWidth(value);
+      this.value = value;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11577,17 +10980,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var formatStringToken = (SyntaxToken)reader.ReadValue();
-      if (formatStringToken != null)
-      {
-         AdjustFlagsAndWidth(formatStringToken);
-         this.formatStringToken = formatStringToken;
-      }
+      AdjustFlagsAndWidth(formatStringToken);
+      this.formatStringToken = formatStringToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11727,11 +11124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -11869,11 +11263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var statements = (GreenNode?)reader.ReadValue();
       if (statements != null)
       {
@@ -11881,11 +11272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.statements = statements;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -12112,17 +11500,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var returnType = (TypeSyntax)reader.ReadValue();
-      if (returnType != null)
-      {
-         AdjustFlagsAndWidth(returnType);
-         this.returnType = returnType;
-      }
+      AdjustFlagsAndWidth(returnType);
+      this.returnType = returnType;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -12130,11 +11512,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.typeParameterList = typeParameterList;
       }
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var constraintClauses = (GreenNode?)reader.ReadValue();
       if (constraintClauses != null)
       {
@@ -12339,17 +11718,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var declaration = (VariableDeclarationSyntax)reader.ReadValue();
-      if (declaration != null)
-      {
-         AdjustFlagsAndWidth(declaration);
-         this.declaration = declaration;
-      }
+      AdjustFlagsAndWidth(declaration);
+      this.declaration = declaration;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -12462,11 +11835,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var variables = (GreenNode?)reader.ReadValue();
       if (variables != null)
       {
@@ -12601,11 +11971,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var argumentList = (BracketedArgumentListSyntax?)reader.ReadValue();
       if (argumentList != null)
       {
@@ -12719,17 +12086,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
       var value = (ExpressionSyntax)reader.ReadValue();
-      if (value != null)
-      {
-         AdjustFlagsAndWidth(value);
-         this.value = value;
-      }
+      AdjustFlagsAndWidth(value);
+      this.value = value;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -12838,11 +12199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -12933,11 +12291,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var underscoreToken = (SyntaxToken)reader.ReadValue();
-      if (underscoreToken != null)
-      {
-         AdjustFlagsAndWidth(underscoreToken);
-         this.underscoreToken = underscoreToken;
-      }
+      AdjustFlagsAndWidth(underscoreToken);
+      this.underscoreToken = underscoreToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13055,11 +12410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var variables = (GreenNode?)reader.ReadValue();
       if (variables != null)
       {
@@ -13067,11 +12419,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.variables = variables;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13173,17 +12522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13275,11 +12618,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13391,23 +12731,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13560,11 +12891,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var gotoKeyword = (SyntaxToken)reader.ReadValue();
-      if (gotoKeyword != null)
-      {
-         AdjustFlagsAndWidth(gotoKeyword);
-         this.gotoKeyword = gotoKeyword;
-      }
+      AdjustFlagsAndWidth(gotoKeyword);
+      this.gotoKeyword = gotoKeyword;
       var caseOrDefaultKeyword = (SyntaxToken?)reader.ReadValue();
       if (caseOrDefaultKeyword != null)
       {
@@ -13578,11 +12906,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expression = expression;
       }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13685,17 +13010,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var breakKeyword = (SyntaxToken)reader.ReadValue();
-      if (breakKeyword != null)
-      {
-         AdjustFlagsAndWidth(breakKeyword);
-         this.breakKeyword = breakKeyword;
-      }
+      AdjustFlagsAndWidth(breakKeyword);
+      this.breakKeyword = breakKeyword;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13796,17 +13115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var continueKeyword = (SyntaxToken)reader.ReadValue();
-      if (continueKeyword != null)
-      {
-         AdjustFlagsAndWidth(continueKeyword);
-         this.continueKeyword = continueKeyword;
-      }
+      AdjustFlagsAndWidth(continueKeyword);
+      this.continueKeyword = continueKeyword;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -13925,11 +13238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var returnKeyword = (SyntaxToken)reader.ReadValue();
-      if (returnKeyword != null)
-      {
-         AdjustFlagsAndWidth(returnKeyword);
-         this.returnKeyword = returnKeyword;
-      }
+      AdjustFlagsAndWidth(returnKeyword);
+      this.returnKeyword = returnKeyword;
       var expression = (ExpressionSyntax?)reader.ReadValue();
       if (expression != null)
       {
@@ -13937,11 +13247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expression = expression;
       }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -14061,11 +13368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var throwKeyword = (SyntaxToken)reader.ReadValue();
-      if (throwKeyword != null)
-      {
-         AdjustFlagsAndWidth(throwKeyword);
-         this.throwKeyword = throwKeyword;
-      }
+      AdjustFlagsAndWidth(throwKeyword);
+      this.throwKeyword = throwKeyword;
       var expression = (ExpressionSyntax?)reader.ReadValue();
       if (expression != null)
       {
@@ -14073,11 +13377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expression = expression;
       }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -14206,17 +13507,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var yieldKeyword = (SyntaxToken)reader.ReadValue();
-      if (yieldKeyword != null)
-      {
-         AdjustFlagsAndWidth(yieldKeyword);
-         this.yieldKeyword = yieldKeyword;
-      }
+      AdjustFlagsAndWidth(yieldKeyword);
+      this.yieldKeyword = yieldKeyword;
       var returnOrBreakKeyword = (SyntaxToken)reader.ReadValue();
-      if (returnOrBreakKeyword != null)
-      {
-         AdjustFlagsAndWidth(returnOrBreakKeyword);
-         this.returnOrBreakKeyword = returnOrBreakKeyword;
-      }
+      AdjustFlagsAndWidth(returnOrBreakKeyword);
+      this.returnOrBreakKeyword = returnOrBreakKeyword;
       var expression = (ExpressionSyntax?)reader.ReadValue();
       if (expression != null)
       {
@@ -14224,11 +13519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expression = expression;
       }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -14358,35 +13650,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var whileKeyword = (SyntaxToken)reader.ReadValue();
-      if (whileKeyword != null)
-      {
-         AdjustFlagsAndWidth(whileKeyword);
-         this.whileKeyword = whileKeyword;
-      }
+      AdjustFlagsAndWidth(whileKeyword);
+      this.whileKeyword = whileKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -14535,47 +13812,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 7;
       var doKeyword = (SyntaxToken)reader.ReadValue();
-      if (doKeyword != null)
-      {
-         AdjustFlagsAndWidth(doKeyword);
-         this.doKeyword = doKeyword;
-      }
+      AdjustFlagsAndWidth(doKeyword);
+      this.doKeyword = doKeyword;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
       var whileKeyword = (SyntaxToken)reader.ReadValue();
-      if (whileKeyword != null)
-      {
-         AdjustFlagsAndWidth(whileKeyword);
-         this.whileKeyword = whileKeyword;
-      }
+      AdjustFlagsAndWidth(whileKeyword);
+      this.whileKeyword = whileKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -14789,17 +14045,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 10;
       var forKeyword = (SyntaxToken)reader.ReadValue();
-      if (forKeyword != null)
-      {
-         AdjustFlagsAndWidth(forKeyword);
-         this.forKeyword = forKeyword;
-      }
+      AdjustFlagsAndWidth(forKeyword);
+      this.forKeyword = forKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var declaration = (VariableDeclarationSyntax?)reader.ReadValue();
       if (declaration != null)
       {
@@ -14813,11 +14063,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.initializers = initializers;
       }
       var firstSemicolonToken = (SyntaxToken)reader.ReadValue();
-      if (firstSemicolonToken != null)
-      {
-         AdjustFlagsAndWidth(firstSemicolonToken);
-         this.firstSemicolonToken = firstSemicolonToken;
-      }
+      AdjustFlagsAndWidth(firstSemicolonToken);
+      this.firstSemicolonToken = firstSemicolonToken;
       var condition = (ExpressionSyntax?)reader.ReadValue();
       if (condition != null)
       {
@@ -14825,11 +14072,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.condition = condition;
       }
       var secondSemicolonToken = (SyntaxToken)reader.ReadValue();
-      if (secondSemicolonToken != null)
-      {
-         AdjustFlagsAndWidth(secondSemicolonToken);
-         this.secondSemicolonToken = secondSemicolonToken;
-      }
+      AdjustFlagsAndWidth(secondSemicolonToken);
+      this.secondSemicolonToken = secondSemicolonToken;
       var incrementors = (GreenNode?)reader.ReadValue();
       if (incrementors != null)
       {
@@ -14837,17 +14081,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.incrementors = incrementors;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15066,53 +14304,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.awaitKeyword = awaitKeyword;
       }
       var forEachKeyword = (SyntaxToken)reader.ReadValue();
-      if (forEachKeyword != null)
-      {
-         AdjustFlagsAndWidth(forEachKeyword);
-         this.forEachKeyword = forEachKeyword;
-      }
+      AdjustFlagsAndWidth(forEachKeyword);
+      this.forEachKeyword = forEachKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var inKeyword = (SyntaxToken)reader.ReadValue();
-      if (inKeyword != null)
-      {
-         AdjustFlagsAndWidth(inKeyword);
-         this.inKeyword = inKeyword;
-      }
+      AdjustFlagsAndWidth(inKeyword);
+      this.inKeyword = inKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15295,47 +14509,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.awaitKeyword = awaitKeyword;
       }
       var forEachKeyword = (SyntaxToken)reader.ReadValue();
-      if (forEachKeyword != null)
-      {
-         AdjustFlagsAndWidth(forEachKeyword);
-         this.forEachKeyword = forEachKeyword;
-      }
+      AdjustFlagsAndWidth(forEachKeyword);
+      this.forEachKeyword = forEachKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var variable = (ExpressionSyntax)reader.ReadValue();
-      if (variable != null)
-      {
-         AdjustFlagsAndWidth(variable);
-         this.variable = variable;
-      }
+      AdjustFlagsAndWidth(variable);
+      this.variable = variable;
       var inKeyword = (SyntaxToken)reader.ReadValue();
-      if (inKeyword != null)
-      {
-         AdjustFlagsAndWidth(inKeyword);
-         this.inKeyword = inKeyword;
-      }
+      AdjustFlagsAndWidth(inKeyword);
+      this.inKeyword = inKeyword;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15520,17 +14713,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.awaitKeyword = awaitKeyword;
       }
       var usingKeyword = (SyntaxToken)reader.ReadValue();
-      if (usingKeyword != null)
-      {
-         AdjustFlagsAndWidth(usingKeyword);
-         this.usingKeyword = usingKeyword;
-      }
+      AdjustFlagsAndWidth(usingKeyword);
+      this.usingKeyword = usingKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var declaration = (VariableDeclarationSyntax?)reader.ReadValue();
       if (declaration != null)
       {
@@ -15544,17 +14731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.expression = expression;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15687,35 +14868,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var fixedKeyword = (SyntaxToken)reader.ReadValue();
-      if (fixedKeyword != null)
-      {
-         AdjustFlagsAndWidth(fixedKeyword);
-         this.fixedKeyword = fixedKeyword;
-      }
+      AdjustFlagsAndWidth(fixedKeyword);
+      this.fixedKeyword = fixedKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var declaration = (VariableDeclarationSyntax)reader.ReadValue();
-      if (declaration != null)
-      {
-         AdjustFlagsAndWidth(declaration);
-         this.declaration = declaration;
-      }
+      AdjustFlagsAndWidth(declaration);
+      this.declaration = declaration;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15819,17 +14985,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var block = (BlockSyntax)reader.ReadValue();
-      if (block != null)
-      {
-         AdjustFlagsAndWidth(block);
-         this.block = block;
-      }
+      AdjustFlagsAndWidth(block);
+      this.block = block;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -15930,17 +15090,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var unsafeKeyword = (SyntaxToken)reader.ReadValue();
-      if (unsafeKeyword != null)
-      {
-         AdjustFlagsAndWidth(unsafeKeyword);
-         this.unsafeKeyword = unsafeKeyword;
-      }
+      AdjustFlagsAndWidth(unsafeKeyword);
+      this.unsafeKeyword = unsafeKeyword;
       var block = (BlockSyntax)reader.ReadValue();
-      if (block != null)
-      {
-         AdjustFlagsAndWidth(block);
-         this.block = block;
-      }
+      AdjustFlagsAndWidth(block);
+      this.block = block;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -16068,35 +15222,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var lockKeyword = (SyntaxToken)reader.ReadValue();
-      if (lockKeyword != null)
-      {
-         AdjustFlagsAndWidth(lockKeyword);
-         this.lockKeyword = lockKeyword;
-      }
+      AdjustFlagsAndWidth(lockKeyword);
+      this.lockKeyword = lockKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -16266,35 +15405,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 6;
       var ifKeyword = (SyntaxToken)reader.ReadValue();
-      if (ifKeyword != null)
-      {
-         AdjustFlagsAndWidth(ifKeyword);
-         this.ifKeyword = ifKeyword;
-      }
+      AdjustFlagsAndWidth(ifKeyword);
+      this.ifKeyword = ifKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
       var @else = (ElseClauseSyntax?)reader.ReadValue();
       if (@else != null)
       {
@@ -16409,17 +15533,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var elseKeyword = (SyntaxToken)reader.ReadValue();
-      if (elseKeyword != null)
-      {
-         AdjustFlagsAndWidth(elseKeyword);
-         this.elseKeyword = elseKeyword;
-      }
+      AdjustFlagsAndWidth(elseKeyword);
+      this.elseKeyword = elseKeyword;
       var statement = (StatementSyntax)reader.ReadValue();
-      if (statement != null)
-      {
-         AdjustFlagsAndWidth(statement);
-         this.statement = statement;
-      }
+      AdjustFlagsAndWidth(statement);
+      this.statement = statement;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -16614,11 +15732,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 7;
       var switchKeyword = (SyntaxToken)reader.ReadValue();
-      if (switchKeyword != null)
-      {
-         AdjustFlagsAndWidth(switchKeyword);
-         this.switchKeyword = switchKeyword;
-      }
+      AdjustFlagsAndWidth(switchKeyword);
+      this.switchKeyword = switchKeyword;
       var openParenToken = (SyntaxToken?)reader.ReadValue();
       if (openParenToken != null)
       {
@@ -16626,11 +15741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.openParenToken = openParenToken;
       }
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
       var closeParenToken = (SyntaxToken?)reader.ReadValue();
       if (closeParenToken != null)
       {
@@ -16638,11 +15750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.closeParenToken = closeParenToken;
       }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var sections = (GreenNode?)reader.ReadValue();
       if (sections != null)
       {
@@ -16650,11 +15759,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.sections = sections;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -16956,17 +16062,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var pattern = (PatternSyntax)reader.ReadValue();
-      if (pattern != null)
-      {
-         AdjustFlagsAndWidth(pattern);
-         this.pattern = pattern;
-      }
+      AdjustFlagsAndWidth(pattern);
+      this.pattern = pattern;
       var whenClause = (WhenClauseSyntax?)reader.ReadValue();
       if (whenClause != null)
       {
@@ -16974,11 +16074,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.whenClause = whenClause;
       }
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17095,23 +16192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var value = (ExpressionSyntax)reader.ReadValue();
-      if (value != null)
-      {
-         AdjustFlagsAndWidth(value);
-         this.value = value;
-      }
+      AdjustFlagsAndWidth(value);
+      this.value = value;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17215,17 +16303,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17362,23 +16444,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var governingExpression = (ExpressionSyntax)reader.ReadValue();
-      if (governingExpression != null)
-      {
-         AdjustFlagsAndWidth(governingExpression);
-         this.governingExpression = governingExpression;
-      }
+      AdjustFlagsAndWidth(governingExpression);
+      this.governingExpression = governingExpression;
       var switchKeyword = (SyntaxToken)reader.ReadValue();
-      if (switchKeyword != null)
-      {
-         AdjustFlagsAndWidth(switchKeyword);
-         this.switchKeyword = switchKeyword;
-      }
+      AdjustFlagsAndWidth(switchKeyword);
+      this.switchKeyword = switchKeyword;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var arms = (GreenNode?)reader.ReadValue();
       if (arms != null)
       {
@@ -17386,11 +16459,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arms = arms;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17521,11 +16591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var pattern = (PatternSyntax)reader.ReadValue();
-      if (pattern != null)
-      {
-         AdjustFlagsAndWidth(pattern);
-         this.pattern = pattern;
-      }
+      AdjustFlagsAndWidth(pattern);
+      this.pattern = pattern;
       var whenClause = (WhenClauseSyntax?)reader.ReadValue();
       if (whenClause != null)
       {
@@ -17533,17 +16600,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.whenClause = whenClause;
       }
       var equalsGreaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (equalsGreaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(equalsGreaterThanToken);
-         this.equalsGreaterThanToken = equalsGreaterThanToken;
-      }
+      AdjustFlagsAndWidth(equalsGreaterThanToken);
+      this.equalsGreaterThanToken = equalsGreaterThanToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17682,17 +16743,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var tryKeyword = (SyntaxToken)reader.ReadValue();
-      if (tryKeyword != null)
-      {
-         AdjustFlagsAndWidth(tryKeyword);
-         this.tryKeyword = tryKeyword;
-      }
+      AdjustFlagsAndWidth(tryKeyword);
+      this.tryKeyword = tryKeyword;
       var block = (BlockSyntax)reader.ReadValue();
-      if (block != null)
-      {
-         AdjustFlagsAndWidth(block);
-         this.block = block;
-      }
+      AdjustFlagsAndWidth(block);
+      this.block = block;
       var catches = (GreenNode?)reader.ReadValue();
       if (catches != null)
       {
@@ -17843,11 +16898,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var catchKeyword = (SyntaxToken)reader.ReadValue();
-      if (catchKeyword != null)
-      {
-         AdjustFlagsAndWidth(catchKeyword);
-         this.catchKeyword = catchKeyword;
-      }
+      AdjustFlagsAndWidth(catchKeyword);
+      this.catchKeyword = catchKeyword;
       var declaration = (CatchDeclarationSyntax?)reader.ReadValue();
       if (declaration != null)
       {
@@ -17861,11 +16913,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.filter = filter;
       }
       var block = (BlockSyntax)reader.ReadValue();
-      if (block != null)
-      {
-         AdjustFlagsAndWidth(block);
-         this.block = block;
-      }
+      AdjustFlagsAndWidth(block);
+      this.block = block;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -17995,17 +17044,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var identifier = (SyntaxToken?)reader.ReadValue();
       if (identifier != null)
       {
@@ -18013,11 +17056,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.identifier = identifier;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -18138,29 +17178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var whenKeyword = (SyntaxToken)reader.ReadValue();
-      if (whenKeyword != null)
-      {
-         AdjustFlagsAndWidth(whenKeyword);
-         this.whenKeyword = whenKeyword;
-      }
+      AdjustFlagsAndWidth(whenKeyword);
+      this.whenKeyword = whenKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var filterExpression = (ExpressionSyntax)reader.ReadValue();
-      if (filterExpression != null)
-      {
-         AdjustFlagsAndWidth(filterExpression);
-         this.filterExpression = filterExpression;
-      }
+      AdjustFlagsAndWidth(filterExpression);
+      this.filterExpression = filterExpression;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -18263,17 +17291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var finallyKeyword = (SyntaxToken)reader.ReadValue();
-      if (finallyKeyword != null)
-      {
-         AdjustFlagsAndWidth(finallyKeyword);
-         this.finallyKeyword = finallyKeyword;
-      }
+      AdjustFlagsAndWidth(finallyKeyword);
+      this.finallyKeyword = finallyKeyword;
       var block = (BlockSyntax)reader.ReadValue();
-      if (block != null)
-      {
-         AdjustFlagsAndWidth(block);
-         this.block = block;
-      }
+      AdjustFlagsAndWidth(block);
+      this.block = block;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -18462,11 +17484,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var endOfFileToken = (SyntaxToken)reader.ReadValue();
-      if (endOfFileToken != null)
-      {
-         AdjustFlagsAndWidth(endOfFileToken);
-         this.endOfFileToken = endOfFileToken;
-      }
+      AdjustFlagsAndWidth(endOfFileToken);
+      this.endOfFileToken = endOfFileToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -18595,29 +17614,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var externKeyword = (SyntaxToken)reader.ReadValue();
-      if (externKeyword != null)
-      {
-         AdjustFlagsAndWidth(externKeyword);
-         this.externKeyword = externKeyword;
-      }
+      AdjustFlagsAndWidth(externKeyword);
+      this.externKeyword = externKeyword;
       var aliasKeyword = (SyntaxToken)reader.ReadValue();
-      if (aliasKeyword != null)
-      {
-         AdjustFlagsAndWidth(aliasKeyword);
-         this.aliasKeyword = aliasKeyword;
-      }
+      AdjustFlagsAndWidth(aliasKeyword);
+      this.aliasKeyword = aliasKeyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -18765,11 +17772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var usingKeyword = (SyntaxToken)reader.ReadValue();
-      if (usingKeyword != null)
-      {
-         AdjustFlagsAndWidth(usingKeyword);
-         this.usingKeyword = usingKeyword;
-      }
+      AdjustFlagsAndWidth(usingKeyword);
+      this.usingKeyword = usingKeyword;
       var staticKeyword = (SyntaxToken?)reader.ReadValue();
       if (staticKeyword != null)
       {
@@ -18783,17 +17787,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.alias = alias;
       }
       var name = (NameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -19060,23 +18058,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var namespaceKeyword = (SyntaxToken)reader.ReadValue();
-      if (namespaceKeyword != null)
-      {
-         AdjustFlagsAndWidth(namespaceKeyword);
-         this.namespaceKeyword = namespaceKeyword;
-      }
+      AdjustFlagsAndWidth(namespaceKeyword);
+      this.namespaceKeyword = namespaceKeyword;
       var name = (NameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var externs = (GreenNode?)reader.ReadValue();
       if (externs != null)
       {
@@ -19096,11 +18085,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
       var semicolonToken = (SyntaxToken?)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -19256,11 +18242,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var target = (AttributeTargetSpecifierSyntax?)reader.ReadValue();
       if (target != null)
       {
@@ -19274,11 +18257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.attributes = attributes;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -19384,17 +18364,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -19506,11 +18480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var name = (NameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var argumentList = (AttributeArgumentListSyntax?)reader.ReadValue();
       if (argumentList != null)
       {
@@ -19639,11 +18610,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var arguments = (GreenNode?)reader.ReadValue();
       if (arguments != null)
       {
@@ -19651,11 +18619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.arguments = arguments;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -19798,11 +18763,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.nameColon = nameColon;
       }
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -19906,17 +18868,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var name = (IdentifierNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -20039,11 +18995,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var lessThanToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanToken);
-         this.lessThanToken = lessThanToken;
-      }
+      AdjustFlagsAndWidth(lessThanToken);
+      this.lessThanToken = lessThanToken;
       var parameters = (GreenNode?)reader.ReadValue();
       if (parameters != null)
       {
@@ -20051,11 +19004,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameters = parameters;
       }
       var greaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (greaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(greaterThanToken);
-         this.greaterThanToken = greaterThanToken;
-      }
+      AdjustFlagsAndWidth(greaterThanToken);
+      this.greaterThanToken = greaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -20199,11 +19149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.varianceKeyword = varianceKeyword;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -20525,17 +19472,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -20555,11 +19496,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.constraintClauses = constraintClauses;
       }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var members = (GreenNode?)reader.ReadValue();
       if (members != null)
       {
@@ -20567,11 +19505,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
       var semicolonToken = (SyntaxToken?)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -20845,17 +19780,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -20875,11 +19804,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.constraintClauses = constraintClauses;
       }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var members = (GreenNode?)reader.ReadValue();
       if (members != null)
       {
@@ -20887,11 +19813,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
       var semicolonToken = (SyntaxToken?)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -21165,17 +20088,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -21195,11 +20112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.constraintClauses = constraintClauses;
       }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var members = (GreenNode?)reader.ReadValue();
       if (members != null)
       {
@@ -21207,11 +20121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
       var semicolonToken = (SyntaxToken?)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -21451,17 +20362,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var enumKeyword = (SyntaxToken)reader.ReadValue();
-      if (enumKeyword != null)
-      {
-         AdjustFlagsAndWidth(enumKeyword);
-         this.enumKeyword = enumKeyword;
-      }
+      AdjustFlagsAndWidth(enumKeyword);
+      this.enumKeyword = enumKeyword;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var baseList = (BaseListSyntax?)reader.ReadValue();
       if (baseList != null)
       {
@@ -21469,11 +20374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.baseList = baseList;
       }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var members = (GreenNode?)reader.ReadValue();
       if (members != null)
       {
@@ -21481,11 +20383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.members = members;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
       var semicolonToken = (SyntaxToken?)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -21717,23 +20616,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var delegateKeyword = (SyntaxToken)reader.ReadValue();
-      if (delegateKeyword != null)
-      {
-         AdjustFlagsAndWidth(delegateKeyword);
-         this.delegateKeyword = delegateKeyword;
-      }
+      AdjustFlagsAndWidth(delegateKeyword);
+      this.delegateKeyword = delegateKeyword;
       var returnType = (TypeSyntax)reader.ReadValue();
-      if (returnType != null)
-      {
-         AdjustFlagsAndWidth(returnType);
-         this.returnType = returnType;
-      }
+      AdjustFlagsAndWidth(returnType);
+      this.returnType = returnType;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -21741,11 +20631,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.typeParameterList = typeParameterList;
       }
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var constraintClauses = (GreenNode?)reader.ReadValue();
       if (constraintClauses != null)
       {
@@ -21753,11 +20640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.constraintClauses = constraintClauses;
       }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -21923,11 +20807,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var equalsValue = (EqualsValueClauseSyntax?)reader.ReadValue();
       if (equalsValue != null)
       {
@@ -22048,11 +20929,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var types = (GreenNode?)reader.ReadValue();
       if (types != null)
       {
@@ -22170,11 +21048,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -22305,23 +21180,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var whereKeyword = (SyntaxToken)reader.ReadValue();
-      if (whereKeyword != null)
-      {
-         AdjustFlagsAndWidth(whereKeyword);
-         this.whereKeyword = whereKeyword;
-      }
+      AdjustFlagsAndWidth(whereKeyword);
+      this.whereKeyword = whereKeyword;
       var name = (IdentifierNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var constraints = (GreenNode?)reader.ReadValue();
       if (constraints != null)
       {
@@ -22461,23 +21327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var newKeyword = (SyntaxToken)reader.ReadValue();
-      if (newKeyword != null)
-      {
-         AdjustFlagsAndWidth(newKeyword);
-         this.newKeyword = newKeyword;
-      }
+      AdjustFlagsAndWidth(newKeyword);
+      this.newKeyword = newKeyword;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -22591,11 +21448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var classOrStructKeyword = (SyntaxToken)reader.ReadValue();
-      if (classOrStructKeyword != null)
-      {
-         AdjustFlagsAndWidth(classOrStructKeyword);
-         this.classOrStructKeyword = classOrStructKeyword;
-      }
+      AdjustFlagsAndWidth(classOrStructKeyword);
+      this.classOrStructKeyword = classOrStructKeyword;
       var questionToken = (SyntaxToken?)reader.ReadValue();
       if (questionToken != null)
       {
@@ -22695,11 +21549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -22868,17 +21719,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var declaration = (VariableDeclarationSyntax)reader.ReadValue();
-      if (declaration != null)
-      {
-         AdjustFlagsAndWidth(declaration);
-         this.declaration = declaration;
-      }
+      AdjustFlagsAndWidth(declaration);
+      this.declaration = declaration;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -23038,23 +21883,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var eventKeyword = (SyntaxToken)reader.ReadValue();
-      if (eventKeyword != null)
-      {
-         AdjustFlagsAndWidth(eventKeyword);
-         this.eventKeyword = eventKeyword;
-      }
+      AdjustFlagsAndWidth(eventKeyword);
+      this.eventKeyword = eventKeyword;
       var declaration = (VariableDeclarationSyntax)reader.ReadValue();
-      if (declaration != null)
-      {
-         AdjustFlagsAndWidth(declaration);
-         this.declaration = declaration;
-      }
+      AdjustFlagsAndWidth(declaration);
+      this.declaration = declaration;
       var semicolonToken = (SyntaxToken)reader.ReadValue();
-      if (semicolonToken != null)
-      {
-         AdjustFlagsAndWidth(semicolonToken);
-         this.semicolonToken = semicolonToken;
-      }
+      AdjustFlagsAndWidth(semicolonToken);
+      this.semicolonToken = semicolonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -23158,17 +21994,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var name = (NameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var dotToken = (SyntaxToken)reader.ReadValue();
-      if (dotToken != null)
-      {
-         AdjustFlagsAndWidth(dotToken);
-         this.dotToken = dotToken;
-      }
+      AdjustFlagsAndWidth(dotToken);
+      this.dotToken = dotToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -23467,11 +22297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var returnType = (TypeSyntax)reader.ReadValue();
-      if (returnType != null)
-      {
-         AdjustFlagsAndWidth(returnType);
-         this.returnType = returnType;
-      }
+      AdjustFlagsAndWidth(returnType);
+      this.returnType = returnType;
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)reader.ReadValue();
       if (explicitInterfaceSpecifier != null)
       {
@@ -23479,11 +22306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
       if (typeParameterList != null)
       {
@@ -23491,11 +22315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.typeParameterList = typeParameterList;
       }
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var constraintClauses = (GreenNode?)reader.ReadValue();
       if (constraintClauses != null)
       {
@@ -23753,29 +22574,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var returnType = (TypeSyntax)reader.ReadValue();
-      if (returnType != null)
-      {
-         AdjustFlagsAndWidth(returnType);
-         this.returnType = returnType;
-      }
+      AdjustFlagsAndWidth(returnType);
+      this.returnType = returnType;
       var operatorKeyword = (SyntaxToken)reader.ReadValue();
-      if (operatorKeyword != null)
-      {
-         AdjustFlagsAndWidth(operatorKeyword);
-         this.operatorKeyword = operatorKeyword;
-      }
+      AdjustFlagsAndWidth(operatorKeyword);
+      this.operatorKeyword = operatorKeyword;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var body = (BlockSyntax?)reader.ReadValue();
       if (body != null)
       {
@@ -24026,29 +22835,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var implicitOrExplicitKeyword = (SyntaxToken)reader.ReadValue();
-      if (implicitOrExplicitKeyword != null)
-      {
-         AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-         this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-      }
+      AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+      this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
       var operatorKeyword = (SyntaxToken)reader.ReadValue();
-      if (operatorKeyword != null)
-      {
-         AdjustFlagsAndWidth(operatorKeyword);
-         this.operatorKeyword = operatorKeyword;
-      }
+      AdjustFlagsAndWidth(operatorKeyword);
+      this.operatorKeyword = operatorKeyword;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var body = (BlockSyntax?)reader.ReadValue();
       if (body != null)
       {
@@ -24297,17 +23094,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var initializer = (ConstructorInitializerSyntax?)reader.ReadValue();
       if (initializer != null)
       {
@@ -24450,23 +23241,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
       var thisOrBaseKeyword = (SyntaxToken)reader.ReadValue();
-      if (thisOrBaseKeyword != null)
-      {
-         AdjustFlagsAndWidth(thisOrBaseKeyword);
-         this.thisOrBaseKeyword = thisOrBaseKeyword;
-      }
+      AdjustFlagsAndWidth(thisOrBaseKeyword);
+      this.thisOrBaseKeyword = thisOrBaseKeyword;
       var argumentList = (ArgumentListSyntax)reader.ReadValue();
-      if (argumentList != null)
-      {
-         AdjustFlagsAndWidth(argumentList);
-         this.argumentList = argumentList;
-      }
+      AdjustFlagsAndWidth(argumentList);
+      this.argumentList = argumentList;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -24683,23 +23465,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var tildeToken = (SyntaxToken)reader.ReadValue();
-      if (tildeToken != null)
-      {
-         AdjustFlagsAndWidth(tildeToken);
-         this.tildeToken = tildeToken;
-      }
+      AdjustFlagsAndWidth(tildeToken);
+      this.tildeToken = tildeToken;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var parameterList = (ParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var body = (BlockSyntax?)reader.ReadValue();
       if (body != null)
       {
@@ -24989,11 +23762,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)reader.ReadValue();
       if (explicitInterfaceSpecifier != null)
       {
@@ -25001,11 +23771,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var accessorList = (AccessorListSyntax?)reader.ReadValue();
       if (accessorList != null)
       {
@@ -25138,17 +23905,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var arrowToken = (SyntaxToken)reader.ReadValue();
-      if (arrowToken != null)
-      {
-         AdjustFlagsAndWidth(arrowToken);
-         this.arrowToken = arrowToken;
-      }
+      AdjustFlagsAndWidth(arrowToken);
+      this.arrowToken = arrowToken;
       var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
-      {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
-      }
+      AdjustFlagsAndWidth(expression);
+      this.expression = expression;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -25361,17 +24122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var eventKeyword = (SyntaxToken)reader.ReadValue();
-      if (eventKeyword != null)
-      {
-         AdjustFlagsAndWidth(eventKeyword);
-         this.eventKeyword = eventKeyword;
-      }
+      AdjustFlagsAndWidth(eventKeyword);
+      this.eventKeyword = eventKeyword;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)reader.ReadValue();
       if (explicitInterfaceSpecifier != null)
       {
@@ -25379,11 +24134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var accessorList = (AccessorListSyntax?)reader.ReadValue();
       if (accessorList != null)
       {
@@ -25632,11 +24384,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)reader.ReadValue();
       if (explicitInterfaceSpecifier != null)
       {
@@ -25644,17 +24393,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
       }
       var thisKeyword = (SyntaxToken)reader.ReadValue();
-      if (thisKeyword != null)
-      {
-         AdjustFlagsAndWidth(thisKeyword);
-         this.thisKeyword = thisKeyword;
-      }
+      AdjustFlagsAndWidth(thisKeyword);
+      this.thisKeyword = thisKeyword;
       var parameterList = (BracketedParameterListSyntax)reader.ReadValue();
-      if (parameterList != null)
-      {
-         AdjustFlagsAndWidth(parameterList);
-         this.parameterList = parameterList;
-      }
+      AdjustFlagsAndWidth(parameterList);
+      this.parameterList = parameterList;
       var accessorList = (AccessorListSyntax?)reader.ReadValue();
       if (accessorList != null)
       {
@@ -25798,11 +24541,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
+      AdjustFlagsAndWidth(openBraceToken);
+      this.openBraceToken = openBraceToken;
       var accessors = (GreenNode?)reader.ReadValue();
       if (accessors != null)
       {
@@ -25810,11 +24550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.accessors = accessors;
       }
       var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
+      AdjustFlagsAndWidth(closeBraceToken);
+      this.closeBraceToken = closeBraceToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -26015,11 +24752,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.modifiers = modifiers;
       }
       var keyword = (SyntaxToken)reader.ReadValue();
-      if (keyword != null)
-      {
-         AdjustFlagsAndWidth(keyword);
-         this.keyword = keyword;
-      }
+      AdjustFlagsAndWidth(keyword);
+      this.keyword = keyword;
       var body = (BlockSyntax?)reader.ReadValue();
       if (body != null)
       {
@@ -26184,11 +24918,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var parameters = (GreenNode?)reader.ReadValue();
       if (parameters != null)
       {
@@ -26196,11 +24927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameters = parameters;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -26323,11 +25051,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var parameters = (GreenNode?)reader.ReadValue();
       if (parameters != null)
       {
@@ -26335,11 +25060,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameters = parameters;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -26526,11 +25248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.type = type;
       }
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var @default = (EqualsValueClauseSyntax?)reader.ReadValue();
       if (@default != null)
       {
@@ -26913,11 +25632,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.content = content;
       }
       var endOfComment = (SyntaxToken)reader.ReadValue();
-      if (endOfComment != null)
-      {
-         AdjustFlagsAndWidth(endOfComment);
-         this.endOfComment = endOfComment;
-      }
+      AdjustFlagsAndWidth(endOfComment);
+      this.endOfComment = endOfComment;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -27037,11 +25753,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 1;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -27157,23 +25870,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var container = (TypeSyntax)reader.ReadValue();
-      if (container != null)
-      {
-         AdjustFlagsAndWidth(container);
-         this.container = container;
-      }
+      AdjustFlagsAndWidth(container);
+      this.container = container;
       var dotToken = (SyntaxToken)reader.ReadValue();
-      if (dotToken != null)
-      {
-         AdjustFlagsAndWidth(dotToken);
-         this.dotToken = dotToken;
-      }
+      AdjustFlagsAndWidth(dotToken);
+      this.dotToken = dotToken;
       var member = (MemberCrefSyntax)reader.ReadValue();
-      if (member != null)
-      {
-         AdjustFlagsAndWidth(member);
-         this.member = member;
-      }
+      AdjustFlagsAndWidth(member);
+      this.member = member;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -27314,11 +26018,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var name = (TypeSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var parameters = (CrefParameterListSyntax?)reader.ReadValue();
       if (parameters != null)
       {
@@ -27438,11 +26139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var thisKeyword = (SyntaxToken)reader.ReadValue();
-      if (thisKeyword != null)
-      {
-         AdjustFlagsAndWidth(thisKeyword);
-         this.thisKeyword = thisKeyword;
-      }
+      AdjustFlagsAndWidth(thisKeyword);
+      this.thisKeyword = thisKeyword;
       var parameters = (CrefBracketedParameterListSyntax?)reader.ReadValue();
       if (parameters != null)
       {
@@ -27573,17 +26271,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var operatorKeyword = (SyntaxToken)reader.ReadValue();
-      if (operatorKeyword != null)
-      {
-         AdjustFlagsAndWidth(operatorKeyword);
-         this.operatorKeyword = operatorKeyword;
-      }
+      AdjustFlagsAndWidth(operatorKeyword);
+      this.operatorKeyword = operatorKeyword;
       var operatorToken = (SyntaxToken)reader.ReadValue();
-      if (operatorToken != null)
-      {
-         AdjustFlagsAndWidth(operatorToken);
-         this.operatorToken = operatorToken;
-      }
+      AdjustFlagsAndWidth(operatorToken);
+      this.operatorToken = operatorToken;
       var parameters = (CrefParameterListSyntax?)reader.ReadValue();
       if (parameters != null)
       {
@@ -27722,23 +26414,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var implicitOrExplicitKeyword = (SyntaxToken)reader.ReadValue();
-      if (implicitOrExplicitKeyword != null)
-      {
-         AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-         this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-      }
+      AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+      this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
       var operatorKeyword = (SyntaxToken)reader.ReadValue();
-      if (operatorKeyword != null)
-      {
-         AdjustFlagsAndWidth(operatorKeyword);
-         this.operatorKeyword = operatorKeyword;
-      }
+      AdjustFlagsAndWidth(operatorKeyword);
+      this.operatorKeyword = operatorKeyword;
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
       var parameters = (CrefParameterListSyntax?)reader.ReadValue();
       if (parameters != null)
       {
@@ -27894,11 +26577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
-      {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
-      }
+      AdjustFlagsAndWidth(openParenToken);
+      this.openParenToken = openParenToken;
       var parameters = (GreenNode?)reader.ReadValue();
       if (parameters != null)
       {
@@ -27906,11 +26586,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameters = parameters;
       }
       var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
+      AdjustFlagsAndWidth(closeParenToken);
+      this.closeParenToken = closeParenToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28035,11 +26712,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
-      if (openBracketToken != null)
-      {
-         AdjustFlagsAndWidth(openBracketToken);
-         this.openBracketToken = openBracketToken;
-      }
+      AdjustFlagsAndWidth(openBracketToken);
+      this.openBracketToken = openBracketToken;
       var parameters = (GreenNode?)reader.ReadValue();
       if (parameters != null)
       {
@@ -28047,11 +26721,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.parameters = parameters;
       }
       var closeBracketToken = (SyntaxToken)reader.ReadValue();
-      if (closeBracketToken != null)
-      {
-         AdjustFlagsAndWidth(closeBracketToken);
-         this.closeBracketToken = closeBracketToken;
-      }
+      AdjustFlagsAndWidth(closeBracketToken);
+      this.closeBracketToken = closeBracketToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28173,11 +26844,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.refKindKeyword = refKindKeyword;
       }
       var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
+      AdjustFlagsAndWidth(type);
+      this.type = type;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28313,11 +26981,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var startTag = (XmlElementStartTagSyntax)reader.ReadValue();
-      if (startTag != null)
-      {
-         AdjustFlagsAndWidth(startTag);
-         this.startTag = startTag;
-      }
+      AdjustFlagsAndWidth(startTag);
+      this.startTag = startTag;
       var content = (GreenNode?)reader.ReadValue();
       if (content != null)
       {
@@ -28325,11 +26990,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.content = content;
       }
       var endTag = (XmlElementEndTagSyntax)reader.ReadValue();
-      if (endTag != null)
-      {
-         AdjustFlagsAndWidth(endTag);
-         this.endTag = endTag;
-      }
+      AdjustFlagsAndWidth(endTag);
+      this.endTag = endTag;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28458,17 +27120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var lessThanToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanToken);
-         this.lessThanToken = lessThanToken;
-      }
+      AdjustFlagsAndWidth(lessThanToken);
+      this.lessThanToken = lessThanToken;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var attributes = (GreenNode?)reader.ReadValue();
       if (attributes != null)
       {
@@ -28476,11 +27132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.attributes = attributes;
       }
       var greaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (greaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(greaterThanToken);
-         this.greaterThanToken = greaterThanToken;
-      }
+      AdjustFlagsAndWidth(greaterThanToken);
+      this.greaterThanToken = greaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28592,23 +27245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var lessThanSlashToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanSlashToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanSlashToken);
-         this.lessThanSlashToken = lessThanSlashToken;
-      }
+      AdjustFlagsAndWidth(lessThanSlashToken);
+      this.lessThanSlashToken = lessThanSlashToken;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var greaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (greaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(greaterThanToken);
-         this.greaterThanToken = greaterThanToken;
-      }
+      AdjustFlagsAndWidth(greaterThanToken);
+      this.greaterThanToken = greaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28737,17 +27381,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var lessThanToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanToken);
-         this.lessThanToken = lessThanToken;
-      }
+      AdjustFlagsAndWidth(lessThanToken);
+      this.lessThanToken = lessThanToken;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var attributes = (GreenNode?)reader.ReadValue();
       if (attributes != null)
       {
@@ -28755,11 +27393,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.attributes = attributes;
       }
       var slashGreaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (slashGreaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(slashGreaterThanToken);
-         this.slashGreaterThanToken = slashGreaterThanToken;
-      }
+      AdjustFlagsAndWidth(slashGreaterThanToken);
+      this.slashGreaterThanToken = slashGreaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28877,11 +27512,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.prefix = prefix;
       }
       var localName = (SyntaxToken)reader.ReadValue();
-      if (localName != null)
-      {
-         AdjustFlagsAndWidth(localName);
-         this.localName = localName;
-      }
+      AdjustFlagsAndWidth(localName);
+      this.localName = localName;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -28982,17 +27614,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 2;
       var prefix = (SyntaxToken)reader.ReadValue();
-      if (prefix != null)
-      {
-         AdjustFlagsAndWidth(prefix);
-         this.prefix = prefix;
-      }
+      AdjustFlagsAndWidth(prefix);
+      this.prefix = prefix;
       var colonToken = (SyntaxToken)reader.ReadValue();
-      if (colonToken != null)
-      {
-         AdjustFlagsAndWidth(colonToken);
-         this.colonToken = colonToken;
-      }
+      AdjustFlagsAndWidth(colonToken);
+      this.colonToken = colonToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -29154,23 +27780,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
       var startQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (startQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(startQuoteToken);
-         this.startQuoteToken = startQuoteToken;
-      }
+      AdjustFlagsAndWidth(startQuoteToken);
+      this.startQuoteToken = startQuoteToken;
       var textTokens = (GreenNode?)reader.ReadValue();
       if (textTokens != null)
       {
@@ -29178,11 +27795,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.textTokens = textTokens;
       }
       var endQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (endQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(endQuoteToken);
-         this.endQuoteToken = endQuoteToken;
-      }
+      AdjustFlagsAndWidth(endQuoteToken);
+      this.endQuoteToken = endQuoteToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -29313,35 +27927,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
       var startQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (startQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(startQuoteToken);
-         this.startQuoteToken = startQuoteToken;
-      }
+      AdjustFlagsAndWidth(startQuoteToken);
+      this.startQuoteToken = startQuoteToken;
       var cref = (CrefSyntax)reader.ReadValue();
-      if (cref != null)
-      {
-         AdjustFlagsAndWidth(cref);
-         this.cref = cref;
-      }
+      AdjustFlagsAndWidth(cref);
+      this.cref = cref;
       var endQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (endQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(endQuoteToken);
-         this.endQuoteToken = endQuoteToken;
-      }
+      AdjustFlagsAndWidth(endQuoteToken);
+      this.endQuoteToken = endQuoteToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -29472,35 +28071,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var equalsToken = (SyntaxToken)reader.ReadValue();
-      if (equalsToken != null)
-      {
-         AdjustFlagsAndWidth(equalsToken);
-         this.equalsToken = equalsToken;
-      }
+      AdjustFlagsAndWidth(equalsToken);
+      this.equalsToken = equalsToken;
       var startQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (startQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(startQuoteToken);
-         this.startQuoteToken = startQuoteToken;
-      }
+      AdjustFlagsAndWidth(startQuoteToken);
+      this.startQuoteToken = startQuoteToken;
       var identifier = (IdentifierNameSyntax)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var endQuoteToken = (SyntaxToken)reader.ReadValue();
-      if (endQuoteToken != null)
-      {
-         AdjustFlagsAndWidth(endQuoteToken);
-         this.endQuoteToken = endQuoteToken;
-      }
+      AdjustFlagsAndWidth(endQuoteToken);
+      this.endQuoteToken = endQuoteToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -29726,11 +28310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var startCDataToken = (SyntaxToken)reader.ReadValue();
-      if (startCDataToken != null)
-      {
-         AdjustFlagsAndWidth(startCDataToken);
-         this.startCDataToken = startCDataToken;
-      }
+      AdjustFlagsAndWidth(startCDataToken);
+      this.startCDataToken = startCDataToken;
       var textTokens = (GreenNode?)reader.ReadValue();
       if (textTokens != null)
       {
@@ -29738,11 +28319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.textTokens = textTokens;
       }
       var endCDataToken = (SyntaxToken)reader.ReadValue();
-      if (endCDataToken != null)
-      {
-         AdjustFlagsAndWidth(endCDataToken);
-         this.endCDataToken = endCDataToken;
-      }
+      AdjustFlagsAndWidth(endCDataToken);
+      this.endCDataToken = endCDataToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -29871,17 +28449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var startProcessingInstructionToken = (SyntaxToken)reader.ReadValue();
-      if (startProcessingInstructionToken != null)
-      {
-         AdjustFlagsAndWidth(startProcessingInstructionToken);
-         this.startProcessingInstructionToken = startProcessingInstructionToken;
-      }
+      AdjustFlagsAndWidth(startProcessingInstructionToken);
+      this.startProcessingInstructionToken = startProcessingInstructionToken;
       var name = (XmlNameSyntax)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var textTokens = (GreenNode?)reader.ReadValue();
       if (textTokens != null)
       {
@@ -29889,11 +28461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.textTokens = textTokens;
       }
       var endProcessingInstructionToken = (SyntaxToken)reader.ReadValue();
-      if (endProcessingInstructionToken != null)
-      {
-         AdjustFlagsAndWidth(endProcessingInstructionToken);
-         this.endProcessingInstructionToken = endProcessingInstructionToken;
-      }
+      AdjustFlagsAndWidth(endProcessingInstructionToken);
+      this.endProcessingInstructionToken = endProcessingInstructionToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -30014,11 +28583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var lessThanExclamationMinusMinusToken = (SyntaxToken)reader.ReadValue();
-      if (lessThanExclamationMinusMinusToken != null)
-      {
-         AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
-         this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
-      }
+      AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
+      this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
       var textTokens = (GreenNode?)reader.ReadValue();
       if (textTokens != null)
       {
@@ -30026,11 +28592,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.textTokens = textTokens;
       }
       var minusMinusGreaterThanToken = (SyntaxToken)reader.ReadValue();
-      if (minusMinusGreaterThanToken != null)
-      {
-         AdjustFlagsAndWidth(minusMinusGreaterThanToken);
-         this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
-      }
+      AdjustFlagsAndWidth(minusMinusGreaterThanToken);
+      this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -30231,29 +28794,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var ifKeyword = (SyntaxToken)reader.ReadValue();
-      if (ifKeyword != null)
-      {
-         AdjustFlagsAndWidth(ifKeyword);
-         this.ifKeyword = ifKeyword;
-      }
+      AdjustFlagsAndWidth(ifKeyword);
+      this.ifKeyword = ifKeyword;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
       this.branchTaken = (bool)reader.ReadBoolean();
       this.conditionValue = (bool)reader.ReadBoolean();
@@ -30395,29 +28946,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var elifKeyword = (SyntaxToken)reader.ReadValue();
-      if (elifKeyword != null)
-      {
-         AdjustFlagsAndWidth(elifKeyword);
-         this.elifKeyword = elifKeyword;
-      }
+      AdjustFlagsAndWidth(elifKeyword);
+      this.elifKeyword = elifKeyword;
       var condition = (ExpressionSyntax)reader.ReadValue();
-      if (condition != null)
-      {
-         AdjustFlagsAndWidth(condition);
-         this.condition = condition;
-      }
+      AdjustFlagsAndWidth(condition);
+      this.condition = condition;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
       this.branchTaken = (bool)reader.ReadBoolean();
       this.conditionValue = (bool)reader.ReadBoolean();
@@ -30545,23 +29084,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var elseKeyword = (SyntaxToken)reader.ReadValue();
-      if (elseKeyword != null)
-      {
-         AdjustFlagsAndWidth(elseKeyword);
-         this.elseKeyword = elseKeyword;
-      }
+      AdjustFlagsAndWidth(elseKeyword);
+      this.elseKeyword = elseKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
       this.branchTaken = (bool)reader.ReadBoolean();
     }
@@ -30681,23 +29211,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var endIfKeyword = (SyntaxToken)reader.ReadValue();
-      if (endIfKeyword != null)
-      {
-         AdjustFlagsAndWidth(endIfKeyword);
-         this.endIfKeyword = endIfKeyword;
-      }
+      AdjustFlagsAndWidth(endIfKeyword);
+      this.endIfKeyword = endIfKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -30815,23 +29336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var regionKeyword = (SyntaxToken)reader.ReadValue();
-      if (regionKeyword != null)
-      {
-         AdjustFlagsAndWidth(regionKeyword);
-         this.regionKeyword = regionKeyword;
-      }
+      AdjustFlagsAndWidth(regionKeyword);
+      this.regionKeyword = regionKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -30949,23 +29461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var endRegionKeyword = (SyntaxToken)reader.ReadValue();
-      if (endRegionKeyword != null)
-      {
-         AdjustFlagsAndWidth(endRegionKeyword);
-         this.endRegionKeyword = endRegionKeyword;
-      }
+      AdjustFlagsAndWidth(endRegionKeyword);
+      this.endRegionKeyword = endRegionKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31083,23 +29586,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var errorKeyword = (SyntaxToken)reader.ReadValue();
-      if (errorKeyword != null)
-      {
-         AdjustFlagsAndWidth(errorKeyword);
-         this.errorKeyword = errorKeyword;
-      }
+      AdjustFlagsAndWidth(errorKeyword);
+      this.errorKeyword = errorKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31217,23 +29711,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var warningKeyword = (SyntaxToken)reader.ReadValue();
-      if (warningKeyword != null)
-      {
-         AdjustFlagsAndWidth(warningKeyword);
-         this.warningKeyword = warningKeyword;
-      }
+      AdjustFlagsAndWidth(warningKeyword);
+      this.warningKeyword = warningKeyword;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31351,23 +29836,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var identifier = (SyntaxToken)reader.ReadValue();
-      if (identifier != null)
-      {
-         AdjustFlagsAndWidth(identifier);
-         this.identifier = identifier;
-      }
+      AdjustFlagsAndWidth(identifier);
+      this.identifier = identifier;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31494,29 +29970,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var defineKeyword = (SyntaxToken)reader.ReadValue();
-      if (defineKeyword != null)
-      {
-         AdjustFlagsAndWidth(defineKeyword);
-         this.defineKeyword = defineKeyword;
-      }
+      AdjustFlagsAndWidth(defineKeyword);
+      this.defineKeyword = defineKeyword;
       var name = (SyntaxToken)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31644,29 +30108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var undefKeyword = (SyntaxToken)reader.ReadValue();
-      if (undefKeyword != null)
-      {
-         AdjustFlagsAndWidth(undefKeyword);
-         this.undefKeyword = undefKeyword;
-      }
+      AdjustFlagsAndWidth(undefKeyword);
+      this.undefKeyword = undefKeyword;
       var name = (SyntaxToken)reader.ReadValue();
-      if (name != null)
-      {
-         AdjustFlagsAndWidth(name);
-         this.name = name;
-      }
+      AdjustFlagsAndWidth(name);
+      this.name = name;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31812,23 +30264,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var lineKeyword = (SyntaxToken)reader.ReadValue();
-      if (lineKeyword != null)
-      {
-         AdjustFlagsAndWidth(lineKeyword);
-         this.lineKeyword = lineKeyword;
-      }
+      AdjustFlagsAndWidth(lineKeyword);
+      this.lineKeyword = lineKeyword;
       var line = (SyntaxToken)reader.ReadValue();
-      if (line != null)
-      {
-         AdjustFlagsAndWidth(line);
-         this.line = line;
-      }
+      AdjustFlagsAndWidth(line);
+      this.line = line;
       var file = (SyntaxToken?)reader.ReadValue();
       if (file != null)
       {
@@ -31836,11 +30279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.file = file;
       }
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -31996,29 +30436,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 6;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var pragmaKeyword = (SyntaxToken)reader.ReadValue();
-      if (pragmaKeyword != null)
-      {
-         AdjustFlagsAndWidth(pragmaKeyword);
-         this.pragmaKeyword = pragmaKeyword;
-      }
+      AdjustFlagsAndWidth(pragmaKeyword);
+      this.pragmaKeyword = pragmaKeyword;
       var warningKeyword = (SyntaxToken)reader.ReadValue();
-      if (warningKeyword != null)
-      {
-         AdjustFlagsAndWidth(warningKeyword);
-         this.warningKeyword = warningKeyword;
-      }
+      AdjustFlagsAndWidth(warningKeyword);
+      this.warningKeyword = warningKeyword;
       var disableOrRestoreKeyword = (SyntaxToken)reader.ReadValue();
-      if (disableOrRestoreKeyword != null)
-      {
-         AdjustFlagsAndWidth(disableOrRestoreKeyword);
-         this.disableOrRestoreKeyword = disableOrRestoreKeyword;
-      }
+      AdjustFlagsAndWidth(disableOrRestoreKeyword);
+      this.disableOrRestoreKeyword = disableOrRestoreKeyword;
       var errorCodes = (GreenNode?)reader.ReadValue();
       if (errorCodes != null)
       {
@@ -32026,11 +30454,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.errorCodes = errorCodes;
       }
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -32187,47 +30612,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 7;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var pragmaKeyword = (SyntaxToken)reader.ReadValue();
-      if (pragmaKeyword != null)
-      {
-         AdjustFlagsAndWidth(pragmaKeyword);
-         this.pragmaKeyword = pragmaKeyword;
-      }
+      AdjustFlagsAndWidth(pragmaKeyword);
+      this.pragmaKeyword = pragmaKeyword;
       var checksumKeyword = (SyntaxToken)reader.ReadValue();
-      if (checksumKeyword != null)
-      {
-         AdjustFlagsAndWidth(checksumKeyword);
-         this.checksumKeyword = checksumKeyword;
-      }
+      AdjustFlagsAndWidth(checksumKeyword);
+      this.checksumKeyword = checksumKeyword;
       var file = (SyntaxToken)reader.ReadValue();
-      if (file != null)
-      {
-         AdjustFlagsAndWidth(file);
-         this.file = file;
-      }
+      AdjustFlagsAndWidth(file);
+      this.file = file;
       var guid = (SyntaxToken)reader.ReadValue();
-      if (guid != null)
-      {
-         AdjustFlagsAndWidth(guid);
-         this.guid = guid;
-      }
+      AdjustFlagsAndWidth(guid);
+      this.guid = guid;
       var bytes = (SyntaxToken)reader.ReadValue();
-      if (bytes != null)
-      {
-         AdjustFlagsAndWidth(bytes);
-         this.bytes = bytes;
-      }
+      AdjustFlagsAndWidth(bytes);
+      this.bytes = bytes;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -32358,29 +30762,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var referenceKeyword = (SyntaxToken)reader.ReadValue();
-      if (referenceKeyword != null)
-      {
-         AdjustFlagsAndWidth(referenceKeyword);
-         this.referenceKeyword = referenceKeyword;
-      }
+      AdjustFlagsAndWidth(referenceKeyword);
+      this.referenceKeyword = referenceKeyword;
       var file = (SyntaxToken)reader.ReadValue();
-      if (file != null)
-      {
-         AdjustFlagsAndWidth(file);
-         this.file = file;
-      }
+      AdjustFlagsAndWidth(file);
+      this.file = file;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -32508,29 +30900,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 4;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var loadKeyword = (SyntaxToken)reader.ReadValue();
-      if (loadKeyword != null)
-      {
-         AdjustFlagsAndWidth(loadKeyword);
-         this.loadKeyword = loadKeyword;
-      }
+      AdjustFlagsAndWidth(loadKeyword);
+      this.loadKeyword = loadKeyword;
       var file = (SyntaxToken)reader.ReadValue();
-      if (file != null)
-      {
-         AdjustFlagsAndWidth(file);
-         this.file = file;
-      }
+      AdjustFlagsAndWidth(file);
+      this.file = file;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -32649,23 +31029,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 3;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var exclamationToken = (SyntaxToken)reader.ReadValue();
-      if (exclamationToken != null)
-      {
-         AdjustFlagsAndWidth(exclamationToken);
-         this.exclamationToken = exclamationToken;
-      }
+      AdjustFlagsAndWidth(exclamationToken);
+      this.exclamationToken = exclamationToken;
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 
@@ -32810,23 +31181,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       this.SlotCount = 5;
       var hashToken = (SyntaxToken)reader.ReadValue();
-      if (hashToken != null)
-      {
-         AdjustFlagsAndWidth(hashToken);
-         this.hashToken = hashToken;
-      }
+      AdjustFlagsAndWidth(hashToken);
+      this.hashToken = hashToken;
       var nullableKeyword = (SyntaxToken)reader.ReadValue();
-      if (nullableKeyword != null)
-      {
-         AdjustFlagsAndWidth(nullableKeyword);
-         this.nullableKeyword = nullableKeyword;
-      }
+      AdjustFlagsAndWidth(nullableKeyword);
+      this.nullableKeyword = nullableKeyword;
       var settingToken = (SyntaxToken)reader.ReadValue();
-      if (settingToken != null)
-      {
-         AdjustFlagsAndWidth(settingToken);
-         this.settingToken = settingToken;
-      }
+      AdjustFlagsAndWidth(settingToken);
+      this.settingToken = settingToken;
       var targetToken = (SyntaxToken?)reader.ReadValue();
       if (targetToken != null)
       {
@@ -32834,11 +31196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          this.targetToken = targetToken;
       }
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
-      if (endOfDirectiveToken != null)
-      {
-         AdjustFlagsAndWidth(endOfDirectiveToken);
-         this.endOfDirectiveToken = endOfDirectiveToken;
-      }
+      AdjustFlagsAndWidth(endOfDirectiveToken);
+      this.endOfDirectiveToken = endOfDirectiveToken;
       this.isActive = (bool)reader.ReadBoolean();
     }
 

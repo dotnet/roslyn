@@ -335,11 +335,19 @@ namespace CSharpSyntaxGenerator
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
                 WriteLine("      var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type);
-                WriteLine("      if ({0} != null)", CamelCase(field.Name));
-                WriteLine("      {");
-                WriteLine("         AdjustFlagsAndWidth({0});", CamelCase(field.Name));
-                WriteLine("         this.{0} = {0};", CamelCase(field.Name), type);
-                WriteLine("      }");
+                if (IsAnyList(field.Type) || IsOptional(field))
+                {
+                    WriteLine("      if ({0} != null)", CamelCase(field.Name));
+                    WriteLine("      {");
+                    WriteLine("         AdjustFlagsAndWidth({0});", CamelCase(field.Name));
+                    WriteLine("         this.{0} = {0};", CamelCase(field.Name), type);
+                    WriteLine("      }");
+                }
+                else
+                {
+                    WriteLine("      AdjustFlagsAndWidth({0});", CamelCase(field.Name));
+                    WriteLine("      this.{0} = {0};", CamelCase(field.Name), type);
+                }
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
