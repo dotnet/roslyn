@@ -411,21 +411,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
             var refLocationGroups = refLocationsInOtherDocuments.GroupBy(loc => loc.Document.Id);
-
-            var fixedDocuments = await Task.WhenAll(
+            var fixedDocuments = (await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
                     FixReferencingDocumentAsync(
                         solutionWithChangedNamespace.GetDocument(refInOneDocument.Key),
                         refInOneDocument,
                         newNamespace,
-                        cancellationToken))).ConfigureAwait(false);
+                        cancellationToken))).ConfigureAwait(false)).WhereNotNull(); // Also need to exclude all documents we can't apply changes to.
 
             var solutionWithFixedReferences = await MergeDocumentChangesAsync(solutionWithChangedNamespace, fixedDocuments, cancellationToken).ConfigureAwait(false);
 
-            return (solutionWithFixedReferences, refLocationGroups.SelectAsArray(g => g.Key));
+            return (solutionWithFixedReferences, fixedDocuments.SelectAsArray(d => d.Id));
         }
 
-        private static async Task<Solution> MergeDocumentChangesAsync(Solution originalSolution, Document[] changedDocuments, CancellationToken cancellationToken)
+        private static async Task<Solution> MergeDocumentChangesAsync(Solution originalSolution, IEnumerable<Document> changedDocuments, CancellationToken cancellationToken)
         {
             foreach (var document in changedDocuments)
             {
@@ -589,11 +588,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             string newNamespace,
             CancellationToken cancellationToken)
         {
-            // Can't apply change to certain document, simply return unchanged.
+            // Can't apply change to certain document, returns null to indicate this.
             // e.g. Razor document (*.g.cs file, not *.cshtml)
             if (!document.CanApplyChange())
             {
-                return document;
+                return null;
             }
 
             // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
