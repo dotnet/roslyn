@@ -66,6 +66,10 @@
       TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
     -->
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
+
+    <ExpectedDependency Include="Microsoft.Win32.Registry"/>
+    <ExpectedDependency Include="System.Security.AccessControl"/>
+    <ExpectedDependency Include="System.Security.Principal.Windows"/>
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
