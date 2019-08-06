@@ -646,5 +646,17 @@ language: LanguageNames.CSharp);
             Assert.NotNull(service);
             Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestChangeDefaultNamespace_TryApplyChanges()
+        {
+            using var ws = new AdhocWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).WithDefaultNamespace("OriginalName").Id;
+
+            var newName = "ChangedName";
+            var newSolution = ws.CurrentSolution.WithProjectDefaultNamespace(projectId, newName);
+            Assert.True(ws.TryApplyChanges(newSolution));
+            Assert.Equal(newName, ws.CurrentSolution.Projects.First(p => p.Id == projectId).DefaultNamespace);
+        }
     }
 }
