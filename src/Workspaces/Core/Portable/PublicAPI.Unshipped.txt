@@ -1,1 +1,6 @@
-
+Microsoft.CodeAnalysis.ApplyChangesKind.ChangeDefaultNamespace = 22 -> Microsoft.CodeAnalysis.ApplyChangesKind
+Microsoft.CodeAnalysis.Project.DefaultNamespace.get -> string
+Microsoft.CodeAnalysis.Project.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.ProjectInfo.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.Solution.WithProjectDefaultNamespace(Microsoft.CodeAnalysis.ProjectId projectId, string defaultNamespace) -> Microsoft.CodeAnalysis.Solution
+virtual Microsoft.CodeAnalysis.Workspace.ApplyDefaultNamespaceChanged(Microsoft.CodeAnalysis.ProjectId projectId, string defaultNamespace) -> void
