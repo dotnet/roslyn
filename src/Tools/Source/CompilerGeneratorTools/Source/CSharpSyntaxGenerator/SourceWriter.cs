@@ -1867,6 +1867,8 @@ namespace CSharpSyntaxGenerator
         {
             if (field.Type == "SyntaxList<SyntaxToken>")
                 return "SyntaxTokenList";
+            if (IsOptional(field) && IsNode(field.Type) && field.Type != "SyntaxToken")
+                return field.Type + "?";
             return field.Type;
         }
 
