@@ -3,7 +3,9 @@
 
 *.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
-build/ @dotnet/roslyn-infrastructure
+eng/ @dotnet/roslyn-infrastructure
+scripts/ @dotnet/roslyn-infrastructure
+
 src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 src/EditorFeatures/ @dotnet/roslyn-ide
