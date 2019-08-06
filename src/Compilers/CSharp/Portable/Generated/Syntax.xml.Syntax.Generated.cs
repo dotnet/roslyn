@@ -13915,9 +13915,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal abstract BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier);
 
     /// <summary>Gets the base type list.</summary>
-    public abstract BaseListSyntax BaseList { get; }
-    public BaseTypeDeclarationSyntax WithBaseList(BaseListSyntax baseList) => WithBaseListCore(baseList);
-    internal abstract BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList);
+    public abstract BaseListSyntax? BaseList { get; }
+    public BaseTypeDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => WithBaseListCore(baseList);
+    internal abstract BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax? baseList);
 
     public BaseTypeDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items) => AddBaseListTypesCore(items);
     internal abstract BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items);
@@ -13958,9 +13958,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public TypeDeclarationSyntax WithKeyword(SyntaxToken keyword) => WithKeywordCore(keyword);
     internal abstract TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword);
 
-    public abstract TypeParameterListSyntax TypeParameterList { get; }
-    public TypeDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList) => WithTypeParameterListCore(typeParameterList);
-    internal abstract TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax typeParameterList);
+    public abstract TypeParameterListSyntax? TypeParameterList { get; }
+    public TypeDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => WithTypeParameterListCore(typeParameterList);
+    internal abstract TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax? typeParameterList);
 
     public TypeDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items) => AddTypeParameterListParametersCore(items);
     internal abstract TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items);
@@ -13982,7 +13982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal abstract TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items);
 
     public new TypeDeclarationSyntax WithIdentifier(SyntaxToken identifier) => (TypeDeclarationSyntax)WithIdentifierCore(identifier);
-    public new TypeDeclarationSyntax WithBaseList(BaseListSyntax baseList) => (TypeDeclarationSyntax)WithBaseListCore(baseList);
+    public new TypeDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => (TypeDeclarationSyntax)WithBaseListCore(baseList);
     public new TypeDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => (TypeDeclarationSyntax)WithOpenBraceTokenCore(openBraceToken);
     public new TypeDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => (TypeDeclarationSyntax)WithCloseBraceTokenCore(closeBraceToken);
     public new TypeDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => (TypeDeclarationSyntax)WithSemicolonTokenCore(semicolonToken);
@@ -16186,16 +16186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public BaseMethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => AddParameterListParametersCore(items);
     internal abstract BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items);
 
-    public abstract BlockSyntax Body { get; }
-    public BaseMethodDeclarationSyntax WithBody(BlockSyntax body) => WithBodyCore(body);
-    internal abstract BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body);
+    public abstract BlockSyntax? Body { get; }
+    public BaseMethodDeclarationSyntax WithBody(BlockSyntax? body) => WithBodyCore(body);
+    internal abstract BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax? body);
 
     public BaseMethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items) => AddBodyStatementsCore(items);
     internal abstract BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items);
 
-    public abstract ArrowExpressionClauseSyntax ExpressionBody { get; }
-    public BaseMethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBodyCore(expressionBody);
-    internal abstract BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody);
+    public abstract ArrowExpressionClauseSyntax? ExpressionBody { get; }
+    public BaseMethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax? expressionBody) => WithExpressionBodyCore(expressionBody);
+    internal abstract BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax? expressionBody);
 
     /// <summary>Gets the optional semicolon token.</summary>
     public abstract SyntaxToken SemicolonToken { get; }
@@ -17425,13 +17425,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal abstract BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type);
 
     /// <summary>Gets the optional explicit interface specifier.</summary>
-    public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get; }
-    public BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifierCore(explicitInterfaceSpecifier);
-    internal abstract BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier);
+    public abstract ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier { get; }
+    public BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifierCore(explicitInterfaceSpecifier);
+    internal abstract BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier);
 
-    public abstract AccessorListSyntax AccessorList { get; }
-    public BasePropertyDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList) => WithAccessorListCore(accessorList);
-    internal abstract BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList);
+    public abstract AccessorListSyntax? AccessorList { get; }
+    public BasePropertyDeclarationSyntax WithAccessorList(AccessorListSyntax? accessorList) => WithAccessorListCore(accessorList);
+    internal abstract BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax? accessorList);
 
     public BasePropertyDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessorsCore(items);
     internal abstract BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items);
