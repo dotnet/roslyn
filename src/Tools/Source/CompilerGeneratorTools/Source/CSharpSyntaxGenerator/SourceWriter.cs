@@ -151,7 +151,7 @@ namespace CSharpSyntaxGenerator
                         else
                         {
                             WriteLine("    public abstract {0}{1} {2} {{ get; }}",
-                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                                (IsNew(field) ? "new " : ""), GetFieldType(field, green: true), field.Name);
                         }
                     }
                 }
@@ -257,7 +257,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteLine("    public {0}{1} {2} => this.{3};",
-                            OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
+                            OverrideOrNewModifier(field), GetFieldType(field, green: true), field.Name, CamelCase(field.Name)
                             );
                     }
                 }

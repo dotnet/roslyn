@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the type of the tuple element.</summary>
     public TypeSyntax Type => this.type;
     /// <summary>Gets the name of the tuple element.</summary>
-    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken? Identifier => this.identifier;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public SyntaxToken RefKeyword => this.refKeyword;
     /// <summary>Gets the optional "readonly" keyword.</summary>
-    public SyntaxToken ReadOnlyKeyword => this.readOnlyKeyword;
+    public SyntaxToken? ReadOnlyKeyword => this.readOnlyKeyword;
     public TypeSyntax Type => this.type;
 
     internal override GreenNode? GetSlot(int index)
@@ -2932,11 +2932,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
-    public ExpressionSyntax LeftOperand => this.leftOperand;
+    public ExpressionSyntax? LeftOperand => this.leftOperand;
     /// <summary>SyntaxToken representing the operator of the range expression.</summary>
     public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
-    public ExpressionSyntax RightOperand => this.rightOperand;
+    public ExpressionSyntax? RightOperand => this.rightOperand;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -5513,9 +5513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>NameColonSyntax node representing the optional name arguments.</summary>
-    public NameColonSyntax NameColon => this.nameColon;
+    public NameColonSyntax? NameColon => this.nameColon;
     /// <summary>SyntaxToken representing the optional ref or out keyword.</summary>
-    public SyntaxToken RefKindKeyword => this.refKindKeyword;
+    public SyntaxToken? RefKindKeyword => this.refKindKeyword;
     /// <summary>ExpressionSyntax node representing the argument.</summary>
     public ExpressionSyntax Expression => this.expression;
 
@@ -5990,7 +5990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public abstract SyntaxToken AsyncKeyword { get; }
+    public abstract SyntaxToken? AsyncKeyword { get; }
 
     /// <summary>ExpressionSyntax or BlockSyntax representing the body of the lambda expression.</summary>
     public abstract CSharpSyntaxNode Body { get; }
@@ -6068,11 +6068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
+    public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
     /// <summary>SyntaxToken representing the delegate keyword.</summary>
     public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
-    public ParameterListSyntax ParameterList => this.parameterList;
+    public ParameterListSyntax? ParameterList => this.parameterList;
     /// <summary>BlockSyntax node representing the body of the anonymous method.</summary>
     public override CSharpSyntaxNode Body => this.body;
 
@@ -6246,7 +6246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
+    public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
     /// <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
     public ParameterSyntax Parameter => this.parameter;
     /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6514,7 +6514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
+    public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
     /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
     public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6824,9 +6824,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>TypeSyntax representing the type of the object being created.</summary>
     public TypeSyntax Type => this.type;
     /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
-    public ArgumentListSyntax ArgumentList => this.argumentList;
+    public ArgumentListSyntax? ArgumentList => this.argumentList;
     /// <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
-    public InitializerExpressionSyntax Initializer => this.initializer;
+    public InitializerExpressionSyntax? Initializer => this.initializer;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -6962,7 +6962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
-    public NameEqualsSyntax NameEquals => this.nameEquals;
+    public NameEqualsSyntax? NameEquals => this.nameEquals;
     /// <summary>ExpressionSyntax representing the value the member is initialized with.</summary>
     public ExpressionSyntax Expression => this.expression;
 
@@ -7253,7 +7253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>ArrayTypeSyntax node representing the type of the array.</summary>
     public ArrayTypeSyntax Type => this.type;
     /// <summary>InitializerExpressionSyntax node representing the initializer of the array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer => this.initializer;
+    public InitializerExpressionSyntax? Initializer => this.initializer;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -7567,7 +7567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
     public TypeSyntax Type => this.type;
     /// <summary>InitializerExpressionSyntax node representing the initializer of the stackalloc array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer => this.initializer;
+    public InitializerExpressionSyntax? Initializer => this.initializer;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -8005,7 +8005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> Clauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax>(this.clauses);
     public SelectOrGroupClauseSyntax SelectOrGroup => this.selectOrGroup;
-    public QueryContinuationSyntax Continuation => this.continuation;
+    public QueryContinuationSyntax? Continuation => this.continuation;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -8154,7 +8154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken FromKeyword => this.fromKeyword;
-    public TypeSyntax Type => this.type;
+    public TypeSyntax? Type => this.type;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public SyntaxToken InKeyword => this.inKeyword;
@@ -8511,7 +8511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken JoinKeyword => this.joinKeyword;
-    public TypeSyntax Type => this.type;
+    public TypeSyntax? Type => this.type;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public SyntaxToken InKeyword => this.inKeyword;
@@ -8520,7 +8520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public ExpressionSyntax LeftExpression => this.leftExpression;
     public SyntaxToken EqualsKeyword => this.equalsKeyword;
     public ExpressionSyntax RightExpression => this.rightExpression;
-    public JoinIntoClauseSyntax Into => this.into;
+    public JoinIntoClauseSyntax? Into => this.into;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -9047,7 +9047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public ExpressionSyntax Expression => this.expression;
-    public SyntaxToken AscendingOrDescendingKeyword => this.ascendingOrDescendingKeyword;
+    public SyntaxToken? AscendingOrDescendingKeyword => this.ascendingOrDescendingKeyword;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -10511,10 +10511,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public TypeSyntax Type => this.type;
-    public PositionalPatternClauseSyntax PositionalPatternClause => this.positionalPatternClause;
-    public PropertyPatternClauseSyntax PropertyPatternClause => this.propertyPatternClause;
-    public VariableDesignationSyntax Designation => this.designation;
+    public TypeSyntax? Type => this.type;
+    public PositionalPatternClauseSyntax? PositionalPatternClause => this.positionalPatternClause;
+    public PropertyPatternClauseSyntax? PropertyPatternClause => this.propertyPatternClause;
+    public VariableDesignationSyntax? Designation => this.designation;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -10921,7 +10921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.pattern = pattern;
     }
 
-    public NameColonSyntax NameColon => this.nameColon;
+    public NameColonSyntax? NameColon => this.nameColon;
     public PatternSyntax Pattern => this.pattern;
 
     internal override GreenNode? GetSlot(int index)
@@ -11282,8 +11282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public SyntaxToken OpenBraceToken => this.openBraceToken;
     public ExpressionSyntax Expression => this.expression;
-    public InterpolationAlignmentClauseSyntax AlignmentClause => this.alignmentClause;
-    public InterpolationFormatClauseSyntax FormatClause => this.formatClause;
+    public InterpolationAlignmentClauseSyntax? AlignmentClause => this.alignmentClause;
+    public InterpolationFormatClauseSyntax? FormatClause => this.formatClause;
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -12047,13 +12047,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public ParameterListSyntax ParameterList => this.parameterList;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
-    public BlockSyntax Body => this.body;
-    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public BlockSyntax? Body => this.body;
+    public ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -12267,8 +12267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken AwaitKeyword => this.awaitKeyword;
-    public SyntaxToken UsingKeyword => this.usingKeyword;
+    public SyntaxToken? AwaitKeyword => this.awaitKeyword;
+    public SyntaxToken? UsingKeyword => this.usingKeyword;
     /// <summary>Gets the modifier list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public VariableDeclarationSyntax Declaration => this.declaration;
@@ -12553,8 +12553,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public BracketedArgumentListSyntax ArgumentList => this.argumentList;
-    public EqualsValueClauseSyntax Initializer => this.initializer;
+    public BracketedArgumentListSyntax? ArgumentList => this.argumentList;
+    public EqualsValueClauseSyntax? Initializer => this.initializer;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -13504,11 +13504,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the case or default keywords if any exists.
     /// </summary>
-    public SyntaxToken CaseOrDefaultKeyword => this.caseOrDefaultKeyword;
+    public SyntaxToken? CaseOrDefaultKeyword => this.caseOrDefaultKeyword;
     /// <summary>
     /// Gets a constant expression for a goto case statement.
     /// </summary>
-    public ExpressionSyntax Expression => this.expression;
+    public ExpressionSyntax? Expression => this.expression;
     /// <summary>
     /// Gets a SyntaxToken that represents the semi-colon at the end of the statement.
     /// </summary>
@@ -13877,7 +13877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken ReturnKeyword => this.returnKeyword;
-    public ExpressionSyntax Expression => this.expression;
+    public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -14013,7 +14013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken ThrowKeyword => this.throwKeyword;
-    public ExpressionSyntax Expression => this.expression;
+    public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -14157,7 +14157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public SyntaxToken YieldKeyword => this.yieldKeyword;
     public SyntaxToken ReturnOrBreakKeyword => this.returnOrBreakKeyword;
-    public ExpressionSyntax Expression => this.expression;
+    public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -14728,10 +14728,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public SyntaxToken ForKeyword => this.forKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public VariableDeclarationSyntax Declaration => this.declaration;
+    public VariableDeclarationSyntax? Declaration => this.declaration;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Initializers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
     public SyntaxToken FirstSemicolonToken => this.firstSemicolonToken;
-    public ExpressionSyntax Condition => this.condition;
+    public ExpressionSyntax? Condition => this.condition;
     public SyntaxToken SecondSemicolonToken => this.secondSemicolonToken;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Incrementors => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.incrementors));
     public SyntaxToken CloseParenToken => this.closeParenToken;
@@ -14887,7 +14887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
     }
 
-    public abstract SyntaxToken AwaitKeyword { get; }
+    public abstract SyntaxToken? AwaitKeyword { get; }
 
     public abstract SyntaxToken ForEachKeyword { get; }
 
@@ -14998,7 +14998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public override SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public override SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
     public TypeSyntax Type => this.type;
@@ -15224,7 +15224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public override SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public override SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>
@@ -15457,11 +15457,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public SyntaxToken UsingKeyword => this.usingKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public VariableDeclarationSyntax Declaration => this.declaration;
-    public ExpressionSyntax Expression => this.expression;
+    public VariableDeclarationSyntax? Declaration => this.declaration;
+    public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken CloseParenToken => this.closeParenToken;
     public StatementSyntax Statement => this.statement;
 
@@ -16216,7 +16216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets an ElseClauseSyntax that represents the statement to be executed when the condition is false if such statement exists.
     /// </summary>
-    public ElseClauseSyntax Else => this.@else;
+    public ElseClauseSyntax? Else => this.@else;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -16543,7 +16543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
     /// </summary>
-    public SyntaxToken OpenParenToken => this.openParenToken;
+    public SyntaxToken? OpenParenToken => this.openParenToken;
     /// <summary>
     /// Gets an ExpressionSyntax representing the expression of the switch statement.
     /// </summary>
@@ -16551,7 +16551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
     /// </summary>
-    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public SyntaxToken? CloseParenToken => this.closeParenToken;
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces preceding the switch sections.
     /// </summary>
@@ -16907,7 +16907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// Gets a PatternSyntax that represents the pattern that gets matched for the case label.
     /// </summary>
     public PatternSyntax Pattern => this.pattern;
-    public WhenClauseSyntax WhenClause => this.whenClause;
+    public WhenClauseSyntax? WhenClause => this.whenClause;
     public override SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -17471,7 +17471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public PatternSyntax Pattern => this.pattern;
-    public WhenClauseSyntax WhenClause => this.whenClause;
+    public WhenClauseSyntax? WhenClause => this.whenClause;
     public SyntaxToken EqualsGreaterThanToken => this.equalsGreaterThanToken;
     public ExpressionSyntax Expression => this.expression;
 
@@ -17634,7 +17634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public SyntaxToken TryKeyword => this.tryKeyword;
     public BlockSyntax Block => this.block;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> Catches => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax>(this.catches);
-    public FinallyClauseSyntax Finally => this.@finally;
+    public FinallyClauseSyntax? Finally => this.@finally;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -17793,8 +17793,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken CatchKeyword => this.catchKeyword;
-    public CatchDeclarationSyntax Declaration => this.declaration;
-    public CatchFilterClauseSyntax Filter => this.filter;
+    public CatchDeclarationSyntax? Declaration => this.declaration;
+    public CatchFilterClauseSyntax? Filter => this.filter;
     public BlockSyntax Block => this.block;
 
     internal override GreenNode? GetSlot(int index)
@@ -17946,7 +17946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public SyntaxToken OpenParenToken => this.openParenToken;
     public TypeSyntax Type => this.type;
-    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken? Identifier => this.identifier;
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -18713,8 +18713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken UsingKeyword => this.usingKeyword;
-    public SyntaxToken StaticKeyword => this.staticKeyword;
-    public NameEqualsSyntax Alias => this.alias;
+    public SyntaxToken? StaticKeyword => this.staticKeyword;
+    public NameEqualsSyntax? Alias => this.alias;
     public NameSyntax Name => this.name;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -18994,7 +18994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -19204,7 +19204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the open bracket token.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>Gets the optional construct targeted by the attribute.</summary>
-    public AttributeTargetSpecifierSyntax Target => this.target;
+    public AttributeTargetSpecifierSyntax? Target => this.target;
     /// <summary>Gets the attribute declaration list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> Attributes => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.attributes));
     /// <summary>Gets the close bracket token.</summary>
@@ -19460,7 +19460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     /// <summary>Gets the name.</summary>
     public NameSyntax Name => this.name;
-    public AttributeArgumentListSyntax ArgumentList => this.argumentList;
+    public AttributeArgumentListSyntax? ArgumentList => this.argumentList;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -19736,8 +19736,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public NameEqualsSyntax NameEquals => this.nameEquals;
-    public NameColonSyntax NameColon => this.nameColon;
+    public NameEqualsSyntax? NameEquals => this.nameEquals;
+    public NameColonSyntax? NameColon => this.nameColon;
     /// <summary>Gets the expression.</summary>
     public ExpressionSyntax Expression => this.expression;
 
@@ -20138,7 +20138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     /// <summary>Gets the attribute declaration list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public SyntaxToken VarianceKeyword => this.varianceKeyword;
+    public SyntaxToken? VarianceKeyword => this.varianceKeyword;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
 
@@ -20241,7 +20241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public abstract SyntaxToken Identifier { get; }
 
     /// <summary>Gets the base type list.</summary>
-    public abstract BaseListSyntax BaseList { get; }
+    public abstract BaseListSyntax? BaseList { get; }
 
     /// <summary>Gets the open brace token.</summary>
     public abstract SyntaxToken OpenBraceToken { get; }
@@ -20250,7 +20250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public abstract SyntaxToken CloseBraceToken { get; }
 
     /// <summary>Gets the optional semicolon token.</summary>
-    public abstract SyntaxToken SemicolonToken { get; }
+    public abstract SyntaxToken? SemicolonToken { get; }
   }
 
   /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
@@ -20273,7 +20273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
     public abstract SyntaxToken Keyword { get; }
 
-    public abstract TypeParameterListSyntax TypeParameterList { get; }
+    public abstract TypeParameterListSyntax? TypeParameterList { get; }
 
     /// <summary>Gets the type constraint list.</summary>
     public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get; }
@@ -20452,13 +20452,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the class keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
-    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
-    public override BaseListSyntax BaseList => this.baseList;
+    public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax? BaseList => this.baseList;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
     public override SyntaxToken OpenBraceToken => this.openBraceToken;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
     public override SyntaxToken CloseBraceToken => this.closeBraceToken;
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -20772,13 +20772,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the struct keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
-    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
-    public override BaseListSyntax BaseList => this.baseList;
+    public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax? BaseList => this.baseList;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
     public override SyntaxToken OpenBraceToken => this.openBraceToken;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
     public override SyntaxToken CloseBraceToken => this.closeBraceToken;
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -21092,13 +21092,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the interface keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
-    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
-    public override BaseListSyntax BaseList => this.baseList;
+    public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax? BaseList => this.baseList;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
     public override SyntaxToken OpenBraceToken => this.openBraceToken;
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
     public override SyntaxToken CloseBraceToken => this.closeBraceToken;
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -21380,13 +21380,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the enum keyword token.</summary>
     public SyntaxToken EnumKeyword => this.enumKeyword;
     public override SyntaxToken Identifier => this.identifier;
-    public override BaseListSyntax BaseList => this.baseList;
+    public override BaseListSyntax? BaseList => this.baseList;
     public override SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>Gets the members declaration list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.members));
     public override SyntaxToken CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -21646,7 +21646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     /// <summary>Gets the parameter list.</summary>
     public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
@@ -21863,7 +21863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public EqualsValueClauseSyntax EqualsValue => this.equalsValue;
+    public EqualsValueClauseSyntax? EqualsValue => this.equalsValue;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -22545,7 +22545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
     public SyntaxToken ClassOrStructKeyword => this.classOrStructKeyword;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken => this.questionToken;
+    public SyntaxToken? QuestionToken => this.questionToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -23204,12 +23204,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the parameter list.</summary>
     public abstract ParameterListSyntax ParameterList { get; }
 
-    public abstract BlockSyntax Body { get; }
+    public abstract BlockSyntax? Body { get; }
 
-    public abstract ArrowExpressionClauseSyntax ExpressionBody { get; }
+    public abstract ArrowExpressionClauseSyntax? ExpressionBody { get; }
 
     /// <summary>Gets the optional semicolon token.</summary>
-    public abstract SyntaxToken SemicolonToken { get; }
+    public abstract SyntaxToken? SemicolonToken { get; }
   }
 
   /// <summary>Method declaration syntax.</summary>
@@ -23390,17 +23390,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the return type syntax.</summary>
     public TypeSyntax ReturnType => this.returnType;
-    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
+    public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
-    public override BlockSyntax Body => this.body;
-    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public override BlockSyntax? Body => this.body;
+    public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -23686,9 +23686,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the operator token.</summary>
     public SyntaxToken OperatorToken => this.operatorToken;
     public override ParameterListSyntax ParameterList => this.parameterList;
-    public override BlockSyntax Body => this.body;
-    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override BlockSyntax? Body => this.body;
+    public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -23958,10 +23958,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the type.</summary>
     public TypeSyntax Type => this.type;
     public override ParameterListSyntax ParameterList => this.parameterList;
-    public override BlockSyntax Body => this.body;
-    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public override BlockSyntax? Body => this.body;
+    public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -24229,11 +24229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public override ParameterListSyntax ParameterList => this.parameterList;
-    public ConstructorInitializerSyntax Initializer => this.initializer;
-    public override BlockSyntax Body => this.body;
-    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public ConstructorInitializerSyntax? Initializer => this.initializer;
+    public override BlockSyntax? Body => this.body;
+    public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -24616,10 +24616,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public override ParameterListSyntax ParameterList => this.parameterList;
-    public override BlockSyntax Body => this.body;
-    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public override BlockSyntax? Body => this.body;
+    public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken => this.semicolonToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -24760,9 +24760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public abstract TypeSyntax Type { get; }
 
     /// <summary>Gets the optional explicit interface specifier.</summary>
-    public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get; }
+    public abstract ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier { get; }
 
-    public abstract AccessorListSyntax AccessorList { get; }
+    public abstract AccessorListSyntax? AccessorList { get; }
   }
 
   internal sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationSyntax
@@ -24918,13 +24918,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public override TypeSyntax Type => this.type;
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public override AccessorListSyntax AccessorList => this.accessorList;
-    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
-    public EqualsValueClauseSyntax Initializer => this.initializer;
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public override AccessorListSyntax? AccessorList => this.accessorList;
+    public ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
+    public EqualsValueClauseSyntax? Initializer => this.initializer;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -25293,11 +25293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public SyntaxToken EventKeyword => this.eventKeyword;
     public override TypeSyntax Type => this.type;
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public override AccessorListSyntax AccessorList => this.accessorList;
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public override AccessorListSyntax? AccessorList => this.accessorList;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -25561,13 +25561,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public override TypeSyntax Type => this.type;
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     public SyntaxToken ThisKeyword => this.thisKeyword;
     /// <summary>Gets the parameter list.</summary>
     public BracketedParameterListSyntax ParameterList => this.parameterList;
-    public override AccessorListSyntax AccessorList => this.accessorList;
-    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public override AccessorListSyntax? AccessorList => this.accessorList;
+    public ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -25949,11 +25949,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
     public SyntaxToken Keyword => this.keyword;
     /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
-    public BlockSyntax Body => this.body;
+    public BlockSyntax? Body => this.body;
     /// <summary>Gets the optional expression body.</summary>
-    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken => this.semicolonToken;
+    public SyntaxToken? SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -26456,10 +26456,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
-    public TypeSyntax Type => this.type;
+    public TypeSyntax? Type => this.type;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    public EqualsValueClauseSyntax Default => this.@default;
+    public EqualsValueClauseSyntax? Default => this.@default;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -26629,7 +26629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
-    public TypeSyntax Type => this.type;
+    public TypeSyntax? Type => this.type;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -27268,7 +27268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public TypeSyntax Name => this.name;
-    public CrefParameterListSyntax Parameters => this.parameters;
+    public CrefParameterListSyntax? Parameters => this.parameters;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -27392,7 +27392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken ThisKeyword => this.thisKeyword;
-    public CrefBracketedParameterListSyntax Parameters => this.parameters;
+    public CrefBracketedParameterListSyntax? Parameters => this.parameters;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -27526,7 +27526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public SyntaxToken OperatorKeyword => this.operatorKeyword;
     /// <summary>Gets the operator token.</summary>
     public SyntaxToken OperatorToken => this.operatorToken;
-    public CrefParameterListSyntax Parameters => this.parameters;
+    public CrefParameterListSyntax? Parameters => this.parameters;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -27674,7 +27674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
     public SyntaxToken OperatorKeyword => this.operatorKeyword;
     public TypeSyntax Type => this.type;
-    public CrefParameterListSyntax Parameters => this.parameters;
+    public CrefParameterListSyntax? Parameters => this.parameters;
 
     internal override GreenNode? GetSlot(int index)
     {
@@ -28120,7 +28120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.type = type;
     }
 
-    public SyntaxToken RefKindKeyword => this.refKindKeyword;
+    public SyntaxToken? RefKindKeyword => this.refKindKeyword;
     public TypeSyntax Type => this.type;
 
     internal override GreenNode? GetSlot(int index)
@@ -28824,7 +28824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.localName = localName;
     }
 
-    public XmlPrefixSyntax Prefix => this.prefix;
+    public XmlPrefixSyntax? Prefix => this.prefix;
     public SyntaxToken LocalName => this.localName;
 
     internal override GreenNode? GetSlot(int index)
@@ -31761,7 +31761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override SyntaxToken HashToken => this.hashToken;
     public SyntaxToken LineKeyword => this.lineKeyword;
     public SyntaxToken Line => this.line;
-    public SyntaxToken File => this.file;
+    public SyntaxToken? File => this.file;
     public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
     public override bool IsActive => this.isActive;
 
@@ -32759,7 +32759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override SyntaxToken HashToken => this.hashToken;
     public SyntaxToken NullableKeyword => this.nullableKeyword;
     public SyntaxToken SettingToken => this.settingToken;
-    public SyntaxToken TargetToken => this.targetToken;
+    public SyntaxToken? TargetToken => this.targetToken;
     public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
     public override bool IsActive => this.isActive;
 
