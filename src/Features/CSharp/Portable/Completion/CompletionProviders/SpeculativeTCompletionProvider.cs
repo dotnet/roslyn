@@ -58,15 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            // First, we look at simple cases where we have just T
-
-            if (IsStartOfSpeculativeTContext(syntaxTree, position, allowAsyncKeyword: false, cancellationToken))
-            {
-                return true;
-            }
-
-            // Now we may have cases where we are in the middle of a ref/generic/tuple type.
-            // We solve this by getting the SpanStart of the out-most type and treating it as our simple case's position.
+            // We could be in the middle of a ref/generic/tuple type, instead of a simple T case.
+            // If we managed to walk out and get a different SpanStart, we treat it as a slightly different $$T case, otherwise it's a simple T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
@@ -86,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (spanStart != position && IsStartOfSpeculativeTContext(syntaxTree, spanStart, allowAsyncKeyword: true, cancellationToken))
+            if (IsStartOfSpeculativeTContext(syntaxTree, spanStart, allowAsyncKeyword: spanStart != position, cancellationToken))
             {
                 return true;
             }
