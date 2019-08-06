@@ -1323,7 +1323,7 @@ namespace CSharpSyntaxGenerator
                 var field = node.Fields[f];
                 if (f > 0)
                     Write(", ");
-                var type = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
+                var type = GetRedPropertyType(field);
                 Write("{0} {1}", type, CamelCase(field.Name));
             }
             WriteLine(")");
