@@ -1147,11 +1147,13 @@ namespace CSharpSyntaxGenerator
                         {
                             if (i == 0)
                             {
-                                WriteLine("            return this.GetRedAtZero(ref this.{0});", CamelCase(field.Name));
+                                string suffix = IsOptional(field) ? "" : "!";
+                                WriteLine("            return this.GetRedAtZero(ref this.{0}){1};", CamelCase(field.Name), suffix);
                             }
                             else
                             {
-                                WriteLine("            return this.GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
+                                string suffix = IsOptional(field) ? "" : "!";
+                                WriteLine("            return this.GetRed(ref this.{0}, {1}){2};", CamelCase(field.Name), i, suffix);
                             }
                         }
                         WriteLine("        }");
@@ -1183,11 +1185,13 @@ namespace CSharpSyntaxGenerator
                     {
                         if (i == 0)
                         {
-                            WriteLine("            case {0}: return this.GetRedAtZero(ref this.{1});", i, CamelCase(field.Name));
+                            string suffix = IsOptional(field) ? "" : "!";
+                            WriteLine("            case {0}: return this.GetRedAtZero(ref this.{1}){2};", i, CamelCase(field.Name), suffix);
                         }
                         else
                         {
-                            WriteLine("            case {0}: return this.GetRed(ref this.{1}, {0});", i, CamelCase(field.Name));
+                            string suffix = IsOptional(field) ? "" : "!";
+                            WriteLine("            case {0}: return this.GetRed(ref this.{1}, {0}){2};", i, CamelCase(field.Name), suffix);
                         }
                     }
                 }

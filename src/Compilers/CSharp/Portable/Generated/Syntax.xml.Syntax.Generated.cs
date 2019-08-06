@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.left);
+            return this.GetRedAtZero(ref this.left)!;
         }
     }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.right, 2);
+            return this.GetRed(ref this.right, 2)!;
         }
     }
 
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.left);
-            case 2: return this.GetRed(ref this.right, 2);
+            case 0: return this.GetRedAtZero(ref this.left)!;
+            case 2: return this.GetRed(ref this.right, 2)!;
             default: return null;
         }
     }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.typeArgumentList, 1);
+            return this.GetRed(ref this.typeArgumentList, 1)!;
         }
     }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.typeArgumentList, 1);
+            case 1: return this.GetRed(ref this.typeArgumentList, 1)!;
             default: return null;
         }
     }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.arguments, 1);
+            case 1: return this.GetRed(ref this.arguments, 1)!;
             default: return null;
         }
     }
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.alias);
+            return this.GetRedAtZero(ref this.alias)!;
         }
     }
 
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 2);
+            return this.GetRed(ref this.name, 2)!;
         }
     }
 
@@ -409,8 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.alias);
-            case 2: return this.GetRed(ref this.name, 2);
+            case 0: return this.GetRedAtZero(ref this.alias)!;
+            case 2: return this.GetRed(ref this.name, 2)!;
             default: return null;
         }
     }
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.elementType);
+            return this.GetRedAtZero(ref this.elementType)!;
         }
     }
 
@@ -565,8 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.elementType);
-            case 1: return this.GetRed(ref this.rankSpecifiers, 1);
+            case 0: return this.GetRedAtZero(ref this.elementType)!;
+            case 1: return this.GetRed(ref this.rankSpecifiers, 1)!;
             default: return null;
         }
     }
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.sizes, 1);
+            case 1: return this.GetRed(ref this.sizes, 1)!;
             default: return null;
         }
     }
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.elementType);
+            return this.GetRedAtZero(ref this.elementType)!;
         }
     }
 
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.elementType);
+            case 0: return this.GetRedAtZero(ref this.elementType)!;
             default: return null;
         }
     }
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.elementType);
+            return this.GetRedAtZero(ref this.elementType)!;
         }
     }
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.elementType);
+            case 0: return this.GetRedAtZero(ref this.elementType)!;
             default: return null;
         }
     }
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.elements, 1);
+            case 1: return this.GetRed(ref this.elements, 1)!;
             default: return null;
         }
     }
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
+            case 0: return this.GetRedAtZero(ref this.type)!;
             default: return null;
         }
     }
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
+            case 2: return this.GetRed(ref this.type, 2)!;
             default: return null;
         }
     }
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.arguments, 1);
+            case 1: return this.GetRed(ref this.arguments, 1)!;
             default: return null;
         }
     }
@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.operand, 1);
+            return this.GetRed(ref this.operand, 1)!;
         }
     }
 
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.operand, 1);
+            case 1: return this.GetRed(ref this.operand, 1)!;
             default: return null;
         }
     }
@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.operand);
+            return this.GetRedAtZero(ref this.operand)!;
         }
     }
 
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.operand);
+            case 0: return this.GetRedAtZero(ref this.operand)!;
             default: return null;
         }
     }
@@ -1640,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -1655,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 2);
+            return this.GetRed(ref this.name, 2)!;
         }
     }
 
@@ -1663,8 +1663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
-            case 2: return this.GetRed(ref this.name, 2);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
+            case 2: return this.GetRed(ref this.name, 2)!;
             default: return null;
         }
     }
@@ -1734,7 +1734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -1749,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.whenNotNull, 2);
+            return this.GetRed(ref this.whenNotNull, 2)!;
         }
     }
 
@@ -1757,8 +1757,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
-            case 2: return this.GetRed(ref this.whenNotNull, 2);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
+            case 2: return this.GetRed(ref this.whenNotNull, 2)!;
             default: return null;
         }
     }
@@ -1833,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -1841,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
+            case 1: return this.GetRed(ref this.name, 1)!;
             default: return null;
         }
     }
@@ -1904,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.argumentList);
+            return this.GetRedAtZero(ref this.argumentList)!;
         }
     }
 
@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.argumentList);
+            case 0: return this.GetRedAtZero(ref this.argumentList)!;
             default: return null;
         }
     }
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.argumentList);
+            return this.GetRedAtZero(ref this.argumentList)!;
         }
     }
 
@@ -2077,7 +2077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.argumentList);
+            case 0: return this.GetRedAtZero(ref this.argumentList)!;
             default: return null;
         }
     }
@@ -2141,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.left);
+            return this.GetRedAtZero(ref this.left)!;
         }
     }
 
@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.right, 2);
+            return this.GetRed(ref this.right, 2)!;
         }
     }
 
@@ -2164,8 +2164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.left);
-            case 2: return this.GetRed(ref this.right, 2);
+            case 0: return this.GetRedAtZero(ref this.left)!;
+            case 2: return this.GetRed(ref this.right, 2)!;
             default: return null;
         }
     }
@@ -2235,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.left);
+            return this.GetRedAtZero(ref this.left)!;
         }
     }
 
@@ -2250,7 +2250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.right, 2);
+            return this.GetRed(ref this.right, 2)!;
         }
     }
 
@@ -2258,8 +2258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.left);
-            case 2: return this.GetRed(ref this.right, 2);
+            case 0: return this.GetRedAtZero(ref this.left)!;
+            case 2: return this.GetRed(ref this.right, 2)!;
             default: return null;
         }
     }
@@ -2330,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.condition);
+            return this.GetRedAtZero(ref this.condition)!;
         }
     }
 
@@ -2345,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.whenTrue, 2);
+            return this.GetRed(ref this.whenTrue, 2)!;
         }
     }
 
@@ -2360,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.whenFalse, 4);
+            return this.GetRed(ref this.whenFalse, 4)!;
         }
     }
 
@@ -2368,9 +2368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.condition);
-            case 2: return this.GetRed(ref this.whenTrue, 2);
-            case 4: return this.GetRed(ref this.whenFalse, 4);
+            case 0: return this.GetRedAtZero(ref this.condition)!;
+            case 2: return this.GetRed(ref this.whenTrue, 2)!;
+            case 4: return this.GetRed(ref this.whenFalse, 4)!;
             default: return null;
         }
     }
@@ -2648,7 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
+            case 2: return this.GetRed(ref this.expression, 2)!;
             default: return null;
         }
     }
@@ -2747,7 +2747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -2761,7 +2761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
+            case 2: return this.GetRed(ref this.expression, 2)!;
             default: return null;
         }
     }
@@ -2847,7 +2847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -2862,7 +2862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 4);
+            return this.GetRed(ref this.type, 4)!;
         }
     }
 
@@ -2876,8 +2876,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
-            case 4: return this.GetRed(ref this.type, 4);
+            case 2: return this.GetRed(ref this.expression, 2)!;
+            case 4: return this.GetRed(ref this.type, 4)!;
             default: return null;
         }
     }
@@ -2973,7 +2973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -2987,7 +2987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
+            case 2: return this.GetRed(ref this.expression, 2)!;
             default: return null;
         }
     }
@@ -3072,7 +3072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -3086,7 +3086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
+            case 2: return this.GetRed(ref this.type, 2)!;
             default: return null;
         }
     }
@@ -3171,7 +3171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -3185,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
+            case 2: return this.GetRed(ref this.type, 2)!;
             default: return null;
         }
     }
@@ -3270,7 +3270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -3284,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
+            case 2: return this.GetRed(ref this.type, 2)!;
             default: return null;
         }
     }
@@ -3358,7 +3358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -3367,7 +3367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.argumentList, 1);
+            return this.GetRed(ref this.argumentList, 1)!;
         }
     }
 
@@ -3375,8 +3375,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
-            case 1: return this.GetRed(ref this.argumentList, 1);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
+            case 1: return this.GetRed(ref this.argumentList, 1)!;
             default: return null;
         }
     }
@@ -3446,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -3455,7 +3455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.argumentList, 1);
+            return this.GetRed(ref this.argumentList, 1)!;
         }
     }
 
@@ -3463,8 +3463,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
-            case 1: return this.GetRed(ref this.argumentList, 1);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
+            case 1: return this.GetRed(ref this.argumentList, 1)!;
             default: return null;
         }
     }
@@ -3574,7 +3574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.arguments, 1);
+            case 1: return this.GetRed(ref this.arguments, 1)!;
             default: return null;
         }
     }
@@ -3673,7 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.arguments, 1);
+            case 1: return this.GetRed(ref this.arguments, 1)!;
             default: return null;
         }
     }
@@ -3771,7 +3771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -3780,7 +3780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 0: return this.GetRedAtZero(ref this.nameColon);
-            case 2: return this.GetRed(ref this.expression, 2);
+            case 2: return this.GetRed(ref this.expression, 2)!;
             default: return null;
         }
     }
@@ -3849,7 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -3863,7 +3863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             default: return null;
         }
     }
@@ -3926,7 +3926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -3935,7 +3935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.designation, 1);
+            return this.GetRed(ref this.designation, 1)!;
         }
     }
 
@@ -3943,8 +3943,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
-            case 1: return this.GetRed(ref this.designation, 1);
+            case 0: return this.GetRedAtZero(ref this.type)!;
+            case 1: return this.GetRed(ref this.designation, 1)!;
             default: return null;
         }
     }
@@ -4015,7 +4015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -4030,7 +4030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 3);
+            return this.GetRed(ref this.expression, 3)!;
         }
     }
 
@@ -4038,8 +4038,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
-            case 3: return this.GetRed(ref this.expression, 3);
+            case 1: return this.GetRed(ref this.type, 1)!;
+            case 3: return this.GetRed(ref this.expression, 3)!;
             default: return null;
         }
     }
@@ -4161,7 +4161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.body, 3)!;
         }
     }
 
@@ -4170,7 +4170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 2: return this.GetRed(ref this.parameterList, 2);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 3: return this.GetRed(ref this.body, 3)!;
             default: return null;
         }
     }
@@ -4283,7 +4283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameter, 1);
+            return this.GetRed(ref this.parameter, 1)!;
         }
     }
 
@@ -4298,7 +4298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.body, 3)!;
         }
     }
 
@@ -4306,8 +4306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameter, 1);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 1: return this.GetRed(ref this.parameter, 1)!;
+            case 3: return this.GetRed(ref this.body, 3)!;
             default: return null;
         }
     }
@@ -4397,7 +4397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -4405,7 +4405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -4482,7 +4482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 1);
+            return this.GetRed(ref this.parameterList, 1)!;
         }
     }
 
@@ -4497,7 +4497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.body, 3)!;
         }
     }
 
@@ -4505,8 +4505,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameterList, 1);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 1: return this.GetRed(ref this.parameterList, 1)!;
+            case 3: return this.GetRed(ref this.body, 3)!;
             default: return null;
         }
     }
@@ -4612,7 +4612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expressions, 1);
+            case 1: return this.GetRed(ref this.expressions, 1)!;
             default: return null;
         }
     }
@@ -4693,7 +4693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -4719,7 +4719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 1: return this.GetRed(ref this.type, 1)!;
             case 2: return this.GetRed(ref this.argumentList, 2);
             case 3: return this.GetRed(ref this.initializer, 3);
             default: return null;
@@ -4811,7 +4811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -4820,7 +4820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 0: return this.GetRedAtZero(ref this.nameEquals);
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -4914,7 +4914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.initializers, 2);
+            case 2: return this.GetRed(ref this.initializers, 2)!;
             default: return null;
         }
     }
@@ -4999,7 +4999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -5016,7 +5016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 1: return this.GetRed(ref this.type, 1)!;
             case 2: return this.GetRed(ref this.initializer, 2);
             default: return null;
         }
@@ -5122,7 +5122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.initializer, 4);
+            return this.GetRed(ref this.initializer, 4)!;
         }
     }
 
@@ -5130,7 +5130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.GetRed(ref this.initializer, 4);
+            case 4: return this.GetRed(ref this.initializer, 4)!;
             default: return null;
         }
     }
@@ -5225,7 +5225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -5242,7 +5242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 1: return this.GetRed(ref this.type, 1)!;
             case 2: return this.GetRed(ref this.initializer, 2);
             default: return null;
         }
@@ -5330,7 +5330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.initializer, 3);
+            return this.GetRed(ref this.initializer, 3)!;
         }
     }
 
@@ -5338,7 +5338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 3: return this.GetRed(ref this.initializer, 3);
+            case 3: return this.GetRed(ref this.initializer, 3)!;
             default: return null;
         }
     }
@@ -5431,7 +5431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.fromClause);
+            return this.GetRedAtZero(ref this.fromClause)!;
         }
     }
 
@@ -5439,7 +5439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.body, 1);
+            return this.GetRed(ref this.body, 1)!;
         }
     }
 
@@ -5447,8 +5447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.fromClause);
-            case 1: return this.GetRed(ref this.body, 1);
+            case 0: return this.GetRedAtZero(ref this.fromClause)!;
+            case 1: return this.GetRed(ref this.body, 1)!;
             default: return null;
         }
     }
@@ -5525,7 +5525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.selectOrGroup, 1);
+            return this.GetRed(ref this.selectOrGroup, 1)!;
         }
     }
 
@@ -5541,8 +5541,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.clauses);
-            case 1: return this.GetRed(ref this.selectOrGroup, 1);
+            case 0: return this.GetRedAtZero(ref this.clauses)!;
+            case 1: return this.GetRed(ref this.selectOrGroup, 1)!;
             case 2: return this.GetRed(ref this.continuation, 2);
             default: return null;
         }
@@ -5641,7 +5641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 4);
+            return this.GetRed(ref this.expression, 4)!;
         }
     }
 
@@ -5650,7 +5650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.GetRed(ref this.type, 1);
-            case 4: return this.GetRed(ref this.expression, 4);
+            case 4: return this.GetRed(ref this.expression, 4)!;
             default: return null;
         }
     }
@@ -5743,7 +5743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 3);
+            return this.GetRed(ref this.expression, 3)!;
         }
     }
 
@@ -5751,7 +5751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 3: return this.GetRed(ref this.expression, 3);
+            case 3: return this.GetRed(ref this.expression, 3)!;
             default: return null;
         }
     }
@@ -5850,7 +5850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.inExpression, 4);
+            return this.GetRed(ref this.inExpression, 4)!;
         }
     }
 
@@ -5863,7 +5863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.leftExpression, 6);
+            return this.GetRed(ref this.leftExpression, 6)!;
         }
     }
 
@@ -5876,7 +5876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.rightExpression, 8);
+            return this.GetRed(ref this.rightExpression, 8)!;
         }
     }
 
@@ -5893,9 +5893,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.GetRed(ref this.type, 1);
-            case 4: return this.GetRed(ref this.inExpression, 4);
-            case 6: return this.GetRed(ref this.leftExpression, 6);
-            case 8: return this.GetRed(ref this.rightExpression, 8);
+            case 4: return this.GetRed(ref this.inExpression, 4)!;
+            case 6: return this.GetRed(ref this.leftExpression, 6)!;
+            case 8: return this.GetRed(ref this.rightExpression, 8)!;
             case 9: return this.GetRed(ref this.into, 9);
             default: return null;
         }
@@ -6074,7 +6074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 1);
+            return this.GetRed(ref this.condition, 1)!;
         }
     }
 
@@ -6082,7 +6082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.condition, 1);
+            case 1: return this.GetRed(ref this.condition, 1)!;
             default: return null;
         }
     }
@@ -6160,7 +6160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.orderings, 1);
+            case 1: return this.GetRed(ref this.orderings, 1)!;
             default: return null;
         }
     }
@@ -6226,7 +6226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -6246,7 +6246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
             default: return null;
         }
     }
@@ -6312,7 +6312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -6320,7 +6320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -6387,7 +6387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.groupExpression, 1);
+            return this.GetRed(ref this.groupExpression, 1)!;
         }
     }
 
@@ -6400,7 +6400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.byExpression, 3);
+            return this.GetRed(ref this.byExpression, 3)!;
         }
     }
 
@@ -6408,8 +6408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.groupExpression, 1);
-            case 3: return this.GetRed(ref this.byExpression, 3);
+            case 1: return this.GetRed(ref this.groupExpression, 1)!;
+            case 3: return this.GetRed(ref this.byExpression, 3)!;
             default: return null;
         }
     }
@@ -6492,7 +6492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.body, 2);
+            return this.GetRed(ref this.body, 2)!;
         }
     }
 
@@ -6500,7 +6500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.body, 2);
+            case 2: return this.GetRed(ref this.body, 2)!;
             default: return null;
         }
     }
@@ -6651,7 +6651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.contents, 1);
+            case 1: return this.GetRed(ref this.contents, 1)!;
             default: return null;
         }
     }
@@ -6725,7 +6725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -6739,7 +6739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.pattern, 2);
+            return this.GetRed(ref this.pattern, 2)!;
         }
     }
 
@@ -6747,8 +6747,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
-            case 2: return this.GetRed(ref this.pattern, 2);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
+            case 2: return this.GetRed(ref this.pattern, 2)!;
             default: return null;
         }
     }
@@ -6820,7 +6820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -6828,7 +6828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -6894,7 +6894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 1);
+            return this.GetRed(ref this.condition, 1)!;
         }
     }
 
@@ -6902,7 +6902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.condition, 1);
+            case 1: return this.GetRed(ref this.condition, 1)!;
             default: return null;
         }
     }
@@ -7029,7 +7029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -7037,7 +7037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.designation, 1);
+            return this.GetRed(ref this.designation, 1)!;
         }
     }
 
@@ -7045,8 +7045,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
-            case 1: return this.GetRed(ref this.designation, 1);
+            case 0: return this.GetRedAtZero(ref this.type)!;
+            case 1: return this.GetRed(ref this.designation, 1)!;
             default: return null;
         }
     }
@@ -7113,7 +7113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.designation, 1);
+            return this.GetRed(ref this.designation, 1)!;
         }
     }
 
@@ -7121,7 +7121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.designation, 1);
+            case 1: return this.GetRed(ref this.designation, 1)!;
             default: return null;
         }
     }
@@ -7328,7 +7328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.subpatterns, 1);
+            case 1: return this.GetRed(ref this.subpatterns, 1)!;
             default: return null;
         }
     }
@@ -7421,7 +7421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.subpatterns, 1);
+            case 1: return this.GetRed(ref this.subpatterns, 1)!;
             default: return null;
         }
     }
@@ -7501,7 +7501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.pattern, 1);
+            return this.GetRed(ref this.pattern, 1)!;
         }
     }
 
@@ -7510,7 +7510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 0: return this.GetRedAtZero(ref this.nameColon);
-            case 1: return this.GetRed(ref this.pattern, 1);
+            case 1: return this.GetRed(ref this.pattern, 1)!;
             default: return null;
         }
     }
@@ -7573,7 +7573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -7581,7 +7581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
             default: return null;
         }
     }
@@ -7710,7 +7710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -7739,7 +7739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             case 2: return this.GetRed(ref this.alignmentClause, 2);
             case 3: return this.GetRed(ref this.formatClause, 3);
             default: return null;
@@ -7824,7 +7824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.value, 1);
+            return this.GetRed(ref this.value, 1)!;
         }
     }
 
@@ -7832,7 +7832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.value, 1);
+            case 1: return this.GetRed(ref this.value, 1)!;
             default: return null;
         }
     }
@@ -7982,7 +7982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 2);
+            return this.GetRed(ref this.statement, 2)!;
         }
     }
 
@@ -7990,8 +7990,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.statement, 2);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.statement, 2)!;
             default: return null;
         }
     }
@@ -8099,7 +8099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.statements, 1);
+            case 1: return this.GetRed(ref this.statements, 1)!;
             default: return null;
         }
     }
@@ -8187,7 +8187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.returnType, 1);
+            return this.GetRed(ref this.returnType, 1)!;
         }
     }
 
@@ -8209,7 +8209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 4);
+            return this.GetRed(ref this.parameterList, 4)!;
         }
     }
 
@@ -8254,10 +8254,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.returnType, 1);
+            case 1: return this.GetRed(ref this.returnType, 1)!;
             case 3: return this.GetRed(ref this.typeParameterList, 3);
-            case 4: return this.GetRed(ref this.parameterList, 4);
-            case 5: return this.GetRed(ref this.constraintClauses, 5);
+            case 4: return this.GetRed(ref this.parameterList, 4)!;
+            case 5: return this.GetRed(ref this.constraintClauses, 5)!;
             case 6: return this.GetRed(ref this.body, 6);
             case 7: return this.GetRed(ref this.expressionBody, 7);
             default: return null;
@@ -8424,7 +8424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 3);
+            return this.GetRed(ref this.declaration, 3)!;
         }
     }
 
@@ -8437,7 +8437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 3: return this.GetRed(ref this.declaration, 3);
+            case 3: return this.GetRed(ref this.declaration, 3)!;
             default: return null;
         }
     }
@@ -8524,7 +8524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -8544,8 +8544,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
-            case 1: return this.GetRed(ref this.variables, 1);
+            case 0: return this.GetRedAtZero(ref this.type)!;
+            case 1: return this.GetRed(ref this.variables, 1)!;
             default: return null;
         }
     }
@@ -8714,7 +8714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.value, 1);
+            return this.GetRed(ref this.value, 1)!;
         }
     }
 
@@ -8722,7 +8722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.value, 1);
+            case 1: return this.GetRed(ref this.value, 1)!;
             default: return null;
         }
     }
@@ -8927,7 +8927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.variables, 1);
+            case 1: return this.GetRed(ref this.variables, 1)!;
             default: return null;
         }
     }
@@ -8998,7 +8998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.expression);
+            return this.GetRedAtZero(ref this.expression)!;
         }
     }
 
@@ -9011,7 +9011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.expression);
+            case 0: return this.GetRedAtZero(ref this.expression)!;
             default: return null;
         }
     }
@@ -9142,7 +9142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 2);
+            return this.GetRed(ref this.statement, 2)!;
         }
     }
 
@@ -9150,7 +9150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.statement, 2);
+            case 2: return this.GetRed(ref this.statement, 2)!;
             default: return null;
         }
     }
@@ -9739,7 +9739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 2);
+            return this.GetRed(ref this.condition, 2)!;
         }
     }
 
@@ -9752,7 +9752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 4);
+            return this.GetRed(ref this.statement, 4)!;
         }
     }
 
@@ -9760,8 +9760,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.condition, 2);
-            case 4: return this.GetRed(ref this.statement, 4);
+            case 2: return this.GetRed(ref this.condition, 2)!;
+            case 4: return this.GetRed(ref this.statement, 4)!;
             default: return null;
         }
     }
@@ -9844,7 +9844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 1);
+            return this.GetRed(ref this.statement, 1)!;
         }
     }
 
@@ -9862,7 +9862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 4);
+            return this.GetRed(ref this.condition, 4)!;
         }
     }
 
@@ -9880,8 +9880,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.statement, 1);
-            case 4: return this.GetRed(ref this.condition, 4);
+            case 1: return this.GetRed(ref this.statement, 1)!;
+            case 4: return this.GetRed(ref this.condition, 4)!;
             default: return null;
         }
     }
@@ -10037,7 +10037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 9);
+            return this.GetRed(ref this.statement, 9)!;
         }
     }
 
@@ -10046,10 +10046,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 2: return this.GetRed(ref this.declaration, 2);
-            case 3: return this.GetRed(ref this.initializers, 3);
+            case 3: return this.GetRed(ref this.initializers, 3)!;
             case 5: return this.GetRed(ref this.condition, 5);
-            case 7: return this.GetRed(ref this.incrementors, 7);
-            case 9: return this.GetRed(ref this.statement, 9);
+            case 7: return this.GetRed(ref this.incrementors, 7)!;
+            case 9: return this.GetRed(ref this.statement, 9)!;
             default: return null;
         }
     }
@@ -10224,7 +10224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 3);
+            return this.GetRed(ref this.type, 3)!;
         }
     }
 
@@ -10243,7 +10243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 6);
+            return this.GetRed(ref this.expression, 6)!;
         }
     }
 
@@ -10256,7 +10256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 8);
+            return this.GetRed(ref this.statement, 8)!;
         }
     }
 
@@ -10264,9 +10264,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 3: return this.GetRed(ref this.type, 3);
-            case 6: return this.GetRed(ref this.expression, 6);
-            case 8: return this.GetRed(ref this.statement, 8);
+            case 3: return this.GetRed(ref this.type, 3)!;
+            case 6: return this.GetRed(ref this.expression, 6)!;
+            case 8: return this.GetRed(ref this.statement, 8)!;
             default: return null;
         }
     }
@@ -10401,7 +10401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.variable, 3);
+            return this.GetRed(ref this.variable, 3)!;
         }
     }
 
@@ -10414,7 +10414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 5);
+            return this.GetRed(ref this.expression, 5)!;
         }
     }
 
@@ -10427,7 +10427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 7);
+            return this.GetRed(ref this.statement, 7)!;
         }
     }
 
@@ -10435,9 +10435,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 3: return this.GetRed(ref this.variable, 3);
-            case 5: return this.GetRed(ref this.expression, 5);
-            case 7: return this.GetRed(ref this.statement, 7);
+            case 3: return this.GetRed(ref this.variable, 3)!;
+            case 5: return this.GetRed(ref this.expression, 5)!;
+            case 7: return this.GetRed(ref this.statement, 7)!;
             default: return null;
         }
     }
@@ -10582,7 +10582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 6);
+            return this.GetRed(ref this.statement, 6)!;
         }
     }
 
@@ -10592,7 +10592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             case 3: return this.GetRed(ref this.declaration, 3);
             case 4: return this.GetRed(ref this.expression, 4);
-            case 6: return this.GetRed(ref this.statement, 6);
+            case 6: return this.GetRed(ref this.statement, 6)!;
             default: return null;
         }
     }
@@ -10691,7 +10691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 2);
+            return this.GetRed(ref this.declaration, 2)!;
         }
     }
 
@@ -10704,7 +10704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 4);
+            return this.GetRed(ref this.statement, 4)!;
         }
     }
 
@@ -10712,8 +10712,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.declaration, 2);
-            case 4: return this.GetRed(ref this.statement, 4);
+            case 2: return this.GetRed(ref this.declaration, 2)!;
+            case 4: return this.GetRed(ref this.statement, 4)!;
             default: return null;
         }
     }
@@ -10800,7 +10800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.block, 1);
+            return this.GetRed(ref this.block, 1)!;
         }
     }
 
@@ -10808,7 +10808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.block, 1);
+            case 1: return this.GetRed(ref this.block, 1)!;
             default: return null;
         }
     }
@@ -10879,7 +10879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.block, 1);
+            return this.GetRed(ref this.block, 1)!;
         }
     }
 
@@ -10887,7 +10887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.block, 1);
+            case 1: return this.GetRed(ref this.block, 1)!;
             default: return null;
         }
     }
@@ -10964,7 +10964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -10977,7 +10977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 4);
+            return this.GetRed(ref this.statement, 4)!;
         }
     }
 
@@ -10985,8 +10985,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
-            case 4: return this.GetRed(ref this.statement, 4);
+            case 2: return this.GetRed(ref this.expression, 2)!;
+            case 4: return this.GetRed(ref this.statement, 4)!;
             default: return null;
         }
     }
@@ -11087,7 +11087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 2);
+            return this.GetRed(ref this.condition, 2)!;
         }
     }
 
@@ -11106,7 +11106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 4);
+            return this.GetRed(ref this.statement, 4)!;
         }
     }
 
@@ -11125,8 +11125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.condition, 2);
-            case 4: return this.GetRed(ref this.statement, 4);
+            case 2: return this.GetRed(ref this.condition, 2)!;
+            case 4: return this.GetRed(ref this.statement, 4)!;
             case 5: return this.GetRed(ref this.@else, 5);
             default: return null;
         }
@@ -11219,7 +11219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.statement, 1);
+            return this.GetRed(ref this.statement, 1)!;
         }
     }
 
@@ -11227,7 +11227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.statement, 1);
+            case 1: return this.GetRed(ref this.statement, 1)!;
             default: return null;
         }
     }
@@ -11316,7 +11316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -11366,8 +11366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.expression, 2);
-            case 5: return this.GetRed(ref this.sections, 5);
+            case 2: return this.GetRed(ref this.expression, 2)!;
+            case 5: return this.GetRed(ref this.sections, 5)!;
             default: return null;
         }
     }
@@ -11483,8 +11483,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.labels);
-            case 1: return this.GetRed(ref this.statements, 1);
+            case 0: return this.GetRedAtZero(ref this.labels)!;
+            case 1: return this.GetRed(ref this.statements, 1)!;
             default: return null;
         }
     }
@@ -11590,7 +11590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.pattern, 1);
+            return this.GetRed(ref this.pattern, 1)!;
         }
     }
 
@@ -11611,7 +11611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.pattern, 1);
+            case 1: return this.GetRed(ref this.pattern, 1)!;
             case 2: return this.GetRed(ref this.whenClause, 2);
             default: return null;
         }
@@ -11696,7 +11696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.value, 1);
+            return this.GetRed(ref this.value, 1)!;
         }
     }
 
@@ -11709,7 +11709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.value, 1);
+            case 1: return this.GetRed(ref this.value, 1)!;
             default: return null;
         }
     }
@@ -11849,7 +11849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.governingExpression);
+            return this.GetRedAtZero(ref this.governingExpression)!;
         }
     }
 
@@ -11884,8 +11884,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.governingExpression);
-            case 3: return this.GetRed(ref this.arms, 3);
+            case 0: return this.GetRedAtZero(ref this.governingExpression)!;
+            case 3: return this.GetRed(ref this.arms, 3)!;
             default: return null;
         }
     }
@@ -11969,7 +11969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.pattern);
+            return this.GetRedAtZero(ref this.pattern)!;
         }
     }
 
@@ -11990,7 +11990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 3);
+            return this.GetRed(ref this.expression, 3)!;
         }
     }
 
@@ -11998,9 +11998,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.pattern);
+            case 0: return this.GetRedAtZero(ref this.pattern)!;
             case 1: return this.GetRed(ref this.whenClause, 1);
-            case 3: return this.GetRed(ref this.expression, 3);
+            case 3: return this.GetRed(ref this.expression, 3)!;
             default: return null;
         }
     }
@@ -12080,7 +12080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.block, 1);
+            return this.GetRed(ref this.block, 1)!;
         }
     }
 
@@ -12104,8 +12104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.block, 1);
-            case 2: return this.GetRed(ref this.catches, 2);
+            case 1: return this.GetRed(ref this.block, 1)!;
+            case 2: return this.GetRed(ref this.catches, 2)!;
             case 3: return this.GetRed(ref this.@finally, 3);
             default: return null;
         }
@@ -12212,7 +12212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.block, 3);
+            return this.GetRed(ref this.block, 3)!;
         }
     }
 
@@ -12222,7 +12222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             case 1: return this.GetRed(ref this.declaration, 1);
             case 2: return this.GetRed(ref this.filter, 2);
-            case 3: return this.GetRed(ref this.block, 3);
+            case 3: return this.GetRed(ref this.block, 3)!;
             default: return null;
         }
     }
@@ -12305,7 +12305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -12330,7 +12330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 1: return this.GetRed(ref this.type, 1)!;
             default: return null;
         }
     }
@@ -12411,7 +12411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.filterExpression, 2);
+            return this.GetRed(ref this.filterExpression, 2)!;
         }
     }
 
@@ -12424,7 +12424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.filterExpression, 2);
+            case 2: return this.GetRed(ref this.filterExpression, 2)!;
             default: return null;
         }
     }
@@ -12500,7 +12500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.block, 1);
+            return this.GetRed(ref this.block, 1)!;
         }
     }
 
@@ -12508,7 +12508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.block, 1);
+            case 1: return this.GetRed(ref this.block, 1)!;
             default: return null;
         }
     }
@@ -12615,10 +12615,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.externs);
-            case 1: return this.GetRed(ref this.usings, 1);
-            case 2: return this.GetRed(ref this.attributeLists, 2);
-            case 3: return this.GetRed(ref this.members, 3);
+            case 0: return this.GetRedAtZero(ref this.externs)!;
+            case 1: return this.GetRed(ref this.usings, 1)!;
+            case 2: return this.GetRed(ref this.attributeLists, 2)!;
+            case 3: return this.GetRed(ref this.members, 3)!;
             default: return null;
         }
     }
@@ -12837,7 +12837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 3);
+            return this.GetRed(ref this.name, 3)!;
         }
     }
 
@@ -12851,7 +12851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 2: return this.GetRed(ref this.alias, 2);
-            case 3: return this.GetRed(ref this.name, 3);
+            case 3: return this.GetRed(ref this.name, 3)!;
             default: return null;
         }
     }
@@ -12982,7 +12982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 3);
+            return this.GetRed(ref this.name, 3)!;
         }
     }
 
@@ -13037,11 +13037,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 3: return this.GetRed(ref this.name, 3);
-            case 5: return this.GetRed(ref this.externs, 5);
-            case 6: return this.GetRed(ref this.usings, 6);
-            case 7: return this.GetRed(ref this.members, 7);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 3: return this.GetRed(ref this.name, 3)!;
+            case 5: return this.GetRed(ref this.externs, 5)!;
+            case 6: return this.GetRed(ref this.usings, 6)!;
+            case 7: return this.GetRed(ref this.members, 7)!;
             default: return null;
         }
     }
@@ -13212,7 +13212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.GetRed(ref this.target, 1);
-            case 2: return this.GetRed(ref this.attributes, 2);
+            case 2: return this.GetRed(ref this.attributes, 2)!;
             default: return null;
         }
     }
@@ -13362,7 +13362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -13378,7 +13378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             case 1: return this.GetRed(ref this.argumentList, 1);
             default: return null;
         }
@@ -13473,7 +13473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.arguments, 1);
+            case 1: return this.GetRed(ref this.arguments, 1)!;
             default: return null;
         }
     }
@@ -13564,7 +13564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 2);
+            return this.GetRed(ref this.expression, 2)!;
         }
     }
 
@@ -13574,7 +13574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             case 0: return this.GetRedAtZero(ref this.nameEquals);
             case 1: return this.GetRed(ref this.nameColon, 1);
-            case 2: return this.GetRed(ref this.expression, 2);
+            case 2: return this.GetRed(ref this.expression, 2)!;
             default: return null;
         }
     }
@@ -13644,7 +13644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -13657,7 +13657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             default: return null;
         }
     }
@@ -13744,7 +13744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameters, 1);
+            case 1: return this.GetRed(ref this.parameters, 1)!;
             default: return null;
         }
     }
@@ -13843,7 +13843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             default: return null;
         }
     }
@@ -14093,11 +14093,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 4: return this.GetRed(ref this.typeParameterList, 4);
             case 5: return this.GetRed(ref this.baseList, 5);
-            case 6: return this.GetRed(ref this.constraintClauses, 6);
-            case 8: return this.GetRed(ref this.members, 8);
+            case 6: return this.GetRed(ref this.constraintClauses, 6)!;
+            case 8: return this.GetRed(ref this.members, 8)!;
             default: return null;
         }
     }
@@ -14346,11 +14346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 4: return this.GetRed(ref this.typeParameterList, 4);
             case 5: return this.GetRed(ref this.baseList, 5);
-            case 6: return this.GetRed(ref this.constraintClauses, 6);
-            case 8: return this.GetRed(ref this.members, 8);
+            case 6: return this.GetRed(ref this.constraintClauses, 6)!;
+            case 8: return this.GetRed(ref this.members, 8)!;
             default: return null;
         }
     }
@@ -14599,11 +14599,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 4: return this.GetRed(ref this.typeParameterList, 4);
             case 5: return this.GetRed(ref this.baseList, 5);
-            case 6: return this.GetRed(ref this.constraintClauses, 6);
-            case 8: return this.GetRed(ref this.members, 8);
+            case 6: return this.GetRed(ref this.constraintClauses, 6)!;
+            case 8: return this.GetRed(ref this.members, 8)!;
             default: return null;
         }
     }
@@ -14840,9 +14840,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 4: return this.GetRed(ref this.baseList, 4);
-            case 6: return this.GetRed(ref this.members, 6);
+            case 6: return this.GetRed(ref this.members, 6)!;
             default: return null;
         }
     }
@@ -15003,7 +15003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.returnType, 3);
+            return this.GetRed(ref this.returnType, 3)!;
         }
     }
 
@@ -15026,7 +15026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 6);
+            return this.GetRed(ref this.parameterList, 6)!;
         }
     }
 
@@ -15049,11 +15049,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 3: return this.GetRed(ref this.returnType, 3);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 3: return this.GetRed(ref this.returnType, 3)!;
             case 5: return this.GetRed(ref this.typeParameterList, 5);
-            case 6: return this.GetRed(ref this.parameterList, 6);
-            case 7: return this.GetRed(ref this.constraintClauses, 7);
+            case 6: return this.GetRed(ref this.parameterList, 6)!;
+            case 7: return this.GetRed(ref this.constraintClauses, 7)!;
             default: return null;
         }
     }
@@ -15218,7 +15218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 3: return this.GetRed(ref this.equalsValue, 3);
             default: return null;
         }
@@ -15325,7 +15325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.types, 1);
+            case 1: return this.GetRed(ref this.types, 1)!;
             default: return null;
         }
     }
@@ -15404,7 +15404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -15412,7 +15412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
+            case 0: return this.GetRedAtZero(ref this.type)!;
             default: return null;
         }
     }
@@ -15477,7 +15477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -15504,8 +15504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
-            case 3: return this.GetRed(ref this.constraints, 3);
+            case 1: return this.GetRed(ref this.name, 1)!;
+            case 3: return this.GetRed(ref this.constraints, 3)!;
             default: return null;
         }
     }
@@ -15751,7 +15751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -15759,7 +15759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
+            case 0: return this.GetRedAtZero(ref this.type)!;
             default: return null;
         }
     }
@@ -15862,7 +15862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 2);
+            return this.GetRed(ref this.declaration, 2)!;
         }
     }
 
@@ -15875,8 +15875,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.declaration, 2);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.declaration, 2)!;
             default: return null;
         }
     }
@@ -15996,7 +15996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 3);
+            return this.GetRed(ref this.declaration, 3)!;
         }
     }
 
@@ -16009,8 +16009,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 3: return this.GetRed(ref this.declaration, 3);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 3: return this.GetRed(ref this.declaration, 3)!;
             default: return null;
         }
     }
@@ -16109,7 +16109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -16122,7 +16122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             default: return null;
         }
     }
@@ -16252,7 +16252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.returnType, 2);
+            return this.GetRed(ref this.returnType, 2)!;
         }
     }
 
@@ -16282,7 +16282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 6);
+            return this.GetRed(ref this.parameterList, 6)!;
         }
     }
 
@@ -16328,12 +16328,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.returnType, 2);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.returnType, 2)!;
             case 3: return this.GetRed(ref this.explicitInterfaceSpecifier, 3);
             case 5: return this.GetRed(ref this.typeParameterList, 5);
-            case 6: return this.GetRed(ref this.parameterList, 6);
-            case 7: return this.GetRed(ref this.constraintClauses, 7);
+            case 6: return this.GetRed(ref this.parameterList, 6)!;
+            case 7: return this.GetRed(ref this.constraintClauses, 7)!;
             case 8: return this.GetRed(ref this.body, 8);
             case 9: return this.GetRed(ref this.expressionBody, 9);
             default: return null;
@@ -16516,7 +16516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.returnType, 2);
+            return this.GetRed(ref this.returnType, 2)!;
         }
     }
 
@@ -16536,7 +16536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 5);
+            return this.GetRed(ref this.parameterList, 5)!;
         }
     }
 
@@ -16572,9 +16572,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.returnType, 2);
-            case 5: return this.GetRed(ref this.parameterList, 5);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.returnType, 2)!;
+            case 5: return this.GetRed(ref this.parameterList, 5)!;
             case 6: return this.GetRed(ref this.body, 6);
             case 7: return this.GetRed(ref this.expressionBody, 7);
             default: return null;
@@ -16745,7 +16745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 4);
+            return this.GetRed(ref this.type, 4)!;
         }
     }
 
@@ -16753,7 +16753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 5);
+            return this.GetRed(ref this.parameterList, 5)!;
         }
     }
 
@@ -16790,9 +16790,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 4: return this.GetRed(ref this.type, 4);
-            case 5: return this.GetRed(ref this.parameterList, 5);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 4: return this.GetRed(ref this.type, 4)!;
+            case 5: return this.GetRed(ref this.parameterList, 5)!;
             case 6: return this.GetRed(ref this.body, 6);
             case 7: return this.GetRed(ref this.expressionBody, 7);
             default: return null;
@@ -16956,7 +16956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 3);
+            return this.GetRed(ref this.parameterList, 3)!;
         }
     }
 
@@ -17001,8 +17001,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 3: return this.GetRed(ref this.parameterList, 3);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 3: return this.GetRed(ref this.parameterList, 3)!;
             case 4: return this.GetRed(ref this.initializer, 4);
             case 5: return this.GetRed(ref this.body, 5);
             case 6: return this.GetRed(ref this.expressionBody, 6);
@@ -17144,7 +17144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.argumentList, 2);
+            return this.GetRed(ref this.argumentList, 2)!;
         }
     }
 
@@ -17152,7 +17152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.argumentList, 2);
+            case 2: return this.GetRed(ref this.argumentList, 2)!;
             default: return null;
         }
     }
@@ -17259,7 +17259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 4);
+            return this.GetRed(ref this.parameterList, 4)!;
         }
     }
 
@@ -17296,8 +17296,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 4: return this.GetRed(ref this.parameterList, 4);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 4: return this.GetRed(ref this.parameterList, 4)!;
             case 5: return this.GetRed(ref this.body, 5);
             case 6: return this.GetRed(ref this.expressionBody, 6);
             default: return null;
@@ -17482,7 +17482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -17540,8 +17540,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.type, 2);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.type, 2)!;
             case 3: return this.GetRed(ref this.explicitInterfaceSpecifier, 3);
             case 5: return this.GetRed(ref this.accessorList, 5);
             case 6: return this.GetRed(ref this.expressionBody, 6);
@@ -17676,7 +17676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 1);
+            return this.GetRed(ref this.expression, 1)!;
         }
     }
 
@@ -17684,7 +17684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.expression, 1);
+            case 1: return this.GetRed(ref this.expression, 1)!;
             default: return null;
         }
     }
@@ -17773,7 +17773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 3);
+            return this.GetRed(ref this.type, 3)!;
         }
     }
 
@@ -17815,8 +17815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 3: return this.GetRed(ref this.type, 3);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 3: return this.GetRed(ref this.type, 3)!;
             case 4: return this.GetRed(ref this.explicitInterfaceSpecifier, 4);
             case 6: return this.GetRed(ref this.accessorList, 6);
             default: return null;
@@ -17961,7 +17961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -17983,7 +17983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.parameterList, 5);
+            return this.GetRed(ref this.parameterList, 5)!;
         }
     }
 
@@ -18019,10 +18019,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
-            case 2: return this.GetRed(ref this.type, 2);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
+            case 2: return this.GetRed(ref this.type, 2)!;
             case 3: return this.GetRed(ref this.explicitInterfaceSpecifier, 3);
-            case 5: return this.GetRed(ref this.parameterList, 5);
+            case 5: return this.GetRed(ref this.parameterList, 5)!;
             case 6: return this.GetRed(ref this.accessorList, 6);
             case 7: return this.GetRed(ref this.expressionBody, 7);
             default: return null;
@@ -18172,7 +18172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.accessors, 1);
+            case 1: return this.GetRed(ref this.accessors, 1)!;
             default: return null;
         }
     }
@@ -18304,7 +18304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 3: return this.GetRed(ref this.body, 3);
             case 4: return this.GetRed(ref this.expressionBody, 4);
             default: return null;
@@ -18447,7 +18447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameters, 1);
+            case 1: return this.GetRed(ref this.parameters, 1)!;
             default: return null;
         }
     }
@@ -18545,7 +18545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameters, 1);
+            case 1: return this.GetRed(ref this.parameters, 1)!;
             default: return null;
         }
     }
@@ -18665,7 +18665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 2: return this.GetRed(ref this.type, 2);
             case 4: return this.GetRed(ref this.@default, 4);
             default: return null;
@@ -18784,7 +18784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.attributeLists);
+            case 0: return this.GetRedAtZero(ref this.attributeLists)!;
             case 2: return this.GetRed(ref this.type, 2);
             default: return null;
         }
@@ -18948,7 +18948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.content);
+            case 0: return this.GetRedAtZero(ref this.content)!;
             default: return null;
         }
     }
@@ -19033,7 +19033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.type);
+            return this.GetRedAtZero(ref this.type)!;
         }
     }
 
@@ -19041,7 +19041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.type);
+            case 0: return this.GetRedAtZero(ref this.type)!;
             default: return null;
         }
     }
@@ -19105,7 +19105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.container);
+            return this.GetRedAtZero(ref this.container)!;
         }
     }
 
@@ -19118,7 +19118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.member, 2);
+            return this.GetRed(ref this.member, 2)!;
         }
     }
 
@@ -19126,8 +19126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.container);
-            case 2: return this.GetRed(ref this.member, 2);
+            case 0: return this.GetRedAtZero(ref this.container)!;
+            case 2: return this.GetRed(ref this.member, 2)!;
             default: return null;
         }
     }
@@ -19216,7 +19216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -19232,7 +19232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             case 1: return this.GetRed(ref this.parameters, 1);
             default: return null;
         }
@@ -19496,7 +19496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 2)!;
         }
     }
 
@@ -19512,7 +19512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
+            case 2: return this.GetRed(ref this.type, 2)!;
             case 3: return this.GetRed(ref this.parameters, 3);
             default: return null;
         }
@@ -19638,7 +19638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameters, 1);
+            case 1: return this.GetRed(ref this.parameters, 1)!;
             default: return null;
         }
     }
@@ -19738,7 +19738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.parameters, 1);
+            case 1: return this.GetRed(ref this.parameters, 1)!;
             default: return null;
         }
     }
@@ -19828,7 +19828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 1)!;
         }
     }
 
@@ -19836,7 +19836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 1: return this.GetRed(ref this.type, 1)!;
             default: return null;
         }
     }
@@ -19907,7 +19907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.startTag);
+            return this.GetRedAtZero(ref this.startTag)!;
         }
     }
 
@@ -19923,7 +19923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.endTag, 2);
+            return this.GetRed(ref this.endTag, 2)!;
         }
     }
 
@@ -19931,9 +19931,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.startTag);
-            case 1: return this.GetRed(ref this.content, 1);
-            case 2: return this.GetRed(ref this.endTag, 2);
+            case 0: return this.GetRedAtZero(ref this.startTag)!;
+            case 1: return this.GetRed(ref this.content, 1)!;
+            case 2: return this.GetRed(ref this.endTag, 2)!;
             default: return null;
         }
     }
@@ -20017,7 +20017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -20038,8 +20038,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
-            case 2: return this.GetRed(ref this.attributes, 2);
+            case 1: return this.GetRed(ref this.name, 1)!;
+            case 2: return this.GetRed(ref this.attributes, 2)!;
             default: return null;
         }
     }
@@ -20121,7 +20121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -20134,7 +20134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
+            case 1: return this.GetRed(ref this.name, 1)!;
             default: return null;
         }
     }
@@ -20206,7 +20206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -20227,8 +20227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
-            case 2: return this.GetRed(ref this.attributes, 2);
+            case 1: return this.GetRed(ref this.name, 1)!;
+            case 2: return this.GetRed(ref this.attributes, 2)!;
             default: return null;
         }
     }
@@ -20470,7 +20470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -20505,7 +20505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
+            case 0: return this.GetRedAtZero(ref this.name)!;
             default: return null;
         }
     }
@@ -20591,7 +20591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -20609,7 +20609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.cref, 3);
+            return this.GetRed(ref this.cref, 3)!;
         }
     }
 
@@ -20622,8 +20622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
-            case 3: return this.GetRed(ref this.cref, 3);
+            case 0: return this.GetRedAtZero(ref this.name)!;
+            case 3: return this.GetRed(ref this.cref, 3)!;
             default: return null;
         }
     }
@@ -20705,7 +20705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRedAtZero(ref this.name);
+            return this.GetRedAtZero(ref this.name)!;
         }
     }
 
@@ -20723,7 +20723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.identifier, 3);
+            return this.GetRed(ref this.identifier, 3)!;
         }
     }
 
@@ -20736,8 +20736,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 0: return this.GetRedAtZero(ref this.name);
-            case 3: return this.GetRed(ref this.identifier, 3);
+            case 0: return this.GetRedAtZero(ref this.name)!;
+            case 3: return this.GetRed(ref this.identifier, 3)!;
             default: return null;
         }
     }
@@ -20981,7 +20981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.name, 1);
+            return this.GetRed(ref this.name, 1)!;
         }
     }
 
@@ -21006,7 +21006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.name, 1);
+            case 1: return this.GetRed(ref this.name, 1)!;
             default: return null;
         }
     }
@@ -21226,7 +21226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 2);
+            return this.GetRed(ref this.condition, 2)!;
         }
     }
 
@@ -21245,7 +21245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.condition, 2);
+            case 2: return this.GetRed(ref this.condition, 2)!;
             default: return null;
         }
     }
@@ -21344,7 +21344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.condition, 2);
+            return this.GetRed(ref this.condition, 2)!;
         }
     }
 
@@ -21363,7 +21363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.condition, 2);
+            case 2: return this.GetRed(ref this.condition, 2)!;
             default: return null;
         }
     }
@@ -22405,7 +22405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.GetRed(ref this.errorCodes, 4);
+            case 4: return this.GetRed(ref this.errorCodes, 4)!;
             default: return null;
         }
     }
