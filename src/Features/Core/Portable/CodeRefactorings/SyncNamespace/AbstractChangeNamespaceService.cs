@@ -582,14 +582,15 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixReferencingDocumentAsync(
+#nullable enable
+
+        private async Task<Document?> FixReferencingDocumentAsync(
             Document document,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
             CancellationToken cancellationToken)
         {
             // Can't apply change to certain document, returns null to indicate this.
-            // e.g. Razor document (*.g.cs file, not *.cshtml)
             if (!document.CanApplyChange())
             {
                 return null;
@@ -625,6 +626,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
         }
+
+#nullable restore
 
         /// <summary>
         /// Fix each reference and return a collection of proper containers (innermost container
