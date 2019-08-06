@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,9 +102,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var returnTypeTuple = AdjustReturnType(model, returnType);
 
-                returnType = returnTypeTuple.Item1;
-                var returnTypeHasAnonymousType = returnTypeTuple.Item2;
-                var awaitTaskReturn = returnTypeTuple.Item3;
+                returnType = returnTypeTuple.typeSymbol;
+                var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymouseType;
+                var awaitTaskReturn = returnTypeTuple.awaitTaskReturn;
 
                 // create new document
                 var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
             }
 
-            private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
+            private (ITypeSymbol typeSymbol, bool hasAnonymouseType, bool awaitTaskReturn) AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
             {
                 // check whether return type contains anonymous type and if it does, fix it up by making it object
                 var returnTypeHasAnonymousType = returnType.ContainsAnonymousType();
@@ -136,12 +138,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
 
-                    return Tuple.Create(returnType, returnTypeHasAnonymousType, awaitTaskReturn);
+                    return (returnType, returnTypeHasAnonymousType, awaitTaskReturn);
                 }
 
                 // unwrap task if needed
                 UnwrapTaskIfNeeded(model, ref returnType);
-                return Tuple.Create(returnType, returnTypeHasAnonymousType, false);
+                return (returnType, returnTypeHasAnonymousType, false);
             }
 
             private void UnwrapTaskIfNeeded(SemanticModel model, ref ITypeSymbol returnType)
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 returnType = genericTaskType.Construct(returnType);
             }
 
-            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -322,7 +324,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
-
                 return symbolMap;
             }
 
@@ -959,10 +960,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     case ILocalSymbol local:
                         return new VariableInfo(
-                            new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                            new LocalVariableSymbol<T>(compilation, local, local.GetTypeWithAnnotatedNullability(), nonNoisySyntaxKindSet),
                             style);
                     case IParameterSymbol parameter:
-                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
+                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, parameter.GetTypeWithAnnotatedNullability()), style);
                     case IRangeVariableSymbol rangeVariable:
                         return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
                 }

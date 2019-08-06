@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2093,6 +2095,42 @@ class Program
     private static System.Range NewMethod()
     {
         return 1..2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestNullablePrameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        [|string? x = null;
+        x.ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string? NewMethod()
+    {
+        string? x = null;
+        x.ToString();
+        return x;
     }
 }");
         }
