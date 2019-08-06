@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -52,10 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             throw new InvalidOperationException();
         }
 
-        protected override IndexerDeclarationSyntax WithGenerateBody(
-            SemanticModel semanticModel, IndexerDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
+        protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration)
         {
-            return WithAccessorList(semanticModel, declaration, options, parseOptions);
+            return WithAccessorList(semanticModel, declaration);
         }
 
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
