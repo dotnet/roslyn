@@ -1405,7 +1405,7 @@
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
       </PropertyComment>
@@ -1483,7 +1483,7 @@
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;">
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
       </PropertyComment>
@@ -1879,7 +1879,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;" AllowTrailingSeparator="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -2651,7 +2651,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;"/>
+    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;" AllowTrailingSeparator="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -3137,7 +3137,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;">
+    <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>Gets the members declaration list.</summary>
       </PropertyComment>
