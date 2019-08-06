@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IdentifierNameSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IdentifierNameSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIdentifierName(this);
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QualifiedNameSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.QualifiedNameSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedName(this);
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GenericNameSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.GenericNameSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGenericName(this);
 
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeArgumentListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeArgumentListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeArgumentList(this);
 
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AliasQualifiedNameSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AliasQualifiedNameSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAliasQualifiedName(this);
 
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PredefinedTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PredefinedTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPredefinedType(this);
 
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArrayTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayType(this);
 
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayRankSpecifierSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArrayRankSpecifierSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayRankSpecifier(this);
 
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PointerTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PointerTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPointerType(this);
 
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NullableTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NullableTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableType(this);
 
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TupleTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleType(this);
 
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleElementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TupleElementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleElement(this);
 
@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OmittedTypeArgumentSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OmittedTypeArgumentSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedTypeArgument(this);
 
@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RefTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefType(this);
 
@@ -1845,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParenthesizedExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedExpression(this);
 
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TupleExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleExpression(this);
 
@@ -2106,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PrefixUnaryExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PrefixUnaryExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrefixUnaryExpression(this);
 
@@ -2220,7 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AwaitExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AwaitExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAwaitExpression(this);
 
@@ -2334,7 +2334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PostfixUnaryExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PostfixUnaryExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPostfixUnaryExpression(this);
 
@@ -2458,7 +2458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MemberAccessExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.MemberAccessExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
 
@@ -2589,7 +2589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConditionalAccessExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConditionalAccessExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalAccessExpression(this);
 
@@ -2710,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MemberBindingExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.MemberBindingExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberBindingExpression(this);
 
@@ -2814,7 +2814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElementBindingExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ElementBindingExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementBindingExpression(this);
 
@@ -2949,7 +2949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RangeExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RangeExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRangeExpression(this);
 
@@ -3060,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitElementAccessSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ImplicitElementAccessSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitElementAccess(this);
 
@@ -3177,7 +3177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BinaryExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BinaryExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryExpression(this);
 
@@ -3308,7 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AssignmentExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AssignmentExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAssignmentExpression(this);
 
@@ -3459,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConditionalExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConditionalExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalExpression(this);
 
@@ -3602,7 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThisExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ThisExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThisExpression(this);
 
@@ -3699,7 +3699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BaseExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BaseExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseExpression(this);
 
@@ -3796,7 +3796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LiteralExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LiteralExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLiteralExpression(this);
 
@@ -3923,7 +3923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MakeRefExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.MakeRefExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMakeRefExpression(this);
 
@@ -4071,7 +4071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefTypeExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RefTypeExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefTypeExpression(this);
 
@@ -4239,7 +4239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefValueExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RefValueExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefValueExpression(this);
 
@@ -4401,7 +4401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CheckedExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CheckedExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedExpression(this);
 
@@ -4549,7 +4549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefaultExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DefaultExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultExpression(this);
 
@@ -4697,7 +4697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeOfExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeOfExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeOfExpression(this);
 
@@ -4845,7 +4845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SizeOfExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SizeOfExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSizeOfExpression(this);
 
@@ -4973,7 +4973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InvocationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InvocationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInvocationExpression(this);
 
@@ -5087,7 +5087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElementAccessExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ElementAccessExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementAccessExpression(this);
 
@@ -5241,7 +5241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArgumentListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArgumentListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgumentList(this);
 
@@ -5381,7 +5381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BracketedArgumentListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BracketedArgumentListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedArgumentList(this);
 
@@ -5530,7 +5530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArgumentSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArgumentSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgument(this);
 
@@ -5651,7 +5651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameColonSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NameColonSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameColon(this);
 
@@ -5764,7 +5764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DeclarationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DeclarationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationExpression(this);
 
@@ -5898,7 +5898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CastExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CastExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCastExpression(this);
 
@@ -6088,7 +6088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousMethodExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AnonymousMethodExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
 
@@ -6266,7 +6266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SimpleLambdaExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SimpleLambdaExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
 
@@ -6391,7 +6391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RefExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefExpression(this);
 
@@ -6534,7 +6534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedLambdaExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParenthesizedLambdaExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
@@ -6681,7 +6681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InitializerExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InitializerExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInitializerExpression(this);
 
@@ -6840,7 +6840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ObjectCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ObjectCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitObjectCreationExpression(this);
 
@@ -6976,7 +6976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
 
@@ -7119,7 +7119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousObjectCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AnonymousObjectCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
 
@@ -7266,7 +7266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArrayCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayCreationExpression(this);
 
@@ -7426,7 +7426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitArrayCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ImplicitArrayCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitArrayCreationExpression(this);
 
@@ -7580,7 +7580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.StackAllocArrayCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.StackAllocArrayCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
 
@@ -7721,7 +7721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
 
@@ -7880,7 +7880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.QueryExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryExpression(this);
 
@@ -8018,7 +8018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryBodySyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.QueryBodySyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryBody(this);
 
@@ -8173,7 +8173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FromClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FromClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFromClause(this);
 
@@ -8324,7 +8324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LetClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LetClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLetClause(this);
 
@@ -8540,7 +8540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.JoinClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.JoinClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinClause(this);
 
@@ -8708,7 +8708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.JoinIntoClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.JoinIntoClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinIntoClause(this);
 
@@ -8819,7 +8819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhereClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WhereClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhereClause(this);
 
@@ -8939,7 +8939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OrderByClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OrderByClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrderByClause(this);
 
@@ -9059,7 +9059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OrderingSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OrderingSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrdering(this);
 
@@ -9170,7 +9170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SelectClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SelectClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSelectClause(this);
 
@@ -9299,7 +9299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GroupClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.GroupClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGroupClause(this);
 
@@ -9434,7 +9434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryContinuationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.QueryContinuationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryContinuation(this);
 
@@ -9545,7 +9545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OmittedArraySizeExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OmittedArraySizeExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedArraySizeExpression(this);
 
@@ -9670,7 +9670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolatedStringExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterpolatedStringExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringExpression(this);
 
@@ -9800,7 +9800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IsPatternExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IsPatternExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIsPatternExpression(this);
 
@@ -9918,7 +9918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThrowExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ThrowExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowExpression(this);
 
@@ -10029,7 +10029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhenClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WhenClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhenClause(this);
 
@@ -10148,7 +10148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DiscardPatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DiscardPatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardPattern(this);
 
@@ -10252,7 +10252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DeclarationPatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DeclarationPatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationPattern(this);
 
@@ -10363,7 +10363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VarPatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.VarPatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVarPattern(this);
 
@@ -10528,7 +10528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RecursivePatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RecursivePatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRecursivePattern(this);
 
@@ -10671,7 +10671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PositionalPatternClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PositionalPatternClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPositionalPatternClause(this);
 
@@ -10807,7 +10807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PropertyPatternClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PropertyPatternClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyPatternClause(this);
 
@@ -10934,7 +10934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SubpatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SubpatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSubpattern(this);
 
@@ -11037,7 +11037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstantPatternSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConstantPatternSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstantPattern(this);
 
@@ -11150,7 +11150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolatedStringTextSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterpolatedStringTextSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringText(this);
 
@@ -11299,7 +11299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterpolationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolation(this);
 
@@ -11431,7 +11431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationAlignmentClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterpolationAlignmentClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationAlignmentClause(this);
 
@@ -11543,7 +11543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationFormatClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterpolationFormatClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationFormatClause(this);
 
@@ -11681,7 +11681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GlobalStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.GlobalStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGlobalStatement(this);
 
@@ -11835,7 +11835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BlockSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BlockSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBlock(this);
 
@@ -12072,7 +12072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LocalFunctionStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LocalFunctionStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalFunctionStatement(this);
 
@@ -12287,7 +12287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LocalDeclarationStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LocalDeclarationStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalDeclarationStatement(this);
 
@@ -12428,7 +12428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VariableDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.VariableDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclaration(this);
 
@@ -12567,7 +12567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VariableDeclaratorSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.VariableDeclaratorSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclarator(this);
 
@@ -12685,7 +12685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EqualsValueClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EqualsValueClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEqualsValueClause(this);
 
@@ -12804,7 +12804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SingleVariableDesignationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SingleVariableDesignationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSingleVariableDesignation(this);
 
@@ -12899,7 +12899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DiscardDesignationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DiscardDesignationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardDesignation(this);
 
@@ -13021,7 +13021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedVariableDesignationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParenthesizedVariableDesignationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedVariableDesignation(this);
 
@@ -13139,7 +13139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExpressionStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExpressionStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionStatement(this);
 
@@ -13241,7 +13241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EmptyStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EmptyStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEmptyStatement(this);
 
@@ -13357,7 +13357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LabeledStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LabeledStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLabeledStatement(this);
 
@@ -13526,7 +13526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GotoStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.GotoStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGotoStatement(this);
 
@@ -13651,7 +13651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BreakStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BreakStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBreakStatement(this);
 
@@ -13762,7 +13762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ContinueStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ContinueStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitContinueStatement(this);
 
@@ -13891,7 +13891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ReturnStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ReturnStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReturnStatement(this);
 
@@ -14027,7 +14027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThrowStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ThrowStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowStatement(this);
 
@@ -14172,7 +14172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.YieldStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.YieldStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitYieldStatement(this);
 
@@ -14324,7 +14324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhileStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WhileStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhileStatement(this);
 
@@ -14501,7 +14501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DoStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DoStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDoStatement(this);
 
@@ -14755,7 +14755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ForStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForStatement(this);
 
@@ -15026,7 +15026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForEachStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ForEachStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachStatement(this);
 
@@ -15255,7 +15255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForEachVariableStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ForEachVariableStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachVariableStatement(this);
 
@@ -15480,7 +15480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UsingStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UsingStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingStatement(this);
 
@@ -15653,7 +15653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FixedStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FixedStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFixedStatement(this);
 
@@ -15785,7 +15785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CheckedStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CheckedStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedStatement(this);
 
@@ -15896,7 +15896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UnsafeStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UnsafeStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeStatement(this);
 
@@ -16034,7 +16034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LockStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LockStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLockStatement(this);
 
@@ -16232,7 +16232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IfStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IfStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfStatement(this);
 
@@ -16375,7 +16375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElseClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ElseClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseClause(this);
 
@@ -16580,7 +16580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SwitchStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchStatement(this);
 
@@ -16751,7 +16751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchSectionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SwitchSectionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchSection(this);
 
@@ -16922,7 +16922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CasePatternSwitchLabelSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CasePatternSwitchLabelSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCasePatternSwitchLabel(this);
 
@@ -17061,7 +17061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CaseSwitchLabelSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CaseSwitchLabelSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCaseSwitchLabel(this);
 
@@ -17181,7 +17181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefaultSwitchLabelSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DefaultSwitchLabelSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultSwitchLabel(this);
 
@@ -17328,7 +17328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchExpressionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SwitchExpressionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpression(this);
 
@@ -17487,7 +17487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchExpressionArmSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SwitchExpressionArmSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpressionArm(this);
 
@@ -17648,7 +17648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TryStatementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TryStatementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTryStatement(this);
 
@@ -17809,7 +17809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CatchClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchClause(this);
 
@@ -17961,7 +17961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CatchDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchDeclaration(this);
 
@@ -18104,7 +18104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchFilterClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CatchFilterClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchFilterClause(this);
 
@@ -18229,7 +18229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FinallyClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FinallyClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFinallyClause(this);
 
@@ -18404,7 +18404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CompilationUnitSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CompilationUnitSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCompilationUnit(this);
 
@@ -18561,7 +18561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExternAliasDirectiveSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExternAliasDirectiveSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExternAliasDirective(this);
 
@@ -18731,7 +18731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UsingDirectiveSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UsingDirectiveSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
 
@@ -19014,7 +19014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NamespaceDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NamespaceDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNamespaceDeclaration(this);
 
@@ -19222,7 +19222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AttributeListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeList(this);
 
@@ -19350,7 +19350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeTargetSpecifierSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AttributeTargetSpecifierSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeTargetSpecifier(this);
 
@@ -19472,7 +19472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AttributeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttribute(this);
 
@@ -19605,7 +19605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeArgumentListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AttributeArgumentListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgumentList(this);
 
@@ -19752,7 +19752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeArgumentSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AttributeArgumentSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgument(this);
 
@@ -19872,7 +19872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameEqualsSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NameEqualsSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameEquals(this);
 
@@ -20005,7 +20005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeParameterListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterList(this);
 
@@ -20153,7 +20153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeParameterSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameter(this);
 
@@ -20479,7 +20479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ClassDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ClassDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassDeclaration(this);
 
@@ -20799,7 +20799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.StructDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.StructDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStructDeclaration(this);
 
@@ -21119,7 +21119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterfaceDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.InterfaceDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterfaceDeclaration(this);
 
@@ -21405,7 +21405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EnumDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EnumDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumDeclaration(this);
 
@@ -21671,7 +21671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DelegateDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DelegateDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDelegateDeclaration(this);
 
@@ -21877,7 +21877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EnumMemberDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EnumMemberDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumMemberDeclaration(this);
 
@@ -22014,7 +22014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BaseListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BaseListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseList(this);
 
@@ -22136,7 +22136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
 
@@ -22271,7 +22271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterConstraintClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeParameterConstraintClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterConstraintClause(this);
 
@@ -22427,7 +22427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorConstraintSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConstructorConstraintSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorConstraint(this);
 
@@ -22557,7 +22557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ClassOrStructConstraintSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ClassOrStructConstraintSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassOrStructConstraint(this);
 
@@ -22661,7 +22661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeConstraintSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeConstraintSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeConstraint(this);
 
@@ -22822,7 +22822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FieldDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FieldDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldDeclaration(this);
 
@@ -22992,7 +22992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EventFieldDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EventFieldDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventFieldDeclaration(this);
 
@@ -23124,7 +23124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExplicitInterfaceSpecifierSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExplicitInterfaceSpecifierSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
 
@@ -23421,7 +23421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MethodDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.MethodDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMethodDeclaration(this);
 
@@ -23707,7 +23707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OperatorDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OperatorDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorDeclaration(this);
 
@@ -23980,7 +23980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConversionOperatorDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConversionOperatorDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorDeclaration(this);
 
@@ -24251,7 +24251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConstructorDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorDeclaration(this);
 
@@ -24416,7 +24416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorInitializerSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConstructorInitializerSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorInitializer(this);
 
@@ -24637,7 +24637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DestructorDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DestructorDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDestructorDeclaration(this);
 
@@ -24943,7 +24943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PropertyDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PropertyDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyDeclaration(this);
 
@@ -25104,7 +25104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrowExpressionClauseSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ArrowExpressionClauseSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrowExpressionClause(this);
 
@@ -25315,7 +25315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EventDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EventDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventDeclaration(this);
 
@@ -25586,7 +25586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IndexerDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IndexerDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerDeclaration(this);
 
@@ -25764,7 +25764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AccessorListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AccessorListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorList(this);
 
@@ -25969,7 +25969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AccessorDeclarationSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AccessorDeclarationSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorDeclaration(this);
 
@@ -26150,7 +26150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParameterListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParameterListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameterList(this);
 
@@ -26289,7 +26289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BracketedParameterListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BracketedParameterListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedParameterList(this);
 
@@ -26474,7 +26474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParameterSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParameterSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameter(this);
 
@@ -26642,7 +26642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IncompleteMemberSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IncompleteMemberSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIncompleteMember(this);
 
@@ -26760,7 +26760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SkippedTokensTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SkippedTokensTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSkippedTokensTrivia(this);
 
@@ -26873,7 +26873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DocumentationCommentTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DocumentationCommentTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDocumentationCommentTrivia(this);
 
@@ -27003,7 +27003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypeCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeCref(this);
 
@@ -27123,7 +27123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QualifiedCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.QualifiedCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedCref(this);
 
@@ -27280,7 +27280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameMemberCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NameMemberCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameMemberCref(this);
 
@@ -27404,7 +27404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IndexerMemberCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IndexerMemberCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerMemberCref(this);
 
@@ -27539,7 +27539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OperatorMemberCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.OperatorMemberCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorMemberCref(this);
 
@@ -27688,7 +27688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConversionOperatorMemberCrefSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ConversionOperatorMemberCrefSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorMemberCref(this);
 
@@ -27860,7 +27860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefParameterListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CrefParameterListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameterList(this);
 
@@ -28001,7 +28001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefBracketedParameterListSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CrefBracketedParameterListSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefBracketedParameterList(this);
 
@@ -28133,7 +28133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefParameterSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CrefParameterSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameter(this);
 
@@ -28279,7 +28279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlElementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElement(this);
 
@@ -28424,7 +28424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementStartTagSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlElementStartTagSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementStartTag(this);
 
@@ -28558,7 +28558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementEndTagSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlElementEndTagSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementEndTag(this);
 
@@ -28703,7 +28703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlEmptyElementSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlEmptyElementSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlEmptyElement(this);
 
@@ -28837,7 +28837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlNameSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlNameSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlName(this);
 
@@ -28948,7 +28948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlPrefixSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlPrefixSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlPrefix(this);
 
@@ -29120,7 +29120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlTextAttributeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlTextAttributeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlTextAttribute(this);
 
@@ -29279,7 +29279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCrefAttributeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlCrefAttributeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCrefAttribute(this);
 
@@ -29438,7 +29438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlNameAttributeSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlNameAttributeSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlNameAttribute(this);
 
@@ -29570,7 +29570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlTextSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlTextSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlText(this);
 
@@ -29692,7 +29692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCDataSectionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlCDataSectionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCDataSection(this);
 
@@ -29837,7 +29837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlProcessingInstructionSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlProcessingInstructionSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlProcessingInstruction(this);
 
@@ -29980,7 +29980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCommentSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.XmlCommentSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlComment(this);
 
@@ -30197,7 +30197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IfDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IfDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfDirectiveTrivia(this);
 
@@ -30361,7 +30361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElifDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ElifDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElifDirectiveTrivia(this);
 
@@ -30511,7 +30511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElseDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ElseDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseDirectiveTrivia(this);
 
@@ -30647,7 +30647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EndIfDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EndIfDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndIfDirectiveTrivia(this);
 
@@ -30781,7 +30781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RegionDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RegionDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRegionDirectiveTrivia(this);
 
@@ -30915,7 +30915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EndRegionDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.EndRegionDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
 
@@ -31049,7 +31049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ErrorDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ErrorDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitErrorDirectiveTrivia(this);
 
@@ -31183,7 +31183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WarningDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WarningDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWarningDirectiveTrivia(this);
 
@@ -31317,7 +31317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BadDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BadDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBadDirectiveTrivia(this);
 
@@ -31460,7 +31460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefineDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DefineDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefineDirectiveTrivia(this);
 
@@ -31610,7 +31610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UndefDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UndefDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUndefDirectiveTrivia(this);
 
@@ -31778,7 +31778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LineDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LineDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineDirectiveTrivia(this);
 
@@ -31962,7 +31962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PragmaWarningDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PragmaWarningDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
@@ -32153,7 +32153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PragmaChecksumDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PragmaChecksumDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
 
@@ -32324,7 +32324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ReferenceDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ReferenceDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReferenceDirectiveTrivia(this);
 
@@ -32474,7 +32474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LoadDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LoadDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLoadDirectiveTrivia(this);
 
@@ -32615,7 +32615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ShebangDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ShebangDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitShebangDirectiveTrivia(this);
 
@@ -32776,7 +32776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NullableDirectiveTriviaSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.NullableDirectiveTriviaSyntax(this, parent, position);
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableDirectiveTrivia(this);
 

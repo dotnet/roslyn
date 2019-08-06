@@ -287,7 +287,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    }");
 
                 WriteLine();
-                WriteLine("    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.{0}(this, parent, position);", node.Name);
+                WriteLine("    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{0}(this, parent, position);", node.Name);
 
                 this.WriteGreenAcceptMethods(nd);
                 this.WriteGreenUpdateMethod(nd);
@@ -925,7 +925,7 @@ namespace CSharpSyntaxGenerator
                 AbstractNode nd = (AbstractNode)node;
                 WriteLine("  public abstract partial class {0} : {1}", node.Name, node.Base);
                 WriteLine("  {");
-                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name);
                 WriteLine("      : base(green, parent, position)");
                 WriteLine("    {");
                 WriteLine("    }");
@@ -1059,7 +1059,7 @@ namespace CSharpSyntaxGenerator
 
                 // write constructor
                 WriteLine();
-                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name);
                 WriteLine("        : base(green, parent, position)");
                 WriteLine("    {");
                 WriteLine("    }");
