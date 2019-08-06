@@ -1578,7 +1578,7 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>");
+            WriteLine("  public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
             WriteLine("  {");
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
@@ -1590,7 +1590,7 @@ namespace CSharpSyntaxGenerator
                     if (nWritten > 0)
                         WriteLine();
                     nWritten++;
-                    WriteLine("    public override SyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
+                    WriteLine("    public override SyntaxNode? Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
                     WriteLine("    {");
                     for (int f = 0; f < nodeFields.Count; f++)
                     {
