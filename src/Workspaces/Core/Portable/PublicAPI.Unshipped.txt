@@ -3,6 +3,7 @@ Microsoft.CodeAnalysis.AdditionalDocument
 Microsoft.CodeAnalysis.AnalyzerConfigDocument
 Microsoft.CodeAnalysis.ApplyChangesKind.AddAnalyzerConfigDocument = 17 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.ApplyChangesKind.ChangeAnalyzerConfigDocument = 19 -> Microsoft.CodeAnalysis.ApplyChangesKind
+Microsoft.CodeAnalysis.ApplyChangesKind.ChangeDefaultNamespace = 20 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.ApplyChangesKind.RemoveAnalyzerConfigDocument = 18 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.Project.AddAnalyzerConfigDocument(string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.Project.AnalyzerConfigDocuments.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AnalyzerConfigDocument>
@@ -91,6 +92,7 @@ virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream
 virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo info, Microsoft.CodeAnalysis.Text.SourceText text) -> void
 virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId id, Microsoft.CodeAnalysis.Text.SourceText text) -> void
+virtual Microsoft.CodeAnalysis.Workspace.ApplyDefaultNamespaceChanged(Microsoft.CodeAnalysis.ProjectId projectId, string defaultNamespace) -> void
 virtual Microsoft.CodeAnalysis.Workspace.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
 virtual Microsoft.CodeAnalysis.Workspace.CloseAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 virtual Microsoft.CodeAnalysis.Workspace.GetAnalyzerConfigDocumentName(Microsoft.CodeAnalysis.DocumentId documentId) -> string
