@@ -2612,16 +2612,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
     {
-      var left = (NameSyntax?)this.Visit(node.Left);
+      var left = (NameSyntax?)this.Visit(node.Left) ?? throw new ArgumentNullException("left");
       var dotToken = this.VisitToken(node.DotToken);
-      var right = (SimpleNameSyntax?)this.Visit(node.Right);
+      var right = (SimpleNameSyntax?)this.Visit(node.Right) ?? throw new ArgumentNullException("right");
       return node.Update(left, dotToken, right);
     }
 
     public override SyntaxNode? VisitGenericName(GenericNameSyntax node)
     {
       var identifier = this.VisitToken(node.Identifier);
-      var typeArgumentList = (TypeArgumentListSyntax?)this.Visit(node.TypeArgumentList);
+      var typeArgumentList = (TypeArgumentListSyntax?)this.Visit(node.TypeArgumentList) ?? throw new ArgumentNullException("typeArgumentList");
       return node.Update(identifier, typeArgumentList);
     }
 
@@ -2635,9 +2635,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
     {
-      var alias = (IdentifierNameSyntax?)this.Visit(node.Alias);
+      var alias = (IdentifierNameSyntax?)this.Visit(node.Alias) ?? throw new ArgumentNullException("alias");
       var colonColonToken = this.VisitToken(node.ColonColonToken);
-      var name = (SimpleNameSyntax?)this.Visit(node.Name);
+      var name = (SimpleNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       return node.Update(alias, colonColonToken, name);
     }
 
@@ -2649,7 +2649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitArrayType(ArrayTypeSyntax node)
     {
-      var elementType = (TypeSyntax?)this.Visit(node.ElementType);
+      var elementType = (TypeSyntax?)this.Visit(node.ElementType) ?? throw new ArgumentNullException("elementType");
       var rankSpecifiers = this.VisitList(node.RankSpecifiers);
       return node.Update(elementType, rankSpecifiers);
     }
@@ -2664,14 +2664,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitPointerType(PointerTypeSyntax node)
     {
-      var elementType = (TypeSyntax?)this.Visit(node.ElementType);
+      var elementType = (TypeSyntax?)this.Visit(node.ElementType) ?? throw new ArgumentNullException("elementType");
       var asteriskToken = this.VisitToken(node.AsteriskToken);
       return node.Update(elementType, asteriskToken);
     }
 
     public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
     {
-      var elementType = (TypeSyntax?)this.Visit(node.ElementType);
+      var elementType = (TypeSyntax?)this.Visit(node.ElementType) ?? throw new ArgumentNullException("elementType");
       var questionToken = this.VisitToken(node.QuestionToken);
       return node.Update(elementType, questionToken);
     }
@@ -2686,7 +2686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitTupleElement(TupleElementSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var identifier = this.VisitToken(node.Identifier);
       return node.Update(type, identifier);
     }
@@ -2701,14 +2701,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var refKeyword = this.VisitToken(node.RefKeyword);
       var readOnlyKeyword = this.VisitToken(node.ReadOnlyKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       return node.Update(refKeyword, readOnlyKeyword, type);
     }
 
     public override SyntaxNode? VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
     {
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(openParenToken, expression, closeParenToken);
     }
@@ -2724,50 +2724,50 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
     {
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var operand = (ExpressionSyntax?)this.Visit(node.Operand);
+      var operand = (ExpressionSyntax?)this.Visit(node.Operand) ?? throw new ArgumentNullException("operand");
       return node.Update(operatorToken, operand);
     }
 
     public override SyntaxNode? VisitAwaitExpression(AwaitExpressionSyntax node)
     {
       var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(awaitKeyword, expression);
     }
 
     public override SyntaxNode? VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
     {
-      var operand = (ExpressionSyntax?)this.Visit(node.Operand);
+      var operand = (ExpressionSyntax?)this.Visit(node.Operand) ?? throw new ArgumentNullException("operand");
       var operatorToken = this.VisitToken(node.OperatorToken);
       return node.Update(operand, operatorToken);
     }
 
     public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var name = (SimpleNameSyntax?)this.Visit(node.Name);
+      var name = (SimpleNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       return node.Update(expression, operatorToken, name);
     }
 
     public override SyntaxNode? VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var whenNotNull = (ExpressionSyntax?)this.Visit(node.WhenNotNull);
+      var whenNotNull = (ExpressionSyntax?)this.Visit(node.WhenNotNull) ?? throw new ArgumentNullException("whenNotNull");
       return node.Update(expression, operatorToken, whenNotNull);
     }
 
     public override SyntaxNode? VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
     {
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var name = (SimpleNameSyntax?)this.Visit(node.Name);
+      var name = (SimpleNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       return node.Update(operatorToken, name);
     }
 
     public override SyntaxNode? VisitElementBindingExpression(ElementBindingExpressionSyntax node)
     {
-      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList);
+      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList");
       return node.Update(argumentList);
     }
 
@@ -2781,33 +2781,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
     {
-      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList);
+      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList");
       return node.Update(argumentList);
     }
 
     public override SyntaxNode? VisitBinaryExpression(BinaryExpressionSyntax node)
     {
-      var left = (ExpressionSyntax?)this.Visit(node.Left);
+      var left = (ExpressionSyntax?)this.Visit(node.Left) ?? throw new ArgumentNullException("left");
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var right = (ExpressionSyntax?)this.Visit(node.Right);
+      var right = (ExpressionSyntax?)this.Visit(node.Right) ?? throw new ArgumentNullException("right");
       return node.Update(left, operatorToken, right);
     }
 
     public override SyntaxNode? VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-      var left = (ExpressionSyntax?)this.Visit(node.Left);
+      var left = (ExpressionSyntax?)this.Visit(node.Left) ?? throw new ArgumentNullException("left");
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var right = (ExpressionSyntax?)this.Visit(node.Right);
+      var right = (ExpressionSyntax?)this.Visit(node.Right) ?? throw new ArgumentNullException("right");
       return node.Update(left, operatorToken, right);
     }
 
     public override SyntaxNode? VisitConditionalExpression(ConditionalExpressionSyntax node)
     {
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var questionToken = this.VisitToken(node.QuestionToken);
-      var whenTrue = (ExpressionSyntax?)this.Visit(node.WhenTrue);
+      var whenTrue = (ExpressionSyntax?)this.Visit(node.WhenTrue) ?? throw new ArgumentNullException("whenTrue");
       var colonToken = this.VisitToken(node.ColonToken);
-      var whenFalse = (ExpressionSyntax?)this.Visit(node.WhenFalse);
+      var whenFalse = (ExpressionSyntax?)this.Visit(node.WhenFalse) ?? throw new ArgumentNullException("whenFalse");
       return node.Update(condition, questionToken, whenTrue, colonToken, whenFalse);
     }
 
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, expression, closeParenToken);
     }
@@ -2842,7 +2842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, expression, closeParenToken);
     }
@@ -2851,9 +2851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var comma = this.VisitToken(node.Comma);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, expression, comma, type, closeParenToken);
     }
@@ -2862,7 +2862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, expression, closeParenToken);
     }
@@ -2871,7 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, type, closeParenToken);
     }
@@ -2880,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, type, closeParenToken);
     }
@@ -2889,22 +2889,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var keyword = this.VisitToken(node.Keyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(keyword, openParenToken, type, closeParenToken);
     }
 
     public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
-      var argumentList = (ArgumentListSyntax?)this.Visit(node.ArgumentList);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
+      var argumentList = (ArgumentListSyntax?)this.Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList");
       return node.Update(expression, argumentList);
     }
 
     public override SyntaxNode? VisitElementAccessExpression(ElementAccessExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
-      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
+      var argumentList = (BracketedArgumentListSyntax?)this.Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList");
       return node.Update(expression, argumentList);
     }
 
@@ -2928,30 +2928,30 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var nameColon = (NameColonSyntax?)this.Visit(node.NameColon);
       var refKindKeyword = this.VisitToken(node.RefKindKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(nameColon, refKindKeyword, expression);
     }
 
     public override SyntaxNode? VisitNameColon(NameColonSyntax node)
     {
-      var name = (IdentifierNameSyntax?)this.Visit(node.Name);
+      var name = (IdentifierNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var colonToken = this.VisitToken(node.ColonToken);
       return node.Update(name, colonToken);
     }
 
     public override SyntaxNode? VisitDeclarationExpression(DeclarationExpressionSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
-      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
+      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation) ?? throw new ArgumentNullException("designation");
       return node.Update(type, designation);
     }
 
     public override SyntaxNode? VisitCastExpression(CastExpressionSyntax node)
     {
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(openParenToken, type, closeParenToken, expression);
     }
 
@@ -2960,32 +2960,32 @@ namespace Microsoft.CodeAnalysis.CSharp
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
       var delegateKeyword = this.VisitToken(node.DelegateKeyword);
       var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
-      var body = (CSharpSyntaxNode?)this.Visit(node.Body);
+      var body = (CSharpSyntaxNode?)this.Visit(node.Body) ?? throw new ArgumentNullException("body");
       return node.Update(asyncKeyword, delegateKeyword, parameterList, body);
     }
 
     public override SyntaxNode? VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
-      var parameter = (ParameterSyntax?)this.Visit(node.Parameter);
+      var parameter = (ParameterSyntax?)this.Visit(node.Parameter) ?? throw new ArgumentNullException("parameter");
       var arrowToken = this.VisitToken(node.ArrowToken);
-      var body = (CSharpSyntaxNode?)this.Visit(node.Body);
+      var body = (CSharpSyntaxNode?)this.Visit(node.Body) ?? throw new ArgumentNullException("body");
       return node.Update(asyncKeyword, parameter, arrowToken, body);
     }
 
     public override SyntaxNode? VisitRefExpression(RefExpressionSyntax node)
     {
       var refKeyword = this.VisitToken(node.RefKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(refKeyword, expression);
     }
 
     public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var arrowToken = this.VisitToken(node.ArrowToken);
-      var body = (CSharpSyntaxNode?)this.Visit(node.Body);
+      var body = (CSharpSyntaxNode?)this.Visit(node.Body) ?? throw new ArgumentNullException("body");
       return node.Update(asyncKeyword, parameterList, arrowToken, body);
     }
 
@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
       var newKeyword = this.VisitToken(node.NewKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var argumentList = (ArgumentListSyntax?)this.Visit(node.ArgumentList);
       var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer);
       return node.Update(newKeyword, type, argumentList, initializer);
@@ -3009,7 +3009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
     {
       var nameEquals = (NameEqualsSyntax?)this.Visit(node.NameEquals);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(nameEquals, expression);
     }
 
@@ -3025,7 +3025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
     {
       var newKeyword = this.VisitToken(node.NewKeyword);
-      var type = (ArrayTypeSyntax?)this.Visit(node.Type);
+      var type = (ArrayTypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer);
       return node.Update(newKeyword, type, initializer);
     }
@@ -3036,14 +3036,14 @@ namespace Microsoft.CodeAnalysis.CSharp
       var openBracketToken = this.VisitToken(node.OpenBracketToken);
       var commas = this.VisitList(node.Commas);
       var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-      var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer);
+      var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer) ?? throw new ArgumentNullException("initializer");
       return node.Update(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
     }
 
     public override SyntaxNode? VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
     {
       var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer);
       return node.Update(stackAllocKeyword, type, initializer);
     }
@@ -3053,21 +3053,21 @@ namespace Microsoft.CodeAnalysis.CSharp
       var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
       var openBracketToken = this.VisitToken(node.OpenBracketToken);
       var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-      var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer);
+      var initializer = (InitializerExpressionSyntax?)this.Visit(node.Initializer) ?? throw new ArgumentNullException("initializer");
       return node.Update(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
     }
 
     public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
     {
-      var fromClause = (FromClauseSyntax?)this.Visit(node.FromClause);
-      var body = (QueryBodySyntax?)this.Visit(node.Body);
+      var fromClause = (FromClauseSyntax?)this.Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause");
+      var body = (QueryBodySyntax?)this.Visit(node.Body) ?? throw new ArgumentNullException("body");
       return node.Update(fromClause, body);
     }
 
     public override SyntaxNode? VisitQueryBody(QueryBodySyntax node)
     {
       var clauses = this.VisitList(node.Clauses);
-      var selectOrGroup = (SelectOrGroupClauseSyntax?)this.Visit(node.SelectOrGroup);
+      var selectOrGroup = (SelectOrGroupClauseSyntax?)this.Visit(node.SelectOrGroup) ?? throw new ArgumentNullException("selectOrGroup");
       var continuation = (QueryContinuationSyntax?)this.Visit(node.Continuation);
       return node.Update(clauses, selectOrGroup, continuation);
     }
@@ -3078,7 +3078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var type = (TypeSyntax?)this.Visit(node.Type);
       var identifier = this.VisitToken(node.Identifier);
       var inKeyword = this.VisitToken(node.InKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(fromKeyword, type, identifier, inKeyword, expression);
     }
 
@@ -3087,7 +3087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var letKeyword = this.VisitToken(node.LetKeyword);
       var identifier = this.VisitToken(node.Identifier);
       var equalsToken = this.VisitToken(node.EqualsToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(letKeyword, identifier, equalsToken, expression);
     }
 
@@ -3097,11 +3097,11 @@ namespace Microsoft.CodeAnalysis.CSharp
       var type = (TypeSyntax?)this.Visit(node.Type);
       var identifier = this.VisitToken(node.Identifier);
       var inKeyword = this.VisitToken(node.InKeyword);
-      var inExpression = (ExpressionSyntax?)this.Visit(node.InExpression);
+      var inExpression = (ExpressionSyntax?)this.Visit(node.InExpression) ?? throw new ArgumentNullException("inExpression");
       var onKeyword = this.VisitToken(node.OnKeyword);
-      var leftExpression = (ExpressionSyntax?)this.Visit(node.LeftExpression);
+      var leftExpression = (ExpressionSyntax?)this.Visit(node.LeftExpression) ?? throw new ArgumentNullException("leftExpression");
       var equalsKeyword = this.VisitToken(node.EqualsKeyword);
-      var rightExpression = (ExpressionSyntax?)this.Visit(node.RightExpression);
+      var rightExpression = (ExpressionSyntax?)this.Visit(node.RightExpression) ?? throw new ArgumentNullException("rightExpression");
       var into = (JoinIntoClauseSyntax?)this.Visit(node.Into);
       return node.Update(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
     }
@@ -3116,7 +3116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitWhereClause(WhereClauseSyntax node)
     {
       var whereKeyword = this.VisitToken(node.WhereKeyword);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       return node.Update(whereKeyword, condition);
     }
 
@@ -3129,7 +3129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitOrdering(OrderingSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var ascendingOrDescendingKeyword = this.VisitToken(node.AscendingOrDescendingKeyword);
       return node.Update(expression, ascendingOrDescendingKeyword);
     }
@@ -3137,16 +3137,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitSelectClause(SelectClauseSyntax node)
     {
       var selectKeyword = this.VisitToken(node.SelectKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(selectKeyword, expression);
     }
 
     public override SyntaxNode? VisitGroupClause(GroupClauseSyntax node)
     {
       var groupKeyword = this.VisitToken(node.GroupKeyword);
-      var groupExpression = (ExpressionSyntax?)this.Visit(node.GroupExpression);
+      var groupExpression = (ExpressionSyntax?)this.Visit(node.GroupExpression) ?? throw new ArgumentNullException("groupExpression");
       var byKeyword = this.VisitToken(node.ByKeyword);
-      var byExpression = (ExpressionSyntax?)this.Visit(node.ByExpression);
+      var byExpression = (ExpressionSyntax?)this.Visit(node.ByExpression) ?? throw new ArgumentNullException("byExpression");
       return node.Update(groupKeyword, groupExpression, byKeyword, byExpression);
     }
 
@@ -3154,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var intoKeyword = this.VisitToken(node.IntoKeyword);
       var identifier = this.VisitToken(node.Identifier);
-      var body = (QueryBodySyntax?)this.Visit(node.Body);
+      var body = (QueryBodySyntax?)this.Visit(node.Body) ?? throw new ArgumentNullException("body");
       return node.Update(intoKeyword, identifier, body);
     }
 
@@ -3174,23 +3174,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitIsPatternExpression(IsPatternExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var isKeyword = this.VisitToken(node.IsKeyword);
-      var pattern = (PatternSyntax?)this.Visit(node.Pattern);
+      var pattern = (PatternSyntax?)this.Visit(node.Pattern) ?? throw new ArgumentNullException("pattern");
       return node.Update(expression, isKeyword, pattern);
     }
 
     public override SyntaxNode? VisitThrowExpression(ThrowExpressionSyntax node)
     {
       var throwKeyword = this.VisitToken(node.ThrowKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(throwKeyword, expression);
     }
 
     public override SyntaxNode? VisitWhenClause(WhenClauseSyntax node)
     {
       var whenKeyword = this.VisitToken(node.WhenKeyword);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       return node.Update(whenKeyword, condition);
     }
 
@@ -3202,15 +3202,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitDeclarationPattern(DeclarationPatternSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
-      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
+      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation) ?? throw new ArgumentNullException("designation");
       return node.Update(type, designation);
     }
 
     public override SyntaxNode? VisitVarPattern(VarPatternSyntax node)
     {
       var varKeyword = this.VisitToken(node.VarKeyword);
-      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation);
+      var designation = (VariableDesignationSyntax?)this.Visit(node.Designation) ?? throw new ArgumentNullException("designation");
       return node.Update(varKeyword, designation);
     }
 
@@ -3242,13 +3242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitSubpattern(SubpatternSyntax node)
     {
       var nameColon = (NameColonSyntax?)this.Visit(node.NameColon);
-      var pattern = (PatternSyntax?)this.Visit(node.Pattern);
+      var pattern = (PatternSyntax?)this.Visit(node.Pattern) ?? throw new ArgumentNullException("pattern");
       return node.Update(nameColon, pattern);
     }
 
     public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(expression);
     }
 
@@ -3261,7 +3261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitInterpolation(InterpolationSyntax node)
     {
       var openBraceToken = this.VisitToken(node.OpenBraceToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var alignmentClause = (InterpolationAlignmentClauseSyntax?)this.Visit(node.AlignmentClause);
       var formatClause = (InterpolationFormatClauseSyntax?)this.Visit(node.FormatClause);
       var closeBraceToken = this.VisitToken(node.CloseBraceToken);
@@ -3271,7 +3271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
     {
       var commaToken = this.VisitToken(node.CommaToken);
-      var value = (ExpressionSyntax?)this.Visit(node.Value);
+      var value = (ExpressionSyntax?)this.Visit(node.Value) ?? throw new ArgumentNullException("value");
       return node.Update(commaToken, value);
     }
 
@@ -3286,7 +3286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(attributeLists, modifiers, statement);
     }
 
@@ -3301,10 +3301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
     {
       var modifiers = this.VisitList(node.Modifiers);
-      var returnType = (TypeSyntax?)this.Visit(node.ReturnType);
+      var returnType = (TypeSyntax?)this.Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType");
       var identifier = this.VisitToken(node.Identifier);
       var typeParameterList = (TypeParameterListSyntax?)this.Visit(node.TypeParameterList);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var constraintClauses = this.VisitList(node.ConstraintClauses);
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
@@ -3317,14 +3317,14 @@ namespace Microsoft.CodeAnalysis.CSharp
       var awaitKeyword = this.VisitToken(node.AwaitKeyword);
       var usingKeyword = this.VisitToken(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
-      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration);
+      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration) ?? throw new ArgumentNullException("declaration");
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override SyntaxNode? VisitVariableDeclaration(VariableDeclarationSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var variables = this.VisitList(node.Variables);
       return node.Update(type, variables);
     }
@@ -3340,7 +3340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitEqualsValueClause(EqualsValueClauseSyntax node)
     {
       var equalsToken = this.VisitToken(node.EqualsToken);
-      var value = (ExpressionSyntax?)this.Visit(node.Value);
+      var value = (ExpressionSyntax?)this.Visit(node.Value) ?? throw new ArgumentNullException("value");
       return node.Update(equalsToken, value);
     }
 
@@ -3366,7 +3366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitExpressionStatement(ExpressionStatementSyntax node)
     {
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(expression, semicolonToken);
     }
@@ -3381,7 +3381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var identifier = this.VisitToken(node.Identifier);
       var colonToken = this.VisitToken(node.ColonToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(identifier, colonToken, statement);
     }
 
@@ -3437,19 +3437,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var whileKeyword = this.VisitToken(node.WhileKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(whileKeyword, openParenToken, condition, closeParenToken, statement);
     }
 
     public override SyntaxNode? VisitDoStatement(DoStatementSyntax node)
     {
       var doKeyword = this.VisitToken(node.DoKeyword);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       var whileKeyword = this.VisitToken(node.WhileKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
@@ -3466,7 +3466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var secondSemicolonToken = this.VisitToken(node.SecondSemicolonToken);
       var incrementors = this.VisitList(node.Incrementors);
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
     }
 
@@ -3475,12 +3475,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       var awaitKeyword = this.VisitToken(node.AwaitKeyword);
       var forEachKeyword = this.VisitToken(node.ForEachKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var identifier = this.VisitToken(node.Identifier);
       var inKeyword = this.VisitToken(node.InKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
     }
 
@@ -3489,11 +3489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
       var awaitKeyword = this.VisitToken(node.AwaitKeyword);
       var forEachKeyword = this.VisitToken(node.ForEachKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var variable = (ExpressionSyntax?)this.Visit(node.Variable);
+      var variable = (ExpressionSyntax?)this.Visit(node.Variable) ?? throw new ArgumentNullException("variable");
       var inKeyword = this.VisitToken(node.InKeyword);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
     }
 
@@ -3505,7 +3505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration);
       var expression = (ExpressionSyntax?)this.Visit(node.Expression);
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
     }
 
@@ -3513,23 +3513,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var fixedKeyword = this.VisitToken(node.FixedKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration);
+      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration) ?? throw new ArgumentNullException("declaration");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
     }
 
     public override SyntaxNode? VisitCheckedStatement(CheckedStatementSyntax node)
     {
       var keyword = this.VisitToken(node.Keyword);
-      var block = (BlockSyntax?)this.Visit(node.Block);
+      var block = (BlockSyntax?)this.Visit(node.Block) ?? throw new ArgumentNullException("block");
       return node.Update(keyword, block);
     }
 
     public override SyntaxNode? VisitUnsafeStatement(UnsafeStatementSyntax node)
     {
       var unsafeKeyword = this.VisitToken(node.UnsafeKeyword);
-      var block = (BlockSyntax?)this.Visit(node.Block);
+      var block = (BlockSyntax?)this.Visit(node.Block) ?? throw new ArgumentNullException("block");
       return node.Update(unsafeKeyword, block);
     }
 
@@ -3537,9 +3537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var lockKeyword = this.VisitToken(node.LockKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(lockKeyword, openParenToken, expression, closeParenToken, statement);
     }
 
@@ -3547,9 +3547,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var ifKeyword = this.VisitToken(node.IfKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       var @else = (ElseClauseSyntax?)this.Visit(node.Else);
       return node.Update(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
     }
@@ -3557,7 +3557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitElseClause(ElseClauseSyntax node)
     {
       var elseKeyword = this.VisitToken(node.ElseKeyword);
-      var statement = (StatementSyntax?)this.Visit(node.Statement);
+      var statement = (StatementSyntax?)this.Visit(node.Statement) ?? throw new ArgumentNullException("statement");
       return node.Update(elseKeyword, statement);
     }
 
@@ -3565,7 +3565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var switchKeyword = this.VisitToken(node.SwitchKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       var openBraceToken = this.VisitToken(node.OpenBraceToken);
       var sections = this.VisitList(node.Sections);
@@ -3583,7 +3583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
     {
       var keyword = this.VisitToken(node.Keyword);
-      var pattern = (PatternSyntax?)this.Visit(node.Pattern);
+      var pattern = (PatternSyntax?)this.Visit(node.Pattern) ?? throw new ArgumentNullException("pattern");
       var whenClause = (WhenClauseSyntax?)this.Visit(node.WhenClause);
       var colonToken = this.VisitToken(node.ColonToken);
       return node.Update(keyword, pattern, whenClause, colonToken);
@@ -3592,7 +3592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
     {
       var keyword = this.VisitToken(node.Keyword);
-      var value = (ExpressionSyntax?)this.Visit(node.Value);
+      var value = (ExpressionSyntax?)this.Visit(node.Value) ?? throw new ArgumentNullException("value");
       var colonToken = this.VisitToken(node.ColonToken);
       return node.Update(keyword, value, colonToken);
     }
@@ -3606,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitSwitchExpression(SwitchExpressionSyntax node)
     {
-      var governingExpression = (ExpressionSyntax?)this.Visit(node.GoverningExpression);
+      var governingExpression = (ExpressionSyntax?)this.Visit(node.GoverningExpression) ?? throw new ArgumentNullException("governingExpression");
       var switchKeyword = this.VisitToken(node.SwitchKeyword);
       var openBraceToken = this.VisitToken(node.OpenBraceToken);
       var arms = this.VisitList(node.Arms);
@@ -3616,17 +3616,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
-      var pattern = (PatternSyntax?)this.Visit(node.Pattern);
+      var pattern = (PatternSyntax?)this.Visit(node.Pattern) ?? throw new ArgumentNullException("pattern");
       var whenClause = (WhenClauseSyntax?)this.Visit(node.WhenClause);
       var equalsGreaterThanToken = this.VisitToken(node.EqualsGreaterThanToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public override SyntaxNode? VisitTryStatement(TryStatementSyntax node)
     {
       var tryKeyword = this.VisitToken(node.TryKeyword);
-      var block = (BlockSyntax?)this.Visit(node.Block);
+      var block = (BlockSyntax?)this.Visit(node.Block) ?? throw new ArgumentNullException("block");
       var catches = this.VisitList(node.Catches);
       var @finally = (FinallyClauseSyntax?)this.Visit(node.Finally);
       return node.Update(tryKeyword, block, catches, @finally);
@@ -3637,14 +3637,14 @@ namespace Microsoft.CodeAnalysis.CSharp
       var catchKeyword = this.VisitToken(node.CatchKeyword);
       var declaration = (CatchDeclarationSyntax?)this.Visit(node.Declaration);
       var filter = (CatchFilterClauseSyntax?)this.Visit(node.Filter);
-      var block = (BlockSyntax?)this.Visit(node.Block);
+      var block = (BlockSyntax?)this.Visit(node.Block) ?? throw new ArgumentNullException("block");
       return node.Update(catchKeyword, declaration, filter, block);
     }
 
     public override SyntaxNode? VisitCatchDeclaration(CatchDeclarationSyntax node)
     {
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var identifier = this.VisitToken(node.Identifier);
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(openParenToken, type, identifier, closeParenToken);
@@ -3654,7 +3654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var whenKeyword = this.VisitToken(node.WhenKeyword);
       var openParenToken = this.VisitToken(node.OpenParenToken);
-      var filterExpression = (ExpressionSyntax?)this.Visit(node.FilterExpression);
+      var filterExpression = (ExpressionSyntax?)this.Visit(node.FilterExpression) ?? throw new ArgumentNullException("filterExpression");
       var closeParenToken = this.VisitToken(node.CloseParenToken);
       return node.Update(whenKeyword, openParenToken, filterExpression, closeParenToken);
     }
@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitFinallyClause(FinallyClauseSyntax node)
     {
       var finallyKeyword = this.VisitToken(node.FinallyKeyword);
-      var block = (BlockSyntax?)this.Visit(node.Block);
+      var block = (BlockSyntax?)this.Visit(node.Block) ?? throw new ArgumentNullException("block");
       return node.Update(finallyKeyword, block);
     }
 
@@ -3690,7 +3690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var usingKeyword = this.VisitToken(node.UsingKeyword);
       var staticKeyword = this.VisitToken(node.StaticKeyword);
       var alias = (NameEqualsSyntax?)this.Visit(node.Alias);
-      var name = (NameSyntax?)this.Visit(node.Name);
+      var name = (NameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(usingKeyword, staticKeyword, alias, name, semicolonToken);
     }
@@ -3700,7 +3700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
       var namespaceKeyword = this.VisitToken(node.NamespaceKeyword);
-      var name = (NameSyntax?)this.Visit(node.Name);
+      var name = (NameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var openBraceToken = this.VisitToken(node.OpenBraceToken);
       var externs = this.VisitList(node.Externs);
       var usings = this.VisitList(node.Usings);
@@ -3728,7 +3728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitAttribute(AttributeSyntax node)
     {
-      var name = (NameSyntax?)this.Visit(node.Name);
+      var name = (NameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var argumentList = (AttributeArgumentListSyntax?)this.Visit(node.ArgumentList);
       return node.Update(name, argumentList);
     }
@@ -3745,13 +3745,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var nameEquals = (NameEqualsSyntax?)this.Visit(node.NameEquals);
       var nameColon = (NameColonSyntax?)this.Visit(node.NameColon);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(nameEquals, nameColon, expression);
     }
 
     public override SyntaxNode? VisitNameEquals(NameEqualsSyntax node)
     {
-      var name = (IdentifierNameSyntax?)this.Visit(node.Name);
+      var name = (IdentifierNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var equalsToken = this.VisitToken(node.EqualsToken);
       return node.Update(name, equalsToken);
     }
@@ -3839,10 +3839,10 @@ namespace Microsoft.CodeAnalysis.CSharp
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
       var delegateKeyword = this.VisitToken(node.DelegateKeyword);
-      var returnType = (TypeSyntax?)this.Visit(node.ReturnType);
+      var returnType = (TypeSyntax?)this.Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType");
       var identifier = this.VisitToken(node.Identifier);
       var typeParameterList = (TypeParameterListSyntax?)this.Visit(node.TypeParameterList);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var constraintClauses = this.VisitList(node.ConstraintClauses);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
@@ -3866,14 +3866,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitSimpleBaseType(SimpleBaseTypeSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       return node.Update(type);
     }
 
     public override SyntaxNode? VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
     {
       var whereKeyword = this.VisitToken(node.WhereKeyword);
-      var name = (IdentifierNameSyntax?)this.Visit(node.Name);
+      var name = (IdentifierNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var colonToken = this.VisitToken(node.ColonToken);
       var constraints = this.VisitList(node.Constraints);
       return node.Update(whereKeyword, name, colonToken, constraints);
@@ -3896,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitTypeConstraint(TypeConstraintSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       return node.Update(type);
     }
 
@@ -3904,7 +3904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration);
+      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration) ?? throw new ArgumentNullException("declaration");
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(attributeLists, modifiers, declaration, semicolonToken);
     }
@@ -3914,14 +3914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
       var eventKeyword = this.VisitToken(node.EventKeyword);
-      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration);
+      var declaration = (VariableDeclarationSyntax?)this.Visit(node.Declaration) ?? throw new ArgumentNullException("declaration");
       var semicolonToken = this.VisitToken(node.SemicolonToken);
       return node.Update(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
     }
 
     public override SyntaxNode? VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
     {
-      var name = (NameSyntax?)this.Visit(node.Name);
+      var name = (NameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var dotToken = this.VisitToken(node.DotToken);
       return node.Update(name, dotToken);
     }
@@ -3930,11 +3930,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var returnType = (TypeSyntax?)this.Visit(node.ReturnType);
+      var returnType = (TypeSyntax?)this.Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType");
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)this.Visit(node.ExplicitInterfaceSpecifier);
       var identifier = this.VisitToken(node.Identifier);
       var typeParameterList = (TypeParameterListSyntax?)this.Visit(node.TypeParameterList);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var constraintClauses = this.VisitList(node.ConstraintClauses);
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
@@ -3946,10 +3946,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var returnType = (TypeSyntax?)this.Visit(node.ReturnType);
+      var returnType = (TypeSyntax?)this.Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType");
       var operatorKeyword = this.VisitToken(node.OperatorKeyword);
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
@@ -3962,8 +3962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       var modifiers = this.VisitList(node.Modifiers);
       var implicitOrExplicitKeyword = this.VisitToken(node.ImplicitOrExplicitKeyword);
       var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
@@ -3975,7 +3975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
       var identifier = this.VisitToken(node.Identifier);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var initializer = (ConstructorInitializerSyntax?)this.Visit(node.Initializer);
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
@@ -3987,7 +3987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var colonToken = this.VisitToken(node.ColonToken);
       var thisOrBaseKeyword = this.VisitToken(node.ThisOrBaseKeyword);
-      var argumentList = (ArgumentListSyntax?)this.Visit(node.ArgumentList);
+      var argumentList = (ArgumentListSyntax?)this.Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList");
       return node.Update(colonToken, thisOrBaseKeyword, argumentList);
     }
 
@@ -3997,7 +3997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var modifiers = this.VisitList(node.Modifiers);
       var tildeToken = this.VisitToken(node.TildeToken);
       var identifier = this.VisitToken(node.Identifier);
-      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (ParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var body = (BlockSyntax?)this.Visit(node.Body);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
@@ -4008,7 +4008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)this.Visit(node.ExplicitInterfaceSpecifier);
       var identifier = this.VisitToken(node.Identifier);
       var accessorList = (AccessorListSyntax?)this.Visit(node.AccessorList);
@@ -4021,7 +4021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
     {
       var arrowToken = this.VisitToken(node.ArrowToken);
-      var expression = (ExpressionSyntax?)this.Visit(node.Expression);
+      var expression = (ExpressionSyntax?)this.Visit(node.Expression) ?? throw new ArgumentNullException("expression");
       return node.Update(arrowToken, expression);
     }
 
@@ -4030,7 +4030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
       var eventKeyword = this.VisitToken(node.EventKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)this.Visit(node.ExplicitInterfaceSpecifier);
       var identifier = this.VisitToken(node.Identifier);
       var accessorList = (AccessorListSyntax?)this.Visit(node.AccessorList);
@@ -4042,10 +4042,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var attributeLists = this.VisitList(node.AttributeLists);
       var modifiers = this.VisitList(node.Modifiers);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax?)this.Visit(node.ExplicitInterfaceSpecifier);
       var thisKeyword = this.VisitToken(node.ThisKeyword);
-      var parameterList = (BracketedParameterListSyntax?)this.Visit(node.ParameterList);
+      var parameterList = (BracketedParameterListSyntax?)this.Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList");
       var accessorList = (AccessorListSyntax?)this.Visit(node.AccessorList);
       var expressionBody = (ArrowExpressionClauseSyntax?)this.Visit(node.ExpressionBody);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
@@ -4120,21 +4120,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitTypeCref(TypeCrefSyntax node)
     {
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       return node.Update(type);
     }
 
     public override SyntaxNode? VisitQualifiedCref(QualifiedCrefSyntax node)
     {
-      var container = (TypeSyntax?)this.Visit(node.Container);
+      var container = (TypeSyntax?)this.Visit(node.Container) ?? throw new ArgumentNullException("container");
       var dotToken = this.VisitToken(node.DotToken);
-      var member = (MemberCrefSyntax?)this.Visit(node.Member);
+      var member = (MemberCrefSyntax?)this.Visit(node.Member) ?? throw new ArgumentNullException("member");
       return node.Update(container, dotToken, member);
     }
 
     public override SyntaxNode? VisitNameMemberCref(NameMemberCrefSyntax node)
     {
-      var name = (TypeSyntax?)this.Visit(node.Name);
+      var name = (TypeSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var parameters = (CrefParameterListSyntax?)this.Visit(node.Parameters);
       return node.Update(name, parameters);
     }
@@ -4158,7 +4158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var implicitOrExplicitKeyword = this.VisitToken(node.ImplicitOrExplicitKeyword);
       var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       var parameters = (CrefParameterListSyntax?)this.Visit(node.Parameters);
       return node.Update(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
     }
@@ -4182,22 +4182,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitCrefParameter(CrefParameterSyntax node)
     {
       var refKindKeyword = this.VisitToken(node.RefKindKeyword);
-      var type = (TypeSyntax?)this.Visit(node.Type);
+      var type = (TypeSyntax?)this.Visit(node.Type) ?? throw new ArgumentNullException("type");
       return node.Update(refKindKeyword, type);
     }
 
     public override SyntaxNode? VisitXmlElement(XmlElementSyntax node)
     {
-      var startTag = (XmlElementStartTagSyntax?)this.Visit(node.StartTag);
+      var startTag = (XmlElementStartTagSyntax?)this.Visit(node.StartTag) ?? throw new ArgumentNullException("startTag");
       var content = this.VisitList(node.Content);
-      var endTag = (XmlElementEndTagSyntax?)this.Visit(node.EndTag);
+      var endTag = (XmlElementEndTagSyntax?)this.Visit(node.EndTag) ?? throw new ArgumentNullException("endTag");
       return node.Update(startTag, content, endTag);
     }
 
     public override SyntaxNode? VisitXmlElementStartTag(XmlElementStartTagSyntax node)
     {
       var lessThanToken = this.VisitToken(node.LessThanToken);
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var attributes = this.VisitList(node.Attributes);
       var greaterThanToken = this.VisitToken(node.GreaterThanToken);
       return node.Update(lessThanToken, name, attributes, greaterThanToken);
@@ -4206,7 +4206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitXmlElementEndTag(XmlElementEndTagSyntax node)
     {
       var lessThanSlashToken = this.VisitToken(node.LessThanSlashToken);
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var greaterThanToken = this.VisitToken(node.GreaterThanToken);
       return node.Update(lessThanSlashToken, name, greaterThanToken);
     }
@@ -4214,7 +4214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitXmlEmptyElement(XmlEmptyElementSyntax node)
     {
       var lessThanToken = this.VisitToken(node.LessThanToken);
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var attributes = this.VisitList(node.Attributes);
       var slashGreaterThanToken = this.VisitToken(node.SlashGreaterThanToken);
       return node.Update(lessThanToken, name, attributes, slashGreaterThanToken);
@@ -4236,7 +4236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
     {
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var equalsToken = this.VisitToken(node.EqualsToken);
       var startQuoteToken = this.VisitToken(node.StartQuoteToken);
       var textTokens = this.VisitList(node.TextTokens);
@@ -4246,20 +4246,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode? VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
     {
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var equalsToken = this.VisitToken(node.EqualsToken);
       var startQuoteToken = this.VisitToken(node.StartQuoteToken);
-      var cref = (CrefSyntax?)this.Visit(node.Cref);
+      var cref = (CrefSyntax?)this.Visit(node.Cref) ?? throw new ArgumentNullException("cref");
       var endQuoteToken = this.VisitToken(node.EndQuoteToken);
       return node.Update(name, equalsToken, startQuoteToken, cref, endQuoteToken);
     }
 
     public override SyntaxNode? VisitXmlNameAttribute(XmlNameAttributeSyntax node)
     {
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var equalsToken = this.VisitToken(node.EqualsToken);
       var startQuoteToken = this.VisitToken(node.StartQuoteToken);
-      var identifier = (IdentifierNameSyntax?)this.Visit(node.Identifier);
+      var identifier = (IdentifierNameSyntax?)this.Visit(node.Identifier) ?? throw new ArgumentNullException("identifier");
       var endQuoteToken = this.VisitToken(node.EndQuoteToken);
       return node.Update(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
     }
@@ -4281,7 +4281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode? VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
     {
       var startProcessingInstructionToken = this.VisitToken(node.StartProcessingInstructionToken);
-      var name = (XmlNameSyntax?)this.Visit(node.Name);
+      var name = (XmlNameSyntax?)this.Visit(node.Name) ?? throw new ArgumentNullException("name");
       var textTokens = this.VisitList(node.TextTokens);
       var endProcessingInstructionToken = this.VisitToken(node.EndProcessingInstructionToken);
       return node.Update(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
@@ -4299,7 +4299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var hashToken = this.VisitToken(node.HashToken);
       var ifKeyword = this.VisitToken(node.IfKeyword);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
       return node.Update(hashToken, ifKeyword, condition, endOfDirectiveToken, node.IsActive, node.BranchTaken, node.ConditionValue);
     }
@@ -4308,7 +4308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var hashToken = this.VisitToken(node.HashToken);
       var elifKeyword = this.VisitToken(node.ElifKeyword);
-      var condition = (ExpressionSyntax?)this.Visit(node.Condition);
+      var condition = (ExpressionSyntax?)this.Visit(node.Condition) ?? throw new ArgumentNullException("condition");
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
       return node.Update(hashToken, elifKeyword, condition, endOfDirectiveToken, node.IsActive, node.BranchTaken, node.ConditionValue);
     }
