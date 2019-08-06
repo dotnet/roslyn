@@ -1605,7 +1605,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteLine("      var {0} = ({1})this.Visit(node.{2});", CamelCase(field.Name), field.Type, field.Name);
+                            WriteLine("      var {0} = ({1})this.Visit(node.{2});", CamelCase(field.Name), GetFieldType(field, green: false), field.Name);
                         }
                     }
                     if (nodeFields.Count > 0)
