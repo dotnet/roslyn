@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class CastSimplificationTests
@@ -5072,7 +5071,7 @@ class Program
 ]]>
 </code>
 
-            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5115,7 +5114,7 @@ class Program
 ]]>
 </code>
 
-            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36884"), Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5156,7 +5155,7 @@ class Program
 ]]>
 </code>
 
-            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
+            Await TestAsync(input, expected)
         End Function
 #End Region
 
