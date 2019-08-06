@@ -1122,7 +1122,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
+                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), GetRedPropertyType(field), field.Name);
                         WriteLine("    {");
                         WriteLine("        get");
                         WriteLine("        {");

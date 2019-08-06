@@ -1972,7 +1972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
-    public ExpressionSyntax LeftOperand 
+    public ExpressionSyntax? LeftOperand 
     {
         get
         {
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
-    public ExpressionSyntax RightOperand 
+    public ExpressionSyntax? RightOperand 
     {
         get
         {
@@ -3745,7 +3745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>NameColonSyntax node representing the optional name arguments.</summary>
-    public NameColonSyntax NameColon 
+    public NameColonSyntax? NameColon 
     {
         get
         {
@@ -4148,7 +4148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
-    public ParameterListSyntax ParameterList 
+    public ParameterListSyntax? ParameterList 
     {
         get
         {
@@ -4698,7 +4698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
-    public ArgumentListSyntax ArgumentList 
+    public ArgumentListSyntax? ArgumentList 
     {
         get
         {
@@ -4707,7 +4707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
-    public InitializerExpressionSyntax Initializer 
+    public InitializerExpressionSyntax? Initializer 
     {
         get
         {
@@ -4798,7 +4798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
-    public NameEqualsSyntax NameEquals 
+    public NameEqualsSyntax? NameEquals 
     {
         get
         {
@@ -5004,7 +5004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>InitializerExpressionSyntax node representing the initializer of the array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer 
+    public InitializerExpressionSyntax? Initializer 
     {
         get
         {
@@ -5230,7 +5230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>InitializerExpressionSyntax node representing the initializer of the stackalloc array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer 
+    public InitializerExpressionSyntax? Initializer 
     {
         get
         {
@@ -5529,7 +5529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public QueryContinuationSyntax Continuation 
+    public QueryContinuationSyntax? Continuation 
     {
         get
         {
@@ -5618,7 +5618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.FromClauseSyntax)this.Green).fromKeyword, this.Position, 0); }
     }
 
-    public TypeSyntax Type 
+    public TypeSyntax? Type 
     {
         get
         {
@@ -5827,7 +5827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.JoinClauseSyntax)this.Green).joinKeyword, this.Position, 0); }
     }
 
-    public TypeSyntax Type 
+    public TypeSyntax? Type 
     {
         get
         {
@@ -5880,7 +5880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public JoinIntoClauseSyntax Into 
+    public JoinIntoClauseSyntax? Into 
     {
         get
         {
@@ -7181,7 +7181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public TypeSyntax Type 
+    public TypeSyntax? Type 
     {
         get
         {
@@ -7189,7 +7189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public PositionalPatternClauseSyntax PositionalPatternClause 
+    public PositionalPatternClauseSyntax? PositionalPatternClause 
     {
         get
         {
@@ -7197,7 +7197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public PropertyPatternClauseSyntax PropertyPatternClause 
+    public PropertyPatternClauseSyntax? PropertyPatternClause 
     {
         get
         {
@@ -7205,7 +7205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public VariableDesignationSyntax Designation 
+    public VariableDesignationSyntax? Designation 
     {
         get
         {
@@ -7489,7 +7489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public NameColonSyntax NameColon 
+    public NameColonSyntax? NameColon 
     {
         get
         {
@@ -7714,7 +7714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public InterpolationAlignmentClauseSyntax AlignmentClause 
+    public InterpolationAlignmentClauseSyntax? AlignmentClause 
     {
         get
         {
@@ -7722,7 +7722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public InterpolationFormatClauseSyntax FormatClause 
+    public InterpolationFormatClauseSyntax? FormatClause 
     {
         get
         {
@@ -8197,7 +8197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalFunctionStatementSyntax)this.Green).identifier, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    public TypeParameterListSyntax TypeParameterList 
+    public TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -8221,7 +8221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public BlockSyntax Body 
+    public BlockSyntax? Body 
     {
         get
         {
@@ -8229,7 +8229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ArrowExpressionClauseSyntax ExpressionBody 
+    public ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -8615,7 +8615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclaratorSyntax)this.Green).identifier, this.Position, 0); }
     }
 
-    public BracketedArgumentListSyntax ArgumentList 
+    public BracketedArgumentListSyntax? ArgumentList 
     {
         get
         {
@@ -8623,7 +8623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public EqualsValueClauseSyntax Initializer 
+    public EqualsValueClauseSyntax? Initializer 
     {
         get
         {
@@ -9241,7 +9241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Gets a constant expression for a goto case statement.
     /// </summary>
-    public ExpressionSyntax Expression 
+    public ExpressionSyntax? Expression 
     {
         get
         {
@@ -9467,7 +9467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).returnKeyword, this.Position, 0); }
     }
 
-    public ExpressionSyntax Expression 
+    public ExpressionSyntax? Expression 
     {
         get
         {
@@ -9551,7 +9551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).throwKeyword, this.Position, 0); }
     }
 
-    public ExpressionSyntax Expression 
+    public ExpressionSyntax? Expression 
     {
         get
         {
@@ -9640,7 +9640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.YieldStatementSyntax)this.Green).returnOrBreakKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    public ExpressionSyntax Expression 
+    public ExpressionSyntax? Expression 
     {
         get
         {
@@ -9978,7 +9978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    public VariableDeclarationSyntax Declaration 
+    public VariableDeclarationSyntax? Declaration 
     {
         get
         {
@@ -10003,7 +10003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForStatementSyntax)this.Green).firstSemicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    public ExpressionSyntax Condition 
+    public ExpressionSyntax? Condition 
     {
         get
         {
@@ -10557,7 +10557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    public VariableDeclarationSyntax Declaration 
+    public VariableDeclarationSyntax? Declaration 
     {
         get
         {
@@ -10565,7 +10565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ExpressionSyntax Expression 
+    public ExpressionSyntax? Expression 
     {
         get
         {
@@ -11113,7 +11113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Gets an ElseClauseSyntax that represents the statement to be executed when the condition is false if such statement exists.
     /// </summary>
-    public ElseClauseSyntax Else 
+    public ElseClauseSyntax? Else 
     {
         get
         {
@@ -11594,7 +11594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public WhenClauseSyntax WhenClause 
+    public WhenClauseSyntax? WhenClause 
     {
         get
         {
@@ -11973,7 +11973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public WhenClauseSyntax WhenClause 
+    public WhenClauseSyntax? WhenClause 
     {
         get
         {
@@ -12092,7 +12092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public FinallyClauseSyntax Finally 
+    public FinallyClauseSyntax? Finally 
     {
         get
         {
@@ -12192,7 +12192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CatchClauseSyntax)this.Green).catchKeyword, this.Position, 0); }
     }
 
-    public CatchDeclarationSyntax Declaration 
+    public CatchDeclarationSyntax? Declaration 
     {
         get
         {
@@ -12200,7 +12200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public CatchFilterClauseSyntax Filter 
+    public CatchFilterClauseSyntax? Filter 
     {
         get
         {
@@ -12825,7 +12825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public NameEqualsSyntax Alias 
+    public NameEqualsSyntax? Alias 
     {
         get
         {
@@ -13180,7 +13180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Gets the optional construct targeted by the attribute.</summary>
-    public AttributeTargetSpecifierSyntax Target 
+    public AttributeTargetSpecifierSyntax? Target 
     {
         get
         {
@@ -13366,7 +13366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public AttributeArgumentListSyntax ArgumentList 
+    public AttributeArgumentListSyntax? ArgumentList 
     {
         get
         {
@@ -13543,7 +13543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public NameEqualsSyntax NameEquals 
+    public NameEqualsSyntax? NameEquals 
     {
         get
         {
@@ -13551,7 +13551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public NameColonSyntax NameColon 
+    public NameColonSyntax? NameColon 
     {
         get
         {
@@ -14035,7 +14035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    public override TypeParameterListSyntax TypeParameterList 
+    public override TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -14043,7 +14043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BaseListSyntax BaseList 
+    public override BaseListSyntax? BaseList 
     {
         get
         {
@@ -14288,7 +14288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    public override TypeParameterListSyntax TypeParameterList 
+    public override TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -14296,7 +14296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BaseListSyntax BaseList 
+    public override BaseListSyntax? BaseList 
     {
         get
         {
@@ -14541,7 +14541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    public override TypeParameterListSyntax TypeParameterList 
+    public override TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -14549,7 +14549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BaseListSyntax BaseList 
+    public override BaseListSyntax? BaseList 
     {
         get
         {
@@ -14792,7 +14792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    public override BaseListSyntax BaseList 
+    public override BaseListSyntax? BaseList 
     {
         get
         {
@@ -15013,7 +15013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).identifier, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    public TypeParameterListSyntax TypeParameterList 
+    public TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -15206,7 +15206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EnumMemberDeclarationSyntax)this.Green).identifier, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    public EqualsValueClauseSyntax EqualsValue 
+    public EqualsValueClauseSyntax? EqualsValue 
     {
         get
         {
@@ -16256,7 +16256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier 
+    public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier 
     {
         get
         {
@@ -16270,7 +16270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.MethodDeclarationSyntax)this.Green).identifier, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    public TypeParameterListSyntax TypeParameterList 
+    public TypeParameterListSyntax? TypeParameterList 
     {
         get
         {
@@ -16295,7 +16295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BlockSyntax Body 
+    public override BlockSyntax? Body 
     {
         get
         {
@@ -16303,7 +16303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ArrowExpressionClauseSyntax ExpressionBody 
+    public override ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -16540,7 +16540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BlockSyntax Body 
+    public override BlockSyntax? Body 
     {
         get
         {
@@ -16548,7 +16548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ArrowExpressionClauseSyntax ExpressionBody 
+    public override ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -16757,7 +16757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BlockSyntax Body 
+    public override BlockSyntax? Body 
     {
         get
         {
@@ -16765,7 +16765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ArrowExpressionClauseSyntax ExpressionBody 
+    public override ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -16960,7 +16960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ConstructorInitializerSyntax Initializer 
+    public ConstructorInitializerSyntax? Initializer 
     {
         get
         {
@@ -16968,7 +16968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BlockSyntax Body 
+    public override BlockSyntax? Body 
     {
         get
         {
@@ -16976,7 +16976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ArrowExpressionClauseSyntax ExpressionBody 
+    public override ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -17263,7 +17263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override BlockSyntax Body 
+    public override BlockSyntax? Body 
     {
         get
         {
@@ -17271,7 +17271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ArrowExpressionClauseSyntax ExpressionBody 
+    public override ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -17486,7 +17486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier 
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier 
     {
         get
         {
@@ -17500,7 +17500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyDeclarationSyntax)this.Green).identifier, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
-    public override AccessorListSyntax AccessorList 
+    public override AccessorListSyntax? AccessorList 
     {
         get
         {
@@ -17508,7 +17508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ArrowExpressionClauseSyntax ExpressionBody 
+    public ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -17516,7 +17516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public EqualsValueClauseSyntax Initializer 
+    public EqualsValueClauseSyntax? Initializer 
     {
         get
         {
@@ -17777,7 +17777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier 
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier 
     {
         get
         {
@@ -17791,7 +17791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).identifier, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
-    public override AccessorListSyntax AccessorList 
+    public override AccessorListSyntax? AccessorList 
     {
         get
         {
@@ -17965,7 +17965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier 
+    public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier 
     {
         get
         {
@@ -17987,7 +17987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public override AccessorListSyntax AccessorList 
+    public override AccessorListSyntax? AccessorList 
     {
         get
         {
@@ -17995,7 +17995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public ArrowExpressionClauseSyntax ExpressionBody 
+    public ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -18270,7 +18270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
-    public BlockSyntax Body 
+    public BlockSyntax? Body 
     {
         get
         {
@@ -18279,7 +18279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Gets the optional expression body.</summary>
-    public ArrowExpressionClauseSyntax ExpressionBody 
+    public ArrowExpressionClauseSyntax? ExpressionBody 
     {
         get
         {
@@ -18639,7 +18639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public TypeSyntax Type 
+    public TypeSyntax? Type 
     {
         get
         {
@@ -18653,7 +18653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
-    public EqualsValueClauseSyntax Default 
+    public EqualsValueClauseSyntax? Default 
     {
         get
         {
@@ -18772,7 +18772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public TypeSyntax Type 
+    public TypeSyntax? Type 
     {
         get
         {
@@ -19220,7 +19220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public CrefParameterListSyntax Parameters 
+    public CrefParameterListSyntax? Parameters 
     {
         get
         {
@@ -19306,7 +19306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.IndexerMemberCrefSyntax)this.Green).thisKeyword, this.Position, 0); }
     }
 
-    public CrefBracketedParameterListSyntax Parameters 
+    public CrefBracketedParameterListSyntax? Parameters 
     {
         get
         {
@@ -19397,7 +19397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
-    public CrefParameterListSyntax Parameters 
+    public CrefParameterListSyntax? Parameters 
     {
         get
         {
@@ -19500,7 +19500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public CrefParameterListSyntax Parameters 
+    public CrefParameterListSyntax? Parameters 
     {
         get
         {
@@ -20301,7 +20301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public XmlPrefixSyntax Prefix 
+    public XmlPrefixSyntax? Prefix 
     {
         get
         {
