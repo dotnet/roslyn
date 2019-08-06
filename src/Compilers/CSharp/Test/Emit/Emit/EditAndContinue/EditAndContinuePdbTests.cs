@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinuePdbTests : EditAndContinueTestBase
     {
-        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Theory]
         [InlineData(DebugInformationFormat.Pdb)]
         [InlineData(DebugInformationFormat.PortablePdb)]
         public void MethodExtents(DebugInformationFormat format)
