@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
+        [Fact]
         public void StandalonePdb()
         {
-            string source1 = @"
+            string source1 = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -27,10 +27,10 @@ class C
         Console.WriteLine();
     }
 }
-";
-            string source2 = @"
+");
+            string source2 = WithWindowsLineBreaks(@"
 // no code
-";
+");
 
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");

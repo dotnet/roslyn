@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringsWithSurrogateChar()
         {
             var source = @"
@@ -80,7 +80,7 @@ public class T
         }
 
         [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void InvalidUnicodeString()
         {
             var source = @"
@@ -141,7 +141,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AllTypes()
         {
             var source = @"
@@ -265,7 +265,7 @@ public class C<S>
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SimpleLocalConstant()
         {
             var text = @"
@@ -309,10 +309,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LambdaLocalConstants()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -329,7 +329,7 @@ class C
         });
     }
 }
-";
+");
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -379,10 +379,10 @@ class C
         }
 
         [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorLocalConstants()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -397,7 +397,7 @@ class C
         }
     }
 }
-";
+");
             // NOTE: Roslyn's output is somewhat different than Dev10's in this case, but
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
@@ -462,7 +462,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {
@@ -508,7 +508,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void WRN_PDBConstantStringValueTooLong()
         {
             var longStringValue = new string('a', 2049);
@@ -532,30 +532,29 @@ class C
             var result = compilation.Emit(exebits, pdbbits);
             result.Diagnostics.Verify();
 
-            /*
-             * old behavior. This new warning was abandoned
-            result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
-
-            //make sure that this warning is suppressable
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            result.Diagnostics.Verify();
-
-            //make sure that this warning can be turned into an error.
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            Assert.False(result.Success);
-            result.Diagnostics.Verify(
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
-             * */
+            //  old behavior. This new warning was abandoned
+            // 
+            // result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
+            //                           Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
+            // 
+            // //make sure that this warning is suppressable
+            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
+            // 
+            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+            // result.Diagnostics.Verify();
+            // 
+            // //make sure that this warning can be turned into an error.
+            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
+            // 
+            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+            // Assert.False(result.Success);
+            // result.Diagnostics.Verify(
+            //                          Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringConstantTooLong()
         {
             var text = @"
@@ -645,7 +644,7 @@ this is a string constant that is too long to fit into the PDB"";
         }
 
         [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
             const int length = 2031;
@@ -705,7 +704,7 @@ class C
         }
 
         [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringWithNulCharacter_OverSupportedLength()
         {
             const int length = 2032;
@@ -761,7 +760,7 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DecimalLocalConstants()
         {
             var text = @"

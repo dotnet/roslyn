@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         #endregion
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestUsings()
         {
             var text = @"
@@ -350,7 +350,7 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestExternAliases1()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -460,7 +460,7 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases2()
         {
@@ -512,7 +512,7 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases3()
         {
@@ -564,7 +564,7 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExternAliases4()
         {
             var src1 = @"
@@ -971,7 +971,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
@@ -1395,7 +1395,7 @@ namespace X
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedConstructors()
         {
             var text = @"
@@ -1456,10 +1456,10 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestFieldInitializerLambdas()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -1470,7 +1470,7 @@ class C
         return x % 2 == 0; 
     });
 }
-";
+");
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
@@ -1536,10 +1536,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestAccessors()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1550,7 +1550,7 @@ class C
     event System.Action E1;
     event System.Action E2 { add { } remove { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -1639,7 +1639,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedSealedAccessors()
         {
             var text = @"
@@ -1690,10 +1690,10 @@ class Derived : Base
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedExplicitImplementation()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Runtime.CompilerServices;
 
 interface I1
@@ -1712,7 +1712,7 @@ class C : I1, I2
 {
     public int this[int x] { get { return 0; } set { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -1752,7 +1752,7 @@ class C : I1, I2
         }
 
         [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointOnUsingExpression()
         {
             var source = @"
@@ -1990,7 +1990,7 @@ class D
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingExpression()
         {
             TestSequencePoints(
@@ -2010,7 +2010,7 @@ public class Test : IDisposable
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingVariable()
         {
             TestSequencePoints(
@@ -2128,7 +2128,7 @@ namespace goo
         }
 
         [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StaticType()
         {
             var source = @"
@@ -2167,7 +2167,7 @@ class D
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UnusedImports()
         {
             var source = @"
@@ -2213,7 +2213,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UnusedImports_Nonexisting()
         {
             var source = @"
@@ -2263,7 +2263,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmittingPdbVsNot()
         {
             string source = @"
@@ -2294,7 +2294,7 @@ class C
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"
@@ -2472,7 +2472,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"

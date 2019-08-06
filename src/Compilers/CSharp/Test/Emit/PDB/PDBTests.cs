@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void RelativePathForExternalSource_Sha1()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 #pragma checksum ""..\Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""
 
 public class C
@@ -89,7 +89,7 @@ public class C
         #line default
     }
 }
-";
+");
 
             var compilation = CreateCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
@@ -118,7 +118,7 @@ public class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors()
         {
             var source0 =
@@ -149,7 +149,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors2()
         {
             var source0 =
@@ -180,7 +180,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors3()
         {
             var source0 =
@@ -211,7 +211,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors4()
         {
             var source0 =
@@ -4125,14 +4125,14 @@ public class Derived : Base
         [Fact]
         public void TestPartialClassFieldInitializers()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
 }
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int y = 1;
@@ -4142,10 +4142,10 @@ public partial class C
         C c = new C();
     }
 }
-";
-            //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
-            //loads the assembly into the ReflectionOnlyLoadFrom context.
-            //So it's probably a good idea to have a new name for each assembly.
+");
+            // Having a unique name here may be important. The infrastructure of the pdb to xml conversion
+            // loads the assembly into the ReflectionOnlyLoadFrom context.
+            // So it's probably a good idea to have a new name for each assembly.
             var compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
@@ -4171,7 +4171,7 @@ public partial class C
         [Fact]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4185,9 +4185,9 @@ public partial class C
 
 #pragma checksum ""mah.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
 
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4197,9 +4197,9 @@ public partial class C
     int z2 = Math.Abs(-3);
     int w2 = Math.Abs(4);
 }
-";
+");
 
-            var text3 = @"
+            var text3 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4220,7 +4220,7 @@ public partial class C
         C c = new C();
     }
 }
-";
+");
 
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
@@ -10508,22 +10508,22 @@ public class C
         [Fact]
         public void SequencePointsForConstructorWithHiddenInitializer()
         {
-            string initializerSource = @"
+            string initializerSource = WithWindowsLineBreaks(@"
 #line hidden
 partial class C
 {
     int i = 42;
 }
-";
+");
 
-            string constructorSource = @"
+            string constructorSource = WithWindowsLineBreaks(@"
 partial class C
 {
     C()
     {
     }
 }
-";
+");
 
             var c = CreateCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },

@@ -302,16 +302,19 @@ namespace Roslyn.Test.Utilities
 
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {
-            string[] lines = source?.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
             var doc = new XmlDocument() { XmlResolver = null };
             using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 doc.Load(reader);
             }
+
             var result = new Dictionary<int, string>();
 
             if (source == null)
             {
+                static void Add(Dictionary<int, string> dict, int key, string value)
+                    => dict[key] = dict.TryGetValue(key, out var found) ? found + value : value;
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
@@ -340,6 +343,9 @@ namespace Roslyn.Test.Utilities
             }
             else
             {
+                static void AddTextual(Dictionary<int, string> dict, int key, string value)
+                    => dict[key] = dict.TryGetValue(key, out var found) ? found + ", " + value : "// " + value;
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
@@ -356,77 +362,45 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
+                var sourceLines = source.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
                     {
-                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(lines, item));
+                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(sourceLines, item));
                     }
                 }
             }
 
             return result;
-
-            void Add(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + value;
-                }
-                else
-                {
-                    dict[key] = value;
-                }
-            }
-
-            void AddTextual(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + ", " + value;
-                }
-                else
-                {
-                    dict[key] = "// " + value;
-                }
-            }
         }
 
         private static string SnippetFromSpan(string[] lines, XmlElement span)
         {
-            if (span.GetAttribute("hidden") != "true")
-            {
-                var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
-                var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
-                var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
-                var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
-                if (startLine == endLine)
-                {
-                    return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
-                }
-                else
-                {
-                    var start = lines[startLine - 1].Substring(startColumn - 1);
-                    var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                    return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
-                }
-            }
-            else
+            if (span.GetAttribute("hidden") == "true")
             {
                 return "<hidden>";
             }
 
-            string TruncateStart(string text, int maxLength)
+            var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
+            var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
+            var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
+            var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
+            if (startLine == endLine)
             {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(0, maxLength);
+                return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
             }
 
-            string TruncateEnd(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(text.Length - maxLength - 1, maxLength);
-            }
+            static string TruncateStart(string text, int maxLength)
+                => (text.Length < maxLength) ? text : text.Substring(0, maxLength);
+
+            static string TruncateEnd(string text, int maxLength)
+                => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
+
+            var start = lines[startLine - 1].Substring(startColumn - 1);
+            var end = lines[endLine - 1].Substring(0, endColumn - 1);
+            return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
         }
     }
 }
