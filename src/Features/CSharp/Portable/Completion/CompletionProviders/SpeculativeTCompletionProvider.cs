@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
-                syntaxTree.IsDelegateReturnTypeContext(position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken))
+                syntaxTree.IsDelegateReturnTypeContext(position, token, cancellationToken))
             {
                 return true;
             }
