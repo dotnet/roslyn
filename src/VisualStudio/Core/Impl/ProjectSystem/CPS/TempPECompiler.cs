@@ -83,10 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             Directory.CreateDirectory(outputPath);
 
-            using (var file = FileUtilities.CreateFileStreamChecked(File.Create, outputFileName, nameof(outputFileName)))
-            {
-                return compilation.Emit(file, cancellationToken: cancellationToken).Success;
-            }
+            using var file = FileUtilities.CreateFileStreamChecked(File.Create, outputFileName, nameof(outputFileName));
+            return compilation.Emit(file, cancellationToken: cancellationToken).Success;
         }
     }
 }
