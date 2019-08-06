@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 
 #pragma warning disable RS1012 // Start action has no registered actions.
 

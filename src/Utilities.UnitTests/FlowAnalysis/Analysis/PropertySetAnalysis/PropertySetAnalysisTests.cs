@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
