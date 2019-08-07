@@ -222,14 +222,18 @@ function BuildSolution() {
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+  # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
+  # that MSBuild output as well as ones that custom tasks output. This causes problems for us as 
+  # portions of our build will issue warnings: style analyzers being the most prominent example. Hence
+  # rather than a blanket include of warnings we include a fixed set.
+  #
+  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError:MSB3270,MSB3277" } else { "" }
+
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
   try {
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -253,6 +257,7 @@ function BuildSolution() {
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $suppressExtensionDeployment `
+      $msbuildWarnAsError `
       @properties
   }
   finally {

@@ -205,7 +205,7 @@ public class Program
                 Assert.False(attributeUsage.Inherited);
                 Assert.False(attributeUsage.AllowMultiple);
                 Assert.True(attributeUsage.HasValidAttributeTargets);
-                var expectedTargets = AttributeTargets.Module | AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct;
+                var expectedTargets = AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct;
                 Assert.Equal(expectedTargets, attributeUsage.ValidTargets);
             });
         }
@@ -239,6 +239,53 @@ public class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
+        }
+
+        /// <summary>
+        /// Module-level NullableContextAttribute is ignored.
+        /// </summary>
+        [Fact]
+        public void ExplicitAttribute_Module()
+        {
+            var source0 =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableContextAttribute : Attribute
+    {
+        public NullableContextAttribute(byte b) { }
+    }
+}";
+            var comp0 = CreateCompilation(source0);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source1 =
+@"Imports System.Runtime.CompilerServices
+<Module: NullableContext(2)>
+Public Class A
+    Public Shared FA As Object
+End Class
+<NullableContext(2)>
+Public Class B
+    Public Shared FB As Object
+End Class";
+            var comp1 = CreateVisualBasicCompilation(source1, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(ref0));
+            var ref1 = comp1.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class Program
+{
+    static void Main()
+    {
+        A.FA.ToString();
+        B.FB.ToString(); // warning
+    }
+}";
+            var comp2 = CreateCompilation(source2, references: new[] { ref1 });
+            comp2.VerifyDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         B.FB.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "B.FB").WithLocation(7, 9));
         }
 
         [Fact]

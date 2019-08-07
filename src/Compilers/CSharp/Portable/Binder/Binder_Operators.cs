@@ -2168,7 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!hasErrors)
                 {
-                    hasErrors = CheckManagedAddr(operandType, node, diagnostics);
+                    hasErrors = CheckManagedAddr(Compilation, operandType, node.Location, diagnostics);
                 }
 
                 if (!hasErrors)
