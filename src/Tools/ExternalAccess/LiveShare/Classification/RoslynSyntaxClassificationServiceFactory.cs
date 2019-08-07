@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -26,8 +27,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
+            var experimentationService = languageServices.WorkspaceServices.GetService<IExperimentationService>();
+
             return new RoslynSyntaxClassificationService(_roslynLspClientServiceFactory, _remoteLanguageServiceWorkspace,
-                languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
+                languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, experimentationService, _threadingContext);
         }
     }
 }
