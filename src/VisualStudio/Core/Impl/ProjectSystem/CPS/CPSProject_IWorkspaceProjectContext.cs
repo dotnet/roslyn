@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
             {
-                _visualStudioProject.SetMaxLangVersion(value);
+                _visualStudioProject.MaxLangVersion = value;
             }
         }
 
