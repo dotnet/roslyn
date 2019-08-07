@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,31 +25,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IExperimentationService _experimentationService;
         private readonly IThreadingContext _threadingContext;
 
-        bool a = false;
-        bool b = true;
-
         public RoslynSyntaxClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace, ISyntaxClassificationService originalService,
-            ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
+            ClassificationTypeMap classificationTypeMap, IExperimentationService experimentationService, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory;
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace;
             _originalService = originalService;
             _classificationTypeMap = classificationTypeMap;
+            _experimentationService = experimentationService;
             _threadingContext = threadingContext;
         }
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (a)
+            if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Local))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.LexicalClassifications))
                 {
                     _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
                 }
             }
-            else if (b)
+            else if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Remote))
             {
                 var documentId = _remoteLanguageServiceWorkspace.GetDocumentIdInCurrentContext(text.Container);
                 var document = _remoteLanguageServiceWorkspace.CurrentSolution.GetDocument(documentId);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
             }
             else
             {
-                // Something wrong with experiment data.  Just fallback to the regular service.  Don't want to block the user based on an experimentation failure.
+                // Some other invalid flight.  Just fallback to the regular service.  Don't want to block the user based on an experimentation failure.
                 _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
             }
         }
@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (a)
+            if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Local))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
                 {
                     _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
                 }
             }
-            else if (b)
+            else if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Remote))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
                 {
