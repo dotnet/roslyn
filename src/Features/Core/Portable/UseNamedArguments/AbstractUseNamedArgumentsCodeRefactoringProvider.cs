@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var argument = await context.TryGetRelevantNodeAsync<TBaseArgumentSyntax>().ConfigureAwait(false) as TSimpleArgumentSyntax;
+                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+                var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                        argument.Span);
                 }
             }
 

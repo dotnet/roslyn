@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// List of possible actions that can be used to transform the code.
         /// </summary>
-        public ImmutableArray<CodeAction> Actions { get; }
+        public ImmutableArray<(CodeAction action, TextSpan? applicableToSpan)> CodeActions { get; }
 
-        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<CodeAction> actions)
+        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan?)> actions)
         {
             Provider = provider;
-            Actions = actions.NullToEmpty();
+            CodeActions = actions.NullToEmpty();
 
-            if (Actions.Length == 0)
+            if (CodeActions.Length == 0)
             {
                 throw new ArgumentException(FeaturesResources.Actions_can_not_be_empty, nameof(actions));
             }

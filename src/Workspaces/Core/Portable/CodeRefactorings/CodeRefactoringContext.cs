@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        private readonly Action<CodeAction> _registerRefactoring;
+        private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
@@ -36,6 +36,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan span,
             Action<CodeAction> registerRefactoring,
+            CancellationToken cancellationToken)
+        {
+            registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Span = span;
+            _registerRefactoring = (action, textSpan) => registerRefactoring(action);
+            CancellationToken = cancellationToken;
+        }
+
+        internal CodeRefactoringContext(
+             Document document,
+             TextSpan span,
+            Action<CodeAction, TextSpan?> registerRefactoring,
             CancellationToken cancellationToken)
         {
             Document = document ?? throw new ArgumentNullException(nameof(document));
@@ -48,14 +62,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Add supplied <paramref name="action"/> to the list of refactorings that will be offered to the user.
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the refactoring.</param>
-        public void RegisterRefactoring(CodeAction action)
+        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, null);
+
+        internal void RegisterRefactoring(CodeAction action, TextSpan? applicableToSpan)
         {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
 
-            _registerRefactoring(action);
+            _registerRefactoring(action, applicableToSpan);
         }
 
         internal void Deconstruct(out Document document, out TextSpan span, out CancellationToken cancellationToken)

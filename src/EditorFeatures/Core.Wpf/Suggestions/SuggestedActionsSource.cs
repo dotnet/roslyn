@@ -405,10 +405,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
-                var actions = refactoring.Actions.WhereAsArray(a => IsApplicable(a, workspace));
+                var actions = refactoring.CodeActions.WhereAsArray(a => IsApplicable(a.action, workspace));
                 return actions.Length == 0
                     ? null
-                    : actions.Length == refactoring.Actions.Length
+                    : actions.Length == refactoring.CodeActions.Length
                         ? refactoring
                         : new CodeRefactoring(refactoring.Provider, actions);
             }
@@ -776,28 +776,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
-                foreach (var action in refactoring.Actions)
+                foreach (var codeAction in refactoring.CodeActions)
                 {
-                    if (action.NestedCodeActions.Length > 0)
+                    if (codeAction.action.NestedCodeActions.Length > 0)
                     {
-                        var nestedActions = action.NestedCodeActions.SelectAsArray(
+                        var nestedActions = codeAction.action.NestedCodeActions.SelectAsArray(
                             na => new CodeRefactoringSuggestedAction(
                                 ThreadingContext,
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: GetSuggestedActionSetPriority(action.Priority), applicableToSpan: applicableSpan);
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan?.ToSpan());
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
                             _owner, workspace, _subjectBuffer,
-                            refactoring.Provider, action, set));
+                            refactoring.Provider, codeAction.action, set));
                     }
                     else
                     {
                         refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
                             ThreadingContext,
-                            _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                            _owner, workspace, _subjectBuffer, refactoring.Provider, codeAction.action));
                     }
                 }
 
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     PredefinedSuggestedActionCategoryNames.Refactoring,
                     actions: actions,
                     priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
-                    applicableToSpan: applicableSpan);
+                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan?.ToSpan());
             }
 
             public Task<bool> HasSuggestedActionsAsync(
