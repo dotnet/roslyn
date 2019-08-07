@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Local))
+            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Local))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.LexicalClassifications))
                 {
                     _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
                 }
             }
-            else if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Remote))
+            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Remote))
             {
                 var documentId = _remoteLanguageServiceWorkspace.GetDocumentIdInCurrentContext(text.Container);
                 var document = _remoteLanguageServiceWorkspace.CurrentSolution.GetDocument(documentId);
@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Local))
+            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Local))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
                 {
                     _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
                 }
             }
-            else if (_experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_Remote))
+            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Remote))
             {
                 using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
             }
             else
             {
-                // Something wrong with experiment data.  Just fallback to the regular service.  Don't want to block the user based on an experimentation failure.
+                // Invalid experiment flight or older client.  Since this is an experiment, just fallback.
                 _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
             }
         }
@@ -132,6 +132,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
             return _originalService.GetDefaultSyntaxClassifiers();
         }
 
+        /// <summary>
+        /// Check if the experiment should run.
+        /// Only runs the experiment if the server provides the capability
+        /// and the experiment flight is enabled.
+        /// </summary>
+        private bool ShouldRunExperiment(string experimentName)
+        {
+            if (_roslynLspClientServiceFactory.ServerCapabilities?.Experimental is RoslynExperimentalCapabilities experimentalCapabilities)
+            {
+                return experimentalCapabilities.SyntacticLspProvider && _experimentationService.IsExperimentEnabled(experimentName);
+            }
+
+            return false;
+        }
+
         private async Task AddRemoteClassificationsAsync(string classificationsType, string filePath, SourceText sourceText, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
@@ -139,6 +154,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
             {
                 return;
             }
+
+            // TODO - Move to roslyn client initialization once liveshare initialization is fixed.
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
+            await _roslynLspClientServiceFactory.EnsureInitialized(cancellationToken).ConfigureAwait(false);
 
             var classificationParams = new ClassificationParams
             {

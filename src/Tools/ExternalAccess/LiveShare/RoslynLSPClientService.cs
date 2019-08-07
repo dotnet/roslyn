@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
+using Task = System.Threading.Tasks.Task;
+using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
@@ -18,11 +20,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 
         protected abstract RoslynLSPClientLifeTimeService LspClientLifeTimeService { get; }
 
-        public ILanguageServerClient ActiveLanguageServerClient { get; private set; }
+        public LS.ILanguageServerClient ActiveLanguageServerClient { get; private set; }
+
+        public ServerCapabilities ServerCapabilities { get; private set; }
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
-            var languageServerGuestService = (ILanguageServerGuestService)collaborationSession.GetService(typeof(ILanguageServerGuestService));
+            var languageServerGuestService = (LS.ILanguageServerGuestService)collaborationSession.GetService(typeof(LS.ILanguageServerGuestService));
 
             collaborationSession.RemoteServicesChanged += (sender, e) =>
             {
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             // Register Roslyn supported capabilities
             languageServerGuestService.RegisterClientMetadata(
                 new string[] { StringConstants.TypeScriptLanguageName },
-                new LanguageServerClientMetadata(
+                new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities
                     {
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 
             languageServerGuestService.RegisterClientMetadata(
                 new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
-                new LanguageServerClientMetadata(
+                new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities
                     {
@@ -123,6 +127,36 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             public void Dispose()
             {
                 Disposed?.Invoke(this, null);
+            }
+        }
+
+        /// <summary>
+        /// Ensures the client has been fully initialized by making an initialize request
+        /// and retrieving the server capabilities.
+        /// TODO - This should be called in <see cref="CreateServiceAsync(CollaborationSession, CancellationToken)"/>
+        /// and made private once LiveShare fixes the race in client creation.
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
+        /// </summary>
+        public async Task EnsureInitialized(CancellationToken cancellationToken)
+        {
+            if (ActiveLanguageServerClient == null)
+            {
+                return;
+            }
+
+            // Only request the server capabilities if we don't already have them.
+            if (ServerCapabilities == null)
+            {
+                var initializeRequest = new LS.LspRequest<InitializeParams, InitializeResult>(Methods.InitializeName);
+                var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
+
+                var serverCapabilities = intializeResult?.Capabilities;
+                if (serverCapabilities != null && LanguageServicesUtils.TryParseJson<RoslynExperimentalCapabilities>(serverCapabilities?.Experimental, out var roslynExperimentalCapabilities))
+                {
+                    serverCapabilities.Experimental = roslynExperimentalCapabilities;
+                }
+
+                ServerCapabilities = serverCapabilities;
             }
         }
     }
