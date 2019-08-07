@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Prefer the item that matches a longer prefix of the filter text.
             if (prefixLength1 != prefixLength2)
             {
-                return prefixLength1 > prefixLength2 ? 1 : -1;
+                return prefixLength1.CompareTo(prefixLength2);
             }
             else
             {
