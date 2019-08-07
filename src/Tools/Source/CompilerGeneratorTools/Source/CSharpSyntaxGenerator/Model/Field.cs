@@ -45,6 +45,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string MinCount;
 
+        [XmlAttribute]
+        public string AllowTrailingSeparator;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 
