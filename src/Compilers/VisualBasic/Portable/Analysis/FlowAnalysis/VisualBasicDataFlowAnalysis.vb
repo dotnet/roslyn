@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -86,31 +81,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property DefinitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
             Get
-                If _definitelyAssignedOnEntry.IsDefault Then
-                    Dim entry = ImmutableArray(Of ISymbol).Empty
-                    Dim ex = ImmutableArray(Of ISymbol).Empty
-
-                    Dim discarded = DataFlowsIn
-                    If Not Me._context.Failed Then
-                        Dim tuple = DefinitelyAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
-                        entry = Normalize(tuple.entry)
-                        ex = Normalize(tuple.ex)
-                    End If
-
-                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, entry)
-                    ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnExit, ex)
-                End If
-
-                Return _definitelyAssignedOnEntry
+                Return ComputeDefinitelyAssignedValues().onEntry
             End Get
         End Property
 
         Public Overrides ReadOnly Property DefinitelyAssignedOnExit As ImmutableArray(Of ISymbol)
             Get
-                Dim unused = DefinitelyAssignedOnEntry
-                Return _definitelyAssignedOnExit
+                Return ComputeDefinitelyAssignedValues().onExit
             End Get
         End Property
+
+        Private Function ComputeDefinitelyAssignedValues() As (onEntry As ImmutableArray(Of ISymbol), onExit As ImmutableArray(Of ISymbol))
+            If _definitelyAssignedOnEntry.IsDefault Then
+                Dim entry = ImmutableArray(Of ISymbol).Empty
+                Dim ex = ImmutableArray(Of ISymbol).Empty
+
+                Dim discarded = DataFlowsIn
+                If Not Me._context.Failed Then
+                    Dim tuple = DefinitelyAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
+                    entry = Normalize(tuple.entry)
+                    ex = Normalize(tuple.ex)
+                End If
+
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, entry)
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnExit, ex)
+            End If
+
+            Return (_definitelyAssignedOnEntry, _definitelyAssignedOnExit)
+        End Function
 
         ''' <summary>
         ''' A collection of the local variables for which a value assigned inside the region may be used outside the region.
