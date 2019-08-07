@@ -2360,5 +2360,93 @@ class C
     }
 }");
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStates()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|var c = a + b;
+        a = string.Empty;
+        c += a;
+        a = null;
+        b = null;
+        b = ""test"";
+        c = a + b +c;|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string NewMethod(ref string? a, ref string? b)
+    {
+        var c = a + b;
+        a = string.Empty;
+        c += a;
+        a = null;
+        b = null;
+        b = ""test"";
+        c = a + b + c;
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_RefNotNull()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|var c = a + b;
+        a = string.Empty;
+        c += a;
+        b = ""test"";
+        c = a + b +c;|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string NewMethod(ref string a, ref string b)
+    {
+        var c = a + b;
+        a = string.Empty;
+        c += a;
+        b = ""test"";
+        c = a + b + c;
+        return c;
+    }
+}");
+
     }
 }
