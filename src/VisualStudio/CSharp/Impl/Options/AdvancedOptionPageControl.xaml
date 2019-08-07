@@ -22,6 +22,8 @@
                     <CheckBox x:Name="Enable_use_nullable_reference_types"
                               IsThreeState="True"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_use_nullable_reference_analysis_IDE_features}" />
+                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
