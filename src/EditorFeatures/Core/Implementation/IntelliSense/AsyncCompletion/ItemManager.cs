@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
                 else
                 {
-                    var match = FilterResult.Compare(currentFilterResult.FilterResult, bestFilterResult.Value.FilterResult);
+                    var match = currentFilterResult.FilterResult.CompareTo(bestFilterResult.Value.FilterResult);
                     if (match > 0)
                     {
                         moreThanOneMatchWithSamePriority = false;
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         internal static bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
-            => FilterResult.Compare(result1, result2) > 0;
+            => result1.CompareTo(result2) > 0;
 
         internal static bool MatchesFilterText(
             CompletionHelper helper, RoslynCompletionItem item,
@@ -581,7 +581,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // against terms like "IList" and not IList<>
             return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
         }
-
 
         internal static bool IsHardSelection(
             string fullFilterText,
