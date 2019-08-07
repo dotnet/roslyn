@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -78,30 +77,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, AnalysisEntity> GetAnalysisEntityForFlowCapture { get; }
         public Func<ISymbol, ImmutableStack<IOperation>> GetInterproceduralCallStackForOwningSymbol { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(InitialAnalysisData.GetHashCodeOrDefault());
-            AddHashCodeParts(InvocationInstanceOpt, builder);
-            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, builder);
-            builder.Add(HashUtilities.Combine(ArgumentValuesMap));
-            builder.Add(HashUtilities.Combine(CapturedVariablesMap));
-            builder.Add(HashUtilities.Combine(AddressSharedEntities));
-            builder.Add(HashUtilities.Combine(CallStack));
-            builder.Add(HashUtilities.Combine(MethodsBeingAnalyzed));
+            addPart(InitialAnalysisData.GetHashCodeOrDefault());
+            AddHashCodeParts(InvocationInstanceOpt, addPart);
+            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, addPart);
+            addPart(HashUtilities.Combine(ArgumentValuesMap));
+            addPart(HashUtilities.Combine(CapturedVariablesMap));
+            addPart(HashUtilities.Combine(AddressSharedEntities));
+            addPart(HashUtilities.Combine(CallStack));
+            addPart(HashUtilities.Combine(MethodsBeingAnalyzed));
         }
 
         private static void AddHashCodeParts(
             (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
-            ArrayBuilder<int> builder)
+            Action<int> addPart)
         {
             if (instanceAndPointsToValueOpt.HasValue)
             {
-                builder.Add(instanceAndPointsToValueOpt.Value.InstanceOpt.GetHashCodeOrDefault());
-                builder.Add(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
+                addPart(instanceAndPointsToValueOpt.Value.InstanceOpt.GetHashCodeOrDefault());
+                addPart(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
             }
             else
             {
-                builder.Add(0);
+                addPart(0);
             }
         }
     }

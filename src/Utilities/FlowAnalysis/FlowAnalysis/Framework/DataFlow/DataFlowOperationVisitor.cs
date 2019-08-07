@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(WellKnownTypeProvider.Exception != null);
 
-                _exceptionPathsThrownExceptionInfoMapOpt = _exceptionPathsThrownExceptionInfoMapOpt ?? new Dictionary<BasicBlock, ThrownExceptionInfo>();
+                _exceptionPathsThrownExceptionInfoMapOpt ??= new Dictionary<BasicBlock, ThrownExceptionInfo>();
                 if (!_exceptionPathsThrownExceptionInfoMapOpt.TryGetValue(CurrentBasicBlock, out var info))
                 {
                     info = ThrownExceptionInfo.CreateDefaultInfoForExceptionsPathAnalysis(
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (branch.BranchValueOpt?.GetThrowExceptionType(CurrentBasicBlock) is INamedTypeSymbol exceptionType &&
                         exceptionType.DerivesFrom(WellKnownTypeProvider.Exception, baseTypesOnly: true))
                     {
-                        AnalysisDataForUnhandledThrowOperations = AnalysisDataForUnhandledThrowOperations ?? new Dictionary<ThrownExceptionInfo, TAnalysisData>();
+                        AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();
                         var info = ThrownExceptionInfo.Create(CurrentBasicBlock, exceptionType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                         AnalysisDataForUnhandledThrowOperations[info] = GetClonedCurrentAnalysisData();
                     }
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // This operation can throw, so update the analysis data for unhandled exception with 'System.Exception' type.
-            AnalysisDataForUnhandledThrowOperations = AnalysisDataForUnhandledThrowOperations ?? new Dictionary<ThrownExceptionInfo, TAnalysisData>();
+            AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();
             if (!AnalysisDataForUnhandledThrowOperations.TryGetValue(DefaultThrownExceptionInfo, out var data) ||
                 CurrentBasicBlock.IsContainedInRegionOfKind(ControlFlowRegionKind.Finally))
             {
@@ -1142,8 +1142,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 // Infer if a cast will always fail.
-                // We are currently bailing out if an interface or type parameter is involved.
-                bool IsInterfaceOrTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.Interface || type.TypeKind == TypeKind.TypeParameter;
                 if (!inference.IsBoxing &&
                     !inference.IsUnboxing &&
                     !IsInterfaceOrTypeParameter(targetType) &&
@@ -1184,6 +1182,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return false;
+
+            // We are currently bailing out if an interface or type parameter is involved.
+            static bool IsInterfaceOrTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.Interface || type.TypeKind == TypeKind.TypeParameter;
         }
 
         #endregion
@@ -1874,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return;
             }
 
-            AnalysisDataForUnhandledThrowOperations = AnalysisDataForUnhandledThrowOperations ?? new Dictionary<ThrownExceptionInfo, TAnalysisData>();
+            AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();
             foreach (var (exceptionInfo, analysisDataAtException) in interproceduralUnhandledThrowOperationsData)
             {
                 // Adjust the thrown exception info from the interprocedural context to current context.
@@ -2834,7 +2835,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(knownTargetInvocations);
 
-                methodTargetsOptBuilder = methodTargetsOptBuilder ?? new HashSet<(IMethodSymbol method, IOperation instance)>();
+                methodTargetsOptBuilder ??= new HashSet<(IMethodSymbol method, IOperation instance)>();
                 methodTargetsOptBuilder.Add((method, instance));
             }
 
@@ -2842,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(knownTargetInvocations);
 
-                lambdaTargetsOpt = lambdaTargetsOpt ?? new HashSet<IFlowAnonymousFunctionOperation>();
+                lambdaTargetsOpt ??= new HashSet<IFlowAnonymousFunctionOperation>();
                 lambdaTargetsOpt.Add(lambda);
             }
 
@@ -2896,43 +2897,41 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var first = true;
                 var defaultValue = value;
 
-                using (var savedCurrentAnalysisData = GetClonedCurrentAnalysisData())
+                using var savedCurrentAnalysisData = GetClonedCurrentAnalysisData();
+                if (methodTargetsOptBuilder != null)
                 {
-                    if (methodTargetsOptBuilder != null)
+                    foreach ((IMethodSymbol method, IOperation instance) in methodTargetsOptBuilder)
                     {
-                        foreach ((IMethodSymbol method, IOperation instance) in methodTargetsOptBuilder)
-                        {
-                            var oldMergedAnalysisData = mergedCurrentAnalysisData;
-                            mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                                computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
-                                    VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
-                                    VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
-                                        invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
-                                inputAnalysisData: savedCurrentAnalysisData,
-                                mergedAnalysisData: mergedCurrentAnalysisData,
-                                first: ref first);
-                            Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
-                            oldMergedAnalysisData?.Dispose();
-                        }
+                        var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                            computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
+                                VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
+                                VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
+                                    invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
+                            inputAnalysisData: savedCurrentAnalysisData,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
+                            first: ref first);
+                        Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                        oldMergedAnalysisData?.Dispose();
                     }
-
-                    if (lambdaTargetsOpt != null)
-                    {
-                        foreach (var lambda in lambdaTargetsOpt)
-                        {
-                            var oldMergedAnalysisData = mergedCurrentAnalysisData;
-                            mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                                computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
-                                inputAnalysisData: savedCurrentAnalysisData,
-                                mergedAnalysisData: mergedCurrentAnalysisData,
-                                first: ref first);
-                            Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
-                            oldMergedAnalysisData?.Dispose();
-                        }
-                    }
-
-                    Debug.Assert(mergedCurrentAnalysisData == null || ReferenceEquals(mergedCurrentAnalysisData, CurrentAnalysisData));
                 }
+
+                if (lambdaTargetsOpt != null)
+                {
+                    foreach (var lambda in lambdaTargetsOpt)
+                    {
+                        var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                            computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
+                            inputAnalysisData: savedCurrentAnalysisData,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
+                            first: ref first);
+                        Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                        oldMergedAnalysisData?.Dispose();
+                    }
+                }
+
+                Debug.Assert(mergedCurrentAnalysisData == null || ReferenceEquals(mergedCurrentAnalysisData, CurrentAnalysisData));
             }
 
             TAnalysisData AnalyzePossibleTargetInvocation(Func<TAbstractAnalysisValue> computeValueForInvocation, TAnalysisData inputAnalysisData, TAnalysisData mergedAnalysisData, ref bool first)

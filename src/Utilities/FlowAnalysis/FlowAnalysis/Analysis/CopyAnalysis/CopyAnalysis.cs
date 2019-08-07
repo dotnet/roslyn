@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             bool performPointsToAnalysis = true,
             bool exceptionPathsAnalysis = false)
         {
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             var pointsToAnalysisResultOpt = performPointsToAnalysis ?
                 PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :

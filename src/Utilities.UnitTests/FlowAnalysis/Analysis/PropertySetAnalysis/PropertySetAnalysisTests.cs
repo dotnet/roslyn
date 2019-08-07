@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -68,6 +68,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 operation != null,
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
             ISymbol symbol = model.GetDeclaredSymbol(syntaxNode.Parent) ?? model.GetSymbolInfo(syntaxNode.Parent).Symbol;
+            var success = operation.TryGetEnclosingControlFlowGraph(out var cfg);
+            Debug.Assert(success);
+            Debug.Assert(cfg != null);
 
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
@@ -76,7 +79,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 PropertySetAnalysisResult result =
                     PropertySetAnalysis.GetOrComputeResult(
-                        operation.GetEnclosingControlFlowGraph(),
+                        cfg,
                         compilation,
                         symbol,
                         new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
@@ -146,12 +149,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
+            static string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
             {
                 return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return/Initialization";
             }
 
-            string MethodOrReturnString(string method)
+            static string MethodOrReturnString(string method)
             {
                 return method != null ? $"Method {method}" : "Return/Initialization";
             }

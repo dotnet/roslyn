@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -93,16 +92,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
         public bool IsAnalysisEntityDefaultLocation => AnalysisEntityOpt != null;
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(CreationOpt.GetHashCodeOrDefault());
-            builder.Add(HashUtilities.Combine(CreationCallStack));
-            builder.Add(SymbolOpt.GetHashCodeOrDefault());
-            builder.Add(CaptureIdOpt.GetHashCodeOrDefault());
-            builder.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
-            builder.Add(LocationTypeOpt.GetHashCodeOrDefault());
-            builder.Add(_isSpecialSingleton.GetHashCode());
-            builder.Add(IsNull.GetHashCode());
+            addPart(CreationOpt.GetHashCodeOrDefault());
+            addPart(HashUtilities.Combine(CreationCallStack));
+            addPart(SymbolOpt.GetHashCodeOrDefault());
+            addPart(CaptureIdOpt.GetHashCodeOrDefault());
+            addPart(AnalysisEntityOpt.GetHashCodeOrDefault());
+            addPart(LocationTypeOpt.GetHashCodeOrDefault());
+            addPart(_isSpecialSingleton.GetHashCode());
+            addPart(IsNull.GetHashCode());
         }
 
         /// <summary>

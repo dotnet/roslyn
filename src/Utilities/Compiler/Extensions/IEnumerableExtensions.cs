@@ -129,18 +129,16 @@ namespace Analyzer.Utilities.Extensions
                 return collection.Count == count;
             }
 
-            using (var enumerator = source.GetEnumerator())
+            using var enumerator = source.GetEnumerator();
+            while (count-- > 0)
             {
-                while (count-- > 0)
+                if (!enumerator.MoveNext())
                 {
-                    if (!enumerator.MoveNext())
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-
-                return !enumerator.MoveNext();
             }
+
+            return !enumerator.MoveNext();
         }
 
         /// <summary>
@@ -168,18 +166,16 @@ namespace Analyzer.Utilities.Extensions
                 return collection.Count > count;
             }
 
-            using (var enumerator = source.GetEnumerator())
+            using var enumerator = source.GetEnumerator();
+            while (count-- > 0)
             {
-                while (count-- > 0)
+                if (!enumerator.MoveNext())
                 {
-                    if (!enumerator.MoveNext())
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-
-                return enumerator.MoveNext();
             }
+
+            return enumerator.MoveNext();
         }
 
         /// <summary>
@@ -207,12 +203,10 @@ namespace Analyzer.Utilities.Extensions
                 return collection.Count < count;
             }
 
-            using (var enumerator = source.GetEnumerator())
-            {
-                while (count > 0 && enumerator.MoveNext()) { count--; }
+            using var enumerator = source.GetEnumerator();
+            while (count > 0 && enumerator.MoveNext()) { count--; }
 
-                return count > 0;
-            }
+            return count > 0;
         }
 
         private class ComparisonComparer<T> : Comparer<T>

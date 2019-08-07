@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -161,7 +158,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
-                ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
+                var success = Operation.TryGetEnclosingControlFlowGraph(out ControlFlowGraph enclosingControlFlowGraph);
+                Debug.Assert(success);
+                if (enclosingControlFlowGraph == null)
+                {
+                    Debug.Fail("Expected non-null CFG");
+                    continue;
+                }
+
                 PropertySetAnalysisResult enclosingResult = InvokeDfaAndAccumulateResults(
                     enclosingControlFlowGraph,
                     ContainingSymbol);
