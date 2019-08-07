@@ -9,8 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -114,16 +112,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            // We need to filter if a non-empty strict subset of filters are selected
-            var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
-            var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
+            // We need to filter if 
+            // 1. a non-empty strict subset of filters are selected
+            // 2. a non-empty set of expanders are unselected
+            var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => !(f.Filter is CompletionExpander));
+
+            var selectedNonExpanderFilters = nonExpanderFilterStates.Where(f => f.IsSelected).SelectAsArray(f => f.Filter);
+            var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
+
+            var unselectedExpanders = data.SelectedFilters.Where(f => !f.IsSelected && f.Filter is CompletionExpander).SelectAsArray(f => f.Filter);
+            var needToFilterExpanded = unselectedExpanders.Length > 0;
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
                 // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
                 if (needToFilter &&
                     !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
-                    selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                    selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
                 {
                     AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
 
@@ -136,10 +141,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
             // However, we prefer using the original snapshot in some projection scenarios.
-            if (!session.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot snapshotForDocument))
-            {
-                snapshotForDocument = data.Snapshot;
-            }
+            var snapshotForDocument = Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation)
+                ? triggerLocation.Snapshot
+                : data.Snapshot;
 
             var document = snapshotForDocument.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();
@@ -151,7 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedFilters))
+                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
+                {
+                    continue;
+                }
+
+                if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
                 {
                     continue;
                 }
@@ -242,6 +251,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 highlightedList,
                 completionHelper,
                 hasSuggestedItemOptions);
+
+            static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
+            {
+                if (item.Filters.Any(filter => activeNonExpanderFilters.Contains(filter)))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            static bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> unselectedExpanders)
+            {
+                var associatedWithUnselectedExpander = false;
+                foreach (var itemFilter in item.Filters)
+                {
+                    if (itemFilter is CompletionExpander)
+                    {
+                        if (!unselectedExpanders.Contains(itemFilter))
+                        {
+                            // If any of the associated expander is selected, the item should be included in the expanded list.
+                            return false;
+                        }
+
+                        associatedWithUnselectedExpander = true;
+                    }
+                }
+
+                // at this point, the item either:
+                // 1. has no expander filter, therefore should be included
+                // 2. or, all associated expanders are unselected, therefore should be excluded
+                return associatedWithUnselectedExpander;
+            }
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -451,21 +493,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // See which filters might be enabled based on the typed code
             var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToImmutableHashSet();
 
-            // When no items are available for a given filter, it becomes unavailable
-            return ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
-        }
-
-        private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeFilters)
-        {
-            foreach (var itemFilter in item.Filters)
-            {
-                if (activeFilters.Contains(itemFilter))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            // When no items are available for a given filter, it becomes unavailable.
+            // Expanders always appear available as long as it's presented.
+            return filters.SelectAsArray(n => n.WithAvailability(n.Filter is CompletionExpander ? true : textFilteredFilters.Contains(n.Filter)));
         }
 
         /// <summary>
