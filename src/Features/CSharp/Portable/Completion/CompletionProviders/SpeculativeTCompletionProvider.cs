@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // We could be in the middle of a ref/generic/tuple type, instead of a simple T case.
-            // If we managed to walk out and get a different SpanStart, we treat it as a slightly different $$T case, otherwise it's a simple T case.
+            // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
@@ -79,38 +79,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return IsStartOfSpeculativeTContext(syntaxTree, spanStart, isSimpleT: spanStart == position, cancellationToken);
+            return IsStartOfSpeculativeTContext(syntaxTree, spanStart, cancellationToken);
         }
 
-        private static bool IsStartOfSpeculativeTContext(SyntaxTree syntaxTree, int position, bool isSimpleT, CancellationToken cancellationToken)
+        private static bool IsStartOfSpeculativeTContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            if (IsValidMemberDeclarationContext() ||
-                syntaxTree.IsStatementContext(position, token, cancellationToken) ||
-                syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-                syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
-                syntaxTree.IsDelegateReturnTypeContext(position, token, cancellationToken))
-            {
-                return true;
-            }
-
-            return false;
-
-            bool IsValidMemberDeclarationContext()
-            {
-                // We allow `async Task<T>`, but not `async T`
-                var isPrevTokenOK = true;
-                if (isSimpleT)
-                {
-                    isPrevTokenOK = !token.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword);
-                }
-                if (isPrevTokenOK)
-                {
-                    return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken);
-                }
-                return false;
-            }
+            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken) ||
+                   syntaxTree.IsStatementContext(position, token, cancellationToken) ||
+                   syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                   syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
+                   syntaxTree.IsDelegateReturnTypeContext(position, token, cancellationToken);
         }
 
         private static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel semanticModel, CancellationToken cancellationToken)

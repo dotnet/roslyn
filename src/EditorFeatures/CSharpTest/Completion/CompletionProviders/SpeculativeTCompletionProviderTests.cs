@@ -868,7 +868,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NotAfterAsync()
+        public async Task OkAfterAsync()
         {
             var markup = @"
 using System.Threading.Tasks;
@@ -877,7 +877,7 @@ class Program
     async $$
 }";
 
-            await VerifyItemIsAbsentAsync(markup, "T");
+            await VerifyItemExistsAsync(markup, "T");
         }
 
         [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
@@ -966,7 +966,7 @@ class C
         async $$
     }
 }";
-            await VerifyItemIsAbsentAsync(markup, "T");
+            await VerifyItemExistsAsync(markup, "T");
         }
     }
 }
