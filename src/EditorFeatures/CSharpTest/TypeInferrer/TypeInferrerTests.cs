@@ -154,18 +154,7 @@ var q = s ?? [|Goo()|];", "global::System.String", mode);
         public async Task TestCoalesce4()
         {
             await TestInMethodAsync(
-@"var q = [|Goo()|] ?? string.Empty;", "global::System.String", TestMode.Node);
-        }
-
-        // This is skipped for now. This is a case where we know we can unilaterally mark the reference type as nullable, as long as the user has #nullable enable on.
-        // But right now there's no compiler API to know if it is, so we have to skip this. Once there is an API, we'll have it always return a nullable reference type
-        // and we'll remove the ? if it's in a non-nullable context no differently than we always generate types fully qualified and then clean up based on context.
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37178"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestCoalesceInNullableEnabled()
-        {
-            await TestInMethodAsync(
-@"#nullable enable
-var q = [|Goo()|] ?? string.Empty;", "global::System.String?", TestMode.Node);
+@"var q = [|Goo()|] ?? string.Empty;", "global::System.String?", TestMode.Node);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -2805,10 +2794,12 @@ public class C
 {
     void M()
     {
-        object z = [|a|]?? null;
+        object z = [|a|] ?? null;
     }
 }";
-            await TestAsync(text, "global::System.Object", mode);
+            // In position mode, we are inferring that the thing to the right is an object, because it's being assigned to a local of type object.
+            // In node mode, we are inferring the node is an object? because it's to the left of the ??.
+            await TestAsync(text, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -2823,7 +2814,9 @@ public class C
         object z = [|a|] ?? b ?? c;
     }
 }";
-            await TestAsync(text, "global::System.Object", mode);
+            // In position mode, we are inferring that the thing to the right is an object, because it's being assigned to a local of type object.
+            // In node mode, we are inferring the node is an object? because it's to the left of the ??.
+            await TestAsync(text, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -2838,7 +2831,10 @@ public class C
         object z = a ?? [|b|] ?? c;
     }
 }";
-            await TestAsync(text, "global::System.Object", mode);
+            // In position mode, we are inferring that the thing to the right is an object, because it's to the right of the first ??
+            // and thus must be the same type as the object being assigned to.
+            // In node mode, we are inferring the node is an object? because it's to the left of the ??.
+            await TestAsync(text, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
