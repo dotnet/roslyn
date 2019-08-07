@@ -67,33 +67,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var spanStart = position;
             while (true)
             {
-                var orgSpanStart = spanStart;
+                var oldSpanStart = spanStart;
 
                 spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
                 spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
                 spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
 
-                if (spanStart == orgSpanStart)
+                if (spanStart == oldSpanStart)
                 {
                     break;
                 }
             }
 
-            if (IsStartOfSpeculativeTContext(syntaxTree, spanStart, allowAsyncKeyword: spanStart != position, cancellationToken))
-            {
-                return true;
-            }
-
-            return false;
+            return IsStartOfSpeculativeTContext(syntaxTree, spanStart, isSimpleT: spanStart == position, cancellationToken);
         }
 
-        private static bool IsStartOfSpeculativeTContext(SyntaxTree syntaxTree, int position, bool allowAsyncKeyword, CancellationToken cancellationToken)
+        private static bool IsStartOfSpeculativeTContext(SyntaxTree syntaxTree, int position, bool isSimpleT, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (((allowAsyncKeyword || !prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword)) &&
-                syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken)) ||
+            if (IsValidMemberDeclarationContext() ||
                 syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
@@ -103,6 +96,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return false;
+
+            bool IsValidMemberDeclarationContext()
+            {
+                // We allow `async Task<T>`, but not `async T`
+                var isPrevTokenOK = true;
+                if (isSimpleT)
+                {
+                    isPrevTokenOK = !token.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword);
+                }
+                if (isPrevTokenOK)
+                {
+                    return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken);
+                }
+                return false;
+            }
         }
 
         private static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -112,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (syntaxTree.IsGenericTypeArgumentContext(position, token, cancellationToken, semanticModel))
             {
-                // Walk out until we find the start of the partial written generic
-                while (syntaxTree.IsInPartiallyWrittenGeneric(spanStart, cancellationToken, out var nameToken))
+                if (syntaxTree.IsInPartiallyWrittenGeneric(spanStart, cancellationToken, out var nameToken))
                 {
                     spanStart = nameToken.SpanStart;
                 }
@@ -137,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static int WalkOutOfRefType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
 
             if (prevToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && prevToken.Parent.IsKind(SyntaxKind.RefType))
             {
@@ -150,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static int WalkOutOfTupleType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var prevToken = token.GetPreviousTokenIfTouchingWord(position);
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
 
             if (prevToken.IsPossibleTupleOpenParenOrComma())
             {

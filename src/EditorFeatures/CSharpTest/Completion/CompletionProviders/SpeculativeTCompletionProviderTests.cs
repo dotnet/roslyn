@@ -164,13 +164,27 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
-        public async Task InRef()
+        public async Task InRef0()
         {
             var markup = @"
 using System;
 class C
 {
     ref $$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRef1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref T$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -248,13 +262,27 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
-        public async Task InQualifiedGeneric()
+        public async Task InQualifiedGeneric0()
         {
             var markup = @"
 using System;
 class C
 {
     System.Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InQualifiedGeneric1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    System.Collections.Generic.List<$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -359,6 +387,78 @@ using System;
 class C
 {
     protected ($$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
+        public async Task TupleInMethod0()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        ($$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
+        public async Task TupleInMethod1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        var a = 0;
+        ($$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
+        public async Task TupleInMethod2()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        ($$)
+    }
+}";
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
+        public async Task TupleInMethod3()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        var a = 0;
+
+        (T$$)
+
+        a = 1;
+    }
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -625,6 +725,20 @@ using System;
 class C
 {
     ref readonly (System.Func<(int, (C, (Func<int,T$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
+        public async Task InRefTupleQualifiedNestedGeneric6()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref readonly (System.Collections.Generic.List<(int, (C, (Func<int,T$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
