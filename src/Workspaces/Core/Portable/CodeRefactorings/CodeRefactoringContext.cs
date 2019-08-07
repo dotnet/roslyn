@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
+        private readonly Action<CodeAction, TextSpan> _registerRefactoring;
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
@@ -46,10 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CancellationToken = cancellationToken;
         }
 
+        /// <summary>
+        /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
+        /// </summary>
         internal CodeRefactoringContext(
              Document document,
              TextSpan span,
-            Action<CodeAction, TextSpan?> registerRefactoring,
+            Action<CodeAction, TextSpan> registerRefactoring,
             CancellationToken cancellationToken)
         {
             Document = document ?? throw new ArgumentNullException(nameof(document));
@@ -62,9 +65,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Add supplied <paramref name="action"/> to the list of refactorings that will be offered to the user.
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the refactoring.</param>
-        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, null);
+        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, applicableToSpan: default);
 
-        internal void RegisterRefactoring(CodeAction action, TextSpan? applicableToSpan)
+        /// <summary>
+        /// Add supplied <paramref name="action"/> applicable to <paramref name="applicableToSpan"/> to the list of refactorings that will be offered to the user.
+        /// </summary>
+        /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the refactoring.</param>
+        /// <param name="applicableToSpan">The <see cref="TextSpan"/> within original document the <paramref name="action"/> is applicable to.</param>
+        /// <remarks>
+        /// <paramref name="applicableToSpan"/> should represent a logical section within the original document that the <paramref name="action"/> is 
+        /// applicable to. It doesn't have to precisely represent the exact <see cref="TextSpan"/> that will get changed.
+        /// </remarks>
+        internal void RegisterRefactoring(CodeAction action, TextSpan applicableToSpan)
         {
             if (action == null)
             {

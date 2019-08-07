@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
-                new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
-                            c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
-                localFunction.Span
-                );
+                new MyCodeAction(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                localFunction.Span);
         }
 
         private static async Task<Document> UpdateDocumentAsync(

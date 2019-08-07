@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
                     return filteredRefactorings.SelectAsArray(
-                        r => OrganizeRefactorings(workspace, r, selection.ToSpan()));
+                        r => OrganizeRefactorings(workspace, r));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
             private SuggestedActionSet OrganizeRefactorings(
-                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
+                Workspace workspace, CodeRefactoring refactoring)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan?.ToSpan());
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan.ToSpan());
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
@@ -803,13 +803,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var actions = refactoringSuggestedActions.ToImmutableAndFree();
 
-                // An action set gets the the same priority as the highest priority 
-                // action within in.
+                // An action set:
+                // - gets the the same priority as the highest priority action within in.
+                // - gets `applicableToSpan` of the first action:
+                //   - E.g. the `applicableToSpan` closest to current selection might be a more correct 
+                //     choice. All actions creted by one Refactoring have usually the same `applicableSpan`
+                //     and therefore the complexity of determining the closest one isn't worth the benefit
+                //     of slightly more correct orderings in certain edge cases.
                 return new SuggestedActionSet(
                     PredefinedSuggestedActionCategoryNames.Refactoring,
                     actions: actions,
                     priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
-                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan?.ToSpan());
+                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan.ToSpan());
             }
 
             public Task<bool> HasSuggestedActionsAsync(
