@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -409,6 +411,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 candidates.UnionWith(writtenInsideMap);
                 candidates.UnionWith(variableDeclaredMap);
 
+                var selectionOperation = model.GetOperation(this.SelectionResult.GetContainingScope());
+
                 foreach (var symbol in candidates)
                 {
                     if (IsThisParameter(symbol) ||
@@ -455,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var type = GetSymbolType(model, symbol);
+                    var type = GetSymbolType(model, selectionOperation, symbol);
                     if (type == null)
                     {
                         continue;
@@ -606,16 +610,52 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            private ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+            private ITypeSymbol GetSymbolType(SemanticModel model, IOperation selectionOperation, ISymbol symbol)
             {
                 switch (symbol)
                 {
                     case ILocalSymbol local:
-                        return local.Type;
+                        if (local.NullableAnnotation == NullableAnnotation.Annotated)
+                        {
+                            var references = selectionOperation.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Where(r => r.Local == local);
+                            var flowState = GetFlowStateFromLocations(references, local.NullableAnnotation);
+                            if (flowState != NullableFlowState.None)
+                            {
+                                return local.Type.WithNullability(flowState);
+                            }
+                        }
+
+                        return local.GetTypeWithAnnotatedNullability();
                     case IParameterSymbol parameter:
-                        return parameter.Type;
+                        if (parameter.NullableAnnotation == NullableAnnotation.Annotated)
+                        {
+                            var references = selectionOperation.DescendantsAndSelf().OfType<IParameterReferenceOperation>().Where(r => r.Parameter == parameter);
+                            var flowState = GetFlowStateFromLocations(references, parameter.NullableAnnotation);
+                            if (flowState != NullableFlowState.None)
+                            {
+                                return parameter.Type.WithNullability(flowState);
+                            }
+                        }
+
+                        return parameter.GetTypeWithAnnotatedNullability();
                     case IRangeVariableSymbol rangeVariable:
                         return GetRangeVariableType(model, rangeVariable);
+                }
+
+                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> localReferences, NullableAnnotation annotatedNullability)
+                {
+                    foreach (var localReference in localReferences)
+                    {
+                        var typeInfo = model.GetTypeInfo(localReference.Syntax);
+
+                        switch (typeInfo.Nullability.FlowState)
+                        {
+                            case NullableFlowState.MaybeNull: return NullableFlowState.MaybeNull;
+                            case NullableFlowState.None: return NullableFlowState.None;
+                        }
+                    }
+
+                    return NullableFlowState.NotNull;
                 }
 
                 return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
@@ -646,53 +686,28 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return style;
             }
 
-            private bool IsParameterUsedOutside(ISymbol localOrParameter)
-            {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.None;
-            }
-
-            private bool IsParameterAssigned(ISymbol localOrParameter)
-            {
-                // hack for now.
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.Out;
-            }
-
             private bool IsThisParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (localOrParameter is IParameterSymbol parameter)
                 {
-                    return false;
+                    return parameter.IsThis;
                 }
 
-                return parameter.IsThis;
+                return false;
             }
 
             private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (localOrParameter is IParameterSymbol parameter)
                 {
-                    return false;
-                }
-
-                return parameter.IsImplicitlyDeclared &&
+                    return parameter.IsImplicitlyDeclared &&
                        parameter.ContainingAssembly.IsInteractive &&
                        parameter.ContainingSymbol != null &&
                        parameter.ContainingSymbol.ContainingType != null &&
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
+                }
+
+                return false;
             }
 
             private bool ContainsReturnStatementInSelectedCode(SemanticModel model)
@@ -783,7 +798,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
                 {
-                    var typeParameter = pair.Key as ITypeParameterSymbol;
+                    var typeParameter = (ITypeParameterSymbol)pair.Key;
                     if (typeParameter.DeclaringMethod == null ||
                         sortedMap.ContainsKey(typeParameter.Ordinal))
                     {
@@ -852,8 +867,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
 
-                var constructedType = type as INamedTypeSymbol;
-                if (constructedType == null)
+                if (!(type is INamedTypeSymbol constructedType))
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
@@ -883,8 +897,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var candidate = arguments[i] as INamedTypeSymbol;
-                    if (candidate == null)
+                    if (!(arguments[i] is INamedTypeSymbol candidate))
                     {
                         continue;
                     }
@@ -912,7 +925,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return OperationStatus.Succeeded;
                 }
 
-                List<string> names = null;
+                List<string>? names = null;
                 var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
@@ -956,19 +969,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                switch (symbol)
+                return symbol switch
                 {
-                    case ILocalSymbol local:
-                        return new VariableInfo(
-                            new LocalVariableSymbol<T>(compilation, local, local.GetTypeWithAnnotatedNullability(), nonNoisySyntaxKindSet),
-                            style);
-                    case IParameterSymbol parameter:
-                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, parameter.GetTypeWithAnnotatedNullability()), style);
-                    case IRangeVariableSymbol rangeVariable:
-                        return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
-                }
+                    ILocalSymbol local => new VariableInfo(
+                           new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                           style),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
 
-                return Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown);
+                    _ => Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown),
+                };
             }
         }
     }

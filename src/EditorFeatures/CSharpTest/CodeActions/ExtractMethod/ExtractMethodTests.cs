@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2100,14 +2098,13 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestNullablePrameters()
-        {
-            await TestInRegularAndScriptAsync(
+        public Task TestAnnotatedNullableReturn()
+            => TestInRegularAndScriptAsync(
 @"#nullable enable
 
 class C
 {
-    public string M()
+    public string? M()
     {
         [|string? x = null;
         x.ToString();|]
@@ -2119,7 +2116,7 @@ class C
 
 class C
 {
-    public string M()
+    public string? M()
     {
         string? x = {|Rename:NewMethod|}();
 
@@ -2133,6 +2130,235 @@ class C
         return x;
     }
 }");
-        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        [|string? x = (a + b)?.ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        string? x = {|Rename:NewMethod|}(a, b);
+
+        return x;
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return (a + b)?.ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        [|string x = (a + b + c).ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        string x = {|Rename:NewMethod|}(a, b, c);
+
+        return x;
+    }
+
+    private static string NewMethod(string? a, string? b, int c)
+    {
+        return (a + b + c).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters3()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        return [|(a + b + c).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        return {|Rename:NewMethod|}(a, b, c);
+    }
+
+    private static string NewMethod(string? a, string? b, int c)
+    {
+        return (a + b + c).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters4()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        return [|(a + b)?.ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return (a + b)?.ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return [|(a + b + a).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string NewMethod(string a, string b)
+    {
+        return (a + b + a).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return [|(a + b + a).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string NewMethod(string a, string b)
+    {
+        return (a + b + a).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters3()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        return [|(a + b + a)?.ToString()|] ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        return {|Rename:NewMethod|}(a, b) ?? string.Empty;
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return (a + b + a)?.ToString();
+    }
+}");
+
     }
 }
