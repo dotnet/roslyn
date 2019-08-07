@@ -200,14 +200,17 @@ namespace CSharpSyntaxGenerator
         protected TreeType GetTreeType(string typeName)
             => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
+        private static bool IsTrue(string val)
+            => val != null && string.Compare(val, "true", true) == 0;
+
         protected static bool IsOptional(Field f)
-            => Utils.IsTrue(f.Optional);
+            => IsTrue(f.Optional);
 
         protected static bool IsOverride(Field f)
-            => Utils.IsTrue(f.Override);
+            => IsTrue(f.Override);
 
         protected static bool IsNew(Field f)
-            => Utils.IsTrue(f.New);
+            => IsTrue(f.New);
 
         protected static bool HasErrors(Node n)
         {
