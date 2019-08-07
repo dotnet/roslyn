@@ -4256,7 +4256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
     }
 
-    internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block);
+    internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block ?? throw new ArgumentNullException(nameof(block)));
     public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block)
     {
         return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
