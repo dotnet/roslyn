@@ -118,6 +118,9 @@
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
+      <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Principal.Windows"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
