@@ -66,10 +66,6 @@
       TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
     -->
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
-
-    <ExpectedDependency Include="Microsoft.Win32.Registry"/>
-    <ExpectedDependency Include="System.Security.AccessControl"/>
-    <ExpectedDependency Include="System.Security.Principal.Windows"/>
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
@@ -122,6 +118,9 @@
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
+      <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Principal.Windows"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
