@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         internal static bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
-            => FilterResult.Compare(result1, result2) == 1;
+            => FilterResult.Compare(result1, result2) > 0;
 
         internal static bool MatchesFilterText(
             CompletionHelper helper, RoslynCompletionItem item,
