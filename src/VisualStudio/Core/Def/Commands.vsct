@@ -194,18 +194,18 @@
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="400" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Info</ButtonText>
-          <CanonicalName>Info</CanonicalName>
-          <LocCanonicalName>Info</LocCanonicalName>
+          <ButtonText>&amp;Suggestion</ButtonText>
+          <CanonicalName>Suggestion</CanonicalName>
+          <LocCanonicalName>Suggestion</LocCanonicalName>
           <CommandName>SetSeverityInfo</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="500" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Hidden</ButtonText>
-          <CanonicalName>Hidden</CanonicalName>
-          <LocCanonicalName>Hidden</LocCanonicalName>
+          <ButtonText>&amp;Silent</ButtonText>
+          <CanonicalName>Silent</CanonicalName>
+          <LocCanonicalName>Silent</LocCanonicalName>
           <CommandName>SetSeverityHidden</CommandName>
         </Strings>
       </Button>
@@ -346,10 +346,10 @@
       <Menu guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu" priority="50" type="Menu">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
         <Strings>
-          <ButtonText>Set Rule Set Severity</ButtonText>
-          <CommandName>Set Rule Set Severity</CommandName>
-          <CanonicalName>Set Rule Set Severity</CanonicalName>
-          <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
+          <ButtonText>Set severity</ButtonText>
+          <CommandName>Set severity</CommandName>
+          <CanonicalName>Set severity</CanonicalName>
+          <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
       

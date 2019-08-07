@@ -322,6 +322,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SolutionExplorer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Updating severity.
+        /// </summary>
+        internal static string Updating_severity {
+            get {
+                return ResourceManager.GetString("Updating_severity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning.
         /// </summary>
         internal static string Warning {

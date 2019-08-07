@@ -148,13 +148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">In&amp;formazioni</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">In&amp;formazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">Info</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">&amp;Nascosto</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">&amp;Nascosto</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">Nascosto</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">Nascosto</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +333,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravit?? set di regole</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravit?? set di regole</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravit?? set di regole</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

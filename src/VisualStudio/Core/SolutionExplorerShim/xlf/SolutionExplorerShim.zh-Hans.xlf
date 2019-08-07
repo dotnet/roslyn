@@ -62,6 +62,11 @@
         <target state="translated">错误</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">警告</target>

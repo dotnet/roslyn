@@ -148,13 +148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">資訊(&amp;I)</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">資訊(&amp;I)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">資訊</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">資訊</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">隱藏(&amp;H)</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">隱藏(&amp;H)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">隱藏</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">隱藏</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +333,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">設定規則集合嚴重性</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">設定規則集合嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">設定規則集合嚴重性</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">設定規則集合嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">設定規則集合嚴重性</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">設定規則集合嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -602,6 +603,9 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id);
         }
+
+        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
 
         private string GetDebuggerDisplay()
         {

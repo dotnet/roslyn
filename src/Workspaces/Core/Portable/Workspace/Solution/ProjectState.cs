@@ -260,6 +260,37 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+        {
+            // We need to find the analyzer config options at the root of the project.
+            // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
+            // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
+
+            var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
+            if (!PathUtilities.IsAbsolute(projectDirectory))
+            {
+                return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            }
+
+            var fileName = Guid.NewGuid().ToString();
+            string sourceFilePath;
+            switch (_projectInfo.Language)
+            {
+                case LanguageNames.CSharp:
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs");
+                    break;
+
+                case LanguageNames.VisualBasic:
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb");
+                    break;
+
+                default:
+                    return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            }
+
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions;
+        }
+
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;

@@ -148,13 +148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">&amp;Informace</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">&amp;Informace</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">Informace</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">Informace</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">&amp;Skryté</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">&amp;Skryté</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">Skryté</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">Skryté</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +333,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Nastavit závažnost sady pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Nastavit závažnost sady pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Nastavit závažnost sady pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

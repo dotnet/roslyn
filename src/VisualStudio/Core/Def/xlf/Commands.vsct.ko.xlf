@@ -148,13 +148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">정보(&amp;I)</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">정보(&amp;I)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">정보</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">정보</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">숨김(&amp;H)</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">숨김(&amp;H)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">숨김</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">숨김</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +333,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">규칙 집합 심각도 설정</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">규칙 집합 심각도 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">규칙 집합 심각도 설정</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">규칙 집합 심각도 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">규칙 집합 심각도 설정</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">규칙 집합 심각도 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

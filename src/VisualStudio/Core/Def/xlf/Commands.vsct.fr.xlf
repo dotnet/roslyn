@@ -148,13 +148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">&amp;Informations</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">&amp;Informations</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">Info</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">&amp;Masqué</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">&amp;Masqué</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">Masqué</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">Masqué</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +333,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

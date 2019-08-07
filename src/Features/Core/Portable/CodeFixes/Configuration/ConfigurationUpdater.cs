@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -80,7 +82,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         /// <paramref name="severity"/>.
         /// </summary>
         public static Task<Solution> ConfigureSeverityAsync(
-            string severity,
+            ReportDiagnostic severity,
+            Diagnostic diagnostic,
+            Project project,
+            CancellationToken cancellationToken)
+        {
+            if (severity == ReportDiagnostic.Default)
+            {
+                severity = diagnostic.DefaultSeverity.ToReportDiagnostic();
+            }
+
+            return ConfigureSeverityAsync(severity.ToEditorConfigString(), diagnostic, project, cancellationToken);
+        }
+
+        /// <summary>
+        /// Updates or adds an .editorconfig <see cref="AnalyzerConfigDocument"/> to the given <paramref name="project"/>
+        /// so that the severity of the given <paramref name="diagnostic"/> is configured to be the given
+        /// <paramref name="editorConfigSeverity"/>.
+        /// </summary>
+        public static Task<Solution> ConfigureSeverityAsync(
+            string editorConfigSeverity,
             Diagnostic diagnostic,
             Project project,
             CancellationToken cancellationToken)
@@ -93,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             if (!codeStyleOptionValues.IsEmpty)
             {
                 return ConfigureCodeStyleOptionsAsync(
-                    codeStyleOptionValues.Select(t => (t.optionName, t.currentOptionValue, severity)),
+                    codeStyleOptionValues.Select(t => (t.optionName, t.currentOptionValue, editorConfigSeverity)),
                     diagnostic, project, configurationKind: ConfigurationKind.Severity, cancellationToken);
             }
             else
             {
-                updater = new ConfigurationUpdater(optionNameOpt: null, newOptionValueOpt: null, severity,
+                updater = new ConfigurationUpdater(optionNameOpt: null, newOptionValueOpt: null, editorConfigSeverity,
                     configurationKind: ConfigurationKind.Severity, diagnostic, project, cancellationToken);
                 return updater.ConfigureAsync();
             }
@@ -143,16 +164,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
         private async Task<Solution> ConfigureAsync()
         {
-            var solution = _project.Solution;
-
             // Find existing .editorconfig or generate a new one if none exists.
-            var editorConfigDocument = FindOrGenerateEditorConfig(solution);
+            var editorConfigDocument = FindOrGenerateEditorConfig();
             if (editorConfigDocument == null)
             {
-                return solution;
+                return _project.Solution;
             }
 
-            solution = editorConfigDocument.Project.Solution;
+            var solution = editorConfigDocument.Project.Solution;
 
             var headers = new Dictionary<string, TextLine>();
             var originalText = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
@@ -165,52 +184,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 : solution;
         }
 
-        private AnalyzerConfigDocument FindOrGenerateEditorConfig(Solution solution)
+        private AnalyzerConfigDocument FindOrGenerateEditorConfig()
         {
-            if (_project.AnalyzerConfigDocuments.Any())
-            {
-                var diagnosticFilePath = PathUtilities.GetDirectoryName(_diagnostic.Location.SourceTree?.FilePath ?? _project.FilePath);
-                if (!PathUtilities.IsAbsolute(diagnosticFilePath))
-                {
-                    return null;
-                }
-
-                // Currently, we use a simple heuristic to find existing .editorconfig file.
-                // We start from the directory of the source file where the diagnostic was reported and walk up
-                // the directory tree to find an .editorconfig file.
-                // In future, we might change this algorithm, or allow end users to customize it based on options.
-
-                var bestPath = string.Empty;
-                AnalyzerConfigDocument bestAnalyzerConfigDocument = null;
-                foreach (var analyzerConfigDocument in _project.AnalyzerConfigDocuments)
-                {
-                    var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
-                    if (diagnosticFilePath.StartsWith(analyzerConfigDirectory) &&
-                        analyzerConfigDirectory.Length > bestPath.Length)
-                    {
-                        bestPath = analyzerConfigDirectory;
-                        bestAnalyzerConfigDocument = analyzerConfigDocument;
-                    }
-                }
-
-                if (bestAnalyzerConfigDocument != null)
-                {
-                    return bestAnalyzerConfigDocument;
-                }
-            }
-
-            // Did not find any existing .editorconfig, so create one at root of the project.
-            if (!PathUtilities.IsAbsolute(_project.FilePath))
+            var analyzerConfigPath = _project.TryGetAnalyzerConfigPathForDiagnosticConfiguration(_diagnostic);
+            if (analyzerConfigPath == null)
             {
                 return null;
             }
 
-            var projectFilePath = PathUtilities.GetDirectoryName(_project.FilePath);
-            var newEditorConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectFilePath, ".editorconfig");
-            var id = DocumentId.CreateNewId(_project.Id);
-            var documentInfo = DocumentInfo.Create(id, ".editorconfig", filePath: newEditorConfigPath);
-            var newSolution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
-            return newSolution.GetProject(_project.Id).GetAnalyzerConfigDocument(id);
+            return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
         }
 
         private static ImmutableArray<(string optionName, string currentOptionValue, string currentSeverity)> GetCodeStyleOptionValuesForDiagnostic(
