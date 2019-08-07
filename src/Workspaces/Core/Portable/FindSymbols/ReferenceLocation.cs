@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -47,6 +48,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal SymbolUsageInfo SymbolUsageInfo { get; }
 
         /// <summary>
+        /// Containing Type info for this reference.
+        /// </summary>
+        internal ContainingTypeInfo ContainingTypeInfo { get; }
+        internal ContainingMemberInfo ContainingMemberInfo { get; }
+
+        /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
         /// In this case, it's acceptable for a presenter to not show this location and
         /// intead prefer the latter.
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ContainingTypeInfo containingTypeInfo, ContainingMemberInfo containingMemberInfo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
@@ -63,6 +70,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
+            this.ContainingTypeInfo = containingTypeInfo;
+            this.ContainingMemberInfo = containingMemberInfo;
             this.CandidateReason = candidateReason;
         }
 

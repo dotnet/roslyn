@@ -77,6 +77,16 @@
         <target state="translated">為規則運算式添加色彩</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素無效。</target>

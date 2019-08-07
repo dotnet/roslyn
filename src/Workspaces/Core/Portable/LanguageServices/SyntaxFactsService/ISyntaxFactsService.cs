@@ -360,6 +360,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
 
         SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position);
+
+        string GetNameOfContainingType(SyntaxNode node);
+
+        string GetNameOfContainingMember(SyntaxNode node);
         SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node);
 

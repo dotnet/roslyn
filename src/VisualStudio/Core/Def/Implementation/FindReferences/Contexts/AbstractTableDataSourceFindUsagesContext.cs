@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
+                 ImmutableArray<AbstractCustomColumnDefinition> customColumns)
             {
                 presenter.AssertIsForeground();
 
@@ -131,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// </summary>
             private static Dictionary<string, ColumnState2> GetInitialCustomColumnStates(
                 IReadOnlyList<ColumnState> allColumnStates,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
             {
                 var customColumnStatesMap = new Dictionary<string, ColumnState2>(customColumns.Length);
                 var customColumnNames = new HashSet<string>(customColumns.Select(c => c.Name));
@@ -325,7 +326,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
-                ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
+                ImmutableDictionary<string, ImmutableArray<string>> referenceUsageInfo,
+                string containingTypeInfo,
+                string containingMemberInfo)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -340,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(customColumnsDataOpt));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(referenceUsageInfo, containingTypeInfo, containingMemberInfo));
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -368,7 +371,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
+            private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt, string containingType, string containingMember)
+            {
+                var result = GetAggregatedUsageColumnData(customColumnsDataOpt);
+
+                if (containingType != null)
+                {
+                    result = result.Add(nameof(ContainingTypeInfo), containingType);
+                }
+
+                if (containingMember != null)
+                {
+                    return result.Add(nameof(ContainingMemberInfo), containingMember);
+                }
+
+                return result;
+            }
+
+            private ImmutableDictionary<string, string> GetAggregatedUsageColumnData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt)
             {
                 // Aggregate dictionary values to get column display values. For example, below input:
                 //
@@ -384,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //   { "Column2", "Value3, Value4" }
                 // }
 
-                if (customColumnsDataOpt == null || customColumnsDataOpt.Count == 0)
+                if (customColumnsDataOpt == null || !customColumnsDataOpt.Any())
                 {
                     return ImmutableDictionary<string, string>.Empty;
                 }
@@ -394,8 +414,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     elementSelector: kvp => GetCustomColumn(kvp.Key).GetDisplayStringForColumnValues(kvp.Value));
 
                 // Local functions.
-                AbstractFindUsagesCustomColumnDefinition GetCustomColumn(string columnName)
-                    => (AbstractFindUsagesCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(columnName);
+                AbstractCustomColumnDefinition GetCustomColumn(string columnName)
+                    => (AbstractCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(columnName);
             }
 
             private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -411,12 +431,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> customData)
+            private void UpdateUsageColumnVisibility(ImmutableDictionary<string, ImmutableArray<string>> customUsageData)
             {
                 // Check if we have any custom reference data to display.
                 // columnDefinitionManager will be null under unit test
                 var columnDefinitionManager = TableControl.ColumnDefinitionManager;
-                if (customData.Count == 0 || columnDefinitionManager == null)
+                if (customUsageData.Count == 0 || columnDefinitionManager == null)
                 {
                     return;
                 }
@@ -428,13 +448,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     lock (Gate)
                     {
-                        foreach (var customColumnName in customData.Keys)
+                        foreach (var customColumnName in customUsageData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
+                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractCustomColumnDefinition;
                             if (customColumnDefinition == null)
                             {
-                                Debug.Fail($"{nameof(SourceReferenceItem.ReferenceInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractFindUsagesCustomColumnDefinition)}' with this name.");
+                                Debug.Fail($"{nameof(SourceReferenceItem.ReferenceUsageInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractCustomColumnDefinition)}' with this name.");
                                 continue;
                             }
 
@@ -481,9 +501,77 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
+            private void UpdateCustomColumnVisibility(string key)
+            {
+                // Check if we have any custom reference data to display.
+                // columnDefinitionManager will be null under unit test
+                var columnDefinitionManager = TableControl.ColumnDefinitionManager;
+                if (columnDefinitionManager == null)
+                {
+                    return;
+                }
+
+                // Get the new column states corresponding to the custom columns to display for custom data.
+                var newColumnStates = ArrayBuilder<ColumnState2>.GetInstance();
+
+                try
+                {
+                    lock (Gate)
+                    {
+                        // Get the matching custom column.
+                        var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(key) as AbstractCustomColumnDefinition;
+                        if (customColumnDefinition == null)
+                        {
+                            Debug.Fail($"{nameof(SourceReferenceItem.ReferenceUsageInfo)} has a key '{key}', but there is no exported '{nameof(AbstractCustomColumnDefinition)}' with this name.");
+                        }
+
+                        // Ensure that we flip the visibility to true for the custom column.
+                        // Note that the actual UI update happens outside the lock when we
+                        // invoke "TableControl.SetColumnStates" below.
+                        ColumnState2 newColumnStateOpt = null;
+                        if (_customColumnTitleToStatesMap.TryGetValue(customColumnDefinition.Name, out var columnState))
+                        {
+                            if (!columnState.IsVisible)
+                            {
+                                newColumnStateOpt = new ColumnState2(columnState.Name, isVisible: true, columnState.Width,
+                                    columnState.SortPriority, columnState.DescendingSort, columnState.GroupingPriority);
+                            }
+                        }
+                        else
+                        {
+                            newColumnStateOpt = customColumnDefinition.DefaultColumnState;
+                        }
+
+                        if (newColumnStateOpt != null)
+                        {
+                            _customColumnTitleToStatesMap[customColumnDefinition.Name] = newColumnStateOpt;
+
+                            newColumnStates.Add(newColumnStateOpt);
+                        }
+                    }
+
+                    // Update the column states if required.
+                    if (newColumnStates.Count > 0)
+                    {
+                        // SetColumnStates API forces a switch to UI thread, so it should be safe to call
+                        // from a background thread here.
+                        // Also note that we will call it only once for each new custom column to add for
+                        // each find references query - the lock above guarantees that newColumnStatesOpt is
+                        // going to be non-null only for the first result that has a non-empty column value.
+                        TableControl.SetColumnStates(newColumnStates.ToImmutable());
+                    }
+                }
+                finally
+                {
+                    newColumnStates.Free();
+                }
+            }
+
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                UpdateCustomColumnsVisibility(reference.ReferenceInfo);
+                UpdateUsageColumnVisibility(reference.ReferenceUsageInfo);
+                UpdateCustomColumnVisibility(nameof(ContainingTypeInfo));
+                UpdateCustomColumnVisibility(nameof(ContainingMemberInfo));
                 return OnReferenceFoundWorkerAsync(reference);
             }
 

@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -143,6 +144,16 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    //internal class SerializableContainingTypeInfo
+    //{
+    //    public string containingTypeInfo;
+
+    //    internal static SerializableContainingTypeInfo Dehydrate(ContainingTypeInfo containingTypeInfo)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+
     internal class SerializableReferenceLocation
     {
         public DocumentId Document { get; set; }
@@ -155,6 +166,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
+        public ContainingTypeInfo ContainingTypeInfo { get; set; }
+        public ContainingMemberInfo ContainingMemberInfo { get; set; }
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
@@ -167,6 +180,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
+                ContainingTypeInfo = referenceLocation.ContainingTypeInfo,
+                ContainingMemberInfo = referenceLocation.ContainingMemberInfo,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -177,12 +192,16 @@ namespace Microsoft.CodeAnalysis.Remote
             var document = solution.GetDocument(this.Document);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
+            var containingTypeInfo = this.ContainingTypeInfo;
+            var containingMemberInfo = this.ContainingMemberInfo;
             return new ReferenceLocation(
                 document,
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
+                containingTypeInfo: containingTypeInfo,
+                containingMemberInfo: containingMemberInfo,
                 candidateReason: CandidateReason);
         }
 

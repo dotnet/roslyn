@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
                 SourceText lineText,
-                ImmutableDictionary<string, string> customColumnsData)
+                ImmutableDictionary<string, string> referenceUsageInfo)
                 : base(context,
                       definitionBucket,
                       documentName,
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
-                _customColumnsData = customColumnsData;
+                _customColumnsData = referenceUsageInfo;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()

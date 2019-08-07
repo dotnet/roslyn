@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
                 : base(presenter, findReferencesWindow, customColumns)
             {
             }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, referenceUsageInfo: null, containingTypeInfo: null, containingMemberInfo: null).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -108,7 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     bucket => TryCreateDocumentSpanEntryAsync(
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
-                        reference.ReferenceInfo),
+                        reference.ReferenceUsageInfo,
+                        reference.ContainingTypeInfo,
+                        reference.ContainingMemberInfo),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -228,6 +229,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var locations = ArrayBuilder<FinderLocation>.GetInstance();
             foreach (var token in tokens)
@@ -243,10 +245,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                         var location = token.GetLocation();
                         var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+
+                        var containingTypeInfo = GetContainingTypeInfo(token.Parent, syntaxFacts);
+                        var containingMemberInfo = GetContainingMemberInfo(token.Parent, syntaxFacts);
                         var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
-                            symbolUsageInfo, candidateReason: match.reason)));
+                            symbolUsageInfo, containingTypeInfo, containingMemberInfo, candidateReason: match.reason)));
                     }
                 }
             }
@@ -474,8 +479,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
+                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, candidateReason: CandidateReason.None)));
+                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, candidateReason: CandidateReason.None)));
                 }
             }
         }
@@ -505,8 +512,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
+                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, CandidateReason.None)));
                 }
             }
         }
@@ -531,8 +540,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
+                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, CandidateReason.None)));
                 }
             }
         }
@@ -697,6 +708,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return false;
+        }
+
+        internal static ContainingTypeInfo GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            return new ContainingTypeInfo(syntaxFacts.GetNameOfContainingType(node));
+        }
+
+        internal static ContainingMemberInfo GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            return new ContainingMemberInfo(syntaxFacts.GetNameOfContainingMember(node));
         }
     }
 

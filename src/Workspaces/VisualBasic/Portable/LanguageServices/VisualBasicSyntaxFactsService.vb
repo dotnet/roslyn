@@ -696,6 +696,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 FirstOrDefault(Function(n) TypeOf n Is TypeBlockSyntax OrElse TypeOf n Is DelegateStatementSyntax)
         End Function
 
+        Public Function GetNameOfContainingType(node As SyntaxNode) As String Implements ISyntaxFactsService.GetNameOfContainingType
+            Return Nothing
+        End Function
+
+        Public Function GetNameOfContainingMember(node As SyntaxNode) As String Implements ISyntaxFactsService.GetNameOfContainingMember
+            Return Nothing
+        End Function
+
         Public Function GetContainingVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
