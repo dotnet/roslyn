@@ -113,15 +113,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return false;
                 }
 
-                return !status.Status.IsInProgress;
+                return !status.IsInProgress;
             }
 
-            private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync(CancellationToken cancellationToken)
+            private async Task<IVsOperationProgressStageStatusForSolutionLoad> GetProgressStageStatusAsync(CancellationToken cancellationToken)
             {
                 var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false)
                                                     .WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+                return service?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
             }
 
             private async Task EnsureInitializationAsync(CancellationToken cancellationToken)
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return;
                     }
 
-                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
+                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.InProgress);
                 }
             }
         }
