@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: ErrorTypeSymbol.UnknownResultType);
                 }
 
-                // The stackalloc instruction requires that the evaluation tack contains only its parameter when executed.
+                // The stackalloc instruction requires that the evaluation stack contains only its parameter when executed.
                 // We arrange to clear the stack by wrapping it in a SpillSequence, which will cause pending computations
                 // to be spilled, and also by storing the result in a temporary local, so that the result does not get
                 // hoisted/spilled into some state machine.  If that temp local needs to be spilled that will result in an
