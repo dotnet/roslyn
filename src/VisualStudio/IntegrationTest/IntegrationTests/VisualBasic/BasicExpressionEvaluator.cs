@@ -65,7 +65,7 @@ Module Module1
 End Module");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
+        [WpfFact()]
         public void ValidateLocalsWindow()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -93,7 +93,7 @@ End Module");
             VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
+        [WpfFact()]
         public void EvaluatePrimitiveValues()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -114,14 +114,14 @@ End Module");
             VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
+        [WpfFact()]
         public void EvaluateInvalidExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
+        [WpfFact()]
         public void StateMachineTypeParameters()
         {
             VisualStudio.Editor.SetText(@"
