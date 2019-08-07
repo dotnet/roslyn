@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
                 if (!analysisData.HasAnyAbstractValue &&
                     (forInterproceduralAnalysis || !_defaultPointsToValueGenerator.HasAnyTrackedEntity))
@@ -693,7 +693,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
 
-                HandleEscapingOperation(arrayCreation, initializer);
+                // We use the array initializer as the escaping operation instead of arrayCreation
+                // to ensure we have a unique escaping operation key for each initializer.
+                HandleEscapingOperation(initializer, initializer);
             }
 
             #region Visitor methods

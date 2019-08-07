@@ -9,8 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
+
+#if LEGACY_CODE_METRICS_MODE
+using Analyzer.Utilities.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -220,8 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return (cyclomaticComplexity, computationalComplexityMetrics);
-
-            bool hasConditionalLogic(IOperation operation)
+            static bool hasConditionalLogic(IOperation operation)
             {
                 switch (operation.Kind)
                 {
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             // Compat
-            bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
                 switch (namedType.SpecialType)
                 {

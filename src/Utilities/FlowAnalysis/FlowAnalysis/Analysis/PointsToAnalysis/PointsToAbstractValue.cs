@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -187,12 +187,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public PointsToAbstractValueKind Kind { get; }
         public NullAbstractValue NullState { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(HashUtilities.Combine(Locations));
-            builder.Add(HashUtilities.Combine(LValueCapturedOperations));
-            builder.Add(Kind.GetHashCode());
-            builder.Add(NullState.GetHashCode());
+            addPart(HashUtilities.Combine(Locations));
+            addPart(HashUtilities.Combine(LValueCapturedOperations));
+            addPart(Kind.GetHashCode());
+            addPart(NullState.GetHashCode());
         }
     }
 }

@@ -6,21 +6,20 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities
 {
     /// <summary>
     /// Helper for DisposeAnalysis.
     /// </summary>
-    public class DisposeAnalysisHelper
+    internal sealed class DisposeAnalysisHelper
     {
         private static readonly string[] s_disposeOwnershipTransferLikelyTypes = new string[]
             {
