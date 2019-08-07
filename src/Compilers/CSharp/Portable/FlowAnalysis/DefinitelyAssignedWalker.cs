@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A region analysis walker that computes the set of variables that are definitely assigned
     /// when a region is entered or exited.
     /// </summary>
-    internal class DefinitelyAssignedWalker : AbstractRegionDataFlowPass
+    internal sealed class DefinitelyAssignedWalker : AbstractRegionDataFlowPass
     {
         private readonly HashSet<Symbol> _definitelyAssignedOnEntry = new HashSet<Symbol>();
         private readonly HashSet<Symbol> _definitelyAssignedOnExit = new HashSet<Symbol>();
