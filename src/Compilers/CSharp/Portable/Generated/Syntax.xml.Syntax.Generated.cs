@@ -4109,17 +4109,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public AnonymousFunctionExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => WithAsyncKeywordCore(asyncKeyword);
     internal abstract AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword);
 
-    /// <summary>ExpressionSyntax or BlockSyntax representing the body of the lambda expression.</summary>
-    public abstract CSharpSyntaxNode Body { get; }
-    public AnonymousFunctionExpressionSyntax WithBody(CSharpSyntaxNode body) => WithBodyCore(body);
-    internal abstract AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body);
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public abstract BlockSyntax Block { get; }
+    public AnonymousFunctionExpressionSyntax WithBlock(BlockSyntax block) => WithBlockCore(block);
+    internal abstract AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block);
+
+    public AnonymousFunctionExpressionSyntax AddBlockStatements(params StatementSyntax[] items) => AddBlockStatementsCore(items);
+    internal abstract AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items);
+
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the anonymous function.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public abstract ExpressionSyntax ExpressionBody { get; }
+    public AnonymousFunctionExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => WithExpressionBodyCore(expressionBody);
+    internal abstract AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody);
   }
 
   /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
   public sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionExpressionSyntax
   {
     private ParameterListSyntax parameterList;
-    private CSharpSyntaxNode body;
+    private BlockSyntax block;
+    private ExpressionSyntax expressionBody;
 
     internal AnonymousMethodExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -4154,12 +4169,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    /// <summary>BlockSyntax node representing the body of the anonymous method.</summary>
-    public override CSharpSyntaxNode Body 
+    /// <summary>
+    /// BlockSyntax node representing the body of the anonymous function.
+    /// This will never be null.
+    /// </summary>
+    public override BlockSyntax Block 
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.block, 3);
+        }
+    }
+
+    /// <summary>
+    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for 
+    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// </summary>
+    public override ExpressionSyntax ExpressionBody 
+    {
+        get
+        {
+            return this.GetRed(ref this.expressionBody, 4);
         }
     }
 
@@ -4168,7 +4198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 2: return this.GetRed(ref this.parameterList, 2);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 3: return this.GetRed(ref this.block, 3);
+            case 4: return this.GetRed(ref this.expressionBody, 4);
             default: return null;
         }
     }
@@ -4177,7 +4208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 2: return this.parameterList;
-            case 3: return this.body;
+            case 3: return this.block;
+            case 4: return this.expressionBody;
             default: return null;
         }
     }
@@ -4192,11 +4224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitAnonymousMethodExpression(this);
     }
 
-    public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+    public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
     {
-        if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || body != this.Body)
+        if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
         {
-            var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, body);
+            var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -4209,29 +4241,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
     public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
-        return this.Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Body);
+        return this.Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
     }
 
     public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword)
     {
-        return this.Update(this.AsyncKeyword, delegateKeyword, this.ParameterList, this.Body);
+        return this.Update(this.AsyncKeyword, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
     }
 
     public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax parameterList)
     {
-        return this.Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Body);
+        return this.Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
     }
 
-    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block);
+    public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block)
     {
-        return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, body);
+        return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
+    }
+
+    internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody)
+    {
+        return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
     }
 
     public AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
         return this.WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
+    }
+    internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
+
+    public new AnonymousMethodExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
   }
 
@@ -4249,14 +4293,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal abstract LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken);
 
     public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
-    public new LambdaExpressionSyntax WithBody(CSharpSyntaxNode body) => (LambdaExpressionSyntax)WithBodyCore(body);
+    public new LambdaExpressionSyntax WithBlock(BlockSyntax block) => (LambdaExpressionSyntax)WithBlockCore(block);
+    public new LambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => (LambdaExpressionSyntax)WithExpressionBodyCore(expressionBody);
+
+    public new AnonymousFunctionExpressionSyntax AddBlockStatements(params StatementSyntax[] items) => AddBlockStatementsCore(items);
   }
 
   /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
   public sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyntax
   {
     private ParameterSyntax parameter;
-    private CSharpSyntaxNode body;
+    private BlockSyntax block;
+    private ExpressionSyntax expressionBody;
 
     internal SimpleLambdaExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -4291,12 +4339,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    /// <summary>SyntaxNode representing the body of the lambda expression.</summary>
-    public override CSharpSyntaxNode Body 
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public override BlockSyntax Block 
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.block, 3);
+        }
+    }
+
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public override ExpressionSyntax ExpressionBody 
+    {
+        get
+        {
+            return this.GetRed(ref this.expressionBody, 4);
         }
     }
 
@@ -4305,7 +4368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.GetRed(ref this.parameter, 1);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 3: return this.GetRed(ref this.block, 3);
+            case 4: return this.GetRed(ref this.expressionBody, 4);
             default: return null;
         }
     }
@@ -4314,7 +4378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.parameter;
-            case 3: return this.body;
+            case 3: return this.block;
+            case 4: return this.expressionBody;
             default: return null;
         }
     }
@@ -4329,11 +4394,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitSimpleLambdaExpression(this);
     }
 
-    public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
+    public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
     {
-        if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || body != this.Body)
+        if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
         {
-            var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, body);
+            var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -4346,24 +4411,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
     public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
-        return this.Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Body);
+        return this.Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
     }
 
     public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter)
     {
-        return this.Update(this.AsyncKeyword, parameter, this.ArrowToken, this.Body);
+        return this.Update(this.AsyncKeyword, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
     }
 
     internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
     public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
     {
-        return this.Update(this.AsyncKeyword, this.Parameter, arrowToken, this.Body);
+        return this.Update(this.AsyncKeyword, this.Parameter, arrowToken, this.Block, this.ExpressionBody);
     }
 
-    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new SimpleLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block);
+    public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax block)
     {
-        return this.Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, body);
+        return this.Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
+    }
+
+    internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody)
+    {
+        return this.Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, this.Block, expressionBody);
     }
 
     public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items)
@@ -4374,6 +4445,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items)
     {
         return this.WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
+    }
+    internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
+
+    public new SimpleLambdaExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
+    {
+        var block = this.Block ?? SyntaxFactory.Block();
+        return this.WithBlock(block.WithStatements(block.Statements.AddRange(items)));
     }
   }
 
@@ -4455,7 +4533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
   public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
   {
     private ParameterListSyntax parameterList;
-    private CSharpSyntaxNode body;
+    private BlockSyntax block;
+    private ExpressionSyntax expressionBody;
 
     internal ParenthesizedLambdaExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -4490,12 +4569,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    /// <summary>SyntaxNode representing the body of the lambda expression.</summary>
-    public override CSharpSyntaxNode Body 
+    /// <summary>
+    /// BlockSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public override BlockSyntax Block 
     {
         get
         {
-            return this.GetRed(ref this.body, 3);
+            return this.GetRed(ref this.block, 3);
+        }
+    }
+
+    /// <summary>
+    /// ExpressionSyntax node representing the body of the lambda.
+    /// Only one of Block or ExpressionBody will be non-null.
+    /// </summary>
+    public override ExpressionSyntax ExpressionBody 
+    {
+        get
+        {
+            return this.GetRed(ref this.expressionBody, 4);
         }
     }
 
@@ -4504,7 +4598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.GetRed(ref this.parameterList, 1);
-            case 3: return this.GetRed(ref this.body, 3);
+            case 3: return this.GetRed(ref this.block, 3);
+            case 4: return this.GetRed(ref this.expressionBody, 4);
             default: return null;
         }
     }
@@ -4513,7 +4608,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.parameterList;
-            case 3: return this.body;
+            case 3: return this.block;
+            case 4: return this.expressionBody;
             default: return null;
         }
     }
@@ -4528,11 +4624,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitParenthesizedLambdaExpression(this);
     }
 
-    public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
+    public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
     {
-        if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || body != this.Body)
+        if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
         {
-            var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, body);
+            var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -4545,29 +4641,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
     public new ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
-        return this.Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Body);
+        return this.Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
     }
 
     public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList)
     {
-        return this.Update(this.AsyncKeyword, parameterList, this.ArrowToken, this.Body);
+        return this.Update(this.AsyncKeyword, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
     }
 
     internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
     public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
     {
-        return this.Update(this.AsyncKeyword, this.ParameterList, arrowToken, this.Body);
+        return this.Update(this.AsyncKeyword, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
     }
 
-    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block);
+    public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax block)
     {
-        return this.Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, body);
+        return this.Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
+    }
+
+    internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody)
+    {
+        return this.Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
     }
 
     public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+    }
+    internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
+
+    public new ParenthesizedLambdaExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
+    {
+        var block = this.Block ?? SyntaxFactory.Block();
+        return this.WithBlock(block.WithStatements(block.Statements.AddRange(items)));
     }
   }
 

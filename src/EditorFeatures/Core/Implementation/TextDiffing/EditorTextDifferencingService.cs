@@ -17,13 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
     internal class EditorTextDifferencingService : IDocumentTextDifferencingService
     {
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
 
         [ImportingConstructor]
-        public EditorTextDifferencingService(ITextBufferFactoryService textBufferFactoryService, ITextDifferencingSelectorService differenceSelectorService)
+        public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
         {
-            _textBufferFactoryService = textBufferFactoryService;
             _differenceSelectorService = differenceSelectorService;
         }
 

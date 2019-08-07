@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestResetInteractive : ResetInteractive
     {
-        private IWaitIndicator _waitIndicator;
+        private readonly IWaitIndicator _waitIndicator;
 
-        private bool _buildSucceeds;
+        private readonly bool _buildSucceeds;
 
         internal int BuildProjectCount { get; private set; }
 

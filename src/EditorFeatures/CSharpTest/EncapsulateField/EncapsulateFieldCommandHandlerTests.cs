@@ -55,10 +55,8 @@ class C
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -98,10 +96,8 @@ class C
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -118,10 +114,8 @@ class$$ C
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertError();
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertError();
         }
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
@@ -181,10 +175,8 @@ class Program
 }
 ";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact]
@@ -197,7 +189,7 @@ class Program
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
@@ -207,19 +199,17 @@ class Program
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var handler = new EncapsulateFieldCommandHandler(workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
-                var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
-            }
+            var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
     }
 }
