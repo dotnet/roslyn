@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             await TestActionOnLinkedFiles(
                 workspace,
                 expectedText: expectedCode,
-                action: codeIssueOrRefactoring.CodeActions[0],
+                action: codeIssueOrRefactoring.CodeActions[0].action,
                 expectedPreviewContents: expectedCode);
         }
 
