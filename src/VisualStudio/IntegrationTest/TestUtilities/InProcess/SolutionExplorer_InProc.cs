@@ -419,7 +419,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static void WaitForDesignMode(EnvDTE.DTE dte)
         {
-#if TODO// https://github.com/dotnet/roslyn/issues/35965
             // This delay was originally added to address test failures in BasicEditAndContinue. When running
             // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
             //
@@ -453,7 +452,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new TimeoutException("Failed to enter design mode in a timely manner.");
                 }
             }
-#endif
         }
 
         private void CloseSolution()
