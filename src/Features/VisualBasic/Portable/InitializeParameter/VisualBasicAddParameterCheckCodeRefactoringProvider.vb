@@ -48,12 +48,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
-        Protected Overrides Function GetRefactoringsForAllParametersAsync(document As Document, parameter As IParameterSymbol, functionDeclaration As SyntaxNode, method As IMethodSymbol, blockStatementOpt As IBlockOperation, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
-            Throw New NotImplementedException()
-        End Function
-
-        Protected Overrides Function GetParameterNodeAtIndex(functionDeclaration As SyntaxNode, index As Integer) As SyntaxNode
-            Return Nothing
-        End Function
     End Class
 End Namespace

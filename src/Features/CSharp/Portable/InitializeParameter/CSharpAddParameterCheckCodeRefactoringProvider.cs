@@ -42,12 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
-        protected override ImmutableArray<SyntaxNode> GetParameters(SyntaxNode parameterNode)
-        {
-            var functionDeclaration = parameterNode?.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-            return InitializeParameterHelpers.GetParameters(functionDeclaration);
-        }
-
         protected override bool CanOffer(SyntaxNode body)
         {
             if (InitializeParameterHelpers.IsExpressionBody(body))
@@ -59,20 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             return true;
-        }
-
-        protected override SyntaxNode GetParameterNodeAtIndex(SyntaxNode functionDecleration, int ordinal)
-        {
-            var listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration);
-
-            return listOfParameters.IsDefault || listOfParameters.Length < ordinal || listOfParameters[ordinal] == null
-                ? null
-                : listOfParameters[ordinal];
-        }
-
-        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
-            if (listOfParametersOrdinals.Count < 2)
+            if (listOfParametersOrdinals.Any())
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -56,52 +56,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                  FeaturesResources.Add_null_checks_for_all_parameters,
-                     c => DocumentRetriever(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, c)));
-
-            // DocumentRetriever updates all necessary variables per each parameter and calls for AddNullCheckAsync
-            async Task<Document> DocumentRetriever(
-                Document document, SyntaxNode functionDeclaration, IBlockOperation blockStatementOpt, List<int> listOfParametersOrdinals, CancellationToken cancellationToken)
-            {
-                foreach (var index in listOfParametersOrdinals)
-                {
-                    // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var token = root.FindToken(position);
-                    var firstparameterNode = GetParameterNode(token, position);
-                    functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-
-                    var currentNode = GetParameterNodeAtIndex(functionDeclaration, index);
-                    if (currentNode == null)
-                    {
-                        continue;
-                    }
-
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-                    if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
-                    {
-                        continue;
-                    }
-
-                    // If parameter is a string, default check would be IsNullOrEmpty - updates document
-                    if (parameter.Type.SpecialType == SpecialType.System_String)
-                    {
-                        document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
-                        continue;
-                    }
-
-                    // For all other parameters, add null check - updates document
-                    document = await AddNullCheckAsync(document, parameter, functionDeclaration,
-                        (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
-                }
-
-                return document;
-            }
+                     c => UpdateDocumentForRefactoring(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
         }
-
-        protected abstract SyntaxNode GetParameterNodeAtIndex(SyntaxNode functionDeclaration, int index);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -139,7 +95,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract bool CanOffer(SyntaxNode body);
 
-        private async Task<Document> UpdateDocumetForRefactoring(
+        private async Task<Document> UpdateDocumentForRefactoring(
             Document document,
             SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
@@ -156,12 +112,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var firstparameterNode = GetParameterNode(token, position);
                 functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
 
-                var currentNode = GetParameterNodeAtIndex(functionDeclaration, index);
-                if (currentNode == null)
-                {
-                    continue;
-                }
-
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var parameterNodes = generator.GetParameters(functionDeclaration);
+                var currentNode = parameterNodes[index];
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -265,7 +218,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // people do strange things in their constructors.
             if (blockStatementOpt != null)
             {
-
                 if (!CanOffer(blockStatementOpt.Syntax))
                 {
                     return false;

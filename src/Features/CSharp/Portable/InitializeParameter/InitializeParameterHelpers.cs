@@ -18,20 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public static ImmutableArray<SyntaxNode> GetParameters(SyntaxNode functionDeclaration)
-        {
-            return functionDeclaration switch
-            {
-                null => default,
-                BaseMethodDeclarationSyntax methodDeclaration => methodDeclaration.ParameterList.Parameters.SelectAsArray(p => p as SyntaxNode),
-                LocalFunctionStatementSyntax localFunction => localFunction.ParameterList.Parameters.SelectAsArray(p => p as SyntaxNode),
-                AnonymousMethodExpressionSyntax anonymousMethodExpression => anonymousMethodExpression.ParameterList.Parameters.SelectAsArray(p => p as SyntaxNode),
-                SimpleLambdaExpressionSyntax simpleLambdaExpression => ImmutableArray.Create<SyntaxNode>(simpleLambdaExpression.Parameter),
-                ParenthesizedLambdaExpressionSyntax lambdaExpressionSyntax => lambdaExpressionSyntax.ParameterList.Parameters.SelectAsArray(p => p as SyntaxNode),
-                _ => throw ExceptionUtilities.UnexpectedValue(functionDeclaration),
-            };
-        }
-
         public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,45 +28,35 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
-        protected virtual ImmutableArray<SyntaxNode> GetParameters(SyntaxNode parameterNode)
-        {
-            return default;
-        }
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
-            IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var (document, textSpan, cancellationToken) = context;
             var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var firstparameterNode = GetParameterNode(token, position);
-
-            var parameterNodes = GetParameters(firstparameterNode);
-            if (parameterNodes.IsDefault)
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var firstParameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
+            if (firstParameterNode == null)
             {
                 return;
             }
 
+            var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var parameterNodes = generator.GetParameters(functionDeclaration);
+
             // List with parameterNodes that pass all checks
-            var listOfPotentiallyValidParametersNodes = new ImmutableArray<SyntaxNode>();
+            var listOfPotentiallyValidParametersNodes = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<SyntaxNode>.GetInstance();
             var counter = 0;
 
             foreach (var parameterNode in parameterNodes)
             {
                 ++counter;
-                if (parameterNode == null)
-                {
-                    return;
-                }
 
                 // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -80,7 +69,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
 
-                var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
                 if (functionDeclaration == null)
                 {
                     continue;
@@ -94,8 +83,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
                 }
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
                 // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
                 // so first we have to get the parameter symbol and then its containing method symbol
                 var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
@@ -104,7 +91,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     return;
                 }
 
-                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;  // foo(objact a,
+                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
                 if (methodSymbol.IsAbstract ||
                     methodSymbol.IsExtern ||
                     methodSymbol.PartialImplementationPart != null ||
@@ -122,31 +109,38 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     listOfPotentiallyValidParametersNodes.Add(parameterNode);
 
                     // For single parameter - Only offers for the parameter cursor is on
-                    if (firstparameterNode == parameterNode)
+                    if (firstParameterNode == parameterNode)
                     {
                         context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                            document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
                     }
 
                     // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
-                    if (listOfPotentiallyValidParametersNodes.Length > 1 && counter == parameterNodes.Count())
+                    if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count)
                     {
                         context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                            document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
+                            document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), position, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
         }
 
-        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
-        }
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+            Document document,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
+            IBlockOperation blockStatementOpt,
+            ImmutableArray<SyntaxNode> listOfParameterNodes,
+            int position,
+            CancellationToken cancellationToken);
 
-        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
-        }
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+            Document document,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol methodSymbol,
+            IBlockOperation blockStatementOpt,
+            CancellationToken cancellationToken);
 
         protected bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
