@@ -2288,13 +2288,13 @@ class C
             var peStream2 = new MemoryStream();
             var pdbStream = new MemoryStream();
 
-            var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
-            var emitResult2 = c.Emit(peStream: peStream2);
+            c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            c.Emit(peStream: peStream2);
 
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"

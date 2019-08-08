@@ -14,8 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [Fact]
-        public void StandalonePdb()
+        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
+        [InlineData(DebugInformationFormat.PortablePdb)]
+        [InlineData(DebugInformationFormat.Pdb)]
+        public void StandalonePdb(DebugInformationFormat format)
         {
             string source1 = WithWindowsLineBreaks(@"
 using System;
@@ -41,6 +43,7 @@ class C
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
             };
 
+            // note: embeddedSourceLength is the size of the compressed blob (including 4B for the header that contains the uncompressed size).
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -76,7 +79,7 @@ class C
     </method>
   </methods>
 </symbols>
-", embeddedTexts);
+", embeddedTexts, format: format);
         }
 
         [Fact]

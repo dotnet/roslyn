@@ -4923,7 +4923,8 @@ namespace M
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "ILASM doesn't support Portable PDBs")]
+        [WorkItem(2982, "https://github.com/dotnet/coreclr/issues/2982")]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
