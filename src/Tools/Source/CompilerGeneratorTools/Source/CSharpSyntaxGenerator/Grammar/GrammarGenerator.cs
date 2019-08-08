@@ -96,17 +96,17 @@ namespace CSharpSyntaxGenerator.Grammar
             // g4 file is considered legal (i.e. no rule references names of rules that don't exist).
 
             var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
-            var result = GenerateResult(new Dictionary<string, List<Production>>(nameToProductions)
+            var allProductions = new Dictionary<string, List<Production>>(nameToProductions)
             {
-                { IdentifierToken, lexicalProductions },
-                { CharacterLiteralToken, lexicalProductions },
-                { StringLiteralToken, lexicalProductions },
-                { NumericLiteralToken, lexicalProductions },
-                { InterpolatedStringTextToken, lexicalProductions },
-                { Token, lexicalProductions },
-                { XmlTextLiteralToken, lexicalProductions },
-            });
+                { Token, lexicalProductions }
+            };
 
+            foreach (var kind in LexicalTokens)
+            {
+                allProductions.Add(kind.ToString(), lexicalProductions);
+            }
+
+            var result = GenerateResult(allProductions);
             return result;
         }
 
@@ -352,16 +352,25 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         {
             switch (kind)
             {
-                case SyntaxKind.EndOfFileToken: return "EOF";
-                case SyntaxKind.EndOfDocumentationCommentToken: return null;
-                case SyntaxKind.EndOfDirectiveToken: return null;
-                case SyntaxKind.IdentifierToken: return Normalize(IdentifierToken);
-                case SyntaxKind.NumericLiteralToken: return Normalize(NumericLiteralToken);
-                case SyntaxKind.StringLiteralToken: return Normalize(StringLiteralToken);
-                case SyntaxKind.CharacterLiteralToken: return Normalize(CharacterLiteralToken);
-                case SyntaxKind.InterpolatedStringTextToken: return Normalize(InterpolatedStringTextToken);
-                case SyntaxKind.OmittedTypeArgumentToken: return Epsilon;
-                case SyntaxKind.OmittedArraySizeExpressionToken: return Epsilon;
+                case SyntaxKind.EndOfFileToken:
+                    // Emit the special antlr EOF token indicating this production should consume
+                    // the entire file.
+                    return "EOF";
+                case SyntaxKind.EndOfDocumentationCommentToken:
+                case SyntaxKind.EndOfDirectiveToken:
+                    // Don't emit anything in the production for these.
+                    return null;
+                case SyntaxKind.OmittedTypeArgumentToken:
+                case SyntaxKind.OmittedArraySizeExpressionToken:
+                    // Indicate that these productions are explicitly empty.
+                    return "/* epsilon */";
+            }
+
+            if (LexicalTokens.Contains(kind))
+            {
+                // Map these token kinds to just a synthesized rule that we state is
+                // declared elsewhere.
+                return Normalize(kind.ToString());
             }
 
             var result = SyntaxFacts.GetText(kind);
@@ -414,9 +423,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         // Special constants we use in a few places.
 
-        private const string CharacterLiteralToken = "CharacterLiteralToken";
+        private static readonly string CharacterLiteralToken = SyntaxKind.CharacterLiteralToken.ToString();
         private const string CSharpSyntaxNode = "CSharpSyntaxNode";
-        private const string Epsilon = "/* epsilon */";
         private const string IdentifierToken = "IdentifierToken";
         private const string InterpolatedStringTextToken = "InterpolatedStringTextToken";
         private const string Modifier = "Modifier";
@@ -430,8 +438,19 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Token = "Token";
         private const string XmlTextLiteralToken = "XmlTextLiteralToken";
 
-        private static SyntaxKind[] Modifiers
-            => new[]
+        private static readonly SyntaxKind[] LexicalTokens =
+            new[]
+            {
+                SyntaxKind.IdentifierToken,
+                SyntaxKind.CharacterLiteralToken,
+                SyntaxKind.StringLiteralToken,
+                SyntaxKind.NumericLiteralToken,
+                SyntaxKind.InterpolatedStringTextToken,
+                SyntaxKind.XmlTextLiteralToken,
+            };
+
+        private static readonly SyntaxKind[] Modifiers =
+            new[]
             {
                 SyntaxKind.AbstractKeyword,
                 SyntaxKind.SealedKeyword,
