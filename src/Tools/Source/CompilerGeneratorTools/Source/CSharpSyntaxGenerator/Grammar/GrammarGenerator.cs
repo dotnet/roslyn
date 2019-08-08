@@ -47,11 +47,11 @@ namespace CSharpSyntaxGenerator.Grammar
 
             foreach (var node in _nameToElement.Values)
             {
-                if (node.Base is string nodeBase && nodeBase != CSharpSyntaxNode)
+                if (node.Base is string nodeBase && nameToProductions.TryGetValue(nodeBase, out var baseProductions))
                 {
                     // If this node has a base-type, then have the base-type point to this node as a
                     // valid production for itself.
-                    nameToProductions[nodeBase].Add(RuleReference(node.Name));
+                    baseProductions.Add(RuleReference(node.Name));
                 }
 
                 if (node is Node)
@@ -298,7 +298,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 // which will be filtered out by the caller.
                 "bool" => new Production(""),
                 SyntaxToken => HandleSyntaxTokenField(field),
-                CSharpSyntaxNode => HandleCSharpSyntaxNodeField(field),
+                "CSharpSyntaxNode" => HandleCSharpSyntaxNodeField(field),
                 _ when field.Type.StartsWith("SeparatedSyntaxList") => HandleSeparatedSyntaxListField(field),
                 _ when field.Type.StartsWith("SyntaxList") => HandleSyntaxListField(field),
                 _ => RuleReference(field.Type),
@@ -416,7 +416,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         // Special constants we use in a few places.
 
-        private const string CSharpSyntaxNode = "CSharpSyntaxNode";
         private const string Modifier = "Modifier";
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
