@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
@@ -25,17 +22,23 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         where TLanguageService : class, ILanguageService
         where TCommandArgs : EditorCommandArgs
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly IThreadingContext _threadingContext;
 
         public abstract string DisplayName { get; }
 
         protected abstract string _scopeDescription { get; }
 
+        protected abstract FunctionId _functionId { get; }
+
         protected abstract Task FindAction(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
 
-        public AbstractGoToCommandHandler(IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        public AbstractGoToCommandHandler(
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
+            _threadingContext = threadingContext;
+            _streamingPresenter = streamingPresenter;
         }
 
         public VSCommanding.CommandState GetCommandState(TCommandArgs args)
@@ -64,14 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (caret.HasValue)
                     {
-                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                            context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                            context.OperationContext, _threadingContext);
                         if (document != null)
                         {
-                            if (service != null)
-                            {
-                                ExecuteCommand(document, caret.Value, service, context);
-                            }
+                            ExecuteCommand(document, caret.Value, service, context);
                             return true;
                         }
                     }
@@ -86,32 +86,32 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
            TLanguageService service,
            CommandExecutionContext context)
         {
-            var streamingPresenter = GetStreamingPresenter();
-
-            // We have all the cheap stuff, so let's do expensive stuff now
-            string messageToShow = null;
-
-            var userCancellationToken = context.OperationContext.UserCancellationToken;
-            using (Logger.LogBlock(FunctionId.CommandHandler_GoToBase, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
+            if (service != null)
             {
-                StreamingGoTo(
-                    document, caretPosition,
-                    service, streamingPresenter,
-                    userCancellationToken, out messageToShow);
-            }
+                // We have all the cheap stuff, so let's do expensive stuff now
+                string messageToShow = null;
 
-            if (messageToShow != null)
-            {
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                context.OperationContext.TakeOwnership();
-                var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(messageToShow,
-                    title: DisplayName,
-                    severity: NotificationSeverity.Information);
-            }
+                var userCancellationToken = context.OperationContext.UserCancellationToken;
+                using (Logger.LogBlock(_functionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
+                {
+                    StreamingGoTo(
+                        document, caretPosition,
+                        service, _streamingPresenter,
+                        userCancellationToken, out messageToShow);
+                }
 
+                if (messageToShow != null)
+                {
+                    // We are about to show a modal UI dialog so we should take over the command execution
+                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // and also will take it into consideration when measuring command handling duration.
+                    context.OperationContext.TakeOwnership();
+                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(messageToShow,
+                        title: EditorFeaturesResources.Go_To_Implementation,
+                        severity: NotificationSeverity.Information);
+                }
+            }
         }
 
         private void StreamingGoTo(
@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             out string messageToShow)
         {
             // We create our own context object, simply to capture all the definitions reported by 
-            // the individual IFindUsagesService.  Once we get the results back we'll then decide 
+            // the individual TLanguageService.  Once we get the results back we'll then decide 
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var context = new SimpleFindUsagesContext(cancellationToken);
             FindAction(service, document, caretPosition, context).Wait(cancellationToken);
 
-            // If finding implementations reported a message, then just stop and show that 
+            // If FindAction reported a message, then just stop and show that 
             // message to the user.
             messageToShow = context.Message;
             if (messageToShow != null)
@@ -140,18 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, context.SearchTitle, definitionItems).Wait(cancellationToken);
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }
