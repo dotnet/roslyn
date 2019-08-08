@@ -45,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             {
                 statements = statements.Add(exprOrStatement);
                 ReplaceWithBlock(editor, exprOrStatement, statements);
+
+                editor.ReplaceNode(exprOrStatement, editor.Generator.ScopeBlock(statements));
+                editor.ReplaceNode(
+                    exprOrStatement.Parent,
+                    (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
             }
             else if (parent is BlockSyntax || parent is SwitchSectionSyntax)
             {
@@ -59,9 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
             else
             {
-                Debug.Assert(parent is LambdaExpressionSyntax);
-                statements = statements.Add(generator.ReturnStatement(exprOrStatement));
-                ReplaceWithBlock(editor, exprOrStatement, statements);
+                var lambda = (LambdaExpressionSyntax)parent;
+                editor.ReplaceNode(
+                    lambda,
+                    lambda.WithBody((CSharpSyntaxNode)editor.Generator.ScopeBlock(statements))
+                          .WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
 
