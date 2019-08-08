@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
             }
+
             return true;
         }
 
