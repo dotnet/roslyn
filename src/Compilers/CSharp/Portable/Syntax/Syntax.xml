@@ -2787,8 +2787,10 @@
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
-    <Field Name="StaticKeyword" Type="SyntaxToken" Optional="true"/>
-    <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
+    <Choice>
+      <Field Name="StaticKeyword" Type="SyntaxToken" Optional="true"/>
+      <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
+    </Choice>
     <Field Name="Name" Type="NameSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -2918,8 +2920,10 @@
       <summary>Attribute argument syntax.</summary>
     </TypeComment>
     <Kind Name="AttributeArgument"/>
-    <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true"/>
-    <Field Name="NameColon" Type="NameColonSyntax" Optional="true"/>
+    <Choice>
+      <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true"/>
+      <Field Name="NameColon" Type="NameColonSyntax" Optional="true"/>
+    </Choice>
     <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>Gets the expression.</summary>
