@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.CustomColumn;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -377,12 +378,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 if (containingType != null)
                 {
-                    result = result.Add(nameof(ContainingTypeInfo), containingType);
+                    result = result.Add("ContainingTypeInfo", containingType);
                 }
 
                 if (containingMember != null)
                 {
-                    return result.Add(nameof(ContainingMemberInfo), containingMember);
+                    return result.Add("ContainingMemberInfo", containingMember);
                 }
 
                 return result;
@@ -570,8 +571,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
                 UpdateUsageColumnVisibility(reference.ReferenceUsageInfo);
-                UpdateCustomColumnVisibility(nameof(ContainingTypeInfo));
-                UpdateCustomColumnVisibility(nameof(ContainingMemberInfo));
+                UpdateCustomColumnVisibility("ContainingTypeInfo");
+                UpdateCustomColumnVisibility("ContainingMemberInfo");
                 return OnReferenceFoundWorkerAsync(reference);
             }
 

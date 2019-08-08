@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, SymbolUsageInfo.None, ContainingTypeInfo.None, ContainingMemberInfo.None)).ConfigureAwait(false);
+                    _definition, documentSpan, SymbolUsageInfo.None, CustomColumnInfo.None, CustomColumnInfo.None)).ConfigureAwait(false);
             }
 
             public Task ReportProgressAsync(int current, int maximum)

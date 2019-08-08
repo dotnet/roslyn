@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ContainingMember
+namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
 {
     /// <summary>
     /// Custom column to display the containing member for the All References window.
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ContainingMember
     [Name(ColumnName)]
     class ContainingMemberColumnDefinition : AbstractCustomColumnDefinition
     {
-        public const string ColumnName = nameof(ContainingMemberInfo);
+        public const string ColumnName = "ContainingMemberInfo";
 
         [ImportingConstructor]
         public ContainingMemberColumnDefinition()

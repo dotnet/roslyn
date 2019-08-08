@@ -16,8 +16,7 @@ using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
 using EnvDTE;
-using Microsoft.VisualStudio.LanguageServices.ContainingType;
-using Microsoft.VisualStudio.LanguageServices.ContainingMember;
+using Microsoft.VisualStudio.LanguageServices.CustomColumn;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {

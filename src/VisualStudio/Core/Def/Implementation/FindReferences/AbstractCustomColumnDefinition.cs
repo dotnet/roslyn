@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
 {
     /// <summary>
     /// Implementation of a custom, dynamic column for the Find All References window.

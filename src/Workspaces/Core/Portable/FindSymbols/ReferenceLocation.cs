@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Containing Type info for this reference.
         /// </summary>
-        internal ContainingTypeInfo ContainingTypeInfo { get; }
-        internal ContainingMemberInfo ContainingMemberInfo { get; }
+        internal CustomColumnInfo ContainingTypeInfo { get; }
+        internal CustomColumnInfo ContainingMemberInfo { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ContainingTypeInfo containingTypeInfo, ContainingMemberInfo containingMemberInfo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, CustomColumnInfo containingTypeInfo, CustomColumnInfo containingMemberInfo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
 {
     /// <summary>
     /// Custom column to display the reference kind/usage info for the Find All References window.

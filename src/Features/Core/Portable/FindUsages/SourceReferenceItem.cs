@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferenceUsageInfo = referenceInfo ?? UsageColumnInfoMap.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ContainingTypeInfo containingTypeInfo, ContainingMemberInfo containingMemberInfo)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, CustomColumnInfo containingTypeInfo, CustomColumnInfo containingMemberInfo)
             : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            ContainingTypeInfo = containingTypeInfo.typeInfo;
-            ContainingMemberInfo = containingMemberInfo.memberInfo;
+            ContainingTypeInfo = containingTypeInfo.columnValue;
+            ContainingMemberInfo = containingMemberInfo.columnValue;
         }
 
         private static UsageColumnInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)

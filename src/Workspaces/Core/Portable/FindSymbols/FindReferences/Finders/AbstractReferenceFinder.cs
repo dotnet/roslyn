@@ -710,14 +710,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        internal static ContainingTypeInfo GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static CustomColumnInfo GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            return new ContainingTypeInfo(syntaxFacts.GetNameOfContainingType(node));
+            return new CustomColumnInfo(syntaxFacts.GetNameOfContainingType(node));
         }
 
-        internal static ContainingMemberInfo GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static CustomColumnInfo GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            return new ContainingMemberInfo(syntaxFacts.GetNameOfContainingMember(node));
+            return new CustomColumnInfo(syntaxFacts.GetNameOfContainingMember(node));
         }
     }
 

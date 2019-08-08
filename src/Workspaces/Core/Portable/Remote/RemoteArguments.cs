@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
-        public ContainingTypeInfo ContainingTypeInfo { get; set; }
-        public ContainingMemberInfo ContainingMemberInfo { get; set; }
+        public CustomColumnInfo ContainingTypeInfo { get; set; }
+        public CustomColumnInfo ContainingMemberInfo { get; set; }
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(

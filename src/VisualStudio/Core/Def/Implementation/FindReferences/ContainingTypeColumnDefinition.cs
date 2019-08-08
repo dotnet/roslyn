@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ContainingType
+namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
 {
     /// <summary>   
     /// Custom column to display the containing type for the All References window.
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ContainingType
     [Name(ColumnName)]
     class ContainingTypeColumnDefinition : AbstractCustomColumnDefinition
     {
-        public const string ColumnName = nameof(ContainingTypeInfo);
+        public const string ColumnName = "ContainingTypeInfo";
 
         [ImportingConstructor]
         public ContainingTypeColumnDefinition()
