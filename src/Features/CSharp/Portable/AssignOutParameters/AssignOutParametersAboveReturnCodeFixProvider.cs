@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             var parent = exprOrStatement.Parent;
             if (parent.IsEmbeddedStatementOwner())
             {
-                statements = statements.Add(exprOrStatement);
-                ReplaceWithBlock(editor, exprOrStatement, statements);
-
-                editor.ReplaceNode(exprOrStatement, editor.Generator.ScopeBlock(statements));
+                var newBody = editor.Generator.ScopeBlock(statements.Add(exprOrStatement));
+                editor.ReplaceNode(exprOrStatement, newBody);
                 editor.ReplaceNode(
                     exprOrStatement.Parent,
                     (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
@@ -65,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             else
             {
                 var lambda = (LambdaExpressionSyntax)parent;
+                var newBody = editor.Generator.ScopeBlock(statements.Add(generator.ReturnStatement(exprOrStatement)));
                 editor.ReplaceNode(
                     lambda,
-                    lambda.WithBody((CSharpSyntaxNode)editor.Generator.ScopeBlock(statements))
+                    lambda.WithBody((CSharpSyntaxNode)newBody)
                           .WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
