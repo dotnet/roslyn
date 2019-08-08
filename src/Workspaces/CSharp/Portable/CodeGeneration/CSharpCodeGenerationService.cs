@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
@@ -278,57 +277,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            SyntaxNode finalMember;
+            var s_generator = CSharpSyntaxGenerator.Instance;
+            var currentParameterList = s_generator.GetParameters(destinationMember);
 
-
-            //Also supports local function statement syntax 
-            switch (destinationMember)
+            if (currentParameterList == null)
             {
-                case MemberDeclarationSyntax memberDeclaration:
-                    finalMember = memberDeclaration.WithParameterList(ParameterListHelper(parameters, options, memberDeclaration.GetParameterList()));
-                    break;
-                case LocalFunctionStatementSyntax localfunction:
-                    finalMember = localfunction.WithParameterList((ParameterListSyntax)ParameterListHelper(parameters, options, localfunction.ParameterList));
-                    break;
-                default:
-                    return destinationMember;
+                return destinationMember;
             }
 
+            var currentParamsCount = currentParameterList.Count;
+            var seenOptional = currentParamsCount > 0 && ((ParameterSyntax)currentParameterList[currentParamsCount - 1]).Default != null;
+            var isFirstParam = currentParamsCount == 0;
+            var newParams = ArrayBuilder<SyntaxNode>.GetInstance();
 
-
-            return Cast<TDeclarationNode>(finalMember);
-        }
-
-
-
-        private static BaseParameterListSyntax ParameterListHelper(IEnumerable<IParameterSymbol> parameters, CodeGenerationOptions options, BaseParameterListSyntax currentParameterList)
-        {
-            int currentParamsCount = currentParameterList.Parameters.Count;
-            bool seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
-            bool isFirstParam = currentParamsCount == 0;
-
-
-
-            var parameterNodesAndTokens = currentParameterList.Parameters.GetWithSeparators().ToList();
             foreach (var parameter in parameters)
             {
-                if (parameterNodesAndTokens.Count > 0 && parameterNodesAndTokens.Last().Kind() != SyntaxKind.CommaToken)
-                {
-                    parameterNodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-                }
-
-
-
                 var parameterSyntax = ParameterGenerator.GetParameter(parameter, options, isExplicit: false, isFirstParam: isFirstParam, seenOptional: seenOptional);
-                parameterNodesAndTokens.Add(parameterSyntax);
+
                 isFirstParam = false;
                 seenOptional = seenOptional || parameterSyntax.Default != null;
+                newParams.Add(parameterSyntax);
+
             }
 
+            var finalMember = s_generator.AddParameters(destinationMember, newParams);
 
-
-            var finalParameterList = currentParameterList.WithParameters(SyntaxFactory.SeparatedList<ParameterSyntax>(parameterNodesAndTokens));
-            return finalParameterList;
+            return Cast<TDeclarationNode>(finalMember);
         }
 
         public override TDeclarationNode AddAttributes<TDeclarationNode>(

@@ -2975,6 +2975,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Passes in local variables explicitly in a static local function.
+        /// </summary>
+        internal static string Pass_variable_explicitly_in_local_static_function {
+            get {
+                return ResourceManager.GetString("Pass_variable_explicitly_in_local_static_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;Pending&gt;.
         /// </summary>
         internal static string Pending {

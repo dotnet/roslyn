@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,56 +17,32 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-
-
-
-namespace Microsoft.CodeAnalysis.CSharp.GetCapturedVariables
+namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
     [Shared]
-    [ExportLanguageService(typeof(GetCaptures), LanguageNames.CSharp)]
-    internal class GetCaptures : ILanguageService
+    [ExportLanguageService(typeof(MakeLocalFunctionStaticService), LanguageNames.CSharp)]
+    internal sealed class MakeLocalFunctionStaticService : ILanguageService
     {
         private static readonly char[] s_underscore = { '_' };
-        private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
+        private readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
-
-
-        internal async Task<Solution> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localfunction, CancellationToken cancellationToken)
+        internal async Task<Document> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localfunction, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-            if (semanticModel == null)
-            {
-                return document.Project.Solution;
-            }
-
-
-
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localfunction, cancellationToken);
             var dataFlow = semanticModel.AnalyzeDataFlow(localfunction);
             var captures = dataFlow.CapturedInside;
 
-
-
-
-            var parameters = DetermineParameters(captures);  
-
-
-
+            var parameters = CreateParameterSymbol(captures);
 
             //Finds all the call sites of the local function
             var workspace = document.Project.Solution.Workspace;
             var arrayNode = await SymbolFinder.FindReferencesAsync(localFunctionSymbol, document.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+            var rootOne = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(rootOne, s_generator);
 
 
-
-            //Initializes a dictionary to replace the nodes of the call sites to be filled with arguments
-            Dictionary<SyntaxNode, SyntaxNode> dict = new Dictionary<SyntaxNode, SyntaxNode>();
-
-
-
-
-            //keep trivia
             foreach (var referenceSymbol in arrayNode)
             {
                 foreach (var location in referenceSymbol.Locations)
@@ -75,48 +51,30 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCapturedVariables
                     var syntaxNode = root.FindNode(location.Location.SourceSpan); //Node for the identifier syntax
 
 
-
-
                     var invocation = (syntaxNode as IdentifierNameSyntax).Parent as InvocationExpressionSyntax;
                     if (invocation == null)
                     {
-                        return document.Project.Solution;
+                        return document;
                     }
 
-
-
-                    var arg_List = invocation.ArgumentList;
+                    var argList = invocation.ArgumentList;
                     List<ArgumentSyntax> x = new List<ArgumentSyntax>();
-
-
 
                     foreach (var parameter in parameters)
                     {
 
-
-
-
                         var newArgument = GenerateArgument(parameter, parameter.Name, false);
-
-
-
                         x.Add(newArgument as ArgumentSyntax);
                     }
 
 
-
-                    var newArgList = arg_List.WithArguments(arg_List.Arguments.AddRange(x));
+                    var newArgList = argList.WithArguments(argList.Arguments.AddRange(x));
                     var newInvocation = invocation.WithArgumentList(newArgList);
 
+                    editor.ReplaceNode(invocation, newInvocation);
 
-
-                    dict.Add(invocation, newInvocation);
                 }
             }
-
-
-
-
             //Updates the declaration with the variables passed in
             var newLF = CodeGenerator.AddParameterDeclarations(localfunction, parameters, workspace);
 
@@ -124,34 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCapturedVariables
             var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
             var LFWithStatic = s_generator.WithModifiers(newLF, modifiers);
 
+            editor.ReplaceNode(localfunction, LFWithStatic);
 
-            dict.Add(localfunction, LFWithStatic);
-            var syntaxTree = localfunction.SyntaxTree;
-
-
-
-            var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNodes(dict.Keys, (invocation, _) => dict[invocation]);
+            var newRoot = editor.GetChangedRoot();
             var newDocument = document.WithSyntaxRoot(newRoot);
 
+            return newDocument;
 
-
-            return newDocument.Project.Solution;
-
-
-
-            //Gets all the variables in the local function and its attributes and puts them in an array
-            static ImmutableArray<IParameterSymbol> DetermineParameters(ImmutableArray<ISymbol> captures)
+            //Creates a new parameter symbol for all variables captured in the local function
+            static ImmutableArray<IParameterSymbol> CreateParameterSymbol(ImmutableArray<ISymbol> captures)
             {
-                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
-
-
+                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance(captures.Length);
 
                 foreach (var symbol in captures)
                 {
-
-
-
-
                     var type = symbol.GetSymbolType();
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
@@ -161,29 +105,23 @@ namespace Microsoft.CodeAnalysis.CSharp.GetCapturedVariables
                         name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
                 }
 
-
-
                 return parameters.ToImmutableAndFree();
-
-
-
             }
-
-
 
         }
 
+        //Helper method to get all the variables captured inside the local function
+        internal bool TryGetCapturesAsync(SemanticModel semanticModel, LocalFunctionStatementSyntax localfunction, out ImmutableArray<ISymbol> captures)
+        {
+            var dataFlow = semanticModel.AnalyzeDataFlow(localfunction);
+            captures = dataFlow.CapturedInside;
+            return dataFlow.Succeeded && captures.Length == 0;
+        }
 
 
         internal SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
             => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
-
-
-
-
-
     }
 
-
-
 }
+
