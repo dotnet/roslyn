@@ -45,11 +45,11 @@ namespace CSharpSyntaxGenerator.Grammar
 
             foreach (var node in nodes)
             {
-                if (node.Base is string base_ && base_ != CSharpSyntaxNode)
+                if (node.Base is string nodeBase && nodeBase != CSharpSyntaxNode)
                 {
                     // If this node has a base-type, then have the base-type point to this node as a
                     // valid production for itself.
-                    nameToProductions[base_].Add(RuleReference(node.Name));
+                    nameToProductions[nodeBase].Add(RuleReference(node.Name));
                 }
 
                 if (node is Node)
