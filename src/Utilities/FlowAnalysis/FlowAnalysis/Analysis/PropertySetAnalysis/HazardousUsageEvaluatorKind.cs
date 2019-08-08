@@ -21,5 +21,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Evaluated at field and property initialization, or field or property asssignments.
         /// </summary>
         Initialization,
+
+        /// <summary>
+        /// Evaluated at argument passing.
+        /// </summary>
+        Argument,
     }
 }
