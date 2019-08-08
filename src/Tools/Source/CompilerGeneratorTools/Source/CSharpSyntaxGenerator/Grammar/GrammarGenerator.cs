@@ -335,7 +335,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 "Commas" => new Production("','"),
                 "Modifiers" => RuleReference(Modifier),
                 "Tokens" => new Production(Normalize(Token)),
-                "TextTokens" => new Production(Normalize(XmlTextLiteralToken)),
+                "TextTokens" => new Production(Normalize("XmlTextLiteralToken")),
                 _ => RuleReference(field.Type[("SyntaxList".Length + 1)..^1])
             };
 
@@ -423,7 +423,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
         private const string Token = "Token";
-        private const string XmlTextLiteralToken = "XmlTextLiteralToken";
 
         private static readonly ImmutableArray<SyntaxKind> LexicalTokens = ImmutableArray.Create(
             SyntaxKind.IdentifierToken,
