@@ -5,7 +5,7 @@ jobs:
 - job:
   displayName: Promote Build
   dependsOn: setupMaestroVars
-  condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], ${{ parameters.ChannelId }})
+  condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', ${{ parameters.ChannelId }}))
   variables:
     - name: BARBuildId
       value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
