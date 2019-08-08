@@ -237,8 +237,8 @@ public class C<S>
         <constant name=""U4"" value=""0"" type=""UInt32"" />
         <constant name=""I8"" value=""0"" type=""Int64"" />
         <constant name=""U8"" value=""0"" type=""UInt64"" />
-        <constant name=""R4"" value=""0"" type=""Single"" />
-        <constant name=""R8"" value=""0"" type=""Double"" />
+        <constant name=""R4"" value=""0x00000000"" type=""Single"" />
+        <constant name=""R8"" value=""0x0000000000000000"" type=""Double"" />
         <constant name=""EI1"" value=""0"" signature=""EnumI1{Int32}"" />
         <constant name=""EU1"" value=""0"" signature=""EnumU1{Int32}"" />
         <constant name=""EI2"" value=""0"" signature=""EnumI2{Int32}"" />
@@ -499,8 +499,8 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""o"" value=""null"" type=""Object"" />
         <constant name=""s"" value=""hello"" type=""String"" />
-        <constant name=""f"" value=""-3.402823E+38"" type=""Single"" />
-        <constant name=""d"" value=""1.79769313486232E+308"" type=""Double"" />
+        <constant name=""f"" value=""0xFF7FFFFF"" type=""Single"" />
+        <constant name=""d"" value=""0x7FEFFFFFFFFFFFFF"" type=""Double"" />
       </scope>
     </method>
   </methods>

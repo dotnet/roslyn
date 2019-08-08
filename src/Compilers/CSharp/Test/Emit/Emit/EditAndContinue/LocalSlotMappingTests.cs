@@ -2031,7 +2031,7 @@ class C
   IL_0055:  callvirt   ""int string.Length.get""
   IL_005a:  blt.s      IL_0044
  -IL_005c:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff2.UpdatedMethods.Single());
         }
 
         [Fact]

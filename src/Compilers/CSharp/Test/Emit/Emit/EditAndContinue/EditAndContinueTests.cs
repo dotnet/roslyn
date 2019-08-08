@@ -4923,7 +4923,7 @@ namespace M
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/37137")]
+        [Fact]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
@@ -5001,8 +5001,8 @@ namespace M
   // Code size       31 (0x1f)
   .maxstack  2
   .locals init (<>f__AnonymousType2<object, int> V_0, //x
-  <>f__AnonymousType3<object> V_1, //y
-  object V_2)
+                <>f__AnonymousType3<object> V_1, //y
+                object V_2)
   IL_0000:  nop
   IL_0001:  newobj     ""object..ctor()""
   IL_0006:  ldc.i4.1

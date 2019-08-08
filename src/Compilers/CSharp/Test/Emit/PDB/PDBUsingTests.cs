@@ -2142,7 +2142,7 @@ class D
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
