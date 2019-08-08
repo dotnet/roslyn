@@ -298,8 +298,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 "bool" => new Production(""),
                 SyntaxToken => HandleSyntaxTokenField(field),
                 CSharpSyntaxNode => HandleCSharpSyntaxNodeField(field),
-                _ when field.Type.StartsWith(SeparatedSyntaxList) => HandleSeparatedSyntaxListField(field),
-                _ when field.Type.StartsWith(SyntaxList) => HandleSyntaxListField(field),
+                _ when field.Type.StartsWith("SeparatedSyntaxList") => HandleSeparatedSyntaxListField(field),
+                _ when field.Type.StartsWith("SyntaxList") => HandleSyntaxListField(field),
                 _ => RuleReference(field.Type),
             };
 
@@ -316,7 +316,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         private Production HandleSeparatedSyntaxListField(Field field)
         {
-            var production = RuleReference(field.Type[(SeparatedSyntaxList.Length + 1)..^1]);
+            var production = RuleReference(field.Type[("SeparatedSyntaxList".Length + 1)..^1]);
 
             var result = production.WithSuffix(" (',' " + production + ")*");
             result = field.AllowTrailingSeparator != null ? result.WithSuffix(" ','?") : result;
@@ -336,7 +336,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 "Modifiers" => RuleReference(Modifier),
                 "Tokens" => new Production(Normalize(Token)),
                 "TextTokens" => new Production(Normalize(XmlTextLiteralToken)),
-                _ => RuleReference(field.Type[(SyntaxList.Length + 1)..^1])
+                _ => RuleReference(field.Type[("SyntaxList".Length + 1)..^1])
             };
 
         private static IEnumerable<string> GetTokenKindStrings(Field field)
@@ -419,10 +419,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         private const string CSharpSyntaxNode = "CSharpSyntaxNode";
         private const string Modifier = "Modifier";
-        private const string SeparatedSyntaxList = "SeparatedSyntaxList";
         private const string StructuredTriviaSyntax = "StructuredTriviaSyntax";
         private const string Syntax = "Syntax";
-        private const string SyntaxList = "SyntaxList";
         private const string SyntaxToken = "SyntaxToken";
         private const string Token = "Token";
         private const string XmlTextLiteralToken = "XmlTextLiteralToken";
