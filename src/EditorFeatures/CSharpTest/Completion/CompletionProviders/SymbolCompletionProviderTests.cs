@@ -10293,7 +10293,7 @@ class AnotherBuilder
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37780"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionShouldNotProvideExtensionMethodsIfTypeConstraintDoesNotMatch()
         {
             var markup = @"
