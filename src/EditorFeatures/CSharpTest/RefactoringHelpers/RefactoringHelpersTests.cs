@@ -533,6 +533,7 @@ public class Class1
         {
             var testText = @"
 using System;
+public class TestAttribute : Attribute { }
 public class Class1
 {
     static void foo({|result:[Test][||]
