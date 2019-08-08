@@ -151,15 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAutoProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-                var localIsAutoProperty = isAutoProperty && hasGetSyntax;
-                if (localIsAutoProperty)
+                var isAutoPropertyWithGetSyntax = isAutoProperty && hasGetSyntax;
+                if (isAutoPropertyWithGetSyntax)
                 {
                     _propertyFlags |= SourcePropertySymbolFlags.IsAutoProperty;
                 }
 
                 bool isGetterOnly = hasGetSyntax && setSyntax == null;
 
-                if (localIsAutoProperty && !IsStatic && !isGetterOnly)
+                if (isAutoPropertyWithGetSyntax && !IsStatic && !isGetterOnly)
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (localIsAutoProperty || hasInitializer)
+                if (isAutoPropertyWithGetSyntax || hasInitializer)
                 {
-                    if (localIsAutoProperty)
+                    if (isAutoPropertyWithGetSyntax)
                     {
                         //issue a diagnostic if the compiler generated attribute ctor is not found.
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
