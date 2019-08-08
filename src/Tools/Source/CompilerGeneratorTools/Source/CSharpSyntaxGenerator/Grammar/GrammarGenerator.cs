@@ -42,7 +42,10 @@ namespace CSharpSyntaxGenerator.Grammar
         {
             var nodes = _nameToElement.Values;
             var nameToProductions = nodes.ToDictionary(n => n.Name, _ => new List<Production>());
-            nameToProductions.Add(StructuredTriviaSyntax, new List<Production>());
+
+            // Synthesize this so we have a special node that can act as the parent production for
+            // all structured trivia rules.
+            nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
 
             foreach (var node in nodes)
             {
@@ -417,7 +420,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         private const string CSharpSyntaxNode = "CSharpSyntaxNode";
         private const string Modifier = "Modifier";
-        private const string StructuredTriviaSyntax = "StructuredTriviaSyntax";
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
         private const string Token = "Token";
@@ -476,7 +478,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             "ExpressionSyntax",
             "TypeSyntax",
             "XmlNodeSyntax",
-            StructuredTriviaSyntax);
+            "StructuredTriviaSyntax");
     }
 
     internal struct Production
