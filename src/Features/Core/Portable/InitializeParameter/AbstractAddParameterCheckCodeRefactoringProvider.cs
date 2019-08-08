@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
-            if (listOfParametersOrdinals.Any())
+            if (!listOfParametersOrdinals.Any())
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -56,9 +58,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                  FeaturesResources.Add_null_checks_for_all_parameters,
-                     c => UpdateDocumentForRefactoring(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
+                     c => UpdateDocumentForRefactoringAsync(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
         }
-
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract bool CanOffer(SyntaxNode body);
 
-        private async Task<Document> UpdateDocumentForRefactoring(
+        private async Task<Document> UpdateDocumentForRefactoringAsync(
             Document document,
             SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
@@ -111,12 +112,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var token = root.FindToken(position);
                 var firstparameterNode = GetParameterNode(token, position);
                 functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var parameterNodes = generator.GetParameters(functionDeclaration);
-                var currentNode = parameterNodes[index];
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
+                var parameter = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
@@ -139,6 +138,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document;
         }
 
+        private IParameterSymbol GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            foreach (var parameterNode in parameterNodes)
+            {
+                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                if (index == parameter.Ordinal)
+                {
+                    return parameter;
+                }
+            }
+            return null;
+        }
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
             IOperation statement, IParameterSymbol parameter,
