@@ -160,7 +160,7 @@ namespace CSharpSyntaxGenerator.Grammar
             var matches = fields.Where(
                 f => f.Optional != null &&
                      f.Type == SyntaxToken &&
-                     f.Kinds.Select(GetTokenKind).Any(IsOpenCloseToken)).ToList();
+                     f.Kinds.Select(GetTokenKind).Any(OpenCloseTokens.Contains)).ToList();
             if (matches.Count < 2)
             {
                 yield return children;
@@ -182,14 +182,6 @@ namespace CSharpSyntaxGenerator.Grammar
                 return n;
             }).ToList();
         }
-
-        private static bool IsOpenCloseToken(SyntaxKind k)
-            => k == SyntaxKind.OpenBraceToken ||
-               k == SyntaxKind.OpenBracketToken ||
-               k == SyntaxKind.OpenParenToken ||
-               k == SyntaxKind.CloseBraceToken ||
-               k == SyntaxKind.CloseBracketToken ||
-               k == SyntaxKind.CloseParenToken;
 
         private string GenerateResult(Dictionary<string, List<Production>> nameToProductions)
         {
@@ -429,40 +421,42 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Token = "Token";
         private const string XmlTextLiteralToken = "XmlTextLiteralToken";
 
-        private static readonly SyntaxKind[] LexicalTokens =
-            new[]
-            {
-                SyntaxKind.IdentifierToken,
-                SyntaxKind.CharacterLiteralToken,
-                SyntaxKind.StringLiteralToken,
-                SyntaxKind.NumericLiteralToken,
-                SyntaxKind.InterpolatedStringTextToken,
-                SyntaxKind.XmlTextLiteralToken,
-            };
+        private static readonly ImmutableArray<SyntaxKind> LexicalTokens = ImmutableArray.Create(
+            SyntaxKind.IdentifierToken,
+            SyntaxKind.CharacterLiteralToken,
+            SyntaxKind.StringLiteralToken,
+            SyntaxKind.NumericLiteralToken,
+            SyntaxKind.InterpolatedStringTextToken,
+            SyntaxKind.XmlTextLiteralToken);
 
-        private static readonly SyntaxKind[] Modifiers =
-            new[]
-            {
-                SyntaxKind.AbstractKeyword,
-                SyntaxKind.SealedKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.NewKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.ProtectedKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.ReadOnlyKeyword,
-                SyntaxKind.ConstKeyword,
-                SyntaxKind.VolatileKeyword,
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.PartialKeyword,
-                SyntaxKind.UnsafeKeyword,
-                SyntaxKind.FixedKeyword,
-                SyntaxKind.VirtualKeyword,
-                SyntaxKind.OverrideKeyword,
-                SyntaxKind.AsyncKeyword,
-                SyntaxKind.RefKeyword,
-            };
+        private static readonly ImmutableArray<SyntaxKind> OpenCloseTokens = ImmutableArray.Create(
+            SyntaxKind.OpenBraceToken,
+            SyntaxKind.OpenBracketToken,
+            SyntaxKind.OpenParenToken,
+            SyntaxKind.CloseBraceToken,
+            SyntaxKind.CloseBracketToken,
+            SyntaxKind.CloseParenToken);
+
+        private static readonly ImmutableArray<SyntaxKind> Modifiers = ImmutableArray.Create(
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.ConstKeyword,
+            SyntaxKind.VolatileKeyword,
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.PartialKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FixedKeyword,
+            SyntaxKind.VirtualKeyword,
+            SyntaxKind.OverrideKeyword,
+            SyntaxKind.AsyncKeyword,
+            SyntaxKind.RefKeyword);
 
         // This is optional, but makes the emitted g4 file a bit nicer.  Basically, we define a few
         // major sections (generally, corresponding to base nodes that have a lot of derived nodes).
