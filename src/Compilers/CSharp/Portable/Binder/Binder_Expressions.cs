@@ -2315,8 +2315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
                 if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
-                    var errorCode = bag.AsEnumerable().Last().Code;
-                    Error(diagnostics,  (ErrorCode)errorCode, node, operand.Type, targetTypeWithAnnotations.Type);
+                    if (underlyingConversion.IsNumeric)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ConstOutOfRangeChecked, node, operand.ConstantValue.Value, targetTypeWithAnnotations.Type);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetTypeWithAnnotations.Type);
+                    }
 
                     return new BoundConversion(
                         node,

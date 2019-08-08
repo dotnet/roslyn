@@ -711,33 +711,15 @@ class C
     }
 }
 ";
-
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (15,13): error CS0221: Constant value 'double' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
-                //         i = (int?)double.MaxValue;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments("double", "int?").WithLocation(15, 13),
-                // (16,13): error CS0030: Constant value 'double' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
-                //         i = (int?)double.NaN;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NaN").WithArguments("double", "int?").WithLocation(16, 13),
-                // (17,13): error CS0221: Constant value 'double' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
-                //         i = (int?)double.NegativeInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NegativeInfinity").WithArguments("double", "int?").WithLocation(17, 13),
-                // (18,13): error CS0221: Constant value 'double' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
-                //         i = (int?)double.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.PositiveInfinity").WithArguments("double", "int?").WithLocation(18, 13),
-                // (22,13): error CS0221: Constant value 'float' cannot be converted to a 'int?' (use 'unchecked' syntax to override)'
-                //         i = (int?)float.MaxValue;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.MaxValue").WithArguments("float", "int?").WithLocation(22, 13),
-                // (23,13): error CS0221: Constant value 'float' cannot be converted to a 'int?' (use 'unchecked' syntax to override)'
-                //         i = (int?)float.NaN;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NaN").WithArguments("float", "int?").WithLocation(23, 13),
-                // (24,13): error CS0221: Constant value 'float' cannot be converted to a 'int?' (use 'unchecked' syntax to override)'
-                //         i = (int?)float.NegativeInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NegativeInfinity").WithArguments("float", "int?").WithLocation(24, 13),
-                // (25,13): error CS0221: Constant value 'float' cannot be converted to a 'int?' (use 'unchecked' syntax to override)'
-                //         i = (int?)float.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.PositiveInfinity").WithArguments("float", "int?").WithLocation(25, 13));
+            var compilation = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(source,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 15, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 16, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 17, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 18, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 22, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 23, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 24, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 25, Column = 13 });
 
             var syntaxTree = compilation.SyntaxTrees.First();
             var target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];
