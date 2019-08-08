@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
             Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
             var span = documentsWithSelections.Single().SelectedSpans.Single();
-            var actions = ArrayBuilder<(CodeAction, TextSpan)>.GetInstance();
+            var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
             var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);

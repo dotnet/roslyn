@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// applicableToSpan should represent a logical section within the original document that the action is 
         /// applicable to. It doesn't have to precisely represent the exact <see cref="TextSpan"/> that will get changed.
         /// </remarks>
-        public ImmutableArray<(CodeAction action, TextSpan applicableToSpan)> CodeActions { get; }
+        public ImmutableArray<(CodeAction action, TextSpan? applicableToSpan)> CodeActions { get; }
 
-        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan)> actions)
+        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan?)> actions)
         {
             Provider = provider;
             CodeActions = actions.NullToEmpty();
