@@ -92,7 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Function ComputeDefinitelyAssignedValues() As (onEntry As ImmutableArray(Of ISymbol), onExit As ImmutableArray(Of ISymbol))
-            If _definitelyAssignedOnEntry.IsDefault Then
+            If _definitelyAssignedOnEntry.IsDefault OrElse
+               _definitelyAssignedOnExit.IsDefault Then
                 Dim entry = ImmutableArray(Of ISymbol).Empty
                 Dim ex = ImmutableArray(Of ISymbol).Empty
 
