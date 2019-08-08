@@ -96,17 +96,14 @@ namespace CSharpSyntaxGenerator.Grammar
             // g4 file is considered legal (i.e. no rule references names of rules that don't exist).
 
             var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
-            var allProductions = new Dictionary<string, List<Production>>(nameToProductions)
-            {
-                { Token, lexicalProductions }
-            };
+            nameToProductions.Add(Token, lexicalProductions);
 
             foreach (var kind in LexicalTokens)
             {
-                allProductions.Add(kind.ToString(), lexicalProductions);
+                nameToProductions.Add(kind.ToString(), lexicalProductions);
             }
 
-            var result = GenerateResult(allProductions);
+            var result = GenerateResult(nameToProductions);
             return result;
         }
 
