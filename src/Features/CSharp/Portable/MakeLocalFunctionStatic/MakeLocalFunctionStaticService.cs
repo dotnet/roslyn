@@ -110,15 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
         }
 
-        //Helper method to get all the variables captured inside the local function
-        internal bool TryGetCapturesAsync(SemanticModel semanticModel, LocalFunctionStatementSyntax localfunction, out ImmutableArray<ISymbol> captures)
-        {
-            var dataFlow = semanticModel.AnalyzeDataFlow(localfunction);
-            captures = dataFlow.CapturedInside;
-            return dataFlow.Succeeded && captures.Length == 0;
-        }
-
-
         internal SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
             => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
     }
