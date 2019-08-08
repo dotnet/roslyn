@@ -45,6 +45,7 @@ namespace Microsoft.AspNetCore
 
         public abstract class ControllerBase
         {
+            [NonAction]
             public virtual AcceptedAtActionResult AcceptedAtAction (string actionName)
             {
                 return null;
@@ -75,6 +76,7 @@ namespace Microsoft.AspNetCore
         {
         }
 
+        [AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
         public sealed class NonActionAttribute : Attribute
         {
         }
@@ -119,6 +121,7 @@ namespace Microsoft.AspNetCore
         
         namespace Routing
         {
+            [AttributeUsage(AttributeTargets.Method, AllowMultiple=true, Inherited=true)]
             public class HttpMethodAttribute : Attribute
             {
             }
