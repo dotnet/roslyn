@@ -65,8 +65,12 @@ namespace CSharpSyntaxGenerator.Grammar
                     // Some productions can be split into multiple productions that will read
                     // better.  Look for those patterns and break this up.  Then convert each
                     // production that we split out into the actual rule to emit into the grammer.
+                    var splitProductions = from current1 in SplitTokenChoice(children)
+                                           from current2 in SplitQuotes(current1)
+                                           from current3 in SplitPairedOptionalBraces(current2)
+                                           select current3;
 
-                    foreach (var split in SplitProductions(children))
+                    foreach (var split in splitProductions)
                     {
                         // Otherwise, process all the children, making a production out of them for
                         // this node.
@@ -87,15 +91,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 nameToProductions.Add(kind.ToString(), lexicalProductions);
             }
 
-            var result = GenerateResult(nameToProductions);
-            return result;
+            return GenerateResult(nameToProductions);
         }
-
-        private IEnumerable<List<TreeTypeChild>> SplitProductions(List<TreeTypeChild> children)
-            => from current1 in SplitTokenChoice(children)
-               from current2 in SplitQuotes(current1)
-               from current3 in SplitPairedOptionalBraces(current2)
-               select current3;
 
         private IEnumerable<List<TreeTypeChild>> SplitTokenChoice(List<TreeTypeChild> children)
         {
