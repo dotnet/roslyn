@@ -48,7 +48,7 @@ class C
             // note: embeddedSourceLength is the size of the compressed blob (including 4B for the header that contains the uncompressed size).
             // The implementations of Deflate algorithm are different on .NET Framework and .NET Core and produce different results that both decompress to the same text.
             // See https://github.com/dotnet/roslyn/issues/28045
-            var compressedLength = ExecutionConditionUtil.IsWindowsDesktop ? 98 : 105;
+            var compressedLength = ExecutionConditionUtil.IsWindowsDesktop ? 98 : 104;
 
             c.VerifyPdb(@"
 <symbols>
