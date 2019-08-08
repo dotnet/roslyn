@@ -14,15 +14,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal enum SourcePropertySymbolFlags : byte
-    {
-        IsExpressionBodied = 1 << 0,
-        IsAutoProperty = 1 << 1,
-        IsExplicitInterfaceImplementation = 1 << 2,
-    }
-
     internal sealed class SourcePropertySymbol : PropertySymbol, IAttributeTargetSymbol
     {
+        /// <summary>
+        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbol"/> 
+        /// so that we do not have to go back to source to compute this data.
+        /// </summary>
+        private enum Flags : byte
+        {
+            IsExpressionBodied = 1 << 0,
+            IsAutoProperty = 1 << 1,
+            IsExplicitInterfaceImplementation = 1 << 2,
+        }
+
         private const string DefaultIndexerName = "Item";
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedBackingFieldSymbol _backingField;
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
-        private readonly SourcePropertySymbolFlags _propertyFlags;
+        private readonly Flags _propertyFlags;
         private readonly RefKind _refKind;
 
         private SymbolCompletionState _state;
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
             if (isExplicitInterfaceImplementation)
             {
-                _propertyFlags |= SourcePropertySymbolFlags.IsExplicitInterfaceImplementation;
+                _propertyFlags |= Flags.IsExplicitInterfaceImplementation;
             }
 
             _location = location;
@@ -154,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var isAutoPropertyWithGetSyntax = isAutoProperty && hasGetSyntax;
                 if (isAutoPropertyWithGetSyntax)
                 {
-                    _propertyFlags |= SourcePropertySymbolFlags.IsAutoProperty;
+                    _propertyFlags |= Flags.IsAutoProperty;
                 }
 
                 bool isGetterOnly = hasGetSyntax && setSyntax == null;
@@ -281,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (hasExpressionBody)
                 {
-                    _propertyFlags |= SourcePropertySymbolFlags.IsExpressionBodied;
+                    _propertyFlags |= Flags.IsExpressionBodied;
                     _getMethod = SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                         containingType,
                         this,
@@ -389,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(explicitlyImplementedProperty);
 
             // get-only auto property should not override settable properties
-            if ((_propertyFlags & SourcePropertySymbolFlags.IsAutoProperty) != 0)
+            if ((_propertyFlags & Flags.IsAutoProperty) != 0)
             {
                 if (_setMethod is null && !this.IsReadOnly)
                 {
@@ -486,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsExpressionBodied
-            => (_propertyFlags & SourcePropertySymbolFlags.IsExpressionBodied) != 0;
+            => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
             bool isAutoProperty,
@@ -716,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExplicitInterfaceImplementation
-            => (_propertyFlags & SourcePropertySymbolFlags.IsExplicitInterfaceImplementation) != 0;
+            => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
@@ -737,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoProperty
-            => (_propertyFlags & SourcePropertySymbolFlags.IsAutoProperty) != 0;
+            => (_propertyFlags & Flags.IsAutoProperty) != 0;
 
         /// <summary>
         /// Backing field for automatically implemented property, or
@@ -1151,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => (_propertyFlags & SourcePropertySymbolFlags.IsAutoProperty) != 0
+            => (_propertyFlags & Flags.IsAutoProperty) != 0
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
