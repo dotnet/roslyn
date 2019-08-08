@@ -485,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsExpressionBodied => (_propertyFlags & SourcePropertySymbolFlags.IsExpressionBodied) != 0;
+        internal bool IsExpressionBodied
+            => (_propertyFlags & SourcePropertySymbolFlags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
             bool isAutoProperty,
@@ -735,7 +736,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsAutoProperty => (_propertyFlags & SourcePropertySymbolFlags.IsAutoProperty) != 0;
+        internal bool IsAutoProperty
+            => (_propertyFlags & SourcePropertySymbolFlags.IsAutoProperty) != 0;
 
         /// <summary>
         /// Backing field for automatically implemented property, or
