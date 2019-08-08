@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public VSCommanding.CommandState GetCommandState(TCommandArgs args)
         {
-
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var findUsagesService = document?.GetLanguageService<TLanguageService>();

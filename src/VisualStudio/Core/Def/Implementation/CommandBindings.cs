@@ -8,10 +8,6 @@ namespace Microsoft.VisualStudio.Editor.Implementation
     internal sealed class CommandBindings
     {
         [Export]
-        [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.GoToBase, typeof(GoToBaseCommandArgs))]
-        internal CommandBindingDefinition gotoBaseCommandBinding;
-
-        [Export]
         [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.GoToImplementation, typeof(GoToImplementationCommandArgs))]
         internal CommandBindingDefinition gotoImplementationCommandBinding;
 

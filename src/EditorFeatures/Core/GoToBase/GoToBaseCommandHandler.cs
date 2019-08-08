@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToBase)]
-    internal partial class GoToBaseCommandHandler : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>
+    internal class GoToBaseCommandHandler : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>
     {
         [ImportingConstructor]
         public GoToBaseCommandHandler(

@@ -279,19 +279,6 @@
         </Strings>
       </Button>
 
-      <Button guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0200" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <CommandFlag>CommandWellOnly</CommandFlag>
-        <Strings>
-          <ButtonText>Go To Base</ButtonText>
-          <CanonicalName>GoToBase</CanonicalName>
-          <LocCanonicalName>GoToBase</LocCanonicalName>
-          <CommandName>GoToBase</CommandName>
-        </Strings>
-      </Button>
-
       <Button guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -405,10 +392,6 @@
     <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
     </CommandPlacement>
-
-    <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0200">
-      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
-    </CommandPlacement>
     
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
@@ -481,7 +464,6 @@
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
-      <IDSymbol name="cmdidGoToBase"        value="0x0201" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
