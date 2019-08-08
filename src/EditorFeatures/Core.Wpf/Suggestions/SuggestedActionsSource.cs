@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Now that we have the entire set of action sets, inline, sort and filter
                     // them appropriately against each other.
                     var allActionSets = InlineActionSetsIfDesirable(result);
-                    var orderedActionSets = OrderActionSets(allActionSets);
+                    var orderedActionSets = OrderActionSets(allActionSets, selectionOpt);
                     var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
                     return filteredSets;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // First, order refactorings based on the order the providers actually gave for their actions.
                 // This way, a low pri refactoring always shows after a medium pri refactoring, no matter what
                 // we do below.
-                refactorings = OrderActionSets(refactorings);
+                refactorings = OrderActionSets(refactorings, selectionOpt);
 
                 // If there's a selection, it's likely the user is trying to perform some operation
                 // directly on that operation (like 'extract method').  Prioritize refactorings over
@@ -240,11 +240,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private ImmutableArray<SuggestedActionSet> OrderActionSets(
-                ImmutableArray<SuggestedActionSet> actionSets)
+                ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
             {
-                var caretPoint = _textView.GetCaretPoint(_subjectBuffer);
                 return actionSets.OrderByDescending(s => s.Priority)
-                                 .ThenBy(s => s, new SuggestedActionSetComparer(caretPoint))
+                                 .ThenBy(s => s, new SuggestedActionSetComparer(selectionOpt))
                                  .ToImmutableArray();
             }
 
