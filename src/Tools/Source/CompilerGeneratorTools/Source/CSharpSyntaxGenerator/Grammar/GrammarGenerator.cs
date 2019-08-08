@@ -39,14 +39,13 @@ namespace CSharpSyntaxGenerator.Grammar
 
         public string Run()
         {
-            var nodes = _nameToElement.Values;
-            var nameToProductions = nodes.ToDictionary(n => n.Name, _ => new List<Production>());
+            var nameToProductions = _nameToElement.Values.ToDictionary(n => n.Name, _ => new List<Production>());
 
             // Synthesize this so we have a special node that can act as the parent production for
             // all structured trivia rules.
             nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
 
-            foreach (var node in nodes)
+            foreach (var node in _nameToElement.Values)
             {
                 if (node.Base is string nodeBase && nodeBase != CSharpSyntaxNode)
                 {
