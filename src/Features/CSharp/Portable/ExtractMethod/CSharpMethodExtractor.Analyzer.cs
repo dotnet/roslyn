@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -128,6 +129,58 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
+            }
+
+            protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+            {
+                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+
+                switch (symbol)
+                {
+                    case ILocalSymbol local:
+                        if (local.NullableAnnotation == NullableAnnotation.Annotated)
+                        {
+                            var references = selectionOperation.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Where(r => r.Local == local);
+                            var flowState = GetFlowStateFromLocations(references, local.NullableAnnotation);
+                            if (flowState != NullableFlowState.None)
+                            {
+                                return local.Type.WithNullability(flowState);
+                            }
+                        }
+
+                        return local.GetTypeWithAnnotatedNullability();
+                    case IParameterSymbol parameter:
+                        if (parameter.NullableAnnotation == NullableAnnotation.Annotated)
+                        {
+                            var references = selectionOperation.DescendantsAndSelf().OfType<IParameterReferenceOperation>().Where(r => r.Parameter == parameter);
+                            var flowState = GetFlowStateFromLocations(references, parameter.NullableAnnotation);
+                            if (flowState != NullableFlowState.None)
+                            {
+                                return parameter.Type.WithNullability(flowState);
+                            }
+                        }
+
+                        return parameter.GetTypeWithAnnotatedNullability();
+
+                    default:
+                        return base.GetSymbolType(semanticModel, symbol);
+                }
+
+                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> localReferences, NullableAnnotation annotatedNullability)
+                {
+                    foreach (var localReference in localReferences)
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(localReference.Syntax);
+
+                        switch (typeInfo.Nullability.FlowState)
+                        {
+                            case NullableFlowState.MaybeNull: return NullableFlowState.MaybeNull;
+                            case NullableFlowState.None: return NullableFlowState.None;
+                        }
+                    }
+
+                    return NullableFlowState.NotNull;
+                }
             }
         }
     }

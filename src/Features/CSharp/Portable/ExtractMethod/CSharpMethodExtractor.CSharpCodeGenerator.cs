@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -651,6 +652,56 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 return SyntaxFactory.ExpressionStatement(callSignature);
+            }
+
+            protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+            {
+                // Only need to update for nullable reference types in return
+                if (methodSymbolResult.Data.ReturnType.GetNullability() != NullableAnnotation.Annotated)
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                if (syntaxNode == null || !(syntaxNode is MethodDeclarationSyntax methodDeclaration))
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var semanticModel = originalDocument.SemanticModel;
+                var methodOperation = semanticModel.GetOperation(methodDeclaration, cancellationToken);
+
+                var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
+
+                var aggregatedFlowState = NullableFlowState.NotNull;
+
+                foreach (var returnOperation in returnOperations)
+                {
+                    var returnTypeInfo = semanticModel.GetTypeInfo(returnOperation.ReturnedValue.Syntax, cancellationToken);
+                    if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
+                    {
+                        aggregatedFlowState = NullableFlowState.MaybeNull;
+                    }
+                }
+
+                if (aggregatedFlowState == NullableFlowState.MaybeNull)
+                {
+                    // Flow state shows that return is correctly nullable
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                // Return type can be updated to not be null
+                var newType = methodSymbolResult.Data.ReturnType.WithNullability(NullableAnnotation.NotAnnotated);
+                var newMethodDeclaration = methodDeclaration.ReplaceNode(methodDeclaration.ReturnType, newType.GenerateTypeSyntax());
+
+                var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = oldRoot.ReplaceNode(methodDeclaration, newMethodDeclaration);
+
+                var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
+                return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -107,6 +107,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
+            public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
+
             public ITypeSymbol GetVariableType(SemanticDocument document)
             {
                 return document.SemanticModel.ResolveType(_variableSymbol.OriginalType).WithNullability(_variableSymbol.OriginalType.GetNullability());

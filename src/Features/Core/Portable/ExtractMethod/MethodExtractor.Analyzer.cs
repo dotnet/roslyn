@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -216,13 +214,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
                     bool isInExpressionOrHasReturnStatement)
             {
+
+
                 var model = _semanticDocument.SemanticModel;
                 var compilation = model.Compilation;
                 if (isInExpressionOrHasReturnStatement)
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap.Values);
-                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
+                    var returnType = GetReturnTypeFromStatement(model);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
@@ -233,13 +233,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
-                        ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
+                        ? GetReturnTypeFromReturnVariable(_semanticDocument, variableToUseAsReturnValue)
                         : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed);
                 }
             }
+
+            protected virtual ITypeSymbol GetReturnTypeFromStatement(SemanticModel semanticModel)
+            {
+                var compilation = semanticModel.Compilation;
+                return SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
+            }
+
+            protected virtual ITypeSymbol GetReturnTypeFromReturnVariable(SemanticDocument semanticDocument, VariableInfo variableToUseAsReturnValue)
+            => variableToUseAsReturnValue.GetVariableType(semanticDocument);
 
             private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
             {
@@ -411,8 +420,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 candidates.UnionWith(writtenInsideMap);
                 candidates.UnionWith(variableDeclaredMap);
 
-                var selectionOperation = model.GetOperation(this.SelectionResult.GetContainingScope());
-
                 foreach (var symbol in candidates)
                 {
                     if (IsThisParameter(symbol) ||
@@ -459,7 +466,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var type = GetSymbolType(model, selectionOperation, symbol);
+                    var type = GetSymbolType(model, symbol);
                     if (type == null)
                     {
                         continue;
@@ -610,56 +617,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            private ITypeSymbol GetSymbolType(SemanticModel model, IOperation selectionOperation, ISymbol symbol)
+            protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+            => symbol switch
             {
-                switch (symbol)
-                {
-                    case ILocalSymbol local:
-                        if (local.NullableAnnotation == NullableAnnotation.Annotated)
-                        {
-                            var references = selectionOperation.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Where(r => r.Local == local);
-                            var flowState = GetFlowStateFromLocations(references, local.NullableAnnotation);
-                            if (flowState != NullableFlowState.None)
-                            {
-                                return local.Type.WithNullability(flowState);
-                            }
-                        }
-
-                        return local.GetTypeWithAnnotatedNullability();
-                    case IParameterSymbol parameter:
-                        if (parameter.NullableAnnotation == NullableAnnotation.Annotated)
-                        {
-                            var references = selectionOperation.DescendantsAndSelf().OfType<IParameterReferenceOperation>().Where(r => r.Parameter == parameter);
-                            var flowState = GetFlowStateFromLocations(references, parameter.NullableAnnotation);
-                            if (flowState != NullableFlowState.None)
-                            {
-                                return parameter.Type.WithNullability(flowState);
-                            }
-                        }
-
-                        return parameter.GetTypeWithAnnotatedNullability();
-                    case IRangeVariableSymbol rangeVariable:
-                        return GetRangeVariableType(model, rangeVariable);
-                }
-
-                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> localReferences, NullableAnnotation annotatedNullability)
-                {
-                    foreach (var localReference in localReferences)
-                    {
-                        var typeInfo = model.GetTypeInfo(localReference.Syntax);
-
-                        switch (typeInfo.Nullability.FlowState)
-                        {
-                            case NullableFlowState.MaybeNull: return NullableFlowState.MaybeNull;
-                            case NullableFlowState.None: return NullableFlowState.None;
-                        }
-                    }
-
-                    return NullableFlowState.NotNull;
-                }
-
-                return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
-            }
+                ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
+                IParameterSymbol parameter => parameter.GetTypeWithAnnotatedNullability(),
+                IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
+            };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
             {

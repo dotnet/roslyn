@@ -94,7 +94,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newCallSiteRoot.ReplaceNode(destination, newContainer));
                 newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
-                var finalDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                var finalDocument = await UpdateMethodAfterGenerationAsync(generatedDocument, result, cancellationToken).ConfigureAwait(false);
                 var finalRoot = finalDocument.Root;
 
                 var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault();
@@ -113,6 +115,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return await CreateGeneratedCodeAsync(result.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
+
+            protected virtual Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+                => Task.FromResult(originalDocument);
 
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
             {

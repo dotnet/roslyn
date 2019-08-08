@@ -2107,7 +2107,7 @@ class C
     public string? M()
     {
         [|string? x = null;
-        x.ToString();|]
+        x?.ToString();|]
 
         return x;
     }
@@ -2126,10 +2126,11 @@ class C
     private static string? NewMethod()
     {
         string? x = null;
-        x.ToString();
+        x?.ToString();
         return x;
     }
 }");
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters1()
@@ -2371,13 +2372,13 @@ class C
     {
         string? a = string.Empty;
         string? b = string.Empty;
-        [|var c = a + b;
+        [|string? c = a + b;
         a = string.Empty;
         c += a;
         a = null;
         b = null;
         b = ""test"";
-        c = a + b +c;|]
+        c = a?.ToString();|]
         return c ?? string.Empty;
     }
 }",
@@ -2389,19 +2390,109 @@ class C
     {
         string? a = string.Empty;
         string? b = string.Empty;
-        string c = {|Rename:NewMethod|}(ref a, ref b);
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
         return c ?? string.Empty;
     }
 
-    private static string NewMethod(ref string? a, ref string? b)
+    private static string? NewMethod(ref string? a, ref string? b)
     {
-        var c = a + b;
+        string? c = a + b;
         a = string.Empty;
         c += a;
         a = null;
         b = null;
         b = ""test"";
-        c = a + b + c;
+        c = a?.ToString();
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = null;
+        c = a + b;|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string NewMethod(ref string? a, ref string? b)
+    {
+        string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = null;
+        c = a + b;
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = a?.ToString();|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string? NewMethod(ref string? a, ref string? b)
+    {
+        string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = a?.ToString();
         return c;
     }
 }");
@@ -2422,7 +2513,7 @@ class C
         c += a;
         b = ""test"";
         c = a + b +c;|]
-        return c ?? string.Empty;
+        return c;
     }
 }",
 @"#nullable enable
@@ -2434,7 +2525,7 @@ class C
         string? a = string.Empty;
         string? b = string.Empty;
         string c = {|Rename:NewMethod|}(ref a, ref b);
-        return c ?? string.Empty;
+        return c;
     }
 
     private static string NewMethod(ref string a, ref string b)
@@ -2448,5 +2539,80 @@ class C
     }
 }");
 
+        // There's a case below where flow state correctly asseses that the variable
+        // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
+        // due to the fact the line above it being executed as 'x.ToString()' would throw
+        // an exception and the return statement would never be hit. The only way the return
+        // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
+        // that the value is indeed not null.
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullableReturn_NotNull1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        x.ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        x.ToString();
+        return x;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullableReturn_NotNull2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        x?.ToString();
+        x = string.Empty;|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        x?.ToString();
+        x = string.Empty;
+        return x;
+    }
+}");
     }
 }
