@@ -548,13 +548,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var endOfAttributeLists = attributeList.Last().Span.End;
                 var afterAttributesToken = node.FindTokenOnRightOfPosition(endOfAttributeLists);
 
-                var endOfNode = node.Span.End;
-                var startOfTokenAfterAttributes = afterAttributesToken.Span.Start;
-                var startOfNodeWithoutAttributes = endOfNode >= startOfTokenAfterAttributes
-                    ? afterAttributesToken.Span.Start
-                    : endOfNode;
-
-                return startOfNodeWithoutAttributes;
+                return Math.Min(afterAttributesToken.Span.Start, node.Span.End);
             }
 
             return node.SpanStart;
