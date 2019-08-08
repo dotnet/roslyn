@@ -423,14 +423,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         // Special constants we use in a few places.
 
-        private static readonly string CharacterLiteralToken = SyntaxKind.CharacterLiteralToken.ToString();
         private const string CSharpSyntaxNode = "CSharpSyntaxNode";
-        private const string IdentifierToken = "IdentifierToken";
-        private const string InterpolatedStringTextToken = "InterpolatedStringTextToken";
         private const string Modifier = "Modifier";
-        private const string NumericLiteralToken = "NumericLiteralToken";
         private const string SeparatedSyntaxList = "SeparatedSyntaxList";
-        private const string StringLiteralToken = "StringLiteralToken";
         private const string StructuredTriviaSyntax = "StructuredTriviaSyntax";
         private const string Syntax = "Syntax";
         private const string SyntaxList = "SyntaxList";
