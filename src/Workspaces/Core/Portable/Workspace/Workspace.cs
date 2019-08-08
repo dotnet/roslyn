@@ -1196,6 +1196,12 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
 
+            if (projectChanges.OldProject.DefaultNamespace != projectChanges.NewProject.DefaultNamespace
+                && !this.CanApplyChange(ApplyChangesKind.ChangeProjectInfo))
+            {
+                throw new NotSupportedException(WorkspacesResources.Changing_project_properties_is_not_supported);
+            }
+
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
                 && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions)
                 && !this.CanApplyParseOptionChange(

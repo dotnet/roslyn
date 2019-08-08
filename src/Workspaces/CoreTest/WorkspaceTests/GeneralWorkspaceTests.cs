@@ -142,6 +142,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestChangeDefaultNamespace_TryApplyChanges_Throws()
+        {
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).WithDefaultNamespace("OriginalName").Id;
+
+            var newName = "ChangedName";
+            var newSolution = ws.CurrentSolution.WithProjectDefaultNamespace(projectId, newName);
+
+            NotSupportedException e = null;
+            try
+            {
+                ws.TryApplyChanges(newSolution);
+
+            }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_project_properties_is_not_supported, e.Message);
+        }
+
         private class NoChangesAllowedWorkspace : Workspace
         {
             public NoChangesAllowedWorkspace(HostServices services, string workspaceKind = "Custom")
