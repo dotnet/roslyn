@@ -6268,6 +6268,7 @@ class Program
         }
 
         [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
+        [WorkItem(37031, "https://github.com/dotnet/roslyn/issues/37031")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
@@ -6306,6 +6307,9 @@ class Program
 
         lock (somevar)
         { }
+
+        fixed (somevar)
+        { }
     }
 }";
             var expected = @"
@@ -6342,6 +6346,9 @@ class Program
         { }
 
         lock(somevar)
+        { }
+
+        fixed(somevar)
         { }
     }
 }";
