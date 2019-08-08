@@ -140,7 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     case ILocalSymbol local:
                         if (local.NullableAnnotation == NullableAnnotation.Annotated)
                         {
-                            var references = selectionOperation.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Where(r => r.Local == local);
+                            var references = selectionOperation.DescendantsAndSelf()
+                                .Where(o => o switch
+                                {
+                                    ILocalReferenceOperation localReference => localReference.Local == symbol,
+                                    IAssignmentOperation assignment => assignment.Target is ILocalReferenceOperation localReference && localReference.Local == symbol,
+                                    _ => false
+                                });
+
                             var flowState = GetFlowStateFromLocations(references, local.NullableAnnotation);
                             if (flowState != NullableFlowState.None)
                             {
@@ -152,7 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     case IParameterSymbol parameter:
                         if (parameter.NullableAnnotation == NullableAnnotation.Annotated)
                         {
-                            var references = selectionOperation.DescendantsAndSelf().OfType<IParameterReferenceOperation>().Where(r => r.Parameter == parameter);
+                            var references = selectionOperation.DescendantsAndSelf()
+                                .Where(o => o switch
+                                {
+                                    IParameterReferenceOperation reference => reference.Parameter == symbol,
+                                    IAssignmentOperation assignment => assignment.Target is IParameterReferenceOperation reference && reference.Parameter == symbol,
+                                    _ => false
+                                });
+
                             var flowState = GetFlowStateFromLocations(references, parameter.NullableAnnotation);
                             if (flowState != NullableFlowState.None)
                             {
@@ -166,11 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.GetSymbolType(semanticModel, symbol);
                 }
 
-                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> localReferences, NullableAnnotation annotatedNullability)
+                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> references, NullableAnnotation annotatedNullability)
                 {
-                    foreach (var localReference in localReferences)
+                    foreach (var reference in references)
                     {
-                        var typeInfo = semanticModel.GetTypeInfo(localReference.Syntax);
+                        var typeInfo = semanticModel.GetTypeInfo(reference.Syntax);
 
                         switch (typeInfo.Nullability.FlowState)
                         {
