@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (attributeList.Any())
             {
                 var endOfAttributeLists = attributeList.Last().Span.End;
-                var afterAttributesToken = node.FindTokenOnRightOfPosition(endOfAttributeLists);
+                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
 
                 var endOfNode = node.Span.End;
                 var startOfNodeWithoutAttributes = Math.Min(afterAttributesToken.Span.Start, endOfNode);
