@@ -118,8 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (ImmutableArray<ISymbol> onEntry, ImmutableArray<ISymbol> onExit) ComputeDefinitelyAssignedValues()
         {
-            if (_definitelyAssignedOnEntry.IsDefault ||
-                _definitelyAssignedOnExit.IsDefault)
+            // Check for _definitelyAssignedOnExit as that's the last thing we write to. If it's not
+            // Default, then we'll have written to both variables and can safely read from either of
+            // them.
+            if (_definitelyAssignedOnExit.IsDefault)
             {
                 var entryResult = ImmutableArray<ISymbol>.Empty;
                 var exitResult = ImmutableArray<ISymbol>.Empty;

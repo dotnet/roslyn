@@ -92,8 +92,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Function ComputeDefinitelyAssignedValues() As (onEntry As ImmutableArray(Of ISymbol), onExit As ImmutableArray(Of ISymbol))
-            If _definitelyAssignedOnEntry.IsDefault OrElse
-               _definitelyAssignedOnExit.IsDefault Then
+            ' Check for _definitelyAssignedOnExit as that's the last thing we write to. If it's not
+            ' Default, then we'll have written to both variables and can safely read from either of
+            ' them.
+            If _definitelyAssignedOnExit.IsDefault Then
                 Dim entry = ImmutableArray(Of ISymbol).Empty
                 Dim ex = ImmutableArray(Of ISymbol).Empty
 
