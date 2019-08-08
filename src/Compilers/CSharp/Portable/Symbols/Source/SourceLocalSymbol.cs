@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
-            Debug.Assert(!(newType.Type is null));
+            Debug.Assert(newType.Type is object);
             TypeSymbol originalType = _type?.Value.DefaultType;
 
             // In the event that we race to set the type of a local, we should
@@ -395,6 +395,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }
+        }
+
+        /// <summary>
+        /// Gets a new local symbol with the given TypeWithAnnotations as the new type. This
+        /// type should be identical to the original except for nullability.
+        /// </summary>
+        internal LocalSymbol WithAnalyzedType(TypeWithAnnotations analyzedType)
+        {
+            Debug.Assert(analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames));
+            if (analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.ConsiderEverything))
+            {
+                return this;
+            }
+
+            var cloned = CloneWithoutType();
+            cloned.SetTypeWithAnnotations(analyzedType);
+            return cloned;
+        }
+
+        protected virtual SourceLocalSymbol CloneWithoutType()
+        {
+            return new SourceLocalSymbol(_containingSymbol, _scopeBinder, allowRefKind: false, _typeSyntax, _identifierToken, _declarationKind);
         }
 
         /// <summary>
@@ -598,6 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(value <= _valEscapeScope);
                 _valEscapeScope = value;
             }
+
+            protected override SourceLocalSymbol CloneWithoutType()
+            {
+                return new LocalWithInitializer(_containingSymbol, _scopeBinder, _typeSyntax, _identifierToken, _initializer, _initializerBinder, _declarationKind);
+            }
         }
 
         /// <summary>
@@ -637,6 +664,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// variable is not in scope in the collection expression.
             /// </summary>
             internal override SyntaxNode ForbiddenZone => null;
+
+            protected override SourceLocalSymbol CloneWithoutType()
+            {
+                return new ForEachLocalSymbol(_containingSymbol, (ForEachLoopBinder)_scopeBinder, _typeSyntax, _identifierToken, _collection, _declarationKind);
+            }
         }
 
         /// <summary>
@@ -707,6 +739,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                     }
                 }
+            }
+
+            protected override SourceLocalSymbol CloneWithoutType()
+            {
+                return new DeconstructionLocalSymbol(_containingSymbol, _scopeBinder, _nodeBinder, _typeSyntax, _identifierToken, _declarationKind, _deconstruction);
             }
         }
 
@@ -787,6 +824,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _type.Value;
+            }
+
+            protected override SourceLocalSymbol CloneWithoutType()
+            {
+                return new LocalSymbolWithEnclosingContext(_containingSymbol, _scopeBinder, _nodeBinder, _typeSyntax, _identifierToken, _declarationKind, _nodeToBind, _forbiddenZone);
             }
         }
     }

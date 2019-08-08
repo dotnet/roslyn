@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 return;
             }
 
-            if (!(IsValidAutoProperty(property, propertySymbol)))
+            if (!(IsValidAutoProperty(propertySymbol)))
             {
                 return;
             }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                     c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
         }
 
-        internal bool IsValidAutoProperty(SyntaxNode property, IPropertySymbol propertySymbol)
+        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
-            var containingProperty = await context.TryGetSelectedNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
             {
                 return null;

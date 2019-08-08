@@ -37,7 +37,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -warnAsError
       displayName: Build and Test
 
     - task: PublishTestResults@2

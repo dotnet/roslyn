@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             Document document,
             CancellationToken cancellationToken)
         {
-            var expression = oldNode as ExpressionSyntax;
-            if (expression == null)
+            if (!(oldNode is ExpressionSyntax expression))
             {
                 return SpecializedTasks.Default<SyntaxNode>();
             }

@@ -182,16 +182,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static string GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, compilation, cancellationToken);
-                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
-                case IMethodSymbol method: return GetMethodDocumentation(method, compilation, cancellationToken);
-                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
-                default: return symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
-            }
-        }
+                IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken),
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
+                IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+            };
 
         private static string GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
         {
@@ -304,8 +302,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(symbol is IMethodSymbol methodSymbol))
             {
                 return null;
             }

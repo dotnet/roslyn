@@ -556,7 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
         internal abstract bool? IsNotNullable { get; }
 
         public sealed override bool IsValueType
@@ -683,10 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
             ReferenceTypeConstraintIsNullable switch
             {
-                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.None,
                 false => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 true => CodeAnalysis.NullableAnnotation.Annotated,
-                null => CodeAnalysis.NullableAnnotation.Disabled,
+                null => CodeAnalysis.NullableAnnotation.None,
             };
 #pragma warning restore IDE0055 // Fix formatting
 

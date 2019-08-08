@@ -316,8 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var actualTypes = annotations.SelectAsArray(annotation =>
                     {
                         var typeInfo = model.GetTypeInfo(annotation.Expression);
-                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
-                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
                         // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
                         var type = TypeWithState.Create(
                             (TypeSymbol)(annotation.IsConverted ? typeInfo.ConvertedType : typeInfo.Type),

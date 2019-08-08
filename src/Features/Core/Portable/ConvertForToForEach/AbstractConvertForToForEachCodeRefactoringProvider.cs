@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var forStatement = await context.TryGetSelectedNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
+            var forStatement = await context.TryGetRelevantNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
             if (forStatement == null)
             {
                 return;
@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            var operation = semanticModel.GetOperation(forStatement, cancellationToken) as ILoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(semanticModel.GetOperation(forStatement, cancellationToken) is ILoopOperation operation) || operation.Locals.Length != 1)
             {
                 return;
             }

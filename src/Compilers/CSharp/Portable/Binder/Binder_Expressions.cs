@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = this.BindType(typeSyntax, diagnostics, out alias);
             TypeSymbol type = typeWithAnnotations.Type;
 
-            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(type, node, diagnostics);
+            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(Compilation, type, node.Location, diagnostics);
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
@@ -1208,21 +1208,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
-        private static bool CheckManagedAddr(TypeSymbol type, SyntaxNode node, DiagnosticBag diagnostics)
+        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
-            var managedKind = type.ManagedKind;
-            if (managedKind == ManagedKind.Managed)
+            switch (type.ManagedKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
-                return true;
+                case ManagedKind.Managed:
+                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
+                    return true;
+                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(compilation) is CSDiagnosticInfo diagnosticInfo:
+                    diagnostics.Add(diagnosticInfo, location);
+                    return true;
+                default:
+                    return false;
             }
-            else if (managedKind == ManagedKind.UnmanagedWithGenerics)
-            {
-                var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedConstructedTypes, diagnostics);
-                return !supported;
-            }
-
-            return false;
         }
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
@@ -2052,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberOpt = WellKnownMember.System_Range__StartAt;
                 }
 
-                if (!(memberOpt is null))
+                if (memberOpt is object)
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
                         Compilation,
@@ -3032,7 +3030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!bestType.IsErrorType())
             {
-                CheckManagedAddr(bestType, node, diagnostics);
+                CheckManagedAddr(Compilation, bestType, node.Location, diagnostics);
             }
 
             return BindStackAllocWithInitializer(
@@ -3385,7 +3383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
             if (!elementType.Type.IsErrorType())
             {
-                hasErrors = hasErrors || CheckManagedAddr(elementType.Type, elementTypeSyntax, diagnostics);
+                hasErrors = hasErrors || CheckManagedAddr(Compilation, elementType.Type, elementTypeSyntax.Location, diagnostics);
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;
@@ -3455,7 +3453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalCSharp73SpanStackAllocPosition();
                 if (!inLegalPosition)
                 {
-                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node.GetFirstToken().GetLocation());
+                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node, node.GetFirstToken().GetLocation());
                 }
             }
 
@@ -7048,7 +7046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                 {
                     result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
-                    if (!(result is null))
+                    if (result is object)
                     {
                         // This member is needed for lowering and should produce an error if not present
                         _ = GetWellKnownTypeMember(
@@ -7097,7 +7095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var attemptDiagnostics = DiagnosticBag.GetInstance();
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7113,7 +7111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
 
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7664,7 +7662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 

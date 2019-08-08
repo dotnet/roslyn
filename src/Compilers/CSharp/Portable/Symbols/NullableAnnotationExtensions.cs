@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
         {
-            if (annotation == CodeAnalysis.NullableAnnotation.NotApplicable)
+            if (annotation == CodeAnalysis.NullableAnnotation.None)
             {
                 return default;
             }
@@ -95,15 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A value type may be oblivious or not annotated depending on whether the type reference
                 // is from source or metadata. (Binding using the #nullable context only when setting the annotation
                 // to avoid checking IsValueType early.) The annotation is normalized here in the public API.
-                CSharp.NullableAnnotation.Oblivious => type.IsValueType ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.Disabled,
+                CSharp.NullableAnnotation.Oblivious when  type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)
             };
 
         internal static CSharp.NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) =>
             annotation switch
             {
-                CodeAnalysis.NullableAnnotation.NotApplicable => CSharp.NullableAnnotation.Oblivious,
-                CodeAnalysis.NullableAnnotation.Disabled => CSharp.NullableAnnotation.Oblivious,
+                CodeAnalysis.NullableAnnotation.None => CSharp.NullableAnnotation.Oblivious,
                 CodeAnalysis.NullableAnnotation.NotAnnotated => CSharp.NullableAnnotation.NotAnnotated,
                 CodeAnalysis.NullableAnnotation.Annotated => CSharp.NullableAnnotation.Annotated,
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)

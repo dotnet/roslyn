@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
         public const string RoslynLspSdkContractName = "RoslynLSPSDK";
 
+        // LSP server provider names.
+        public const string RoslynProviderName = "Roslyn";
+        public const string CSharpProviderName = "RoslynCSharp";
+        public const string VisualBasicProviderName = "RoslynVisualBasic";
+        public const string TypeScriptProviderName = "RoslynTypeScript";
+        public const string AnyProviderName = "any";
+
         public const string CSharpLspLanguageName = "C#_LSP";
         public const string CSharpLspContentTypeName = "C#_LSP";
         public const string TypeScriptLanguageName = "TypeScript";

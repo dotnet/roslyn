@@ -894,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -997,7 +997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -1009,7 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentNullableAnnotations
             Get
-                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 

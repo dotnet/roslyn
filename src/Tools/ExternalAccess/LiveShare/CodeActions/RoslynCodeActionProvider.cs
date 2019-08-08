@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        public RoslynCodeActionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public RoslynCodeActionProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));

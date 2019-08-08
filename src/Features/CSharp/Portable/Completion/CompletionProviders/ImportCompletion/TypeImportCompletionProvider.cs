@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -35,6 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+        }
+
+        protected override async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
+            return leftToken.GetAncestor<UsingDirectiveSyntax>() != null;
         }
     }
 }
