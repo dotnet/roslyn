@@ -124,32 +124,31 @@ namespace CSharpSyntaxGenerator.Grammar
                 f => f.Type == SyntaxToken &&
                      f.Kinds.Count >= 2 &&
                      f.Kinds.Select(GetTokenKind).Contains(SyntaxKind.DoubleQuoteToken)).ToList();
-            if (matches.Count >= 2)
+            if (matches.Count < 2)
             {
-                var firstMatchKinds = matches[0].Kinds;
-                if (matches.All(m => m.Kinds.SequenceEqual(firstMatchKinds)))
-                {
-                    // found a match.  Split it into separate productions.
-                    foreach (var kind in firstMatchKinds)
-                    {
-                        // Take the existing production and swap the instance of `('"' | ''')`
-                        // with just `'"'`  or  `'''`.
-                        yield return children.Select(n =>
-                        {
-                            if (n is Field field && matches.Contains(field))
-                            {
-                                field.Kinds = new List<Kind> { kind };
-                            }
-
-                            return n;
-                        }).ToList();
-                    }
-
-                    yield break;
-                }
+                yield return children;
+                yield break;
             }
 
-            yield return children;
+            var firstMatchKinds = matches[0].Kinds;
+            if (matches.All(m => m.Kinds.SequenceEqual(firstMatchKinds)))
+            {
+                // found a match.  Split it into separate productions.
+                foreach (var kind in firstMatchKinds)
+                {
+                    // Take the existing production and swap the instance of `('"' | ''')`
+                    // with just `'"'`  or  `'''`.
+                    yield return children.Select(n =>
+                    {
+                        if (n is Field field && matches.Contains(field))
+                        {
+                            field.Kinds = new List<Kind> { kind };
+                        }
+
+                        return n;
+                    }).ToList();
+                }
+            }
         }
 
         private IEnumerable<List<TreeTypeChild>> SplitPairedOptionalBraces(List<TreeTypeChild> children)
@@ -162,26 +161,26 @@ namespace CSharpSyntaxGenerator.Grammar
                 f => f.Optional != null &&
                      f.Type == SyntaxToken &&
                      f.Kinds.Select(GetTokenKind).Any(IsOpenCloseToken)).ToList();
-            if (matches.Count >= 2)
+            if (matches.Count < 2)
             {
-                // First, return the production where the paired braces are removed.
-                yield return children.Where(n => !matches.Contains(n)).ToList();
-
-                // Then return the production where the paired braces are there, but are no longer
-                // optional.
-                yield return children.Select(n =>
-                {
-                    if (n is Field field && matches.Contains(field))
-                    {
-                        field.Optional = null;
-                    }
-
-                    return n;
-                }).ToList();
+                yield return children;
                 yield break;
             }
 
-            yield return children;
+            // First, return the production where the paired braces are removed.
+            yield return children.Where(n => !matches.Contains(n)).ToList();
+
+            // Then return the production where the paired braces are there, but are no longer
+            // optional.
+            yield return children.Select(n =>
+            {
+                if (n is Field field && matches.Contains(field))
+                {
+                    field.Optional = null;
+                }
+
+                return n;
+            }).ToList();
         }
 
         private static bool IsOpenCloseToken(SyntaxKind k)
