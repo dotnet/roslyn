@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -282,8 +283,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 }
             }
 
-            return ProcessChildren(choice.Children, " | ")
-                .Parenthesize().WithSuffix(allChildrenAreOptional ? "?" : "");
+            return ProcessChildren(choice.Children, " | ").Parenthesize().WithSuffix(allChildrenAreOptional ? "?" : "");
         }
 
         private Production ProcessField(Field field)
@@ -292,6 +292,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private Production GetFieldUnderlyingType(Field field)
             => field.Type switch
             {
+                // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
+                // They're not relevant to the grammar, so we just return an empty production here
+                // which will be filtered out by the caller.
                 "bool" => new Production(""),
                 SyntaxToken => HandleSyntaxTokenField(field),
                 CSharpSyntaxNode => HandleCSharpSyntaxNodeField(field),
@@ -302,9 +305,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         private static Production HandleSyntaxTokenField(Field field)
         {
-            var production = field.Kinds.Count == 0
-                ? new Production(GetTokenText(GetTokenKind(field.Name)))
-                : new Production(Join(" | ", GetTokenKindStrings(field)));
+            var production = new Production(field.Kinds.Count == 0
+                ? GetTokenText(GetTokenKind(field.Name))
+                : Join(" | ", GetTokenKindStrings(field)));
             return field.Kinds.Count > 1 ? production.Parenthesize() : production;
         }
 
@@ -326,6 +329,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private Production GetSyntaxListUnderlyingType(Field field)
             => field.Name switch
             {
+                // Specialized token lists that we want the grammar to be more precise about. i.e.
+                // we don't want `Commas` to be in the grammar as `token*` (implying that it could
+                // be virtually any token.
                 "Commas" => new Production("','"),
                 "Modifiers" => RuleReference(Modifier),
                 "Tokens" => new Production(Normalize(Token)),
