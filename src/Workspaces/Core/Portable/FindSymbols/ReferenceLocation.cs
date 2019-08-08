@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
 using Roslyn.Utilities;
@@ -50,8 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Containing Type info for this reference.
         /// </summary>
-        internal CustomColumnInfo ContainingTypeInfo { get; }
-        internal CustomColumnInfo ContainingMemberInfo { get; }
+        internal ImmutableArray<CustomColumnInfo> CustomColumns;
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, CustomColumnInfo containingTypeInfo, CustomColumnInfo containingMemberInfo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<CustomColumnInfo> customColumns, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
-            this.ContainingTypeInfo = containingTypeInfo;
-            this.ContainingMemberInfo = containingMemberInfo;
+            this.CustomColumns = customColumns;
             this.CandidateReason = candidateReason;
         }
 

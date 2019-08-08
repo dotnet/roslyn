@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, SymbolUsageInfo.None, CustomColumnInfo.None, CustomColumnInfo.None)).ConfigureAwait(false);
+                    _definition, documentSpan, SymbolUsageInfo.None, customColumns: ImmutableArray<CustomColumnInfo>.Empty)).ConfigureAwait(false);
             }
 
             public Task ReportProgressAsync(int current, int maximum)

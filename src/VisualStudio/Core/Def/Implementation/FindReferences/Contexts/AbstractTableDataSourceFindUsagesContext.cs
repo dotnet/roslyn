@@ -328,8 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
                 ImmutableDictionary<string, ImmutableArray<string>> referenceUsageInfo,
-                string containingTypeInfo,
-                string containingMemberInfo)
+                ImmutableArray<CustomColumnInfo> customColumns)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -344,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(referenceUsageInfo, containingTypeInfo, containingMemberInfo));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(referenceUsageInfo, customColumns));
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -372,18 +371,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt, string containingType, string containingMember)
+            private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt, ImmutableArray<CustomColumnInfo> customColumns)
             {
                 var result = GetAggregatedUsageColumnData(customColumnsDataOpt);
 
-                if (containingType != null)
+                foreach (var column in customColumns)
                 {
-                    result = result.Add("ContainingTypeInfo", containingType);
-                }
-
-                if (containingMember != null)
-                {
-                    return result.Add("ContainingMemberInfo", containingMember);
+                    result = result.Add(column.columnInfo.label, column.columnInfo.value);
                 }
 
                 return result;

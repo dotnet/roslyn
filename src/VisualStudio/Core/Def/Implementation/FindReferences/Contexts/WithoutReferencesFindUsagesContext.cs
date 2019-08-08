@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, referenceUsageInfo: null, containingTypeInfo: null, containingMemberInfo: null).ConfigureAwait(false);
+                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, referenceUsageInfo: null, customColumns: ImmutableArray<CustomColumnInfo>.Empty).ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }

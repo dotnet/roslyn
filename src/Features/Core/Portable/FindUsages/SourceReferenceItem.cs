@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         public bool IsWrittenTo { get; }
 
-
-        public string ContainingMemberInfo { get; }
-        public string ContainingTypeInfo { get; }
-
+        public ImmutableArray<CustomColumnInfo> CustomColumns { get; }
 
         /// <summary>
         /// Additional information about the reference.
@@ -66,12 +63,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferenceUsageInfo = referenceInfo ?? UsageColumnInfoMap.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, CustomColumnInfo containingTypeInfo, CustomColumnInfo containingMemberInfo)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<CustomColumnInfo> customColumns)
             : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            ContainingTypeInfo = containingTypeInfo.columnValue;
-            ContainingMemberInfo = containingMemberInfo.columnValue;
+            CustomColumns = customColumns;
         }
 
         private static UsageColumnInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)

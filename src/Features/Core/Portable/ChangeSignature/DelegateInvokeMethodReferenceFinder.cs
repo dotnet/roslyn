@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                               syntaxFactsService,
                               semanticFactsService,
                               cancellationToken),
-                          containingTypeInfo: GetContainingTypeInfo(n, syntaxFactsService),
-                          containingMemberInfo: GetContainingMemberInfo(n, syntaxFactsService),
+                          customColumns: ImmutableArray.Create(GetContainingTypeInfo(n, syntaxFactsService), GetContainingMemberInfo(n, syntaxFactsService)),
                           candidateReason: CandidateReason.None)));
         }
     }

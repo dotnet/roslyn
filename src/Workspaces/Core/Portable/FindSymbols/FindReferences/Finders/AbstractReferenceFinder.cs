@@ -246,12 +246,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var location = token.GetLocation();
                         var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                        var containingTypeInfo = GetContainingTypeInfo(token.Parent, syntaxFacts);
-                        var containingMemberInfo = GetContainingMemberInfo(token.Parent, syntaxFacts);
+                        var customColumns = new ArrayBuilder<CustomColumnInfo>();
+                        customColumns.Add(GetContainingTypeInfo(token.Parent, syntaxFacts));
+                        customColumns.Add(GetContainingMemberInfo(token.Parent, syntaxFacts));
+
                         var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
-                            symbolUsageInfo, containingTypeInfo, containingMemberInfo, candidateReason: match.reason)));
+                            symbolUsageInfo, customColumns.ToImmutableAndFree(), candidateReason: match.reason)));
                     }
                 }
             }
@@ -479,10 +481,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
-                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
+
+                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
+                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, candidateReason: CandidateReason.None)));
+                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), candidateReason: CandidateReason.None)));
                 }
             }
         }
@@ -512,10 +516,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
-                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
+
+                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
+                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), CandidateReason.None)));
                 }
             }
         }
@@ -540,10 +546,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-                    var containingTypeInfo = GetContainingTypeInfo(node, syntaxFacts);
-                    var containingMemberInfo = GetContainingMemberInfo(node, syntaxFacts);
+
+                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
+                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, containingTypeInfo, containingMemberInfo, CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), CandidateReason.None)));
                 }
             }
         }
@@ -712,12 +720,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static CustomColumnInfo GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            return new CustomColumnInfo(syntaxFacts.GetNameOfContainingType(node));
+            return new CustomColumnInfo("ContainingTypeInfo", syntaxFacts.GetNameOfContainingType(node));
         }
 
         protected static CustomColumnInfo GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            return new CustomColumnInfo(syntaxFacts.GetNameOfContainingMember(node));
+            return new CustomColumnInfo("ContainingMemberInfo", syntaxFacts.GetNameOfContainingMember(node));
         }
     }
 
