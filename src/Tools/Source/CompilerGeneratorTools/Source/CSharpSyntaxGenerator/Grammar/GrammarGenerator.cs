@@ -62,24 +62,6 @@ namespace CSharpSyntaxGenerator.Grammar
                         throw new InvalidOperationException(node.Name + " had no children");
                     }
 
-                    // If a node has many token children, emit it as:
-                    //
-                    //  predefined_type
-                    //      : 'int'
-                    //      | 'bool'
-                    //      | etc.
-                    //
-                    // Not:
-                    //
-                    //  predefined_type
-                    //      : ('int' | 'bool' | etc... )
-
-                    if (children.Count == 1 && children[0] is Field field && field.Type == SyntaxToken)
-                    {
-                        nameToProductions[node.Name].AddRange(GetTokenKindStrings(field).Select(k => new Production(k)));
-                        continue;
-                    }
-
                     // Some productions can be split into multiple productions that will read
                     // better.  Look for those patterns and break this up.  Then convert each
                     // production that we split out into the actual rule to emit into the grammer.
@@ -111,9 +93,35 @@ namespace CSharpSyntaxGenerator.Grammar
 
         private IEnumerable<List<TreeTypeChild>> SplitProductions(List<TreeTypeChild> children)
         {
-            foreach (var current1 in SplitQuotes(children))
-                foreach (var current2 in SplitPairedOptionalBraces(current1))
-                    yield return current2;
+            foreach (var current1 in SplitTokenChoice(children))
+                foreach (var current2 in SplitQuotes(children))
+                    foreach (var current3 in SplitPairedOptionalBraces(current1))
+                        yield return current3;
+        }
+
+        private IEnumerable<List<TreeTypeChild>> SplitTokenChoice(List<TreeTypeChild> children)
+        {
+            // If a node has many token children, emit it as:
+            //
+            //  predefined_type
+            //      : 'int'
+            //      | 'bool'
+            //      | etc.
+            //
+            // Not:
+            //
+            //  predefined_type
+            //      : ('int' | 'bool' | etc... )
+
+            if (children.Count == 1 && children[0] is Field field && field.Type == SyntaxToken)
+            {
+                return field.Kinds.Select(k => new List<TreeTypeChild>
+                {
+                    new Field { Type = "SyntaxToken", Kinds = new List<Kind> { k } }
+                });
+            }
+
+            return new[] { children };
         }
 
         private IEnumerable<List<TreeTypeChild>> SplitQuotes(List<TreeTypeChild> children)
