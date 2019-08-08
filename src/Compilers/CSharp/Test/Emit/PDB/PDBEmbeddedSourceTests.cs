@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
+        [Theory]
         [InlineData(DebugInformationFormat.PortablePdb)]
         [InlineData(DebugInformationFormat.Pdb)]
+        [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
         public void StandalonePdb(DebugInformationFormat format)
         {
             string source1 = WithWindowsLineBreaks(@"
@@ -43,11 +44,16 @@ class C
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
             };
 
+
             // note: embeddedSourceLength is the size of the compressed blob (including 4B for the header that contains the uncompressed size).
+            // The implementations of Deflate algorithm are different on .NET Framework and .NET Core and produce different results that both decompress to the same text.
+            // See https://github.com/dotnet/roslyn/issues/28045
+            var compressedLength = ExecutionConditionUtil.IsWindowsDesktop ? 98 : 105;
+
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" embeddedSourceLength=""98""><![CDATA[﻿
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" embeddedSourceLength=""" + compressedLength + @"""><![CDATA[﻿
 using System;
 class C
 {
