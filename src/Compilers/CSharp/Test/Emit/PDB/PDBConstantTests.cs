@@ -557,7 +557,7 @@ class C
         [Fact]
         public void StringConstantTooLong()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class C
 {
     void M()
@@ -601,7 +601,7 @@ this is a string constant that is too long to fit into the PDB
 this is a string constant that is too long to fit into the PDB"";
     }
 }
-";
+");
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
