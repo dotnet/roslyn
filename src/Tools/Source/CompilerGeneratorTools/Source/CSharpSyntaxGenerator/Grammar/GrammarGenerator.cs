@@ -245,7 +245,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                     throw new InvalidOperationException("Rule didn't have any productions: " + name);
                 }
 
-                sb.AppendJoin(NewLine + "  | ", productions);
+                sb.AppendJoin(Environment.NewLine + "  | ", productions);
                 sb.AppendLine();
                 sb.Append("  ;");
 
@@ -412,8 +412,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             (?<=[A-Z])(?=[A-Z][a-z]) |
             (?<=[^A-Z])(?=[A-Z]) |
             (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
-
-        private static readonly string NewLine = Environment.NewLine;
 
         // Special constants we use in a few places.
 
