@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 
 #pragma warning disable RS1012 // Start action has no registered actions.
 
@@ -59,8 +58,7 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParseValue, defaultValue);
-
-            bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
+            static bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
             {
                 var builder = ImmutableHashSet.CreateBuilder<TEnum>();
                 foreach (var kindStr in value.Split(','))

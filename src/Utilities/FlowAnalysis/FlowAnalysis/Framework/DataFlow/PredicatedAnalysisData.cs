@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private void EnsurePredicatedData()
         {
-            _lazyPredicateDataMap = _lazyPredicateDataMap ?? new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            _lazyPredicateDataMap ??= new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
         }
 
         protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)

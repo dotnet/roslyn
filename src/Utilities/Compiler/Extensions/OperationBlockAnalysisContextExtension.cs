@@ -2,10 +2,7 @@
 
 #if HAS_IOPERATION
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -41,7 +38,7 @@ namespace Analyzer.Utilities.Extensions
 
             if (methodBlock != null)
             {
-                bool IsSingleStatementBody(IBlockOperation body)
+                static bool IsSingleStatementBody(IBlockOperation body)
                 {
                     return body.Operations.Length == 1 ||
                         (body.Operations.Length == 3 && body.Syntax.Language == LanguageNames.VisualBasic &&

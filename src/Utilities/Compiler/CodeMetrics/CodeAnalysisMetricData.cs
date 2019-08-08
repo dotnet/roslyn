@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 #pragma warning disable CS3001 // Some types from Roslyn are not CLS-Compliant
 #pragma warning disable CS3003 // Some types from Roslyn are not CLS-Compliant

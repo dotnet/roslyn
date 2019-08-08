@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
@@ -83,6 +82,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, out copyAnalysisResultOpt,
                     interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis) :
                 null;
+
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             var analysisContext = ValueContentAnalysisContext.Create(
                 ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt,

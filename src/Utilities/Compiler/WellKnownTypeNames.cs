@@ -322,6 +322,8 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemString = "System.String";
+        public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
+        public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
         public const string MicrosoftAspNetCoreMvcFiltersFilterCollection = "Microsoft.AspNetCore.Mvc.Filters.FilterCollection";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
         public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
@@ -339,5 +341,6 @@ namespace Analyzer.Utilities
         public const string SystemConvert = "System.Convert";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
+        public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
     }
 }

@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             break;
                         }
 
-                        builderOpt = builderOpt ?? ImmutableHashSet.CreateBuilder<IFieldSymbol>();
+                        builderOpt ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
                         builderOpt.Add((IFieldSymbol)fieldData.Symbol);
                         indexThreshold -= 4;
                     }
