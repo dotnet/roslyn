@@ -74,7 +74,7 @@
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNetCoreILDasmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILDasmVersion>
-    <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCorePlatformsVersion>3.0.0-preview7.19362.9</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>

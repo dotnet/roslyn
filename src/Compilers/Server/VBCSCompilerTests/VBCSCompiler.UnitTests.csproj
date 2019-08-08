@@ -30,8 +30,8 @@
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
-    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
+    <Reference Include="System" Condition="'$(TargetFramework)' != 'netcoreapp2.1' And '$(TargetFramework)' != 'netcoreapp3.0'" />
+    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'netcoreapp2.1' And '$(TargetFramework)' != 'netcoreapp3.0'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>

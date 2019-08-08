@@ -18,7 +18,7 @@
       Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
       GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
     -->
-    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp3.0'" />
 
   </ItemGroup>
   <ItemGroup>

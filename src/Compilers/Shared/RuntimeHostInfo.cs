@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
             new NamedPipeClientStream(serverName, pipeName, direction, options);
 
-#elif NETCOREAPP2_1
+#elif NETCOREAPP2_1 || NETCOREAPP3_0
         internal static bool IsDesktopRuntime => false;
 
         private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";

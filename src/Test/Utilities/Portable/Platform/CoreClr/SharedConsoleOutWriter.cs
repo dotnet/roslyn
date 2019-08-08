@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP2_1
+﻿#if NETCOREAPP2_1 || NETCOREAPP3_0
 
 using System;
 using System.IO;

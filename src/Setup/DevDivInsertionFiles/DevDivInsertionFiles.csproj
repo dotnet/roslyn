@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\net472\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
-    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp3.0\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />

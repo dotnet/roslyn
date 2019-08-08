@@ -17,7 +17,7 @@ The script will install .NET Core to `.dotnet` directory if it is not found on `
 
 ## Using the compiler
 
-After building, there will be a `csc` in the `artifacts/bin/csc/Debug/netcoreapp2.1` and `artifacts/bin/csc/Debug/net472` directories. Use the former to run on .NET Core and the latter on Mono.
+After building, there will be a `csc` in the `artifacts/bin/csc/Debug/netcoreapp2.1` and `artifacts/bin/csc/Debug/netcoreapp3.0` and `artifacts/bin/csc/Debug/net472` directories. Use the former to run on .NET Core and the latter on Mono.
 
 ### Running `csc.exe` on Mono
 

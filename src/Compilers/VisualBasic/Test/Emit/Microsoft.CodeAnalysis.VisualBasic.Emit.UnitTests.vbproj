@@ -11,6 +11,7 @@
     -->
     <DefineConstants Condition="'$(TargetFramework)' == 'net472'">$(FinalDefineConstants),NET472=-1</DefineConstants>
     <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp2.1'">$(FinalDefineConstants),NETCOREAPP2_1=-1</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp3.0'">$(FinalDefineConstants),NETCOREAPP3_0=-1</DefineConstants>
 
     <!-- Disabling on assumption -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
