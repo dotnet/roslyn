@@ -34,8 +34,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 }
             });
 
-            _nameToElement = tree.Types.Where(c => c is AbstractNode || c is Node)
-                                       .ToImmutableDictionary(n => n.Name);
+            _nameToElement = tree.Types.Where(c => c is AbstractNode || c is Node).ToImmutableDictionary(n => n.Name);
         }
 
         public string Run()
