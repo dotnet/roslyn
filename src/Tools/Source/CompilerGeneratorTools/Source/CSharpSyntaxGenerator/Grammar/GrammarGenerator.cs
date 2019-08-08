@@ -170,3 +170,4 @@ namespace Microsoft.CodeAnalysis
         internal const int ListKind = 1; // See SyntaxKind.
     }
 }
+
