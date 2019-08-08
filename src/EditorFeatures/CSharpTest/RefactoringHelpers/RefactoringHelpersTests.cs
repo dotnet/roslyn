@@ -528,6 +528,22 @@ public class Class1
         }
 
         [Fact]
+        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        public async Task TestEmptyParameter()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    static void foo({|result:[Test][||]
+|}    {
+
+    }
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
         public async Task TestMissingEmptyMember2()
         {
