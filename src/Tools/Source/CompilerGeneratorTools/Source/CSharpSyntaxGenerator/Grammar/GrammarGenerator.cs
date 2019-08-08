@@ -92,12 +92,10 @@ namespace CSharpSyntaxGenerator.Grammar
         }
 
         private IEnumerable<List<TreeTypeChild>> SplitProductions(List<TreeTypeChild> children)
-        {
-            foreach (var current1 in SplitTokenChoice(children))
-                foreach (var current2 in SplitQuotes(children))
-                    foreach (var current3 in SplitPairedOptionalBraces(current1))
-                        yield return current3;
-        }
+            => from current1 in SplitTokenChoice(children)
+               from current2 in SplitQuotes(current1)
+               from current3 in SplitPairedOptionalBraces(current2)
+               select current3;
 
         private IEnumerable<List<TreeTypeChild>> SplitTokenChoice(List<TreeTypeChild> children)
         {
