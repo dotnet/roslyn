@@ -3682,10 +3682,12 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
-    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
-      <Kind Name="SemicolonToken"/>
-    </Field>
+    <Choice>
+      <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+      <Field Name="SemicolonToken" Type="SyntaxToken">
+        <Kind Name="SemicolonToken"/>
+      </Field>
+    </Choice>
   </Node>
   <Node Name="IndexerDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="IndexerDeclaration"/>
