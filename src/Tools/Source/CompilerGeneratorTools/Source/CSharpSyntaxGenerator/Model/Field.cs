@@ -51,7 +51,7 @@ namespace CSharpSyntaxGenerator
         public string AllowTrailingSeparator;
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
-        public List<Kind> Kinds;
+        public List<Kind> Kinds = new List<Kind>();
 
         [XmlElement]
         public Comment PropertyComment;

@@ -58,7 +58,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     if (node.Children.Count == 1 && node.Children[0] is Field field && field.IsToken)
                     {
                         ProcessProductions(node, field.Kinds.Select(k =>
-                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = new List<Kind> { k } } }).ToArray());
+                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = { k } } }).ToArray());
                     }
                     else
                     {
@@ -72,11 +72,8 @@ namespace CSharpSyntaxGenerator.Grammar
             // g4 file is considered legal (i.e. no rule references names of rules that don't
             // exist).
 
-            var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
-            _nameToProductions.Add("Token", lexicalProductions);
-
             foreach (var kind in s_lexicalTokens)
-                _nameToProductions.Add(kind.ToString(), lexicalProductions);
+                _nameToProductions.Add(kind.ToString(), new List<Production> { new Production("/* see lexical specification */") });
 
             return GenerateResult();
         }
@@ -234,7 +231,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
             // Map these token kinds to just a synthesized rule that we state is
             // declared elsewhere.
-            if (s_lexicalTokens.Contains(kind))
+            if (s_lexicalTokens.Contains(kind.ToString()))
                 return Normalize(kind.ToString());
 
             var result = SyntaxFacts.GetText(kind);
@@ -278,13 +275,15 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
 
-        private static readonly ImmutableArray<SyntaxKind> s_lexicalTokens = ImmutableArray.Create(
-            SyntaxKind.IdentifierToken,
-            SyntaxKind.CharacterLiteralToken,
-            SyntaxKind.StringLiteralToken,
-            SyntaxKind.NumericLiteralToken,
-            SyntaxKind.InterpolatedStringTextToken,
-            SyntaxKind.XmlTextLiteralToken);
+        private static readonly ImmutableArray<string> s_lexicalTokens
+            = ImmutableArray.Create(
+                "Token",
+                nameof(SyntaxKind.IdentifierToken),
+                nameof(SyntaxKind.CharacterLiteralToken),
+                nameof(SyntaxKind.StringLiteralToken),
+                nameof(SyntaxKind.NumericLiteralToken),
+                nameof(SyntaxKind.InterpolatedStringTextToken),
+                nameof(SyntaxKind.XmlTextLiteralToken));
 
         // This is optional, but makes the emitted g4 file a bit nicer.  Basically, we define a few
         // major sections (generally, corresponding to base nodes that have a lot of derived nodes).
