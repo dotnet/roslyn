@@ -19,31 +19,28 @@ namespace CSharpSyntaxGenerator.Grammar
 
         public GrammarGenerator(Tree tree)
         {
+            // tree.Types.Add(new Node { Name = "StructuredTriviaSyntax" });
+
             // Syntax refers to a special pseudo-element 'Modifier'.  Just synthesize that since
             // it's useful in the g4 grammar.
-            _nodes = tree.Types.Where(c => c is AbstractNode || c is Node).ToImmutableArray().Add(
-                new Node
-                {
-                    Name = "Modifier",
-                    Children =
-                    {
-                        new Field
-                        {
-                            Type = SyntaxToken,
-                            Kinds = ModifierKeywords.Select(k => new Kind { Name = k }).ToList()
-                        }
-                    }
-                });
+            var modifierKeywords = from mod in GetKinds<DeclarationModifiers>()
+                                   let modKeyword = mod + "Keyword"
+                                   from kind in SyntaxKinds
+                                   where modKeyword == kind.ToString()
+                                   select new Kind { Name = modKeyword };
 
+            tree.Types.Add(new Node
+            {
+                Name = "Modifier",
+                Children = { new Field { Type = SyntaxToken, Kinds = modifierKeywords.ToList() } }
+            });
+
+            _nodes = tree.Types.Where(t => t.Name != "CSharpSyntaxNode").ToImmutableArray();
             _nameToProductions = _nodes.ToDictionary(n => n.Name, _ => new List<Production>());
         }
 
         public string Run()
         {
-            // Synthesize this so we have a special node that can act as the parent production for
-            // all structured trivia rules.
-            _nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
-
             foreach (var node in _nodes)
             {
                 // If this node has a base-type, then have the base-type point to this node as a
@@ -54,7 +51,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 if (node is Node)
                 {
                     if (node.Children.Count == 0)
-                        throw new InvalidOperationException(node.Name + " had no children");
+                        continue;
 
                     // Convert a rule of `a: (x | y | z)` into:
                     // a: x
@@ -116,9 +113,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 {
                     // Order the productions alphabetically for consistency and to keep us independent
                     // from whatever ordering changes happen in Syntax.xml.
-                    var sorted = _nameToProductions[name].OrderBy(v => v.Text, StringComparer.Ordinal);
-
-                    normalizedRules.Add((Normalize(name), sorted.Select(s => s.Text).ToImmutableArray()));
+                    var sorted = _nameToProductions[name].OrderBy(v => v.Text, StringComparer.Ordinal).ToImmutableArray();
+                    if (sorted.Length > 0)
+                        normalizedRules.Add((Normalize(name), sorted.Select(s => s.Text).ToImmutableArray()));
 
                     // Now proceed in depth-first fashion through the rules the productions of this rule
                     // reference.  This helps keep related rules of these productions close by.
@@ -256,10 +253,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                                   .Select(f => (TSyntaxKind)f.GetValue(null));
 
         private static IEnumerable<SyntaxKind> SyntaxKinds => GetKinds<SyntaxKind>();
-
-        private static IEnumerable<string> ModifierKeywords
-            => GetKinds<DeclarationModifiers>().Select(m => m.ToString() + "Keyword")
-                                               .Where(d => SyntaxKinds.Any(k => k.ToString() == d));
 
         private static SyntaxKind GetTokenKind(string tokenName)
             => tokenName == "Identifier"
