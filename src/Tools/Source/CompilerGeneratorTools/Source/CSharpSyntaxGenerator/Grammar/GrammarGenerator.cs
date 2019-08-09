@@ -23,7 +23,7 @@ namespace CSharpSyntaxGenerator.Grammar
             // it's useful in the g4 grammar.
             tree.Types.Add(new Node
             {
-                Name = Modifier,
+                Name = "Modifier",
                 Children =
                 {
                     new Field
@@ -84,7 +84,7 @@ namespace CSharpSyntaxGenerator.Grammar
             // g4 file is considered legal (i.e. no rule references names of rules that don't exist).
 
             var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
-            nameToProductions.Add(Token, lexicalProductions);
+            nameToProductions.Add("Token", lexicalProductions);
 
             foreach (var kind in LexicalTokens)
             {
@@ -325,8 +325,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 // we don't want `Commas` to be in the grammar as `token*` (implying that it could
                 // be virtually any token.
                 "Commas" => new Production("','"),
-                "Modifiers" => RuleReference(Modifier),
-                "Tokens" => new Production(Normalize(Token)),
+                "Modifiers" => RuleReference("Modifier"),
+                "Tokens" => new Production(Normalize("Token")),
                 "TextTokens" => new Production(Normalize("XmlTextLiteralToken")),
                 _ => RuleReference(field.Type[("SyntaxList".Length + 1)..^1])
             };
@@ -407,10 +407,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
 
         // Special constants we use in a few places.
 
-        private const string Modifier = "Modifier";
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
-        private const string Token = "Token";
 
         private static readonly ImmutableArray<SyntaxKind> LexicalTokens = ImmutableArray.Create(
             SyntaxKind.IdentifierToken,
