@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            if (functionDeclaration is null)
+            {
+                return;
+            }
+
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
 
