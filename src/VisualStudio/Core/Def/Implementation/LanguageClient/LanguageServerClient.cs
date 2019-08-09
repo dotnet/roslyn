@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     [ContentType(ContentTypeNames.VisualBasicLspContentTypeName)]
     [Export(typeof(ILanguageClient))]
     [ExportMetadata("Capabilities", "WorkspaceStreamingSymbolProvider")]
-    internal class LanguageServerClient : ILanguageClient
+    internal sealed class LanguageServerClient : ILanguageClient
     {
         private readonly Workspace _workspace;
         private readonly LanguageServerClientEventListener _eventListener;
