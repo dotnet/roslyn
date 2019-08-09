@@ -14,6 +14,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" />
   </ItemGroup>

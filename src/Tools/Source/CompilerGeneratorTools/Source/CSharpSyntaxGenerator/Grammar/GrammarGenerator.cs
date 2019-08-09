@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     new Field
                     {
                         Type = SyntaxToken,
-                        Kinds = s_modifiers.Select(k => new Kind { Name = k.ToString() }).ToList()
+                        Kinds = ModifierKeywords.Select(k => new Kind { Name = k }).ToList()
                     }
                 }
             });
@@ -251,11 +252,20 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 : "'" + result + "'";
         }
 
+        private static IEnumerable<TSyntaxKind> GetKinds<TSyntaxKind>() where TSyntaxKind : struct, System.Enum
+            => typeof(TSyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static)
+                                  .Select(f => (TSyntaxKind)f.GetValue(null));
+
+        private static IEnumerable<SyntaxKind> SyntaxKinds => GetKinds<SyntaxKind>();
+
+        private static IEnumerable<string> ModifierKeywords
+            => GetKinds<DeclarationModifiers>().Select(m => m.ToString() + "Keyword")
+                                               .Where(d => SyntaxKinds.Any(k => k.ToString() == d));
+
         private static SyntaxKind GetTokenKind(string tokenName)
             => tokenName == "Identifier"
                 ? SyntaxKind.IdentifierToken
-                : (SyntaxKind)typeof(SyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Where(f => f.Name == tokenName).Single().GetValue(null);
+                : SyntaxKinds.Where(k => k.ToString() == tokenName).Single();
 
         private Production RuleReference(string ruleName)
             => _nameToElement.ContainsKey(ruleName)
@@ -285,27 +295,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             SyntaxKind.NumericLiteralToken,
             SyntaxKind.InterpolatedStringTextToken,
             SyntaxKind.XmlTextLiteralToken);
-
-        private static readonly ImmutableArray<SyntaxKind> s_modifiers = ImmutableArray.Create(
-            SyntaxKind.AbstractKeyword,
-            SyntaxKind.SealedKeyword,
-            SyntaxKind.StaticKeyword,
-            SyntaxKind.NewKeyword,
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.ReadOnlyKeyword,
-            SyntaxKind.ConstKeyword,
-            SyntaxKind.VolatileKeyword,
-            SyntaxKind.ExternKeyword,
-            SyntaxKind.PartialKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.FixedKeyword,
-            SyntaxKind.VirtualKeyword,
-            SyntaxKind.OverrideKeyword,
-            SyntaxKind.AsyncKeyword,
-            SyntaxKind.RefKeyword);
 
         // This is optional, but makes the emitted g4 file a bit nicer.  Basically, we define a few
         // major sections (generally, corresponding to base nodes that have a lot of derived nodes).
