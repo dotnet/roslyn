@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,6 +15,7 @@ namespace CSharpSyntaxGenerator.Grammar
     internal class GrammarGenerator
     {
         private readonly ImmutableDictionary<string, TreeType> _nameToElement;
+        private readonly Dictionary<string, List<Production>> _nameToProductions;
 
         public GrammarGenerator(Tree tree)
         {
@@ -35,19 +35,18 @@ namespace CSharpSyntaxGenerator.Grammar
             });
 
             _nameToElement = tree.Types.Where(c => c is AbstractNode || c is Node).ToImmutableDictionary(n => n.Name);
+            _nameToProductions = _nameToElement.Values.ToDictionary(n => n.Name, _ => new List<Production>());
         }
 
         public string Run()
         {
-            var nameToProductions = _nameToElement.Values.ToDictionary(n => n.Name, _ => new List<Production>());
-
             // Synthesize this so we have a special node that can act as the parent production for
             // all structured trivia rules.
-            nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
+            _nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
 
             foreach (var node in _nameToElement.Values)
             {
-                if (node.Base is string nodeBase && nameToProductions.TryGetValue(nodeBase, out var baseProductions))
+                if (node.Base is string nodeBase && _nameToProductions.TryGetValue(nodeBase, out var baseProductions))
                 {
                     // If this node has a base-type, then have the base-type point to this node as a
                     // valid production for itself.
@@ -62,25 +61,18 @@ namespace CSharpSyntaxGenerator.Grammar
                         throw new InvalidOperationException(node.Name + " had no children");
                     }
 
-                    var allProductions = new List<List<TreeTypeChild>>();
-
                     // Convert a rule of `a: (x | y | z)` into:
                     // a: x
                     //  | y
                     //  | z;
                     if (children.Count == 1 && children[0] is Field field && field.IsToken)
                     {
-                        allProductions.AddRange(field.Kinds.Select(k =>
-                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = new List<Kind> { k } } }));
+                        ProcessProductions(node, field.Kinds.Select(k =>
+                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = new List<Kind> { k } } }).ToArray());
                     }
                     else
                     {
-                        allProductions.Add(children);
-                    }
-
-                    foreach (var production in allProductions)
-                    {
-                        nameToProductions[node.Name].Add(ProcessChildren(production, delim: " "));
+                        ProcessProductions(node, children);
                     }
                 }
             }
@@ -90,17 +82,25 @@ namespace CSharpSyntaxGenerator.Grammar
             // g4 file is considered legal (i.e. no rule references names of rules that don't exist).
 
             var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
-            nameToProductions.Add("Token", lexicalProductions);
+            _nameToProductions.Add("Token", lexicalProductions);
 
             foreach (var kind in s_lexicalTokens)
             {
-                nameToProductions.Add(kind.ToString(), lexicalProductions);
+                _nameToProductions.Add(kind.ToString(), lexicalProductions);
             }
 
-            return GenerateResult(nameToProductions);
+            return GenerateResult();
         }
 
-        private string GenerateResult(Dictionary<string, List<Production>> nameToProductions)
+        private void ProcessProductions(TreeType node, params List<TreeTypeChild>[] productions)
+        {
+            foreach (var production in productions)
+            {
+                _nameToProductions[node.Name].Add(ProcessChildren(production, delim: " "));
+            }
+        }
+
+        private string GenerateResult()
         {
             // Keep track of the rules we've emitted.  Once we've emitted a rule once, no need to do
             // it again, even if it's referenced by another rule.
@@ -115,7 +115,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             // Now go through the entire list and print out any other rules not hit transitively
             // from those sections.
-            foreach (var name in nameToProductions.Keys.OrderBy(a => a, StringComparer.Ordinal))
+            foreach (var name in _nameToProductions.Keys.OrderBy(a => a, StringComparer.Ordinal))
             {
                 AddNormalizedRules(name);
             }
@@ -131,7 +131,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 {
                     // Order the productions alphabetically for consistency and to keep us independent
                     // from whatever ordering changes happen in Syntax.xml.
-                    var sorted = nameToProductions[name].OrderBy(v => v.Text, StringComparer.Ordinal);
+                    var sorted = _nameToProductions[name].OrderBy(v => v.Text, StringComparer.Ordinal);
 
                     normalizedRules.Add((Normalize(name), sorted.Select(s => s.Text).ToImmutableArray()));
 
@@ -147,26 +147,26 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                     }
                 }
             }
+        }
 
-            static string Generate(string name, ImmutableArray<string> productions)
+        private static string Generate(string name, ImmutableArray<string> productions)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine(name);
+            sb.Append("  : ");
+
+            if (productions.Length == 0)
             {
-                var sb = new StringBuilder();
-                sb.AppendLine();
-                sb.AppendLine();
-                sb.AppendLine(name);
-                sb.Append("  : ");
-
-                if (productions.Length == 0)
-                {
-                    throw new InvalidOperationException("Rule didn't have any productions: " + name);
-                }
-
-                sb.AppendJoin(Environment.NewLine + "  | ", productions);
-                sb.AppendLine();
-                sb.Append("  ;");
-
-                return sb.ToString();
+                throw new InvalidOperationException("Rule didn't have any productions: " + name);
             }
+
+            sb.AppendJoin(Environment.NewLine + "  | ", productions);
+            sb.AppendLine();
+            sb.Append("  ;");
+
+            return sb.ToString();
         }
 
         /// <summary>
