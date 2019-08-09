@@ -108,7 +108,7 @@ namespace CSharpSyntaxGenerator.Grammar
             //  predefined_type
             //      : ('int' | 'bool' | etc... )
 
-            if (children.Count == 1 && children[0] is Field field && field.Type == SyntaxToken)
+            if (children.Count == 1 && children[0] is Field field && field.IsToken)
             {
                 return field.Kinds.Select(k => new List<TreeTypeChild>
                 {
@@ -126,7 +126,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             var fields = children.OfType<Field>();
             var matches = fields.Where(
-                f => f.Type == SyntaxToken &&
+                f => f.IsToken &&
                      f.Kinds.Count >= 2 &&
                      f.Kinds.Select(GetTokenKind).Contains(SyntaxKind.DoubleQuoteToken)).ToList();
             if (matches.Count < 2)
@@ -157,8 +157,8 @@ namespace CSharpSyntaxGenerator.Grammar
 
             var fields = children.OfType<Field>();
             var matches = fields.Where(
-                f => f.Optional != null &&
-                     f.Type == SyntaxToken &&
+                f => f.IsToken &&
+                     f.Optional != null &&
                      f.Kinds.Select(GetTokenKind).Any(OpenCloseTokens.Contains)).ToList();
             if (matches.Count < 2)
             {
@@ -288,8 +288,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 // They're not relevant to the grammar, so we just return an empty production here
                 // which will be filtered out by the caller.
                 "bool" => new Production(""),
-                SyntaxToken => HandleSyntaxTokenField(field),
                 "CSharpSyntaxNode" => HandleCSharpSyntaxNodeField(field),
+                _ when field.IsToken => HandleSyntaxTokenField(field),
                 _ when field.Type.StartsWith("SeparatedSyntaxList") => HandleSeparatedSyntaxListField(field),
                 _ when field.Type.StartsWith("SyntaxList") => HandleSyntaxListField(field),
                 _ => RuleReference(field.Type),
