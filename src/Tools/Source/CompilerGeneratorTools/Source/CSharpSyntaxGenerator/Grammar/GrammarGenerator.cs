@@ -282,18 +282,14 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             => GetFieldUnderlyingType(field).WithSuffix(field.Optional == "true" ? "?" : "");
 
         private Production GetFieldUnderlyingType(Field field)
-            => field.Type switch
-            {
-                // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
-                // They're not relevant to the grammar, so we just return an empty production here
-                // which will be filtered out by the caller.
-                "bool" => new Production(""),
-                "CSharpSyntaxNode" => HandleCSharpSyntaxNodeField(field),
-                _ when field.IsToken => HandleSyntaxTokenField(field),
-                _ when field.Type.StartsWith("SeparatedSyntaxList") => HandleSeparatedSyntaxListField(field),
-                _ when field.Type.StartsWith("SyntaxList") => HandleSyntaxListField(field),
-                _ => RuleReference(field.Type),
-            };
+            // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
+            // They're not relevant to the grammar, so we just return an empty production here
+            // which will be filtered out by the caller.
+            => field.Type == "bool" ? new Production("") :
+               field.Type == "CSharpSyntaxNode" ? HandleCSharpSyntaxNodeField(field) :
+               field.Type.StartsWith("SeparatedSyntaxList") ? HandleSeparatedSyntaxListField(field) :
+               field.Type.StartsWith("SyntaxList") ? HandleSyntaxListField(field) :
+               field.IsToken ? HandleSyntaxTokenField(field) : RuleReference(field.Type);
 
         private static Production HandleSyntaxTokenField(Field field)
         {
