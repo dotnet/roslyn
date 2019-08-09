@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -40,32 +39,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var instance = s_poolInstance.Allocate();
             Debug.Assert(instance.Count == 0);
             return instance;
-        }
-
-        public static PooledHashSetDisposer GetInstance(out PooledHashSet<T> instance)
-        {
-            instance = GetInstance();
-            return new PooledHashSetDisposer(instance);
-        }
-
-        internal struct PooledHashSetDisposer : IDisposable
-        {
-            private PooledHashSet<T> _pooledObject;
-
-            public PooledHashSetDisposer(PooledHashSet<T> instance)
-            {
-                _pooledObject = instance;
-            }
-
-            public void Dispose()
-            {
-                var pooledObject = _pooledObject;
-                if (pooledObject != null)
-                {
-                    pooledObject.Free();
-                    _pooledObject = null;
-                }
-            }
         }
     }
 }
