@@ -91,35 +91,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
-        public static PooledStringBuilderDisposer GetInstance(out PooledStringBuilder instance)
-        {
-            instance = GetInstance();
-            return new PooledStringBuilderDisposer(instance);
-        }
-
         public static implicit operator StringBuilder(PooledStringBuilder obj)
         {
             return obj.Builder;
-        }
-
-        internal struct PooledStringBuilderDisposer : IDisposable
-        {
-            private PooledStringBuilder _pooledObject;
-
-            public PooledStringBuilderDisposer(PooledStringBuilder instance)
-            {
-                _pooledObject = instance;
-            }
-
-            public void Dispose()
-            {
-                var pooledObject = _pooledObject;
-                if (pooledObject != null)
-                {
-                    pooledObject.Free();
-                    _pooledObject = null;
-                }
-            }
         }
     }
 }
