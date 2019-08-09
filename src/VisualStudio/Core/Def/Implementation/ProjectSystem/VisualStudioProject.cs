@@ -312,6 +312,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnDefaultNamespaceChanged(Id, value));
         }
 
+        /// <summary>
+        /// The max language version supported for this project, if applicable. Useful to help indicate what 
+        /// language version features should be suggested to a user, as well as if they can be upgraded. 
+        /// </summary>
+        internal string MaxLangVersion
+        {
+            set => _workspace.SetMaxLanguageVersion(Id, value);
+        }
+
 
         #region Batching
 

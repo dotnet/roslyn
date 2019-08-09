@@ -5820,6 +5820,30 @@ class C
             End Using
         End Function
 
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        Public Async Function CompletionBeforeVarWithEnableNullableReferenceAnalysisIDEFeatures(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis">
+                         <Document><![CDATA[
+class C
+{
+    void M(string s)
+    {
+        s$$
+        var o = new object();
+    }
+}]]></Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Length"})
+            End Using
+        End Function
+
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
