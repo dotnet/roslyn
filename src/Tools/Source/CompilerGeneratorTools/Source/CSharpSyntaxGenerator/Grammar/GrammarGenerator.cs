@@ -276,20 +276,10 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         }
 
         private static SyntaxKind GetTokenKind(string tokenName)
-        {
-            foreach (var field in typeof(SyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static))
-            {
-                if (field.Name == tokenName)
-                {
-                    return (SyntaxKind)field.GetValue(null);
-                }
-            }
-
-            // Slight special case.  Syntax.xml references IdentifierTokens as Identifier.
-            return tokenName == "Identifier"
+            => tokenName == "Identifier"
                 ? SyntaxKind.IdentifierToken
-                : throw new NotImplementedException("Could not find SyntaxKind for: " + tokenName);
-        }
+                : (SyntaxKind)typeof(SyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static)
+                    .Where(f => f.Name == tokenName).Single().GetValue(null);
 
         private Production RuleReference(string ruleName)
             => _nameToElement.ContainsKey(ruleName)
