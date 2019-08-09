@@ -85,14 +85,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
-        ///
-        /// TODO: Revisit the approach we used for caching VS items.
-        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
         /// </summary>
-        internal bool IsCached { get; set; }
+        internal string AutomationText { get; set; }
+
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -252,7 +250,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
-                ProviderName = ProviderName
+                AutomationText = AutomationText,
+                ProviderName = ProviderName,
+                Flags = Flags,
             };
         }
 

@@ -10304,7 +10304,7 @@ public class Program
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/37047")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37047")]
         public void OutVar_InSwitchExpression()
         {
             var source0 = MarkedSource(@"

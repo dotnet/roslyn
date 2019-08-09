@@ -185,6 +185,11 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <NgenPriority>1</NgenPriority>
     </ProjectReference>
+    <ProjectReference Include="..\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" >
+      <Name>CodeAnalysisCodeLensVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj">
       <Name>ServicesVisualStudioImpl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -309,6 +314,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
 </Project>

@@ -55,6 +55,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetQuickInfo(bool value)
             => _inProc.EnableQuickInfo(value);
 
+        public void SetImportCompletionOption(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: "ShowItemsFromUnimportedNamespaces",
+                feature: "CompletionOptions",
+                language: LanguageNames.CSharp,
+                value: value);
+
+            SetPerLanguageOption(
+                optionName: "ShowItemsFromUnimportedNamespaces",
+                feature: "CompletionOptions",
+                language: LanguageNames.VisualBasic,
+                value: value);
+        }
+
         public void SetFullSolutionAnalysis(bool value)
         {
             SetPerLanguageOption(

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">
         <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia "{0}".</target>
+        <target state="translated">No se puede resolver la referencia '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">Error al iniciar el proceso "{0}" (código de salida: {1}) con la salida: </target>
+        <target state="translated">Error al iniciar el proceso '{0}' (código de salida: {1}) con la salida: </target>
         <note />
       </trans-unit>
       <trans-unit id="Hosting_process_exited_with_exit_code_0">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">Cargando contexto de "{0}".</target>
+        <target state="translated">Cargando contexto de '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Searched_in_directories_colon">
