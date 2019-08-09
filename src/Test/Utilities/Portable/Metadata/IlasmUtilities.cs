@@ -21,36 +21,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string GetIlasmPath()
         {
-            if (ExecutionConditionUtil.IsWindowsDesktop)
+            var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
+            var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
+            string ridName = null;
+
+            if (ExecutionConditionUtil.Architecture == ExecutionArchitecture.x64)
             {
-                return Path.Combine(
-                    Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
-                    "ilasm.exe");
+                if (ExecutionConditionUtil.IsWindows)
+                {
+                    ridName = "win-x64";
+                }
+                else if (ExecutionConditionUtil.IsUnix)
+                {
+                    ridName = "linux-x64";
+                }
+                else if (ExecutionConditionUtil.IsMacOS)
+                {
+                    ridName = "osx-x64";
+                }
             }
-            else
+
+            if (ridName is null)
             {
-                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
-
-                var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
-                string path = null;
-#if DEBUG
-                const string configuration = "Debug";
-#else
-                const string configuration = "Release";
-#endif
-
-                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILTools", configuration, ilasmExeName)))
-                {
-                    directory = Path.GetDirectoryName(directory);
-                }
-
-                if (directory == null)
-                {
-                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to /artifacts/tools?");
-                }
-
-                return path;
+                throw new Exception("Runtime platform not supported for testing");
             }
+
+            return Path.Combine(directory, "runtime", ridName, "native", ilasmExeName);
         }
 
         private static readonly string IlasmPath = GetIlasmPath();
