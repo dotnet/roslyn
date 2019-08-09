@@ -115,7 +115,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                     //
                     // Note: if we hit a major-section node, we don't recurse in.  This keeps us from
                     // travelling too far away, and keeps the major sections relatively cohesive.
-                    var references = sorted.SelectMany(t => t.RuleReferences).Where(r => !s_majorSections.Contains(r));
+                    var references = sorted.SelectMany(t => t.RuleReferences).Where(r => !s_majorRules.Contains(r));
                     foreach (var reference in references)
                         AddNormalizedRules(reference);
                 }
@@ -123,24 +123,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         }
 
         private static string Generate(string name, ImmutableArray<string> productions)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine(name);
-            sb.Append("  : ");
-
-            if (productions.Length == 0)
-            {
-                throw new InvalidOperationException("Rule didn't have any productions: " + name);
-            }
-
-            sb.AppendJoin(Environment.NewLine + "  | ", productions);
-            sb.AppendLine();
-            sb.Append("  ;");
-
-            return sb.ToString();
-        }
+            => Environment.NewLine + Environment.NewLine + name + Environment.NewLine + "  : " +
+               Join(Environment.NewLine + "  | ", productions) + Environment.NewLine + "  ;";
 
         /// <summary>
         /// Returns the g4 production string for this rule based on the children it has. Also
