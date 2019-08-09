@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             int position,
             CancellationToken cancellationToken)
         {
-
             foreach (var index in listOfParametersOrdinals)
             {
                 // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
                 }
 
-                // If parameter is a string, default check would be IsNullOrEmpty - updates document
+                // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more commonly used in this regard according to telemetry and UX testing.
                 if (parameter.Type.SpecialType == SpecialType.System_String)
                 {
                     document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
