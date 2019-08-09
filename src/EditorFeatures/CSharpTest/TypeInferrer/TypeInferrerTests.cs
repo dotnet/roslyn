@@ -157,6 +157,17 @@ var q = s ?? [|Goo()|];", "global::System.String", mode);
 @"var q = [|Goo()|] ?? string.Empty;", "global::System.String?", TestMode.Node);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestCoalesceWithErrorType()
+        {
+            // We could be smart and infer this as an ErrorType?, but in the #nullable disable case we don't know if this is intended to be
+            // a struct (where the question mark is legal) or a class (where it isn't). We'll thus avoid sticking question marks in this case.
+            // https://github.com/dotnet/roslyn/issues/37852 tracks fixing this is a much fancier way.
+            await TestInMethodAsync(
+@"ErrorType s;
+var q = [|Goo()|] ?? s;", "ErrorType", TestMode.Node);
+        }
+
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBinaryExpression1(TestMode mode)
         {

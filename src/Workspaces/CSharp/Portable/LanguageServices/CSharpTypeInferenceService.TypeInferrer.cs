@@ -1088,7 +1088,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static ITypeSymbol MakeNullable(ITypeSymbol symbol, Compilation compilation)
                 {
-                    if (symbol.IsValueType)
+                    if (symbol.IsErrorType())
+                    {
+                        // We could be smart and infer this as an ErrorType?, but in the #nullable disable case we don't know if this is intended to be
+                        // a struct (where the question mark is legal) or a class (where it isn't). We'll thus avoid sticking question marks in this case.
+                        // https://github.com/dotnet/roslyn/issues/37852 tracks fixing this is a much fancier way.
+                        return symbol;
+                    }
+                    else if (symbol.IsValueType)
                     {
                         return compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(symbol.WithoutNullability());
                     }
