@@ -9,8 +9,12 @@ compilation_unit
 grammar csharp;
 
 compilation_unit
+<<<<<<< HEAD
   : extern_alias_directive* using_directive* attribute_list* member_declaration* EOF
 >>>>>>> Generate
+=======
+  : extern_alias_directive* using_directive* attribute_list* member_declaration*
+>>>>>>> Simplify
   ;
 
 extern_alias_directive
@@ -18,7 +22,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static' | name_equals)? name ';'
+  : 'using' ('static'? | name_equals?) name ';'
   ;
 
 name_equals
@@ -63,10 +67,14 @@ attribute_list
 
 attribute_target_specifier
 <<<<<<< HEAD
+<<<<<<< HEAD
   : syntax_token ':'
 =======
   : identifier_token ':'
 >>>>>>> Generate
+=======
+  : token ':'
+>>>>>>> Simplify
   ;
 
 attribute
@@ -79,10 +87,14 @@ attribute_argument_list
 
 attribute_argument
 <<<<<<< HEAD
+<<<<<<< HEAD
   : (name_equals? | name_colon?) expression
 =======
   : (name_equals | name_colon)? expression
 >>>>>>> Generate
+=======
+  : (name_equals? | name_colon?) expression
+>>>>>>> Simplify
   ;
 
 name_colon
@@ -146,10 +158,14 @@ bracketed_argument_list
 
 argument
 <<<<<<< HEAD
+<<<<<<< HEAD
   : name_colon? ('ref' | 'out' | 'in')? expression
 =======
   : name_colon? ('in' | 'out' | 'ref')? expression
 >>>>>>> Generate
+=======
+  : name_colon? ('ref' | 'out' | 'in')? expression
+>>>>>>> Do not sort tokens
   ;
 
 equals_value_clause
@@ -178,10 +194,14 @@ parameter_list
 
 parameter
 <<<<<<< HEAD
+<<<<<<< HEAD
   : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
 =======
   : attribute_list* modifier* type? ('__arglist' | identifier_token) equals_value_clause?
 >>>>>>> Generate
+=======
+  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
+>>>>>>> Do not sort tokens
   ;
 
 constructor_initializer
@@ -202,10 +222,14 @@ arrow_expression_clause
 
 conversion_operator_declaration
 <<<<<<< HEAD
+<<<<<<< HEAD
   : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
 =======
   : attribute_list* modifier* ('explicit' | 'implicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
 >>>>>>> Generate
+=======
+  : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+>>>>>>> Do not sort tokens
   ;
 
 destructor_declaration
@@ -257,10 +281,14 @@ type_constraint
 
 operator_declaration
 <<<<<<< HEAD
+<<<<<<< HEAD
   : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
 =======
   : attribute_list* modifier* type 'operator' ('!' | '!=' | '%' | '&' | '*' | '+' | '++' | '-' | '--' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '^' | 'false' | 'is' | 'true' | '|' | '~') parameter_list (block | (arrow_expression_clause ';'))
 >>>>>>> Generate
+=======
+  : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+>>>>>>> Do not sort tokens
   ;
 
 base_property_declaration
@@ -279,10 +307,14 @@ accessor_list
 
 accessor_declaration
 <<<<<<< HEAD
+<<<<<<< HEAD
   : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
 =======
   : attribute_list* modifier* ('add' | 'get' | 'remove' | 'set' | identifier_token) (block | (arrow_expression_clause ';'))
 >>>>>>> Generate
+=======
+  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
+>>>>>>> Do not sort tokens
   ;
 
 indexer_declaration
@@ -532,11 +564,15 @@ return_statement
 
 switch_statement
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'switch' '('? expression ')'? '{' switch_section* '}'
 =======
   : 'switch' '(' expression ')' '{' switch_section* '}'
   | 'switch' expression '{' switch_section* '}'
 >>>>>>> Generate
+=======
+  : 'switch' '('? expression ')'? '{' switch_section* '}'
+>>>>>>> Simplify
   ;
 
 switch_section
@@ -661,10 +697,14 @@ while_statement
 
 yield_statement
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'yield' ('return' | 'break') expression? ';'
 =======
   : 'yield' ('break' | 'return') expression? ';'
 >>>>>>> Generate
+=======
+  : 'yield' ('return' | 'break') expression? ';'
+>>>>>>> Do not sort tokens
   ;
 
 expression
@@ -764,10 +804,14 @@ initializer_expression
 
 assignment_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '??=') expression
 =======
   : expression ('%=' | '&=' | '*=' | '+=' | '-=' | '/=' | '<<=' | '=' | '>>=' | '??=' | '^=' | '|=') expression
 >>>>>>> Generate
+=======
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '??=') expression
+>>>>>>> Do not sort tokens
   ;
 
 await_expression
@@ -776,10 +820,14 @@ await_expression
 
 binary_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
 =======
   : expression ('!=' | '%' | '&&' | '&' | '*' | '+' | '-' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '??' | '^' | 'as' | 'is' | '|' | '||') expression
 >>>>>>> Generate
+=======
+  : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
+>>>>>>> Do not sort tokens
   ;
 
 cast_expression
@@ -899,10 +947,14 @@ make_ref_expression
 
 member_access_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : expression ('.' | '->') simple_name
 =======
   : expression ('->' | '.') simple_name
 >>>>>>> Generate
+=======
+  : expression ('.' | '->') simple_name
+>>>>>>> Do not sort tokens
   ;
 
 member_binding_expression
@@ -922,6 +974,7 @@ parenthesized_expression
   ;
 
 postfix_unary_expression
+<<<<<<< HEAD
 <<<<<<< HEAD
   : expression ('++' | '--' | '!')
   ;
@@ -943,6 +996,13 @@ prefix_unary_expression
 prefix_unary_expression
   : ('!' | '&' | '*' | '+' | '++' | '-' | '--' | '^' | '~') expression
 >>>>>>> Generate
+=======
+  : expression ('++' | '--' | '!')
+  ;
+
+prefix_unary_expression
+  : ('+' | '-' | '~' | '!' | '++' | '--' | '&' | '*' | '^') expression
+>>>>>>> Do not sort tokens
   ;
 
 query_expression
@@ -1152,11 +1212,19 @@ xml_attribute
 
 xml_cref_attribute
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
   : xml_name '=' ('\'' | '"') cref ('\'' | '"')
 =======
   : xml_name '=' '"' cref '"'
   | xml_name '=' '\'' cref '\''
 >>>>>>> Generate
+=======
+  : xml_name '=' ('"' | '\'') cref ('"' | '\'')
+>>>>>>> Simplify
+=======
+  : xml_name '=' ('\'' | '"') cref ('\'' | '"')
+>>>>>>> Do not sort tokens
   ;
 
 cref
@@ -1174,11 +1242,15 @@ member_cref
 
 conversion_operator_member_cref
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'explicit' 'operator' type cref_parameter_list?
   | 'implicit' 'operator' type cref_parameter_list?
 =======
   : ('explicit' | 'implicit') 'operator' type cref_parameter_list?
 >>>>>>> Generate
+=======
+  : ('implicit' | 'explicit') 'operator' type cref_parameter_list?
+>>>>>>> Do not sort tokens
   ;
 
 cref_parameter_list
@@ -1187,12 +1259,16 @@ cref_parameter_list
 
 cref_parameter
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'in'? type
   | 'out'? type
   | 'ref'? type
 =======
   : ('in' | 'out' | 'ref')? type
 >>>>>>> Generate
+=======
+  : ('ref' | 'out' | 'in')? type
+>>>>>>> Do not sort tokens
   ;
 
 indexer_member_cref
@@ -1209,10 +1285,14 @@ name_member_cref
 
 operator_member_cref
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
 =======
   : 'operator' ('!' | '!=' | '%' | '&' | '*' | '+' | '++' | '-' | '--' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '^' | 'false' | 'true' | '|' | '~') cref_parameter_list?
 >>>>>>> Generate
+=======
+  : 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
+>>>>>>> Do not sort tokens
   ;
 
 qualified_cref
@@ -1224,6 +1304,8 @@ type_cref
   ;
 
 xml_name_attribute
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
   : xml_name '=' ('\'' | '"') identifier_name ('\'' | '"')
   ;
@@ -1239,6 +1321,20 @@ xml_text_attribute
   : xml_name '=' '"' xml_text_literal_token* '"'
   | xml_name '=' '\'' xml_text_literal_token* '\''
 >>>>>>> Generate
+=======
+  : xml_name '=' ('"' | '\'') identifier_name ('"' | '\'')
+  ;
+
+xml_text_attribute
+  : xml_name '=' ('"' | '\'') xml_text_literal_token* ('"' | '\'')
+>>>>>>> Simplify
+=======
+  : xml_name '=' ('\'' | '"') identifier_name ('\'' | '"')
+  ;
+
+xml_text_attribute
+  : xml_name '=' ('\'' | '"') xml_text_literal_token* ('\'' | '"')
+>>>>>>> Do not sort tokens
   ;
 
 xml_element_end_tag
@@ -1284,10 +1380,14 @@ directive_trivia
 
 bad_directive_trivia
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '#' syntax_token
 =======
   : '#' identifier_token
 >>>>>>> Generate
+=======
+  : '#' token
+>>>>>>> Simplify
   ;
 
 branching_directive_trivia
@@ -1330,10 +1430,14 @@ error_directive_trivia
 
 line_directive_trivia
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
 =======
   : '#' 'line' ('default' | 'hidden' | numeric_literal_token) string_literal_token?
 >>>>>>> Generate
+=======
+  : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
+>>>>>>> Do not sort tokens
   ;
 
 load_directive_trivia
@@ -1342,10 +1446,14 @@ load_directive_trivia
 
 nullable_directive_trivia
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '#' 'nullable' ('enable' | 'disable' | 'restore') ('warnings' | 'annotations')?
 =======
   : '#' 'nullable' ('disable' | 'enable' | 'restore') ('annotations' | 'warnings')?
 >>>>>>> Generate
+=======
+  : '#' 'nullable' ('enable' | 'disable' | 'restore') ('warnings' | 'annotations')?
+>>>>>>> Do not sort tokens
   ;
 
 pragma_checksum_directive_trivia
@@ -1434,7 +1542,11 @@ token
 xml_text_literal_token
   : /* see lexical specification */
 <<<<<<< HEAD
+<<<<<<< HEAD
   ;
 =======
   ;
 >>>>>>> Generate
+=======
+  ;
+>>>>>>> Simplify
