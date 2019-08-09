@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static' | name_equals)? name ';'
+  : 'using' ('static'? | name_equals?) name ';'
   ;
 
 name_equals
@@ -18,8 +18,7 @@ name_equals
   ;
 
 identifier_name
-  : 'global'
-  | identifier_token
+  : 'global' | identifier_token
   ;
 
 name
@@ -66,7 +65,7 @@ attribute_argument_list
   ;
 
 attribute_argument
-  : (name_equals | name_colon)? expression
+  : (name_equals? | name_colon?) expression
   ;
 
 name_colon
@@ -95,25 +94,7 @@ event_field_declaration
   ;
 
 modifier
-  : 'abstract'
-  | 'async'
-  | 'const'
-  | 'extern'
-  | 'fixed'
-  | 'internal'
-  | 'new'
-  | 'override'
-  | 'partial'
-  | 'private'
-  | 'protected'
-  | 'public'
-  | 'readonly'
-  | 'ref'
-  | 'sealed'
-  | 'static'
-  | 'unsafe'
-  | 'virtual'
-  | 'volatile'
+  : 'abstract' | 'async' | 'const' | 'extern' | 'fixed' | 'internal' | 'new' | 'override' | 'partial' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'sealed' | 'static' | 'unsafe' | 'virtual' | 'volatile'
   ;
 
 variable_declaration
@@ -420,8 +401,7 @@ return_statement
   ;
 
 switch_statement
-  : 'switch' '(' expression ')' '{' switch_section* '}'
-  | 'switch' expression '{' switch_section* '}'
+  : 'switch' '('? expression ')'? '{' switch_section* '}'
   ;
 
 switch_section
@@ -743,14 +723,7 @@ is_pattern_expression
   ;
 
 literal_expression
-  : '__arglist'
-  | 'default'
-  | 'false'
-  | 'null'
-  | 'true'
-  | character_literal_token
-  | numeric_literal_token
-  | string_literal_token
+  : '__arglist' | 'default' | 'false' | 'null' | 'true' | character_literal_token | numeric_literal_token | string_literal_token
   ;
 
 make_ref_expression
@@ -914,22 +887,7 @@ pointer_type
   ;
 
 predefined_type
-  : 'bool'
-  | 'byte'
-  | 'char'
-  | 'decimal'
-  | 'double'
-  | 'float'
-  | 'int'
-  | 'long'
-  | 'object'
-  | 'sbyte'
-  | 'short'
-  | 'string'
-  | 'uint'
-  | 'ulong'
-  | 'ushort'
-  | 'void'
+  : 'bool' | 'byte' | 'char' | 'decimal' | 'double' | 'float' | 'int' | 'long' | 'object' | 'sbyte' | 'short' | 'string' | 'uint' | 'ulong' | 'ushort' | 'void'
   ;
 
 ref_type
@@ -984,8 +942,7 @@ xml_attribute
   ;
 
 xml_cref_attribute
-  : xml_name '=' '"' cref '"'
-  | xml_name '=' '\'' cref '\''
+  : xml_name '=' ('"' | '\'') cref ('"' | '\'')
   ;
 
 cref
@@ -1038,13 +995,11 @@ type_cref
   ;
 
 xml_name_attribute
-  : xml_name '=' '"' identifier_name '"'
-  | xml_name '=' '\'' identifier_name '\''
+  : xml_name '=' ('"' | '\'') identifier_name ('"' | '\'')
   ;
 
 xml_text_attribute
-  : xml_name '=' '"' xml_text_literal_token* '"'
-  | xml_name '=' '\'' xml_text_literal_token* '\''
+  : xml_name '=' ('"' | '\'') xml_text_literal_token* ('"' | '\'')
   ;
 
 xml_element_end_tag

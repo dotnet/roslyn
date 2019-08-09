@@ -28,7 +28,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     new Field
                     {
                         Type = SyntaxToken,
-                        Kinds = Modifiers.Select(k => new Kind { Name = k.ToString() }).ToList()
+                        Kinds = s_modifiers.Select(k => new Kind { Name = k.ToString() }).ToList()
                     }
                 }
             });
@@ -61,20 +61,7 @@ namespace CSharpSyntaxGenerator.Grammar
                         throw new InvalidOperationException(node.Name + " had no children");
                     }
 
-                    // Some productions can be split into multiple productions that will read
-                    // better.  Look for those patterns and break this up.  Then convert each
-                    // production that we split out into the actual rule to emit into the grammer.
-                    var splitProductions = from current1 in SplitTokenChoice(children)
-                                           from current2 in SplitQuotes(current1)
-                                           from current3 in SplitPairedOptionalBraces(current2)
-                                           select current3;
-
-                    foreach (var split in splitProductions)
-                    {
-                        // Otherwise, process all the children, making a production out of them for
-                        // this node.
-                        nameToProductions[node.Name].Add(ProcessChildren(split, delim: " "));
-                    }
+                    nameToProductions[node.Name].Add(ProcessChildren(children, top: true, delim: " "));
                 }
             }
 
@@ -85,94 +72,12 @@ namespace CSharpSyntaxGenerator.Grammar
             var lexicalProductions = new List<Production> { new Production("/* see lexical specification */") };
             nameToProductions.Add("Token", lexicalProductions);
 
-            foreach (var kind in LexicalTokens)
+            foreach (var kind in s_lexicalTokens)
             {
                 nameToProductions.Add(kind.ToString(), lexicalProductions);
             }
 
             return GenerateResult(nameToProductions);
-        }
-
-        private IEnumerable<List<TreeTypeChild>> SplitTokenChoice(List<TreeTypeChild> children)
-        {
-            // If a node has many token children, emit it as:
-            //
-            //  predefined_type
-            //      : 'int'
-            //      | 'bool'
-            //      | etc.
-            //
-            // Not:
-            //
-            //  predefined_type
-            //      : ('int' | 'bool' | etc... )
-
-            if (children.Count == 1 && children[0] is Field field && field.IsToken)
-            {
-                return field.Kinds.Select(k => new List<TreeTypeChild>
-                {
-                    new Field { Type = "SyntaxToken", Kinds = new List<Kind> { k } }
-                });
-            }
-
-            return new[] { children };
-        }
-
-        private IEnumerable<List<TreeTypeChild>> SplitQuotes(List<TreeTypeChild> children)
-        {
-            // look for rules of the form: ('"' | ''') a ('"' | ''')
-            // and convert to            : ('"' a '"') | (''' a ''')
-
-            var fields = children.OfType<Field>();
-            var matches = fields.Where(
-                f => f.IsToken &&
-                     f.Kinds.Count >= 2 &&
-                     f.Kinds.Select(GetTokenKind).Contains(SyntaxKind.DoubleQuoteToken)).ToList();
-            if (matches.Count < 2)
-            {
-                yield return children;
-                yield break;
-            }
-
-            var firstMatchKinds = matches[0].Kinds;
-            if (matches.All(m => m.Kinds.SequenceEqual(firstMatchKinds)))
-            {
-                // found a match.  Split it into separate productions.
-                foreach (var kind in firstMatchKinds)
-                {
-                    // Take the existing production and swap the instance of `('"' | ''')`
-                    // with just `'"'`  or  `'''`.
-                    yield return children.Select(n => n is Field field && matches.Contains(field)
-                        ? new Field { Type = field.Type, Optional = field.Optional, Kinds = new List<Kind> { kind } }
-                        : n).ToList();
-                }
-            }
-        }
-
-        private IEnumerable<List<TreeTypeChild>> SplitPairedOptionalBraces(List<TreeTypeChild> children)
-        {
-            // look for rules of the form: '('? a ')'?
-            // and convert to            : a | '(' a ')'
-
-            var fields = children.OfType<Field>();
-            var matches = fields.Where(
-                f => f.IsToken &&
-                     f.Optional != null &&
-                     f.Kinds.Select(GetTokenKind).Any(OpenCloseTokens.Contains)).ToList();
-            if (matches.Count < 2)
-            {
-                yield return children;
-                yield break;
-            }
-
-            // First, return the production where the paired braces are removed.
-            yield return children.Where(n => !matches.Contains(n)).ToList();
-
-            // Then return the production where the paired braces are there, but are no longer
-            // optional.
-            yield return children.Select(n => n is Field field && matches.Contains(field)
-                ? new Field { Type = field.Type, Kinds = field.Kinds, Optional = null }
-                : n).ToList();
         }
 
         private string GenerateResult(Dictionary<string, List<Production>> nameToProductions)
@@ -248,13 +153,13 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         /// Returns the g4 production string for this rule based on the children it has. Also
         /// returns all the names of other rules this particular production references.
         /// </summary>
-        private Production ProcessChildren(List<TreeTypeChild> children, string delim)
+        private Production ProcessChildren(List<TreeTypeChild> children, bool top, string delim)
         {
             var result = children.Select(child => child switch
             {
-                Choice c => ProcessChoice(c),
-                Sequence s => ProcessChildren(s.Children, " ").Parenthesize(),
-                _ => ProcessField((Field)child),
+                Choice c => ProcessChildren(c.Children, top: false, " | ").Parenthesize(),
+                Sequence s => ProcessChildren(s.Children, top: false, " ").Parenthesize(),
+                _ => ProcessField((Field)child, elideParentheses: top && children.Count == 1),
             }).Where(p => p.Text.Length > 0);
 
             return new Production(
@@ -262,25 +167,10 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 result.SelectMany(t => t.RuleReferences));
         }
 
-        private Production ProcessChoice(Choice choice)
-        {
-            // Convert `(a? | b?)` to `(a | b)?`
-            var allChildrenAreOptional = choice.Children.All(c => c is Field field && field.Optional != null);
-            if (allChildrenAreOptional)
-            {
-                foreach (var field in choice.Children.OfType<Field>())
-                {
-                    field.Optional = null;
-                }
-            }
+        private Production ProcessField(Field field, bool elideParentheses)
+            => GetFieldUnderlyingType(field, elideParentheses).WithSuffix(field.IsOptional ? "?" : "");
 
-            return ProcessChildren(choice.Children, " | ").Parenthesize().WithSuffix(allChildrenAreOptional ? "?" : "");
-        }
-
-        private Production ProcessField(Field field)
-            => GetFieldUnderlyingType(field).WithSuffix(field.Optional == "true" ? "?" : "");
-
-        private Production GetFieldUnderlyingType(Field field)
+        private Production GetFieldUnderlyingType(Field field, bool elideParentheses)
             // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
             // They're not relevant to the grammar, so we just return an empty production here
             // which will be filtered out by the caller.
@@ -288,14 +178,14 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                field.Type == "CSharpSyntaxNode" ? HandleCSharpSyntaxNodeField(field) :
                field.Type.StartsWith("SeparatedSyntaxList") ? HandleSeparatedSyntaxListField(field) :
                field.Type.StartsWith("SyntaxList") ? HandleSyntaxListField(field) :
-               field.IsToken ? HandleSyntaxTokenField(field) : RuleReference(field.Type);
+               field.IsToken ? HandleSyntaxTokenField(field, elideParentheses) : RuleReference(field.Type);
 
-        private static Production HandleSyntaxTokenField(Field field)
+        private static Production HandleSyntaxTokenField(Field field, bool elideParentheses)
         {
             var production = new Production(field.Kinds.Count == 0
                 ? GetTokenText(GetTokenKind(field.Name))
                 : Join(" | ", GetTokenKindStrings(field)));
-            return field.Kinds.Count > 1 ? production.Parenthesize() : production;
+            return field.Kinds.Count <= 1 || elideParentheses ? production : production.Parenthesize();
         }
 
         private Production HandleCSharpSyntaxNodeField(Field field)
@@ -347,7 +237,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                     return "/* epsilon */";
             }
 
-            if (LexicalTokens.Contains(kind))
+            if (s_lexicalTokens.Contains(kind))
             {
                 // Map these token kinds to just a synthesized rule that we state is
                 // declared elsewhere.
@@ -364,9 +254,6 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 ? @"'\''"
                 : "'" + result + "'";
         }
-
-        private static SyntaxKind GetTokenKind(Kind kind)
-            => GetTokenKind(kind.Name);
 
         private static SyntaxKind GetTokenKind(string tokenName)
         {
@@ -393,9 +280,9 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         /// Converts a <c>PascalCased</c> name into <c>snake_cased</c> name.
         /// </summary>
         private static string Normalize(string name)
-            => _normalizationRegex.Replace(name.EndsWith(Syntax) ? name[..^Syntax.Length] : name, "_").ToLower();
+            => s_normalizationRegex.Replace(name.EndsWith(Syntax) ? name[..^Syntax.Length] : name, "_").ToLower();
 
-        private static readonly Regex _normalizationRegex = new Regex(@"
+        private static readonly Regex s_normalizationRegex = new Regex(@"
             (?<=[A-Z])(?=[A-Z][a-z]) |
             (?<=[^A-Z])(?=[A-Z]) |
             (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
@@ -405,7 +292,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
 
-        private static readonly ImmutableArray<SyntaxKind> LexicalTokens = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> s_lexicalTokens = ImmutableArray.Create(
             SyntaxKind.IdentifierToken,
             SyntaxKind.CharacterLiteralToken,
             SyntaxKind.StringLiteralToken,
@@ -413,15 +300,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             SyntaxKind.InterpolatedStringTextToken,
             SyntaxKind.XmlTextLiteralToken);
 
-        private static readonly ImmutableArray<SyntaxKind> OpenCloseTokens = ImmutableArray.Create(
-            SyntaxKind.OpenBraceToken,
-            SyntaxKind.OpenBracketToken,
-            SyntaxKind.OpenParenToken,
-            SyntaxKind.CloseBraceToken,
-            SyntaxKind.CloseBracketToken,
-            SyntaxKind.CloseParenToken);
-
-        private static readonly ImmutableArray<SyntaxKind> Modifiers = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> s_modifiers = ImmutableArray.Create(
             SyntaxKind.AbstractKeyword,
             SyntaxKind.SealedKeyword,
             SyntaxKind.StaticKeyword,

@@ -57,5 +57,6 @@ namespace CSharpSyntaxGenerator
         public Comment PropertyComment;
 
         public bool IsToken => Type == "SyntaxToken";
+        public bool IsOptional => Optional == "true";
     }
 }
