@@ -19,8 +19,6 @@ namespace CSharpSyntaxGenerator.Grammar
 
         public GrammarGenerator(Tree tree)
         {
-            // tree.Types.Add(new Node { Name = "StructuredTriviaSyntax" });
-
             // Syntax refers to a special pseudo-element 'Modifier'.  Just synthesize that since
             // it's useful in the g4 grammar.
             var modifierKeywords = from mod in GetKinds<DeclarationModifiers>()
