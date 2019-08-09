@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 ridName = "osx-x64";
             }
-            else if (ExecutionConditionUtil.IsUnix)
+            else if (ExecutionConditionUtil.IsLinux)
             {
                 ridName = "linux-x64";
             }
