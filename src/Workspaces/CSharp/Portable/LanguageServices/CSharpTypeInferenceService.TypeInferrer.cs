@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var info = SemanticModel.GetSymbolInfo(initializer, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
-                return InferTypeInArgument(index, methods, argument);
+                return InferTypeInArgument(index, methods, argument, parentInvocationExpressionToTypeInfer: null);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
-                return InferTypeInArgument(index, constructors, argumentOpt);
+                return InferTypeInArgument(index, constructors, argumentOpt, parentInvocationExpressionToTypeInfer: null);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInvocationExpression(
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods = methods.Concat(memberGroupMethods).Distinct();
                 }
 
-                return InferTypeInArgument(index, methods, argumentOpt);
+                return InferTypeInArgument(index, methods, argumentOpt, invocation);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgumentList(ArgumentListSyntax argumentList, SyntaxToken previousToken)
@@ -548,29 +548,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt)
+            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
-                if (argumentOpt != null)
+                if (parentInvocationExpressionToTypeInfer != null)
                 {
-                    if (argumentOpt?.Parent?.Parent is InvocationExpressionSyntax invocation)
-                    {
-                        // We're trying to figure out the signature of a method we're an argument to. 
-                        // That method may be generic, and we might end up using one of its generic
-                        // type parameters in the type we infer.  First, let's see if we can instantiate
-                        // the methods so that the type can be inferred better.
-                        var invocationTypes = this.InferTypes(invocation).Select(t => t.InferredType).ToList();
-                        var instantiatedMethods = methods.Select(m => Instantiate(m, invocationTypes)).ToList();
+                    // We're trying to figure out the signature of a method we're an argument to. 
+                    // That method may be generic, and we might end up using one of its generic
+                    // type parameters in the type we infer.  First, let's see if we can instantiate
+                    // the methods so that the type can be inferred better.
+                    var invocationTypes = this.InferTypes(parentInvocationExpressionToTypeInfer).Select(t => t.InferredType).ToList();
+                    var instantiatedMethods = methods.Select(m => Instantiate(m, invocationTypes)).ToList();
 
-                        // Now that we've instantiated the methods, filter down to the ones that 
-                        // will actually return a viable type given where this invocation expression
-                        // is.
-                        var filteredMethods = instantiatedMethods.Where(m =>
-                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType.WithoutNullability(), t.WithoutNullability()).IsImplicit)).ToList();
+                    // Now that we've instantiated the methods, filter down to the ones that 
+                    // will actually return a viable type given where this invocation expression
+                    // is.
+                    var filteredMethods = instantiatedMethods.Where(m =>
+                        invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType.WithoutNullability(), t.WithoutNullability()).IsImplicit)).ToList();
 
-                        // If we filtered down to nothing, then just fall back to the instantiated list.
-                        // this is a best effort after all.
-                        methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
-                    }
+                    // If we filtered down to nothing, then just fall back to the instantiated list.
+                    // this is a best effort after all.
+                    methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
                 }
 
                 return InferTypeInArgument(index, methods.Select(m => m.Parameters), argumentOpt);
@@ -617,10 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
 
-                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/37310 is fixed
                 var typeArguments = method.ConstructedFrom.TypeParameters
-                    .Select(tp => (bestMap.GetValueOrDefault(tp) ?? tp).WithoutNullability()).ToArray();
-                return method.ConstructedFrom.Construct(typeArguments);
+                    .Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+                return method.ConstructedFrom.ConstructWithNullability(typeArguments);
             }
 
             private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
