@@ -1,29 +1,24 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
-
-  <PropertyGroup>
-    <_ILToolsVersion>5.0.0-dev.19379.1</_ILToolsVersion>
-  </PropertyGroup>
-
   <!-- 
     This logic is adding the ILASM executable to the runtime directory of all projects that 
     include this target file. Several of our projects compile IL on the fly and need this 
     exe.
   -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.Microsoft.NETCore.ILAsm\$(_ILToolsVersion)\runtimes\**\*.*">
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.Microsoft.NETCore.ILAsm\$(runtimeWinX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtime</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.Microsoft.NETCore.ILAsm\$(_ILToolsVersion)\runtimes\**\*.*">
+    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.Microsoft.NETCore.ILAsm\$(runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtime</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.Microsoft.NETCore.ILAsm\$(_ILToolsVersion)\runtimes\**\*.*">
+    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.Microsoft.NETCore.ILAsm\$(runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtime</LinkBase>
       <Visible>false</Visible>
