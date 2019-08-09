@@ -400,9 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
                 }
 
-                {
-                    CheckForFieldTargetedAttribute(syntax, diagnostics);
-                }
+                CheckForFieldTargetedAttribute(syntax, diagnostics);
             }
 
             CheckForBlockAndExpressionBody(
