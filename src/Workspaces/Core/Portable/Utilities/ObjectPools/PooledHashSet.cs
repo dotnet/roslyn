@@ -1,33 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-    internal partial class PooledHashSet<T>
+    internal partial class PooledHashSet<T> : IPooled
     {
-        public static PooledHashSetDisposer GetInstance(out PooledHashSet<T> instance)
+        public static PooledDisposer<PooledHashSet<T>> GetInstance(out PooledHashSet<T> instance)
         {
             instance = GetInstance();
-            return new PooledHashSetDisposer(instance);
-        }
-
-        internal struct PooledHashSetDisposer : IDisposable
-        {
-            private PooledHashSet<T> _pooledObject;
-
-            public PooledHashSetDisposer(PooledHashSet<T> instance)
-            {
-                _pooledObject = instance;
-            }
-
-            public void Dispose()
-            {
-                var pooledObject = _pooledObject;
-                if (pooledObject != null)
-                {
-                    pooledObject.Free();
-                    _pooledObject = null;
-                }
-            }
+            return new PooledDisposer<PooledHashSet<T>>(instance);
         }
     }
 }
