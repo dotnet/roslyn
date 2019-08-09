@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Client;
@@ -58,8 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public event AsyncEventHandler<EventArgs> StopAsync;
 #pragma warning restore CS0067 // event never used
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageServerClient(
-            Workspace workspace,
+            VisualStudioWorkspace workspace,
             LanguageServerClientEventListener eventListener,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
