@@ -457,6 +457,11 @@
         <target state="translated">Il valore inutilizzato viene assegnato in modo esplicito a discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
         <target state="translated">Usa colori migliorati per C# e Basic</target>

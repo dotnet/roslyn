@@ -457,6 +457,11 @@
         <target state="translated">未使用の値が discard に明示的に割り当てられます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
         <target state="translated">C# および Basic で拡張された色を使用します</target>

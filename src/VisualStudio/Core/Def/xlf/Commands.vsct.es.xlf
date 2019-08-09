@@ -32,6 +32,111 @@
         <target state="translated">RemoveAndSort</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="new">&amp;Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|CommandName">
+        <source>ErrorListSetSeverityDefault</source>
+        <target state="new">ErrorListSetSeverityDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="new">Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|ButtonText">
+        <source>&amp;Error</source>
+        <target state="new">&amp;Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|CommandName">
+        <source>ErrorListSetSeverityError</source>
+        <target state="new">ErrorListSetSeverityError</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|LocCanonicalName">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|ButtonText">
+        <source>&amp;Silent</source>
+        <target state="new">&amp;Silent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|CommandName">
+        <source>ErrorListSetSeverityHidden</source>
+        <target state="new">ErrorListSetSeverityHidden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|LocCanonicalName">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|ButtonText">
+        <source>&amp;Suggestion</source>
+        <target state="new">&amp;Suggestion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|CommandName">
+        <source>ErrorListSetSeverityInfo</source>
+        <target state="new">ErrorListSetSeverityInfo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|LocCanonicalName">
+        <source>Suggestion</source>
+        <target state="new">Suggestion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|CommandName">
+        <source>ErrorListSetSeverityNone</source>
+        <target state="new">ErrorListSetSeverityNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|ButtonText">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|CommandName">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|LocCanonicalName">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|ButtonText">
+        <source>&amp;Warning</source>
+        <target state="new">&amp;Warning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|CommandName">
+        <source>ErrorListSetSeverityWarning</source>
+        <target state="new">ErrorListSetSeverityWarning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|LocCanonicalName">
+        <source>Warning</source>
+        <target state="new">Warning</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
         <target state="translated">&amp;Analizador...</target>

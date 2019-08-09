@@ -457,6 +457,11 @@
         <target state="translated">O valor não utilizado é explicitamente atribuído ao descarte</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
         <target state="translated">Usar cores aprimoradas para C# e Basic</target>

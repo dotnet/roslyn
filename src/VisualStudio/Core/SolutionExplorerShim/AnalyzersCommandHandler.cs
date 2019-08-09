@@ -441,8 +441,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         if (pathToAnalyzerConfigDoc != null)
                         {
                             waitIndicator.Wait(
-                                title: SolutionExplorerShim.Updating_severity,
-                                message: SolutionExplorerShim.Updating_severity,
+                                title: ServicesVSResources.Updating_severity,
+                                message: ServicesVSResources.Updating_severity,
                                 allowCancel: true,
                                 action: c =>
                                 {
