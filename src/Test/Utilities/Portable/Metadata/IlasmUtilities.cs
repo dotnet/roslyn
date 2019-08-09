@@ -23,25 +23,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
             var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
-            string ridName = null;
-
-            if (ExecutionConditionUtil.Architecture == ExecutionArchitecture.x64)
+            string ridName;
+            if (ExecutionConditionUtil.IsWindows)
             {
-                if (ExecutionConditionUtil.IsWindows)
-                {
-                    ridName = "win-x64";
-                }
-                else if (ExecutionConditionUtil.IsUnix)
-                {
-                    ridName = "linux-x64";
-                }
-                else if (ExecutionConditionUtil.IsMacOS)
-                {
-                    ridName = "osx-x64";
-                }
+                ridName = "win-x64";
             }
-
-            if (ridName is null)
+            else if (ExecutionConditionUtil.IsMacOS)
+            {
+                ridName = "osx-x64";
+            }
+            else if (ExecutionConditionUtil.IsUnix)
+            {
+                ridName = "linux-x64";
+            }
+            else
             {
                 throw new Exception("Runtime platform not supported for testing");
             }
