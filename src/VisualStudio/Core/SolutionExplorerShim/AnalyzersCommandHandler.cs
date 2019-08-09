@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -11,6 +10,8 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,18 +25,17 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using VSLangProj140;
-using Project = Microsoft.CodeAnalysis.Project;
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export]
     internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
     {
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ICodeActionEditHandlerService _editHandlerService;
 
         private ContextMenuController _analyzerFolderContextMenuController;
         private ContextMenuController _analyzerContextMenuController;
@@ -72,11 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
+            ICodeActionEditHandlerService editHandlerService)
         {
             _tracker = tracker;
             _analyzerReferenceManager = analyzerReferenceManager;
             _serviceProvider = serviceProvider;
+            _editHandlerService = editHandlerService;
         }
 
         /// <summary>
@@ -444,10 +446,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                 title: ServicesVSResources.Updating_severity,
                                 message: ServicesVSResources.Updating_severity,
                                 allowCancel: true,
-                                action: c =>
+                                action: waitContext =>
                                 {
-                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, c.CancellationToken).WaitAndGetResult(c.CancellationToken);
-                                    _workspace.TryApplyChanges(newSolution, c.ProgressTracker);
+                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                                    var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                                    _editHandlerService.Apply(
+                                        _workspace,
+                                        fromDocument: null,
+                                        operations: operations,
+                                        title: ServicesVSResources.Updating_severity,
+                                        progressTracker: waitContext.ProgressTracker,
+                                        cancellationToken: waitContext.CancellationToken);
                                 });
                             continue;
                         }

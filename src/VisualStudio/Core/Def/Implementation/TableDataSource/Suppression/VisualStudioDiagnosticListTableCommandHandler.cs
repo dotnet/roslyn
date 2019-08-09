@@ -1,13 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -15,6 +18,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -25,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly VisualStudioSuppressionFixService _suppressionFixService;
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly ICodeActionEditHandlerService _editHandlerService;
         private readonly IWpfTableControl _tableControl;
 
         [ImportingConstructor]
@@ -33,12 +39,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             VisualStudioWorkspace workspace,
             IVisualStudioSuppressionFixService suppressionFixService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            IDiagnosticAnalyzerService diagnosticService,
+            ICodeActionEditHandlerService editHandlerService)
         {
             _workspace = workspace;
             _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _waitIndicator = waitIndicator;
+            _diagnosticService = diagnosticService;
+            _editHandlerService = editHandlerService;
 
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
@@ -171,15 +181,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
             if (pathToAnalyzerConfigDoc != null)
             {
-                _waitIndicator.Wait(
+                var result = _waitIndicator.Wait(
                     title: ServicesVSResources.Updating_severity,
                     message: ServicesVSResources.Updating_severity,
                     allowCancel: true,
                     action: waitContext =>
                     {
                         var newSolution = ConfigureSeverityAsync(waitContext).WaitAndGetResult(waitContext.CancellationToken);
-                        _workspace.TryApplyChanges(newSolution, waitContext.ProgressTracker);
+                        var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                        _editHandlerService.Apply(
+                            _workspace,
+                            fromDocument: null,
+                            operations: operations,
+                            title: ServicesVSResources.Updating_severity,
+                            progressTracker: waitContext.ProgressTracker,
+                            cancellationToken: waitContext.CancellationToken);
                     });
+
+                if (result == WaitIndicatorResult.Completed && selectedDiagnostic.DocumentId != null)
+                {
+                    // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
+                    Task.Run(() =>
+                    {
+                        _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
+                    });
+                }
             }
 
             return;
