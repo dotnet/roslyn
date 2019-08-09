@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var parameterNodes = generator.GetParameters(functionDeclaration);
 
             // List with parameterNodes that pass all checks
-            var listOfPotentiallyValidParametersNodes = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<SyntaxNode>.GetInstance();
+            var listOfPotentiallyValidParametersNodes = ArrayBuilder<SyntaxNode>.GetInstance();
             var counter = 0;
 
             foreach (var parameterNode in parameterNodes)
