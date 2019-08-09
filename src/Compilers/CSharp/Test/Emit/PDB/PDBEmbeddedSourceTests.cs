@@ -44,16 +44,10 @@ class C
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
             };
 
-
-            // note: embeddedSourceLength is the size of the compressed blob (including 4B for the header that contains the uncompressed size).
-            // The implementations of Deflate algorithm are different on .NET Framework and .NET Core and produce different results that both decompress to the same text.
-            // See https://github.com/dotnet/roslyn/issues/28045
-            var compressedLength = ExecutionConditionUtil.IsWindowsDesktop ? 98 : 104;
-
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" embeddedSourceLength=""" + compressedLength + @"""><![CDATA[﻿
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F""><![CDATA[﻿
 using System;
 class C
 {
@@ -63,7 +57,7 @@ class C
     }
 }
 ]]></file>
-    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" embeddedSourceLength=""21""><![CDATA[﻿
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42""><![CDATA[﻿
 // no code
 ]]></file>
   </files>
