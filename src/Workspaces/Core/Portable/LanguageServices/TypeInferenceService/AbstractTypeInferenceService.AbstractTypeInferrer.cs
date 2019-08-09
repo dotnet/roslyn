@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .ToImmutableArray();
             }
 
-            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type)
-                => CreateResult(Compilation.GetSpecialType(type));
+            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+                => CreateResult(Compilation.GetSpecialType(type).WithNullability(nullableAnnotation));
 
             protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
                 => type == null

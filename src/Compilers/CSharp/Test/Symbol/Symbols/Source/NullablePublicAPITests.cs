@@ -2184,5 +2184,38 @@ class C
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
             }
         }
+
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
+        public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
+        {
+            var source = @"
+public class C
+{
+    public void M(string s)
+    {
+        s. // no completion
+        var o = new object;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis", flagState));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var sRef = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "s").Single();
+
+            var info = model.GetSpeculativeSymbolInfo(sRef.Position, sRef, SpeculativeBindingOption.BindAsExpression);
+
+            IParameterSymbol symbol = (IParameterSymbol)info.Symbol;
+            Assert.True(info.CandidateSymbols.IsEmpty);
+            Assert.NotNull(symbol);
+            Assert.Equal("s", symbol.Name);
+            Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
+        }
     }
 }
