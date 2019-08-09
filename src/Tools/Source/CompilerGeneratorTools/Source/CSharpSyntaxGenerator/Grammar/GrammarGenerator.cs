@@ -275,15 +275,14 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         private const string Syntax = "Syntax";
         private const string SyntaxToken = "SyntaxToken";
 
-        private static readonly ImmutableArray<string> s_lexicalTokens
-            = ImmutableArray.Create(
-                "Token",
-                nameof(SyntaxKind.IdentifierToken),
-                nameof(SyntaxKind.CharacterLiteralToken),
-                nameof(SyntaxKind.StringLiteralToken),
-                nameof(SyntaxKind.NumericLiteralToken),
-                nameof(SyntaxKind.InterpolatedStringTextToken),
-                nameof(SyntaxKind.XmlTextLiteralToken));
+        private static readonly ImmutableArray<string> s_lexicalTokens = ImmutableArray.Create(
+            "Token",
+            nameof(SyntaxKind.IdentifierToken),
+            nameof(SyntaxKind.CharacterLiteralToken),
+            nameof(SyntaxKind.StringLiteralToken),
+            nameof(SyntaxKind.NumericLiteralToken),
+            nameof(SyntaxKind.InterpolatedStringTextToken),
+            nameof(SyntaxKind.XmlTextLiteralToken));
 
         // This is optional, but makes the emitted g4 file a bit nicer.  Basically, we define a few
         // major sections (generally, corresponding to base nodes that have a lot of derived nodes).
