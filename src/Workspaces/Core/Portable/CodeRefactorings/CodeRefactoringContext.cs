@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Add supplied <paramref name="action"/> to the list of refactorings that will be offered to the user.
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the refactoring.</param>
-        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, applicableToSpan: default);
+        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, applicableToSpan: default);   // we could pass this.Span as applicableToSpan instead but that would cause these refactorings to always be closest to current selection
 
         /// <summary>
         /// Add supplied <paramref name="action"/> applicable to <paramref name="applicableToSpan"/> to the list of refactorings that will be offered to the user.
