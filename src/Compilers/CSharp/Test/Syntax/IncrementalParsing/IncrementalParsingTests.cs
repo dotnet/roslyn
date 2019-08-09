@@ -3,10 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2768,6 +2765,112 @@ class B
             var text = tree.GetText();
             var span = new TextSpan(source.IndexOf(" A[]?"), 0);
             var change = new TextChange(span, "p");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        [WorkItem(37663, "https://github.com/dotnet/roslyn/issues/37663")]
+        public void AssemblyAttributeBeforeNamespace()
+        {
+            var src = @"
+using System;
+using System.Linq;
+
+[assembly:]
+namespace N
+{ }";
+            var tree = SyntaxFactory.ParseSyntaxTree(src);
+            var text = tree.GetText();
+            var span = new TextSpan(src.IndexOf(":"), 1);
+            var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddBracketInUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";"), 0);
+            var change = new TextChange(span, "[");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddAttributeAfterUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";") + 1, 0);
+            var change = new TextChange(span, "[Obsolete]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddTrailingModifierInUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";") + 1, 0);
+            var change = new TextChange(span, "public");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddTrailingModifierInUsingDirective_2()
+        {
+            var source =
+@"using System;publi
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "publi";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "c");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
