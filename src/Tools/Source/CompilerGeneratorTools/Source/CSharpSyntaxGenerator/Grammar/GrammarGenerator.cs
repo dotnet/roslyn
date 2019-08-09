@@ -143,15 +143,9 @@ namespace CSharpSyntaxGenerator.Grammar
                 {
                     // Take the existing production and swap the instance of `('"' | ''')`
                     // with just `'"'`  or  `'''`.
-                    yield return children.Select(n =>
-                    {
-                        if (n is Field field && matches.Contains(field))
-                        {
-                            field.Kinds = new List<Kind> { kind };
-                        }
-
-                        return n;
-                    }).ToList();
+                    yield return children.Select(n => n is Field field && matches.Contains(field)
+                        ? new Field { Type = field.Type, Optional = field.Optional, Kinds = new List<Kind> { kind } }
+                        : n).ToList();
                 }
             }
         }
@@ -177,15 +171,9 @@ namespace CSharpSyntaxGenerator.Grammar
 
             // Then return the production where the paired braces are there, but are no longer
             // optional.
-            yield return children.Select(n =>
-            {
-                if (n is Field field && matches.Contains(field))
-                {
-                    field.Optional = null;
-                }
-
-                return n;
-            }).ToList();
+            yield return children.Select(n => n is Field field && matches.Contains(field)
+                ? new Field { Type = field.Type, Kinds = field.Kinds, Optional = null }
+                : n).ToList();
         }
 
         private string GenerateResult(Dictionary<string, List<Production>> nameToProductions)
