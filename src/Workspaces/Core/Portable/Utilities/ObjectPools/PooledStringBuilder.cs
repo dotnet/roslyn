@@ -1,33 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-    internal partial class PooledStringBuilder
+    internal partial class PooledStringBuilder : IPooled
     {
-        public static PooledStringBuilderDisposer GetInstance(out PooledStringBuilder instance)
+        public static PooledDisposer<PooledStringBuilder> GetInstance(out PooledStringBuilder instance)
         {
             instance = GetInstance();
-            return new PooledStringBuilderDisposer(instance);
-        }
-
-        internal struct PooledStringBuilderDisposer : IDisposable
-        {
-            private PooledStringBuilder _pooledObject;
-
-            public PooledStringBuilderDisposer(PooledStringBuilder instance)
-            {
-                _pooledObject = instance;
-            }
-
-            public void Dispose()
-            {
-                var pooledObject = _pooledObject;
-                if (pooledObject != null)
-                {
-                    pooledObject.Free();
-                    _pooledObject = null;
-                }
-            }
+            return new PooledDisposer<PooledStringBuilder>(instance);
         }
     }
 }
