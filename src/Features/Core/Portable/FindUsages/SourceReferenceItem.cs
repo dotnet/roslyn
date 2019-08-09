@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    using UsageColumnInfoMap = ImmutableDictionary<string, ImmutableArray<string>>;
+    using ReferenceUsageInfoMap = ImmutableDictionary<string, ImmutableArray<string>>;
 
     /// <summary>
     /// Information about a symbol's reference that can be used for display and 
@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         // We can have only a handful of different values for enums within SymbolUsageInfo, so the maximum size of this dictionary is capped.
         // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<SymbolUsageInfo, UsageColumnInfoMap> s_symbolUsageInfoToReferenceInfoMap
-            = new ConcurrentDictionary<SymbolUsageInfo, UsageColumnInfoMap>();
+        private static readonly ConcurrentDictionary<SymbolUsageInfo, ReferenceUsageInfoMap> s_symbolUsageInfoToReferenceInfoMap
+            = new ConcurrentDictionary<SymbolUsageInfo, ReferenceUsageInfoMap>();
 
         /// <summary>
         /// The definition this reference corresponds to.
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// This entry indicates that the reference has additional value usage information which indicate
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
-        public UsageColumnInfoMap ReferenceUsageInfo { get; }
+        public ReferenceUsageInfoMap ReferenceUsageInfo { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
-            ReferenceUsageInfo = UsageColumnInfoMap.Empty;
+            ReferenceUsageInfo = ReferenceUsageInfoMap.Empty;
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, UsageColumnInfoMap referenceInfo)
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ReferenceUsageInfoMap referenceInfo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
-            ReferenceUsageInfo = referenceInfo ?? UsageColumnInfoMap.Empty;
+            ReferenceUsageInfo = referenceInfo ?? ReferenceUsageInfoMap.Empty;
         }
 
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<CustomColumnInfo> customColumns)
@@ -70,15 +70,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             CustomColumns = customColumns;
         }
 
-        private static UsageColumnInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
+        private static ReferenceUsageInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
         {
-            var result = s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
-            return result;
+            return s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
         }
 
-        private static UsageColumnInfoMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
+        private static ReferenceUsageInfoMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
         {
-            var referenceUsageInfoMap = UsageColumnInfoMap.Empty;
+            var referenceUsageInfoMap = ReferenceUsageInfoMap.Empty;
             if (!symbolUsageInfo.Equals(SymbolUsageInfo.None))
             {
                 referenceUsageInfoMap = referenceUsageInfoMap.Add(nameof(SymbolUsageInfo), symbolUsageInfo.ToLocalizableValues());

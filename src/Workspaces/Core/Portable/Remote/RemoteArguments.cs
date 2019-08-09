@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -144,16 +143,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
         }
     }
-
-    //internal class SerializableContainingTypeInfo
-    //{
-    //    public string containingTypeInfo;
-
-    //    internal static SerializableContainingTypeInfo Dehydrate(ContainingTypeInfo containingTypeInfo)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
 
     internal class SerializableReferenceLocation
     {

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -48,10 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal SymbolUsageInfo SymbolUsageInfo { get; }
 
-        /// <summary>
-        /// Containing Type info for this reference.
-        /// </summary>
-        internal ImmutableArray<CustomColumnInfo> CustomColumns;
+        internal ImmutableArray<CustomColumnInfo> CustomColumns { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.

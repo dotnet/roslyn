@@ -85,13 +85,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
-            return await FindReferencesInTokensAsync(
+            return FindReferencesInTokens(
                  methodSymbol,
                  document,
                  semanticModel,
                  tokens,
                  tokensMatch,
-                 cancellationToken).ConfigureAwait(false);
+                 cancellationToken);
         }
     }
 }
