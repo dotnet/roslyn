@@ -300,7 +300,4 @@
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
     <value>Show items from unimported namespaces (experimental)</value>
   </data>
-  <data name="Visual_Basic_language_server_client" xml:space="preserve">
-    <value>Visual Basic Language Server Client</value>
-  </data>
 </root>

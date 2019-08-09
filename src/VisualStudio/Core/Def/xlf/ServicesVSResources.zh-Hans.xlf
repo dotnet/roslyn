@@ -62,6 +62,11 @@
         <target state="new">Build + live analysis (NuGet package)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_server_client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">正在计算依赖项...</target>

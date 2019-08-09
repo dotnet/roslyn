@@ -612,14 +612,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("VB_Coding_Conventions", resourceCulture)
             End Get
         End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Visual Basic Language Server Client.
-        '''</summary>
-        Friend Shared ReadOnly Property Visual_Basic_language_server_client() As String
-            Get
-                Return ResourceManager.GetString("Visual_Basic_language_server_client", resourceCulture)
-            End Get
-        End Property
     End Class
 End Namespace

@@ -22,11 +22,6 @@
         <target state="translated">Reglas de formato de C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="new">C# Language Server Client</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">Descartar</target>

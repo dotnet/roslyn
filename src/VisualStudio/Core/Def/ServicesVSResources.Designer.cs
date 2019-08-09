@@ -713,6 +713,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string CSharp_Visual_Basic_Language_server_client {
+            get {
+                return ResourceManager.GetString("CSharp_Visual_Basic_Language_server_client", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current block.
         /// </summary>
         internal static string Current_block {

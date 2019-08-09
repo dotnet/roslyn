@@ -600,7 +600,4 @@
   <data name="Prefer_switch_expression" xml:space="preserve">
     <value>Prefer switch expression</value>
   </data>
-  <data name="CSharp_language_server_client" xml:space="preserve">
-    <value>C# Language Server Client</value>
-  </data>
 </root>

@@ -2,33 +2,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.ServiceHub.Client;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Microsoft.CodeAnalysis.Host;
-using System.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract class AbstractLanguageServerClient : ILanguageClient
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.VisualBasicLspContentTypeName)]
+    [Export(typeof(ILanguageClient))]
+    [ExportMetadata("Capabilities", "WorkspaceStreamingSymbolProvider")]
+    internal class LanguageServerClient : ILanguageClient
     {
         private readonly Workspace _workspace;
         private readonly LanguageServerClientEventListener _eventListener;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        private readonly string _serviceHubClientName;
-        private readonly string _languageServerName;
-
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public abstract string Name { get; }
+        public string Name { get; } = ServicesVSResources.CSharp_Visual_Basic_Language_server_client;
 
         /// <summary>
         /// Gets the configuration section names for the language client. This may be null if the language client
@@ -54,19 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public event AsyncEventHandler<EventArgs> StopAsync;
 #pragma warning restore CS0067 // event never used
 
-        public AbstractLanguageServerClient(
+        public LanguageServerClient(
             Workspace workspace,
             LanguageServerClientEventListener eventListener,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            string languageServerName,
-            string serviceHubClientName)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _eventListener = eventListener;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
-
-            _serviceHubClientName = serviceHubClientName;
-            _languageServerName = languageServerName;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.LanguageServerWorkspaceSymbolSearch);
         }
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
@@ -79,12 +78,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             var hostGroup = new HostGroup(client.ClientId);
-            var hubClient = new HubClient(_serviceHubClientName);
+            var hubClient = new HubClient("ManagedLanguage.IDE.LanguageServer");
 
             var stream = await ServiceHubRemoteHostClient.Connections.RequestServiceAsync(
                 _workspace,
                 hubClient,
-                _languageServerName,
+                WellKnownServiceHubServices.LanguageServer,
                 hostGroup,
                 TimeSpan.FromMinutes(60),
                 cancellationToken).ConfigureAwait(false);
@@ -138,28 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task OnServerInitializeFailedAsync(Exception e)
         {
             return Task.CompletedTask;
-        }
-    }
-
-    // unfortunately, we can't implement this on LanguageServerClient since this uses MEF v2 and
-    // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
-    [Export]
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class LanguageServerClientEventListener : IEventListener<object>
-    {
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
-
-        public Task WorkspaceStarted => _taskCompletionSource.Task;
-
-        public LanguageServerClientEventListener()
-        {
-            _taskCompletionSource = new TaskCompletionSource<object>();
-        }
-
-        public void StartListening(Workspace workspace, object serviceOpt)
-        {
-            // mark that roslyn solution is added
-            _taskCompletionSource.SetResult(null);
         }
     }
 }

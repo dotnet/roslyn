@@ -159,8 +159,7 @@ namespace Roslyn.Test.Utilities.Remote
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
-                RegisterService(WellKnownServiceHubServices.CSharpLanguageServer, (s, p) => new CSharpLanguageServer(s, p));
-                RegisterService(WellKnownServiceHubServices.VisualBasicLanguageServer, (s, p) => new VisualBasicLanguageServer(s, p));
+                RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
