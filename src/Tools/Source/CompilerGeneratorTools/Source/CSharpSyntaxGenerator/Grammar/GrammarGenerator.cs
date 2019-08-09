@@ -5,309 +5,179 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
-using static System.String;
 
 namespace CSharpSyntaxGenerator.Grammar
 {
-    internal class GrammarGenerator
+    internal static class GrammarGenerator
     {
-        private readonly ImmutableArray<TreeType> _nodes;
-        private readonly Dictionary<string, List<Production>> _nameToProductions;
-
-        public GrammarGenerator(Tree tree)
+        public static string Run(Tree tree)
         {
-            // Syntax refers to a special pseudo-element 'Modifier'.  Just synthesize that since
-            // it's useful in the g4 grammar.
-            var modifierKeywords = from mod in GetKinds<DeclarationModifiers>()
-                                   let modKeyword = mod + "Keyword"
-                                   from kind in SyntaxKinds
-                                   where modKeyword == kind.ToString()
-                                   select new Kind { Name = modKeyword };
+            // Syntax refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
+            var modifierKeywords = GetMembers<DeclarationModifiers>()
+                .SelectMany(m => GetMembers<SyntaxKind>().Where(k => k.ToString() == m + "Keyword"))
+                .Select(k => new Kind { Name = k.ToString() });
 
             tree.Types.Add(new Node
             {
                 Name = "Modifier",
-                Children = { new Field { Type = SyntaxToken, Kinds = modifierKeywords.ToList() } }
+                Children = { new Field { Type = "SyntaxToken", Kinds = modifierKeywords.ToList() } }
             });
 
-            _nodes = tree.Types.Where(t => t.Name != "CSharpSyntaxNode").ToImmutableArray();
-            _nameToProductions = _nodes.ToDictionary(n => n.Name, _ => new List<Production>());
-        }
+            var nameToProductions = tree.Types.ToDictionary(n => n.Name, _ => new List<Production>());
 
-        public string Run()
-        {
-            foreach (var node in _nodes)
+            foreach (var node in tree.Types)
             {
                 // If this node has a base-type, then have the base-type point to this node as a
                 // valid production for itself.
-                if (node.Base is string nodeBase && _nameToProductions.TryGetValue(nodeBase, out var baseProductions))
+                if (node.Base is string nodeBase && nodeBase != "CSharpSyntaxNode" && nameToProductions.TryGetValue(nodeBase, out var baseProductions))
                     baseProductions.Add(RuleReference(node.Name));
 
-                if (node is Node)
+                if (node is Node && node.Children.Count > 0)
                 {
-                    if (node.Children.Count == 0)
-                        continue;
-
                     // Convert a rule of `a: (x | y | z)` into:
                     // a: x
                     //  | y
                     //  | z;
+                    var productions = nameToProductions[node.Name];
                     if (node.Children.Count == 1 && node.Children[0] is Field field && field.IsToken)
                     {
-                        ProcessProductions(node, field.Kinds.Select(k =>
-                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = { k } } }).ToArray());
+                        productions.AddRange(field.Kinds.Select(k =>
+                            HandleChildren(new[] { new Field { Type = "SyntaxToken", Kinds = { k } } })));
+                        continue;
                     }
-                    else
-                    {
-                        ProcessProductions(node, node.Children);
-                    }
+
+                    productions.Add(HandleChildren(node.Children.ToArray()));
                 }
             }
 
-            // The grammar will bottom out with certain lexical productions.  Just emit a few empty
-            // productions in the grammar file indicating what's going on, and making it so that the
-            // g4 file is considered legal (i.e. no rule references names of rules that don't
-            // exist).
-            foreach (var kind in s_lexicalTokens)
-                _nameToProductions.Add(kind.ToString(), new List<Production> { new Production("/* see lexical specification */") });
+            // The grammar will bottom out with certain lexical productions. Create rules for these.
+            var lexicalRules = nameToProductions.Values.SelectMany(ps => ps.SelectMany(p => p.ReferencedRules))
+                                                       .Where(r => !nameToProductions.ContainsKey(r)).Distinct().ToArray();
+            foreach (var name in lexicalRules)
+                nameToProductions.Add(name, new List<Production> { new Production("/* see lexical specification */") });
 
-            return GenerateResult();
-        }
-
-        private void ProcessProductions(TreeType node, params List<TreeTypeChild>[] productions)
-            => _nameToProductions[node.Name].AddRange(productions.Select(p => ProcessChildren(p, delim: " ")));
-
-        private string GenerateResult()
-        {
-            // Keep track of the rules we've emitted.  Once we've emitted a rule once, no need to do
-            // it again, even if it's referenced by another rule.
             var seen = new HashSet<string>();
-            var normalizedRules = new List<(string name, ImmutableArray<string> productions)>();
 
             // Define a few major sections that generally correspond to base nodes that have a lot
             // of derived nodes. If we hit these nodes while recursing through another node, we
             // won't just print them out then. Instead, we'll wait till we're done with the previous
-            // nodes, then start emitting these. This helps keep the final grammar file grouped in a
-            // more natural fashion. And, without this, just processing CompilationUnit will cause
-            // expressions to print early because of things like:
-            // CompilationUnit->AttributeList->AttributeArg->Expression.
+            // nodes, then start emitting these. This helps keep the grammar file naturally grouped.
             var majorRules = ImmutableArray.Create(
-                "CompilationUnitSyntax",
-                "MemberDeclarationSyntax",
-                "StatementSyntax",
-                "ExpressionSyntax",
-                "TypeSyntax",
-                "XmlNodeSyntax",
-                "StructuredTriviaSyntax");
+                "CompilationUnitSyntax", "MemberDeclarationSyntax", "StatementSyntax", "ExpressionSyntax", "TypeSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax");
 
-            // Process each major section first, followed by the entire list. That way we process
-            // any rules not hit transitively from those sections.
-            var orderedRules = majorRules.Concat(_nameToProductions.Keys.OrderBy(a => a));
-            foreach (var rule in orderedRules)
-                AddNormalizedRules(rule);
+            var result = "// <auto-generated />" + Environment.NewLine + "grammar csharp;" + Environment.NewLine;
 
-            return
-@"// <auto-generated />
-grammar csharp;" + Concat(normalizedRules.Select(t => GenerateRule(t.name, t.productions)));
+            // Handle each major section first and then walk any missed rules.
+            foreach (var rule in majorRules.Concat(nameToProductions.Keys.OrderBy(a => a)))
+                processRule(rule, ref result);
 
-            void AddNormalizedRules(string name)
+            return result;
+
+            void processRule(string name, ref string result)
             {
                 // Only consider the rule if it's the first time we're seeing it.
                 if (seen.Add(name))
                 {
-                    // Order the productions alphabetically for consistency and to keep us independent
-                    // from whatever ordering changes happen in Syntax.xml.
-                    var sorted = _nameToProductions[name].OrderBy(v => v.Text, StringComparer.Ordinal).ToImmutableArray();
-                    if (sorted.Length > 0)
-                        normalizedRules.Add((Normalize(name), sorted.Select(s => s.Text).ToImmutableArray()));
+                    // Order the productions to keep us independent from whatever changes happen in Syntax.xml.
+                    var sorted = nameToProductions[name].OrderBy(v => v);
+                    if (sorted.Any())
+                    {
+                        result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
+                                  string.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine;
 
-                    // Now proceed in depth-first fashion through the rules the productions of this rule
-                    // reference.  This helps keep related rules of these productions close by.
-                    var references = sorted.SelectMany(t => t.RuleReferences).Where(r => !majorRules.Contains(r));
-                    foreach (var reference in references)
-                        AddNormalizedRules(reference);
+                        // Now proceed in depth-first fashion through the rules the productions of this rule
+                        // reference.  This helps keep related rules of these productions close by.
+                        var references = sorted.SelectMany(t => t.ReferencedRules);
+                        foreach (var referencedRule in references.Where(r => !majorRules.Concat(lexicalRules).Contains(r)))
+                            processRule(referencedRule, ref result);
+                    }
                 }
             }
-
-            static string GenerateRule(string name, ImmutableArray<string> productions)
-                => Environment.NewLine + Environment.NewLine + name + Environment.NewLine + "  : " +
-                   Join(Environment.NewLine + "  | ", productions) + Environment.NewLine + "  ;";
         }
 
-        /// <summary>
-        /// Returns the g4 production string for this rule based on the children it has. Also
-        /// returns all the names of other rules this particular production references.
-        /// </summary>
-        private Production ProcessChildren(List<TreeTypeChild> children, string delim)
-        {
-            var result = children.Select(child => child switch
-            {
-                Choice c => ProcessChildren(c.Children, " | ").Parenthesize(),
-                Sequence s => ProcessChildren(s.Children, " ").Parenthesize(),
-                Field f => GetFieldType(f).WithSuffix(f.IsOptional ? "?" : ""),
-                _ => throw new InvalidOperationException(),
-            }).Where(p => p.Text.Length > 0);
+        private static Production Join(string delim, IEnumerable<Production> productions)
+            => new Production(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
 
-            return new Production(
-                Join(delim, result.Select(t => t.Text)),
-                result.SelectMany(t => t.RuleReferences));
-        }
+        private static Production HandleChildren(TreeTypeChild[] children, string delim = " ")
+            => Join(delim, children.Select(child =>
+                child is Choice c ? HandleChildren(c.Children.ToArray(), delim: " | ").Parenthesize() :
+                child is Sequence s ? HandleChildren(s.Children.ToArray()).Parenthesize() :
+                child is Field f ? HandleField(f).Suffix("?", when: f.IsOptional) : throw new InvalidOperationException()));
 
-        private Production GetFieldType(Field field)
-            // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
-            // They're not relevant to the grammar, so we just return an empty production here
-            // which will be filtered out by the caller.
+        private static Production HandleField(Field field)
+            // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
+            // relevant to the grammar, so we just return an empty production to ignore them.
             => field.Type == "bool" ? new Production("") :
-               field.Type == "CSharpSyntaxNode" ? HandleCSharpSyntaxNodeField(field) :
-               field.Type.StartsWith("SeparatedSyntaxList") ? HandleSeparatedSyntaxListField(field) :
-               field.Type.StartsWith("SyntaxList") ? HandleSyntaxListField(field) :
-               field.IsToken ? HandleSyntaxTokenField(field) : RuleReference(field.Type);
+               field.Type == "CSharpSyntaxNode" ? RuleReference(field.Kinds.Single().Name + "Syntax") :
+               field.Type.StartsWith("SeparatedSyntaxList") ? HandleSeparatedList(field, field.Type[("SeparatedSyntaxList".Length + 1)..^1]) :
+               field.Type.StartsWith("SyntaxList") ? HandleList(field, field.Type[("SyntaxList".Length + 1)..^1]) :
+               field.IsToken ? HandleTokenField(field) : RuleReference(field.Type);
 
-        private static Production HandleSyntaxTokenField(Field field)
+        private static Production HandleSeparatedList(Field field, string elementType)
+            => RuleReference(elementType).Suffix(" (',' " + RuleReference(elementType) + ")*")
+                .Suffix(" ','?", when: field.AllowTrailingSeparator)
+                .Parenthesize(when: field.MinCount == 0).Suffix("?", when: field.MinCount == 0);
+
+        private static Production HandleList(Field field, string elementType)
+            => (elementType != "SyntaxToken" ? RuleReference(elementType) :
+                field.Name == "Commas" ? new Production("','") :
+                field.Name == "Modifiers" ? RuleReference("Modifier") :
+                field.Name == "TextTokens" ? RuleReference(nameof(SyntaxKind.XmlTextLiteralToken)) : RuleReference("Token"))
+                    .Suffix(field.MinCount == 0 ? "*" : "+");
+
+        private static Production HandleTokenField(Field field)
+            => field.Kinds.Count == 0 ? GetTokenProduction(field.Name) : Join(" | ", field.Kinds.Select(
+                k => GetTokenProduction(k.Name)).OrderBy(p => p)).Parenthesize(when: field.Kinds.Count >= 2);
+
+        private static Production GetTokenProduction(string tokenName)
         {
-            var production = new Production(field.Kinds.Count == 0
-                ? GetTokenText(GetTokenKind(field.Name))
-                : Join(" | ", GetTokenKindStrings(field)));
-            return field.Kinds.Count <= 1 ? production : production.Parenthesize();
-        }
-
-        private Production HandleCSharpSyntaxNodeField(Field field)
-            => RuleReference(field.Kinds.Single().Name + Syntax);
-
-        private Production HandleSeparatedSyntaxListField(Field field)
-        {
-            var production = RuleReference(field.Type[("SeparatedSyntaxList".Length + 1)..^1]);
-            var result = production.WithSuffix(" (',' " + production + ")*");
-            result = field.AllowTrailingSeparator != null ? result.WithSuffix(" ','?") : result;
-            return field.MinCount != null ? result : result.Parenthesize().WithSuffix("?");
-        }
-
-        private Production HandleSyntaxListField(Field field)
-            => GetSyntaxListUnderlyingType(field).WithSuffix(field.MinCount != null ? "+" : "*");
-
-        private Production GetSyntaxListUnderlyingType(Field field)
-            => field.Name switch
+            var kind = GetMembers<SyntaxKind>().Where(k => k.ToString() == tokenName).SingleOrDefault();
+            return kind switch
             {
-                // Specialized token lists that we want the grammar to be more precise about. i.e.
-                // we don't want `Commas` to be in the grammar as `token*` (implying that it could
-                // be virtually any token.
-                "Commas" => new Production("','"),
-                "Modifiers" => RuleReference("Modifier"),
-                "Tokens" => new Production(Normalize("Token")),
-                "TextTokens" => new Production(Normalize("XmlTextLiteralToken")),
-                _ => RuleReference(field.Type[("SyntaxList".Length + 1)..^1])
+                SyntaxKind.EndOfFileToken => new Production("EOF"), // 'EOF' is builtin to antlr to represent this concept.
+                SyntaxKind.EndOfDocumentationCommentToken => new Production(""),
+                SyntaxKind.EndOfDirectiveToken => new Production(""),
+                SyntaxKind.OmittedTypeArgumentToken => new Production("/* epsilon */"),
+                SyntaxKind.OmittedArraySizeExpressionToken => new Production("/* epsilon */"),
+                SyntaxKind.None => RuleReference("Token"),
+                _ => SyntaxFacts.GetText(kind) is var text && text != ""
+                    ? new Production(text == "'" ? "'\\''" : $"'{text}'")
+                    : RuleReference(kind.ToString()),
             };
-
-        private static IEnumerable<string> GetTokenKindStrings(Field field)
-            => field.Kinds.Select(k => GetTokenText(GetTokenKind(k.Name))).OrderBy(a => a, StringComparer.Ordinal);
-
-        private static string GetTokenText(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.EndOfFileToken:
-                    // Emit the special antlr EOF token indicating this production should consume
-                    // the entire file.
-                    return "EOF";
-                case SyntaxKind.EndOfDocumentationCommentToken:
-                case SyntaxKind.EndOfDirectiveToken:
-                    // Don't emit anything in the production for these.
-                    return null;
-                case SyntaxKind.OmittedTypeArgumentToken:
-                case SyntaxKind.OmittedArraySizeExpressionToken:
-                    // Indicate that these productions are explicitly empty.
-                    return "/* epsilon */";
-            }
-
-            // Map these token kinds to just a synthesized rule that we state is
-            // declared elsewhere.
-            if (s_lexicalTokens.Contains(kind.ToString()))
-                return Normalize(kind.ToString());
-
-            var result = SyntaxFacts.GetText(kind);
-            if (result == "")
-                throw new NotImplementedException("Unexpected SyntaxKind: " + kind);
-
-            return result == "'"
-                ? @"'\''"
-                : "'" + result + "'";
         }
 
-        private static IEnumerable<TSyntaxKind> GetKinds<TSyntaxKind>() where TSyntaxKind : struct, System.Enum
-            => typeof(TSyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                  .Select(f => (TSyntaxKind)f.GetValue(null));
+        private static IEnumerable<TEnum> GetMembers<TEnum>() where TEnum : struct, Enum
+            => typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).OfType<TEnum>();
 
-        private static IEnumerable<SyntaxKind> SyntaxKinds => GetKinds<SyntaxKind>();
+        private static Production RuleReference(string name)
+            => new Production(
+                s_normalizationRegex.Replace(name.EndsWith("Syntax") ? name[..^"Syntax".Length] : name, "_").ToLower(),
+                ImmutableArray.Create(name));
 
-        private static SyntaxKind GetTokenKind(string tokenName)
-            => tokenName == "Identifier"
-                ? SyntaxKind.IdentifierToken
-                : SyntaxKinds.Where(k => k.ToString() == tokenName).Single();
-
-        private Production RuleReference(string ruleName)
-            => _nameToProductions.ContainsKey(ruleName)
-                ? new Production(Normalize(ruleName), ImmutableArray.Create(ruleName))
-                : throw new InvalidOperationException("No rule found with name: " + ruleName);
-
-        /// <summary>
-        /// Converts a <c>PascalCased</c> name into <c>snake_cased</c> name.
-        /// </summary>
-        private static string Normalize(string name)
-            => s_normalizationRegex.Replace(name.EndsWith(Syntax) ? name[..^Syntax.Length] : name, "_").ToLower();
-
-        private static readonly Regex s_normalizationRegex = new Regex(@"
-            (?<=[A-Z])(?=[A-Z][a-z]) |
-            (?<=[^A-Z])(?=[A-Z]) |
-            (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
-
-        // Special constants we use in a few places.
-
-        private const string Syntax = "Syntax";
-        private const string SyntaxToken = "SyntaxToken";
-
-        private static readonly ImmutableArray<string> s_lexicalTokens = ImmutableArray.Create(
-            "Token",
-            nameof(SyntaxKind.IdentifierToken),
-            nameof(SyntaxKind.CharacterLiteralToken),
-            nameof(SyntaxKind.StringLiteralToken),
-            nameof(SyntaxKind.NumericLiteralToken),
-            nameof(SyntaxKind.InterpolatedStringTextToken),
-            nameof(SyntaxKind.XmlTextLiteralToken));
+        // Converts a PascalCased name into snake_cased name.
+        private static readonly Regex s_normalizationRegex = new Regex(
+            "(?<=[A-Z])(?=[A-Z][a-z]) | (?<=[^A-Z])(?=[A-Z]) | (?<=[A-Za-z])(?=[^A-Za-z])",
+            RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
     }
 
-    internal struct Production
+    internal struct Production : IComparable<Production>
     {
-        /// <summary>
-        /// The line of text to include in the grammar file.  i.e. everything after
-        /// <c>:</c> in <c>: 'extern' 'alias' identifier_token ';'</c>.
-        /// </summary>
         public readonly string Text;
+        public readonly ImmutableArray<string> ReferencedRules;
 
-        /// <summary>
-        /// The names of other rules that are referenced by this rule.  Used purely as an aid to
-        /// help order productions when emitting.  In general, we want to keep referenced rules
-        /// close to the rule that references them.
-        /// </summary>
-        public readonly ImmutableArray<string> RuleReferences;
-
-        public Production(string text)
-            : this(text, ImmutableArray<string>.Empty)
-        {
-        }
-
-        public Production(string text, IEnumerable<string> ruleReferences)
+        public Production(string text, IEnumerable<string> referencedRules = null)
         {
             Text = text;
-            RuleReferences = ruleReferences.ToImmutableArray();
+            ReferencedRules = referencedRules == null ? ImmutableArray<string>.Empty : referencedRules.ToImmutableArray();
         }
 
-        public Production WithPrefix(string prefix) => new Production(prefix + this, RuleReferences);
-        public Production WithSuffix(string suffix) => new Production(this + suffix, RuleReferences);
-        public Production Parenthesize() => WithPrefix("(").WithSuffix(")");
         public override string ToString() => Text;
+        public int CompareTo(Production other) => StringComparer.Ordinal.Compare(this.Text, other.Text);
+        public Production Prefix(string prefix) => new Production(prefix + this, ReferencedRules);
+        public Production Suffix(string suffix, bool when = true) => when ? new Production(this + suffix, ReferencedRules) : this;
+        public Production Parenthesize(bool when = true) => when ? Prefix("(").Suffix(")") : this;
     }
 }
 

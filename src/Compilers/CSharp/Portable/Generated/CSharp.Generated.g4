@@ -54,7 +54,7 @@ attribute_list
   ;
 
 attribute_target_specifier
-  : identifier_token ':'
+  : token ':'
   ;
 
 attribute
@@ -1085,7 +1085,7 @@ directive_trivia
   ;
 
 bad_directive_trivia
-  : '#' identifier_token
+  : '#' token
   ;
 
 branching_directive_trivia
