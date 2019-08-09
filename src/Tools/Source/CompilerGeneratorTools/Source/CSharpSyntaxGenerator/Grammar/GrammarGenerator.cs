@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -61,7 +62,26 @@ namespace CSharpSyntaxGenerator.Grammar
                         throw new InvalidOperationException(node.Name + " had no children");
                     }
 
-                    nameToProductions[node.Name].Add(ProcessChildren(children, top: true, delim: " "));
+                    var allProductions = new List<List<TreeTypeChild>>();
+
+                    // Convert a rule of `a: (x | y | z)` into:
+                    // a: x
+                    //  | y
+                    //  | z;
+                    if (children.Count == 1 && children[0] is Field field && field.IsToken)
+                    {
+                        allProductions.AddRange(field.Kinds.Select(k =>
+                            new List<TreeTypeChild> { new Field { Type = SyntaxToken, Kinds = new List<Kind> { k } } }));
+                    }
+                    else
+                    {
+                        allProductions.Add(children);
+                    }
+
+                    foreach (var production in allProductions)
+                    {
+                        nameToProductions[node.Name].Add(ProcessChildren(production, delim: " "));
+                    }
                 }
             }
 
@@ -153,13 +173,13 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
         /// Returns the g4 production string for this rule based on the children it has. Also
         /// returns all the names of other rules this particular production references.
         /// </summary>
-        private Production ProcessChildren(List<TreeTypeChild> children, bool top, string delim)
+        private Production ProcessChildren(List<TreeTypeChild> children, string delim)
         {
             var result = children.Select(child => child switch
             {
-                Choice c => ProcessChildren(c.Children, top: false, " | ").Parenthesize(),
-                Sequence s => ProcessChildren(s.Children, top: false, " ").Parenthesize(),
-                _ => ProcessField((Field)child, elideParentheses: top && children.Count == 1),
+                Choice c => ProcessChildren(c.Children, " | ").Parenthesize(),
+                Sequence s => ProcessChildren(s.Children, " ").Parenthesize(),
+                _ => ProcessField((Field)child),
             }).Where(p => p.Text.Length > 0);
 
             return new Production(
@@ -167,10 +187,10 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 result.SelectMany(t => t.RuleReferences));
         }
 
-        private Production ProcessField(Field field, bool elideParentheses)
-            => GetFieldUnderlyingType(field, elideParentheses).WithSuffix(field.IsOptional ? "?" : "");
+        private Production ProcessField(Field field)
+            => GetFieldUnderlyingType(field).WithSuffix(field.IsOptional ? "?" : "");
 
-        private Production GetFieldUnderlyingType(Field field, bool elideParentheses)
+        private Production GetFieldUnderlyingType(Field field)
             // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
             // They're not relevant to the grammar, so we just return an empty production here
             // which will be filtered out by the caller.
@@ -178,14 +198,14 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                field.Type == "CSharpSyntaxNode" ? HandleCSharpSyntaxNodeField(field) :
                field.Type.StartsWith("SeparatedSyntaxList") ? HandleSeparatedSyntaxListField(field) :
                field.Type.StartsWith("SyntaxList") ? HandleSyntaxListField(field) :
-               field.IsToken ? HandleSyntaxTokenField(field, elideParentheses) : RuleReference(field.Type);
+               field.IsToken ? HandleSyntaxTokenField(field) : RuleReference(field.Type);
 
-        private static Production HandleSyntaxTokenField(Field field, bool elideParentheses)
+        private static Production HandleSyntaxTokenField(Field field)
         {
             var production = new Production(field.Kinds.Count == 0
                 ? GetTokenText(GetTokenKind(field.Name))
                 : Join(" | ", GetTokenKindStrings(field)));
-            return field.Kinds.Count <= 1 || elideParentheses ? production : production.Parenthesize();
+            return field.Kinds.Count <= 1 ? production : production.Parenthesize();
         }
 
         private Production HandleCSharpSyntaxNodeField(Field field)

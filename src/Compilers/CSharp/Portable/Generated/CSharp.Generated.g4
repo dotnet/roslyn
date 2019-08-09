@@ -18,7 +18,8 @@ name_equals
   ;
 
 identifier_name
-  : 'global' | identifier_token
+  : 'global'
+  | identifier_token
   ;
 
 name
@@ -94,7 +95,25 @@ event_field_declaration
   ;
 
 modifier
-  : 'abstract' | 'async' | 'const' | 'extern' | 'fixed' | 'internal' | 'new' | 'override' | 'partial' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'sealed' | 'static' | 'unsafe' | 'virtual' | 'volatile'
+  : 'abstract'
+  | 'async'
+  | 'const'
+  | 'extern'
+  | 'fixed'
+  | 'internal'
+  | 'new'
+  | 'override'
+  | 'partial'
+  | 'private'
+  | 'protected'
+  | 'public'
+  | 'readonly'
+  | 'ref'
+  | 'sealed'
+  | 'static'
+  | 'unsafe'
+  | 'virtual'
+  | 'volatile'
   ;
 
 variable_declaration
@@ -723,7 +742,14 @@ is_pattern_expression
   ;
 
 literal_expression
-  : '__arglist' | 'default' | 'false' | 'null' | 'true' | character_literal_token | numeric_literal_token | string_literal_token
+  : '__arglist'
+  | 'default'
+  | 'false'
+  | 'null'
+  | 'true'
+  | character_literal_token
+  | numeric_literal_token
+  | string_literal_token
   ;
 
 make_ref_expression
@@ -887,7 +913,22 @@ pointer_type
   ;
 
 predefined_type
-  : 'bool' | 'byte' | 'char' | 'decimal' | 'double' | 'float' | 'int' | 'long' | 'object' | 'sbyte' | 'short' | 'string' | 'uint' | 'ulong' | 'ushort' | 'void'
+  : 'bool'
+  | 'byte'
+  | 'char'
+  | 'decimal'
+  | 'double'
+  | 'float'
+  | 'int'
+  | 'long'
+  | 'object'
+  | 'sbyte'
+  | 'short'
+  | 'string'
+  | 'uint'
+  | 'ulong'
+  | 'ushort'
+  | 'void'
   ;
 
 ref_type
