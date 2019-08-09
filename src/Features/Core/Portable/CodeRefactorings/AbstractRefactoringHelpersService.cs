@@ -473,10 +473,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
 
                 var endOfNode = node.Span.End;
-                var startOfTokenAfterAttributes = afterAttributesToken.Span.Start;
-                var startOfNodeWithoutAttributes = endOfNode >= startOfTokenAfterAttributes
-                    ? afterAttributesToken.Span.Start
-                    : endOfNode;
+                var startOfNodeWithoutAttributes = Math.Min(afterAttributesToken.Span.Start, endOfNode);
 
                 return TextSpan.FromBounds(startOfNodeWithoutAttributes, endOfNode);
             }
