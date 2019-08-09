@@ -179,7 +179,8 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
             {
                 Choice c => ProcessChildren(c.Children, " | ").Parenthesize(),
                 Sequence s => ProcessChildren(s.Children, " ").Parenthesize(),
-                _ => ProcessField((Field)child),
+                Field f => GetFieldType(f).WithSuffix(f.IsOptional ? "?" : ""),
+                _ => throw new InvalidOperationException(),
             }).Where(p => p.Text.Length > 0);
 
             return new Production(
@@ -187,10 +188,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 result.SelectMany(t => t.RuleReferences));
         }
 
-        private Production ProcessField(Field field)
-            => GetFieldUnderlyingType(field).WithSuffix(field.IsOptional ? "?" : "");
-
-        private Production GetFieldUnderlyingType(Field field)
+        private Production GetFieldType(Field field)
             // 'bool' fields are for the few boolean properties we generate on DirectiveTrivia.
             // They're not relevant to the grammar, so we just return an empty production here
             // which will be filtered out by the caller.
