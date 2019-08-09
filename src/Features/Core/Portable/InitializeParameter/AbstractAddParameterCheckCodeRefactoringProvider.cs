@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return false;
                     }
                 }
-
             }
+
             return true;
         }
 
