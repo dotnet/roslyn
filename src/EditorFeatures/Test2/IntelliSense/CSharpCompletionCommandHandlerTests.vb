@@ -4995,6 +4995,7 @@ class C
             End Using
         End Function
 
+        <WorkItem(37231, "https://github.com/dotnet/roslyn/issues/37231")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueInDeletionSession2(completionImplementation As CompletionImplementation) As Task
