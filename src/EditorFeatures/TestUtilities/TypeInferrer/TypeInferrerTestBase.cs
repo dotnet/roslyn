@@ -37,39 +37,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected async Task TestAsync(string text, string expectedType, bool testNode = true, bool testPosition = true,
+        /// <summary>
+        /// Specifies which overload of the <see cref="ITypeInferenceService"/> will be tested.
+        /// </summary>
+        public enum TestMode
+        {
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, SyntaxNode, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Node,
+
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, int, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Position
+        }
+
+        protected async Task TestAsync(string text, string expectedType, TestMode mode,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
 
-            if (testNode)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: false, sourceCodeKind);
-            }
-
-            if (testPosition)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: true, sourceCodeKind);
-            }
-        }
-
-        private async Task TestWithAndWithoutSpeculativeSemanticModelAsync(
-            string text,
-            TextSpan textSpan,
-            string expectedType,
-            bool useNodeStartPosition,
-            SourceCodeKind sourceCodeKind)
-        {
             var document = fixture.UpdateDocument(text, sourceCodeKind);
-            await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
+            await TestWorkerAsync(document, textSpan, expectedType, mode);
 
             if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
                 var document2 = fixture.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
-                await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);
+                await TestWorkerAsync(document2, textSpan, expectedType, mode);
             }
         }
 
-        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition);
+        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode);
     }
 }
