@@ -1694,6 +1694,6 @@ This version used in: {2}</value>
     <value>Warning: Semantics may change when converting statement.</value>
   </data>
   <data name="Pass_variable_explicitly_in_local_static_function" xml:space="preserve">
-    <value>Passes in local variables explicitly in a static local function</value>
+    <value>Pass in local variables explicitly in a static local function</value>
   </data>
 </root>

@@ -2975,7 +2975,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Passes in local variables explicitly in a static local function.
+        ///   Looks up a localized string similar to Pass in local variables explicitly in a static local function.
         /// </summary>
         internal static string Pass_variable_explicitly_in_local_static_function {
             get {

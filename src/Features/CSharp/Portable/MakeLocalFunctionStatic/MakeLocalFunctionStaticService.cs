@@ -23,14 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportLanguageService(typeof(MakeLocalFunctionStaticService), LanguageNames.CSharp)]
     internal sealed class MakeLocalFunctionStaticService : ILanguageService
     {
-        private static readonly char[] s_underscore = { '_' };
         private readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
-        internal async Task<Document> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localfunction, CancellationToken cancellationToken)
+        internal async Task<Document> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-            var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localfunction, cancellationToken);
-            var dataFlow = semanticModel.AnalyzeDataFlow(localfunction);
+            var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
             var captures = dataFlow.CapturedInside;
 
             var parameters = CreateParameterSymbol(captures);
@@ -42,14 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var rootOne = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(rootOne, s_generator);
 
-
             foreach (var referenceSymbol in arrayNode)
             {
                 foreach (var location in referenceSymbol.Locations)
                 {
                     var root = await location.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxNode = root.FindNode(location.Location.SourceSpan); //Node for the identifier syntax
-
 
                     var invocation = (syntaxNode as IdentifierNameSyntax).Parent as InvocationExpressionSyntax;
                     if (invocation == null)
@@ -58,31 +55,30 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     }
 
                     var argList = invocation.ArgumentList;
-                    List<ArgumentSyntax> x = new List<ArgumentSyntax>();
+                    List<ArgumentSyntax> paramList = new List<ArgumentSyntax>();
 
                     foreach (var parameter in parameters)
                     {
-
                         var newArgument = GenerateArgument(parameter, parameter.Name, false);
-                        x.Add(newArgument as ArgumentSyntax);
+                        paramList.Add(newArgument as ArgumentSyntax);
                     }
 
-
-                    var newArgList = argList.WithArguments(argList.Arguments.AddRange(x));
+                    var newArgList = argList.WithArguments(argList.Arguments.AddRange(paramList));
                     var newInvocation = invocation.WithArgumentList(newArgList);
 
                     editor.ReplaceNode(invocation, newInvocation);
 
                 }
             }
+
             //Updates the declaration with the variables passed in
-            var newLF = CodeGenerator.AddParameterDeclarations(localfunction, parameters, workspace);
+            var updatedLocalFunction = CodeGenerator.AddParameterDeclarations(localFunction, parameters, workspace);
 
             //Adds the modifier static
             var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
-            var LFWithStatic = s_generator.WithModifiers(newLF, modifiers);
+            var localFunctionWithStatic = s_generator.WithModifiers(updatedLocalFunction, modifiers);
 
-            editor.ReplaceNode(localfunction, LFWithStatic);
+            editor.ReplaceNode(localFunction, localFunctionWithStatic);
 
             var newRoot = editor.GetChangedRoot();
             var newDocument = document.WithSyntaxRoot(newRoot);
@@ -102,12 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         refKind: RefKind.None,
                         isParams: false,
                         type: type,
-                        name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
+                        name: symbol.Name.ToCamelCase()));
                 }
 
                 return parameters.ToImmutableAndFree();
             }
-
         }
 
         internal SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)

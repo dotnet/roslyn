@@ -272,17 +272,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override TDeclarationNode AddParameters<TDeclarationNode>(
-            TDeclarationNode destinationMember,
+            TDeclarationNode destination,
             IEnumerable<IParameterSymbol> parameters,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var s_generator = CSharpSyntaxGenerator.Instance;
-            var currentParameterList = s_generator.GetParameters(destinationMember);
+            var syntaxGenerator = CSharpSyntaxGenerator.Instance;
+            var currentParameterList = syntaxGenerator.GetParameters(destination);
 
             if (currentParameterList == null)
             {
-                return destinationMember;
+                return destination;
             }
 
             var currentParamsCount = currentParameterList.Count;
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             }
 
-            var finalMember = s_generator.AddParameters(destinationMember, newParams);
+            var finalMember = syntaxGenerator.AddParameters(destination, newParams.ToImmutableAndFree());
 
             return Cast<TDeclarationNode>(finalMember);
         }

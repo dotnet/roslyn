@@ -318,8 +318,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Pass_variable_explicitly_in_local_static_function">
-        <source>Pass_variable_explicitly_in_local_static_function</source>
-        <target state="new">Pass_variable_explicitly_in_local_static_function</target>
+        <source>Pass in local variables explicitly in a static local function</source>
+        <target state="new">Pass in local variables explicitly in a static local function</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">

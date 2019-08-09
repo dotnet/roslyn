@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
 
-
         public sealed override FixAllProvider GetFixAllProvider()
         {
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
@@ -42,14 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-
             var service = document.GetLanguageService<MakeLocalFunctionStaticService>();
-
 
             context.RegisterCodeFix(
                 new MyCodeAction(c => service.CreateParameterSymbolAsync(context.Document, declaration, c)),
                 diagnostic);
-
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
