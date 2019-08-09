@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,28 +14,28 @@ namespace CSharpSyntaxGenerator.Grammar
 {
     internal class GrammarGenerator
     {
-        private readonly ImmutableDictionary<string, TreeType> _nameToElement;
+        private readonly ImmutableArray<TreeType> _nodes;
         private readonly Dictionary<string, List<Production>> _nameToProductions;
 
         public GrammarGenerator(Tree tree)
         {
             // Syntax refers to a special pseudo-element 'Modifier'.  Just synthesize that since
             // it's useful in the g4 grammar.
-            tree.Types.Add(new Node
-            {
-                Name = "Modifier",
-                Children =
+            _nodes = tree.Types.Where(c => c is AbstractNode || c is Node).ToImmutableArray().Add(
+                new Node
                 {
-                    new Field
+                    Name = "Modifier",
+                    Children =
                     {
-                        Type = SyntaxToken,
-                        Kinds = ModifierKeywords.Select(k => new Kind { Name = k }).ToList()
+                        new Field
+                        {
+                            Type = SyntaxToken,
+                            Kinds = ModifierKeywords.Select(k => new Kind { Name = k }).ToList()
+                        }
                     }
-                }
-            });
+                });
 
-            _nameToElement = tree.Types.Where(c => c is AbstractNode || c is Node).ToImmutableDictionary(n => n.Name);
-            _nameToProductions = _nameToElement.Values.ToDictionary(n => n.Name, _ => new List<Production>());
+            _nameToProductions = _nodes.ToDictionary(n => n.Name, _ => new List<Production>());
         }
 
         public string Run()
@@ -45,7 +44,7 @@ namespace CSharpSyntaxGenerator.Grammar
             // all structured trivia rules.
             _nameToProductions.Add("StructuredTriviaSyntax", new List<Production>());
 
-            foreach (var node in _nameToElement.Values)
+            foreach (var node in _nodes)
             {
                 // If this node has a base-type, then have the base-type point to this node as a
                 // valid production for itself.
@@ -268,7 +267,7 @@ grammar csharp;" + Join("", normalizedRules.Select(t => Generate(t.name, t.produ
                 : SyntaxKinds.Where(k => k.ToString() == tokenName).Single();
 
         private Production RuleReference(string ruleName)
-            => _nameToElement.ContainsKey(ruleName)
+            => _nameToProductions.ContainsKey(ruleName)
                 ? new Production(Normalize(ruleName), ImmutableArray.Create(ruleName))
                 : throw new InvalidOperationException("No rule found with name: " + ruleName);
 
