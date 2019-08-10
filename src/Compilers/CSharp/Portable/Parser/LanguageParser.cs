@@ -5171,7 +5171,11 @@ tryAgain:
                 case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
                 case SyntaxKind.IsKeyword:               // e.g. `e is A<B> is bool`
                 case SyntaxKind.AsKeyword:               // e.g. `e is A<B> as bool`
-                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7
+                    // These tokens were added to 7.5.4.2 Grammar Ambiguities in C# 7.0
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
+                case SyntaxKind.OpenBraceToken: // e.g. `e is A<B> {}`
+                    // This token was added to 7.5.4.2 Grammar Ambiguities in C# 8.0
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
                 case SyntaxKind.GreaterThanToken when ((options & NameOptions.AfterIs) != 0) && this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken:
