@@ -88,7 +88,7 @@ namespace CSharpSyntaxGenerator
         {
             try
             {
-                var grammarText = GrammarGenerator.Run(ReadTree(inputFile));
+                var grammarText = GrammarGenerator.Run(ReadTree(inputFile).Types);
                 var outputMainFile = Path.Combine(outputLocation.Trim('"'), $"CSharp.Generated.g4");
 
                 using var outFile = new StreamWriter(File.Open(outputMainFile, FileMode.Create), Encoding.UTF8);

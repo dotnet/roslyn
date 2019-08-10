@@ -2,7 +2,7 @@
 grammar csharp;
 
 compilation_unit
-  : extern_alias_directive* using_directive* attribute_list* member_declaration* EOF
+  : extern_alias_directive* using_directive* attribute_list* member_declaration*
   ;
 
 extern_alias_directive
@@ -129,7 +129,7 @@ bracketed_argument_list
   ;
 
 argument
-  : name_colon? ('in' | 'out' | 'ref')? expression
+  : name_colon? ('ref' | 'out' | 'in')? expression
   ;
 
 equals_value_clause
@@ -157,7 +157,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? ('__arglist' | identifier_token) equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
   ;
 
 constructor_initializer
@@ -177,7 +177,7 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('explicit' | 'implicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 destructor_declaration
@@ -223,7 +223,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type 'operator' ('!' | '!=' | '%' | '&' | '*' | '+' | '++' | '-' | '--' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '^' | 'false' | 'is' | 'true' | '|' | '~') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_property_declaration
@@ -241,7 +241,7 @@ accessor_list
   ;
 
 accessor_declaration
-  : attribute_list* modifier* ('add' | 'get' | 'remove' | 'set' | identifier_token) (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
   ;
 
 indexer_declaration
@@ -544,7 +544,7 @@ while_statement
   ;
 
 yield_statement
-  : 'yield' ('break' | 'return') expression? ';'
+  : 'yield' ('return' | 'break') expression? ';'
   ;
 
 expression
@@ -640,7 +640,7 @@ initializer_expression
   ;
 
 assignment_expression
-  : expression ('%=' | '&=' | '*=' | '+=' | '-=' | '/=' | '<<=' | '=' | '>>=' | '??=' | '^=' | '|=') expression
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '??=') expression
   ;
 
 await_expression
@@ -648,7 +648,7 @@ await_expression
   ;
 
 binary_expression
-  : expression ('!=' | '%' | '&&' | '&' | '*' | '+' | '-' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '??' | '^' | 'as' | 'is' | '|' | '||') expression
+  : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
   ;
 
 cast_expression
@@ -757,7 +757,7 @@ make_ref_expression
   ;
 
 member_access_expression
-  : expression ('->' | '.') simple_name
+  : expression ('.' | '->') simple_name
   ;
 
 member_binding_expression
@@ -777,11 +777,11 @@ parenthesized_expression
   ;
 
 postfix_unary_expression
-  : expression ('!' | '++' | '--')
+  : expression ('++' | '--' | '!')
   ;
 
 prefix_unary_expression
-  : ('!' | '&' | '*' | '+' | '++' | '-' | '--' | '^' | '~') expression
+  : ('+' | '-' | '~' | '!' | '++' | '--' | '&' | '*' | '^') expression
   ;
 
 query_expression
@@ -983,7 +983,7 @@ xml_attribute
   ;
 
 xml_cref_attribute
-  : xml_name '=' ('"' | '\'') cref ('"' | '\'')
+  : xml_name '=' ('\'' | '"') cref ('\'' | '"')
   ;
 
 cref
@@ -1000,7 +1000,7 @@ member_cref
   ;
 
 conversion_operator_member_cref
-  : ('explicit' | 'implicit') 'operator' type cref_parameter_list?
+  : ('implicit' | 'explicit') 'operator' type cref_parameter_list?
   ;
 
 cref_parameter_list
@@ -1008,7 +1008,7 @@ cref_parameter_list
   ;
 
 cref_parameter
-  : ('in' | 'out' | 'ref')? type
+  : ('ref' | 'out' | 'in')? type
   ;
 
 indexer_member_cref
@@ -1024,7 +1024,7 @@ name_member_cref
   ;
 
 operator_member_cref
-  : 'operator' ('!' | '!=' | '%' | '&' | '*' | '+' | '++' | '-' | '--' | '/' | '<' | '<<' | '<=' | '==' | '>' | '>=' | '>>' | '^' | 'false' | 'true' | '|' | '~') cref_parameter_list?
+  : 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
   ;
 
 qualified_cref
@@ -1036,11 +1036,11 @@ type_cref
   ;
 
 xml_name_attribute
-  : xml_name '=' ('"' | '\'') identifier_name ('"' | '\'')
+  : xml_name '=' ('\'' | '"') identifier_name ('\'' | '"')
   ;
 
 xml_text_attribute
-  : xml_name '=' ('"' | '\'') xml_text_literal_token* ('"' | '\'')
+  : xml_name '=' ('\'' | '"') xml_text_literal_token* ('\'' | '"')
   ;
 
 xml_element_end_tag
@@ -1127,7 +1127,7 @@ error_directive_trivia
   ;
 
 line_directive_trivia
-  : '#' 'line' ('default' | 'hidden' | numeric_literal_token) string_literal_token?
+  : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
   ;
 
 load_directive_trivia
@@ -1135,7 +1135,7 @@ load_directive_trivia
   ;
 
 nullable_directive_trivia
-  : '#' 'nullable' ('disable' | 'enable' | 'restore') ('annotations' | 'warnings')?
+  : '#' 'nullable' ('enable' | 'disable' | 'restore') ('warnings' | 'annotations')?
   ;
 
 pragma_checksum_directive_trivia
