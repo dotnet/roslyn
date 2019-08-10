@@ -1,4 +1,4 @@
-﻿// <auto1-generated />
+﻿// <auto1-generated/>
 grammar vb;
 
 compilation_unit
@@ -249,7 +249,7 @@ enum_block
   ;
 
 enum_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows')* 'Enum' identifier_token as_clause?
+  : attribute_list* modifier* 'Enum' identifier_token as_clause?
   ;
 
 as_clause
@@ -322,7 +322,7 @@ event_block
   ;
 
 event_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Custom'? 'Event' identifier_token parameter_list? simple_as_clause? implements_clause?
+  : attribute_list* modifier* 'Custom'? 'Event' identifier_token parameter_list? simple_as_clause? implements_clause?
   ;
 
 parameter_list
@@ -330,7 +330,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* ('ByVal' | 'ByRef' | 'Optional' | 'ParamArray')* modified_identifier simple_as_clause? equals_value?
+  : attribute_list* modifier* modified_identifier simple_as_clause? equals_value?
   ;
 
 modified_identifier
@@ -346,11 +346,11 @@ accessor_block
   ;
 
 accessor_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Get' | 'Set' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent') parameter_list?
+  : attribute_list* modifier* ('Get' | 'Set' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent') parameter_list?
   ;
 
 field_declaration
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'ReadOnly' | 'Dim' | 'Const' | 'WithEvents' | 'Widening' | 'Narrowing')* (variable_declarator(',' variable_declarator)*)?
+  : attribute_list* modifier* (variable_declarator(',' variable_declarator)*)?
   ;
 
 variable_declarator
@@ -358,7 +358,7 @@ variable_declarator
   ;
 
 incomplete_member
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'ReadOnly' | 'Dim' | 'Const' | 'WithEvents' | 'Widening' | 'Narrowing')* identifier_token?
+  : attribute_list* modifier* identifier_token?
   ;
 
 inherits_or_implements_statement
@@ -387,7 +387,7 @@ method_base
   ;
 
 declare_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? ('Sub' | 'Function') identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
+  : attribute_list* modifier* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? ('Sub' | 'Function') identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
   ;
 
 literal_expression
@@ -395,7 +395,7 @@ literal_expression
   ;
 
 delegate_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Delegate' ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause?
+  : attribute_list* modifier* 'Delegate' ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause?
   ;
 
 type_parameter_list
@@ -433,11 +433,11 @@ type_parameter_single_constraint_clause
   ;
 
 lambda_header
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') parameter_list? simple_as_clause?
+  : attribute_list* modifier* ('Sub' | 'Function') parameter_list? simple_as_clause?
   ;
 
 method_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
+  : attribute_list* modifier* ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
 
 handles_clause
@@ -467,15 +467,15 @@ with_events_property_event_container
   ;
 
 operator_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>') parameter_list? simple_as_clause?
+  : attribute_list* modifier* 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>') parameter_list? simple_as_clause?
   ;
 
 property_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Property' identifier_token parameter_list? as_clause? equals_value? implements_clause?
+  : attribute_list* modifier* 'Property' identifier_token parameter_list? as_clause? equals_value? implements_clause?
   ;
 
 sub_new_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Sub' 'New' parameter_list?
+  : attribute_list* modifier* 'Sub' 'New' parameter_list?
   ;
 
 method_block_base
@@ -521,7 +521,7 @@ class_block
   ;
 
 class_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Class' identifier_token type_parameter_list?
+  : attribute_list* modifier* 'Class' identifier_token type_parameter_list?
   ;
 
 interface_block
@@ -529,7 +529,7 @@ interface_block
   ;
 
 interface_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Interface' identifier_token type_parameter_list?
+  : attribute_list* modifier* 'Interface' identifier_token type_parameter_list?
   ;
 
 module_block
@@ -537,7 +537,7 @@ module_block
   ;
 
 module_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Module' identifier_token type_parameter_list?
+  : attribute_list* modifier* 'Module' identifier_token type_parameter_list?
   ;
 
 structure_block
@@ -545,7 +545,7 @@ structure_block
   ;
 
 structure_statement
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Structure' identifier_token type_parameter_list?
+  : attribute_list* modifier* 'Structure' identifier_token type_parameter_list?
   ;
 
 type_statement
@@ -691,7 +691,7 @@ label_statement
   ;
 
 local_declaration_statement
-  : ('Static' | 'Dim' | 'Const')* (variable_declarator(',' variable_declarator)*)?
+  : modifier* (variable_declarator(',' variable_declarator)*)?
   ;
 
 multi_line_if_block
@@ -1306,6 +1306,10 @@ documentation_comment_trivia
 
 skipped_tokens_trivia
   : ('AddHandler' | 'AddressOf' | 'Alias' | 'And' | 'AndAlso' | 'As' | 'Boolean' | 'ByRef' | 'Byte' | 'ByVal' | 'Call' | 'Case' | 'Catch' | 'CBool' | 'CByte' | 'CChar' | 'CDate' | 'CDec' | 'CDbl' | 'Char' | 'CInt' | 'Class' | 'CLng' | 'CObj' | 'Const' | 'R' | 'Continue' | 'CSByte' | 'CShort' | 'CSng' | 'CStr' | 'CType' | 'CUInt' | 'CULng' | 'CUShort' | 'Date' | 'Decimal' | 'Declare' | 'Default' | 'Delegate' | 'Dim' | 'DirectCast' | 'Do' | 'Double' | 'Each' | 'Else' | 'ElseIf' | 'End' | 'Enum' | 'Erase' | 'Error' | 'Event' | 'Exit' | 'False' | 'Finally' | 'For' | 'Friend' | 'Function' | 'Get' | 'GetType' | 'GetXmlNamespace' | 'Global' | 'GoTo' | 'Handles' | 'If' | 'Implements' | 'Imports' | 'In' | 'Inherits' | 'Integer' | 'Interface' | 'Is' | 'IsNot' | 'Let' | 'Lib' | 'Like' | 'Long' | 'Loop' | 'Me' | 'Mod' | 'Module' | 'MustInherit' | 'MustOverride' | 'MyBase' | 'MyClass' | 'NameOf' | 'Namespace' | 'Narrowing' | 'Next' | 'New' | 'Not' | 'Nothing' | 'NotInheritable' | 'NotOverridable' | 'Object' | 'Of' | 'On' | 'Operator' | 'Option' | 'Optional' | 'Or' | 'OrElse' | 'Overloads' | 'Overridable' | 'Overrides' | 'ParamArray' | 'Partial' | 'Private' | 'Property' | 'Protected' | 'Public' | 'RaiseEvent' | 'ReadOnly' | 'ReDim' | 'REM' | 'RemoveHandler' | 'Resume' | 'Return' | 'SByte' | 'Select' | 'Set' | 'Shadows' | 'Shared' | 'Short' | 'Single' | 'Static' | 'Step' | 'Stop' | 'String' | 'Structure' | 'Sub' | 'SyncLock' | 'Then' | 'Throw' | 'To' | 'True' | 'Try' | 'TryCast' | 'TypeOf' | 'UInteger' | 'ULong' | 'UShort' | 'Using' | 'When' | 'While' | 'Widening' | 'With' | 'WithEvents' | 'WriteOnly' | 'Xor' | 'EndIf' | 'Gosub' | 'Variant' | 'Wend' | 'Aggregate' | 'All' | 'Ansi' | 'Ascending' | 'Assembly' | 'Auto' | 'Binary' | 'By' | 'Compare' | 'Custom' | 'Descending' | 'Disable' | 'Distinct' | 'Enable' | 'Equals' | 'Explicit' | 'ExternalSource' | 'ExternalChecksum' | 'From' | 'Group' | 'Infer' | 'Into' | 'IsFalse' | 'IsTrue' | 'Join' | 'Key' | 'Mid' | 'Off' | 'Order' | 'Out' | 'Preserve' | 'Region' | 'Skip' | 'Strict' | 'Take' | 'Text' | 'Unicode' | 'Until' | 'Warning' | 'Where' | 'Type' | 'xml' | 'Async' | 'Await' | 'Iterator' | 'Yield' | '!' | '@' | ',' | '#' | '&' | '\'' | '(' | ')' | '{' | '}' | ';' | '*' | '+' | '-' | '.' | '/' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '\\' | '^' | ':=' | '&=' | '*=' | '+=' | '-=' | '/=' | '\=' | '^=' | '<<' | '>>' | '<<=' | '>>=' | '?' | '"' | '$"' | punctuation | 'vbCrLf' | '/>' | '</' | '<!--' | '-->' | '<?' | '?>' | '<%=' | '%>' | '<![CDATA[' | ']]>' | bad_token | xml_name_token | xml_text_token | interpolated_string_text_token | identifier_token | integer_literal_token | floating_literal_token | decimal_literal_token | date_literal_token | string_literal_token | character_literal_token)*
+  ;
+
+modifier
+  : ('Async' | 'Const' | 'Default' | 'Dim' | 'Friend' | 'Iterator' | 'MustInherit' | 'MustOverride' | 'Narrowing' | 'NotInheritable' | 'NotOverridable' | 'Overloads' | 'Overridable' | 'Overrides' | 'Partial' | 'Private' | 'Protected' | 'Public' | 'ReadOnly' | 'Shadows' | 'Shared' | 'Static' | 'Widening' | 'WithEvents' | 'WriteOnly')
   ;
 
 syntax_token

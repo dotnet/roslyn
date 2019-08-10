@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator
+Imports Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Friend Class GrammarGenerator
     Inherits WriteUtils
@@ -17,6 +19,20 @@ Friend Class GrammarGenerator
     End Sub
 
     Friend Function Run() As String
+        ' Syntax.xml refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
+        Dim modifiers = GetMembers(Of DeclarationModifiers)().
+            Select(Function(m) m.ToString() + "Keyword").Where(Function(n) GetSyntaxKind(n) <> SyntaxKind.None).ToList()
+        Dim modifiersString = String.Join("|", modifiers.OrderBy(Function(a) a))
+
+        _parseTree.NodeStructures.Add("Modifier", New ParseNodeStructure(
+            New XElement("node-structure",
+                         New XAttribute("name", "Modifier"),
+                         New XAttribute("parent", "VisualBasicSyntaxNode"),
+                         New XElement(
+                            XName.Get("child", "http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler"),
+                            New XAttribute("name", "Keyword"),
+                            New XAttribute("kind", modifiersString))), _parseTree))
+
         _nameToProductions = Me._parseTree.NodeStructures.Values.ToDictionary(
             Function(n) n.Name, Function(n) New List(Of Production)())
 
@@ -42,7 +58,7 @@ Friend Class GrammarGenerator
             '        If (Type.Children.Count == 1 && Type.Children[0] Is Field field && field.IsToken)
             '        {
             '            nameToProductions[type.Name].AddRange(field.Kinds.Select(k =>
-            '                HandleChildren(New List < TreeTypeChild > {New Field { Type = "SyntaxToken", Kinds = { k } } })));
+            '                HandleChildren(New List <TreeTypeChild> {New Field { Type = "SyntaxToken", Kinds = { k } } })));
             '            Continue For;
             '        }
         Next
@@ -60,9 +76,9 @@ Friend Class GrammarGenerator
 
         ' Define a few major sections to help keep the grammar file naturally grouped.
         _majorRules = ImmutableArray.Create(
-            "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "SyntaxToken")
+            "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "Modifier", "SyntaxToken")
 
-        Dim result = "// <auto1-generated />" + Environment.NewLine + "grammar vb;" + Environment.NewLine
+        Dim result = "// <auto1-generated/>" + Environment.NewLine + "grammar vb;" + Environment.NewLine
 
         ' Handle each major section first And then walk any rules Not hit transitively from them.
         For Each rule In _majorRules.Concat(_nameToProductions.Keys.OrderBy(Function(a) a))
@@ -121,6 +137,10 @@ Friend Class GrammarGenerator
                                      childKind As Object) As Production
         If childKind Is Nothing Then
             Throw New NotImplementedException()
+        End If
+
+        If child.Name = "Modifiers" Then
+            Return RuleReference("Modifier")
         End If
 
         Dim x = child.ChildKind()
@@ -209,8 +229,17 @@ Friend Class GrammarGenerator
             ImmutableArray.Create(name))
     End Function
 
+    Private Shared Function GetSyntaxKind(name As String) As SyntaxKind
+        Return GetMembers(Of SyntaxKind)().Where(Function(k) k.ToString() = name).SingleOrDefault()
+    End Function
+
+    Private Shared Function GetMembers(Of TEnum)() As IEnumerable(Of TEnum)
+        Return GetType(TEnum).GetFields(BindingFlags.Public Or BindingFlags.Static).
+            Select(Function(f) f.GetValue(Nothing)).OfType(Of TEnum)()
+    End Function
+
     ' Converts a PascalCased name into snake_cased name.
-    Private ReadOnly s_normalizationRegex As New Regex(
+    Private Shared ReadOnly s_normalizationRegex As New Regex(
         "(?<=[A-Z])(?=[A-Z][a-z]) | (?<=[^A-Z])(?=[A-Z]) | (?<=[A-Za-z])(?=[^A-Za-z])",
         RegexOptions.IgnorePatternWhitespace Or RegexOptions.Compiled)
 
@@ -250,3 +279,9 @@ Friend Class GrammarGenerator
         End Function
     End Structure
 End Class
+
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend Class GreenNode
+        Public Const ListKind = 1
+    End Class
+End Namespace
