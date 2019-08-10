@@ -497,7 +497,7 @@ Public MustInherit Class WriteUtils
 
     ' Get all of the children of a structure, including inherited children, in the right order.
     ' The ordering is defined first by order attribute, then by declared order (base before derived)
-    Protected Function GetAllChildrenOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeChild)
+    Public Shared Function GetAllChildrenOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeChild)
         Dim fullList As New List(Of Tuple(Of ParseNodeChild, Integer))
 
         ' For now, just put inherited stuff at the beginning, until we design a real ordering solution
