@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
-            if (!listOfParametersOrdinals.Any())
+            // Min 2 parameters to offer the refactoring
+            if (listOfParametersOrdinals.Count() < 2)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }

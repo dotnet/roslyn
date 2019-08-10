@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -48,5 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
+
+        protected override ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator)
+        {
+            if (node is SimpleLambdaExpressionSyntax simpleLambda)
+            {
+                return ImmutableArray.Create(simpleLambda.Parameter as SyntaxNode);
+            }
+
+            return generator.GetParameters(node).ToImmutableArray<SyntaxNode>();
+        }
     }
 }

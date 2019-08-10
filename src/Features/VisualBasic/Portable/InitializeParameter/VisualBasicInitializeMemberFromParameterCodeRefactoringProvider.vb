@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
@@ -53,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
+        End Function
+
+        Protected Overrides Function GetParameters(node As SyntaxNode, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

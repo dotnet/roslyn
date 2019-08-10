@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
+        protected abstract ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -40,7 +42,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var firstParameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (firstParameterNode == null)
             {
@@ -55,10 +56,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // List with parameterNodes that pass all checks
             var listOfPotentiallyValidParametersNodes = ArrayBuilder<SyntaxNode>.GetInstance();
             var counter = 0;
+
+            parameterNodes = GetParameters(functionDeclaration, generator);
 
             foreach (var parameterNode in parameterNodes)
             {
@@ -75,11 +79,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
 
-                functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-                if (functionDeclaration == null)
-                {
-                    continue;
-                }
+                //functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                //if (functionDeclaration == null)
+                //{
+                //    continue;
+                //}
 
                 var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
 
