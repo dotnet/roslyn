@@ -45,7 +45,7 @@ namespace CSharpSyntaxGenerator.Grammar
         public static string Run(List<TreeType> types)
 >>>>>>> Simplify
         {
-            // Syntax refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
+            // Syntax.xml refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
             var modifiers = GetMembers<DeclarationModifiers>()
                 .Select(m => m + "Keyword").Where(n => GetSyntaxKind(n) != SyntaxKind.None)
                 .Select(n => new Kind { Name = n }).ToList();
@@ -280,7 +280,7 @@ grammar csharp;";
             // Define a few major sections to help keep the grammar file naturally grouped.
 >>>>>>> Simplify
             var majorRules = ImmutableArray.Create(
-                "CompilationUnitSyntax", "MemberDeclarationSyntax", "StatementSyntax", "ExpressionSyntax", "TypeSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax");
+                "CompilationUnitSyntax", "MemberDeclarationSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax");
 
 <<<<<<< HEAD
 <<<<<<< HEAD

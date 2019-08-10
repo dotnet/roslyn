@@ -389,6 +389,9 @@ namespace_declaration
   ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Define types before statements and exprs.
 type
   : array_type
   | name
@@ -444,15 +447,22 @@ ref_type
   ;
 
 tuple_type
+<<<<<<< HEAD
   : '(' tuple_element (',' tuple_element)+ ')'
+=======
+  : '(' tuple_element (',' tuple_element)* ')'
+>>>>>>> Define types before statements and exprs.
   ;
 
 tuple_element
   : type identifier_token?
   ;
 
+<<<<<<< HEAD
 =======
 >>>>>>> Generate
+=======
+>>>>>>> Define types before statements and exprs.
 statement
   : block
   | break_statement
@@ -788,6 +798,7 @@ array_creation_expression
   ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 array_type
   : type array_rank_specifier+
@@ -798,6 +809,8 @@ array_rank_specifier
   ;
 
 >>>>>>> Generate
+=======
+>>>>>>> Define types before statements and exprs.
 initializer_expression
   : '{' (expression (',' expression)* ','?)? '}'
   ;
@@ -1115,6 +1128,7 @@ type_of_expression
   ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 type
   : array_type
@@ -1171,6 +1185,8 @@ tuple_element
   ;
 
 >>>>>>> Generate
+=======
+>>>>>>> Define types before statements and exprs.
 xml_node
   : xml_c_data_section
   | xml_comment
