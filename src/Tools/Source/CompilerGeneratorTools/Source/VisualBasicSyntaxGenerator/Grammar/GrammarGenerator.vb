@@ -47,6 +47,21 @@ Friend Class GrammarGenerator
 
             If Not structureNode.Abstract Then
                 Dim children = GetAllChildrenOfStructure(structureNode)
+
+                If children.Count = 1 Then
+                    Dim child = children(0)
+                    Dim kinds = TryCast(child.ChildKind, List(Of ParseNodeKind))
+                    If kinds IsNot Nothing Then
+                        Dim childStructure = GetCommonStructure(kinds)
+                        If childStructure.IsToken Then
+                            For Each kind In kinds
+                                _nameToProductions(structureNode.Name).Add(HandleChildKind(structureNode, child, kind))
+                            Next
+                        End If
+                        Continue For
+                    End If
+                End If
+
                 If children.Count > 0 Then
                     _nameToProductions(structureNode.Name).Add(HandleChildren(structureNode, children))
                 End If
