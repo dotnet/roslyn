@@ -109,18 +109,11 @@ Friend Class GrammarGenerator
         Else
             Return HandleChildKind(structureNode, child, child.ChildKind).Suffix("?", [when]:=child.IsOptional)
         End If
-
-        Throw New NotImplementedException()
     End Function
 
     Private Function HandleSeparatedList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
         Dim childProduction = HandleChildKind(structureNode, child, child.ChildKind)
         Dim separatorProd = HandleChildKind(structureNode, child, child.SeparatorsKind)
-        'If child.SeparatorsTypeId = "CommaToken" Then
-        '    separator = "','"
-        'Else
-        '    Throw New NotImplementedException()
-        'End If
 
         Dim result = childProduction.Suffix("(" + separatorProd.Text + " " + childProduction.Text + ")*").
             Parenthesize().Suffix("?")
@@ -135,10 +128,6 @@ Friend Class GrammarGenerator
     Private Function HandleChildKind(structureNode As ParseNodeStructure,
                                      child As ParseNodeChild,
                                      childKind As Object) As Production
-        If childKind Is Nothing Then
-            Throw New NotImplementedException()
-        End If
-
         If child.Name = "Modifiers" Then
             Return RuleReference("Modifier")
         End If
@@ -198,11 +187,8 @@ Friend Class GrammarGenerator
                 Return New Production("'" + nodeKind.TokenText + "'")
             End If
         End If
-        If nodeKind.NodeStructure IsNot Nothing Then
-            Return RuleReference(nodeKind.NodeStructure.Name)
-        End If
 
-        Throw New NotImplementedException()
+        Return RuleReference(nodeKind.NodeStructure.Name)
     End Function
 
     Private Sub ProcessRule(name As String, ByRef result As String)
