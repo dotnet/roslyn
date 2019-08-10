@@ -204,11 +204,11 @@ namespace CSharpSyntaxGenerator.Grammar
                     if (type.Children.Count == 1 && type.Children[0] is Field field && field.IsToken)
                     {
                         nameToProductions[type.Name].AddRange(field.Kinds.Select(k =>
-                            HandleChildren(new[] { new Field { Type = "SyntaxToken", Kinds = { k } } })));
+                            HandleChildren(new List<TreeTypeChild> { new Field { Type = "SyntaxToken", Kinds = { k } } })));
                         continue;
                     }
 
-                    nameToProductions[type.Name].Add(HandleChildren(type.Children.ToArray()));
+                    nameToProductions[type.Name].Add(HandleChildren(type.Children));
                 }
             }
 
@@ -467,6 +467,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Simplify
         private Production CreateProductionFromNodeChildren(TreeTypeChild[] children, string delim = " ")
 =======
@@ -478,9 +479,12 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 =======
         private static Production HandleChildren(TreeTypeChild[] children, string delim = " ")
 >>>>>>> Simplify
+=======
+        private static Production HandleChildren(List<TreeTypeChild> children, string delim = " ")
+>>>>>>> Simplify
             => Join(delim, children.Select(child =>
-                child is Choice c ? HandleChildren(c.Children.ToArray(), delim: " | ").Parenthesize() :
-                child is Sequence s ? HandleChildren(s.Children.ToArray()).Parenthesize() :
+                child is Choice c ? HandleChildren(c.Children, delim: " | ").Parenthesize() :
+                child is Sequence s ? HandleChildren(s.Children).Parenthesize() :
                 child is Field f ? HandleField(f).Suffix("?", when: f.IsOptional) : throw new InvalidOperationException()));
 
 <<<<<<< HEAD
