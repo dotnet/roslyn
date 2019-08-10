@@ -6,21 +6,21 @@
     exe.
   -->
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.Microsoft.NETCore.ILAsm\$(runtimeWinX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.microsoft.netcore.ilasm\$(runtimeWinX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <LinkBase>runtime</LinkBase>
+      <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.Microsoft.NETCore.ILAsm\$(runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.microsoft.netcore.ilasm\$(runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <LinkBase>runtime</LinkBase>
+      <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.Microsoft.NETCore.ILAsm\$(runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.microsoft.netcore.ilasm\$(runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <LinkBase>runtime</LinkBase>
+      <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
