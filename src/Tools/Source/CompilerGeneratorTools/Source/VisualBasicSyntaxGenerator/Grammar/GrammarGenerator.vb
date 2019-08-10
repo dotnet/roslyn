@@ -25,9 +25,9 @@ Friend Class GrammarGenerator
             End If
 
             If Not structureNode.Abstract Then
-                Dim children = WriteUtils.GetAllChildrenOfStructure(structureNode)
+                Dim children = GetAllChildrenOfStructure(structureNode)
                 If children.Count > 0 Then
-                    _nameToProductions(structureNode.Name).Add(HandleChildren(children))
+                    _nameToProductions(structureNode.Name).Add(HandleChildren(structureNode, children))
                 End If
             End If
 
@@ -44,8 +44,7 @@ Friend Class GrammarGenerator
 
         ' Define a few major sections to help keep the grammar file naturally grouped.
         Dim majorRules = ImmutableArray.Create(
-            "CompilationUnitSyntax")
-        '"CompilationUnitSyntax", "MemberDeclarationSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax");
+            "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "SyntaxToken")
 
         Dim result = "// <auto1-generated />" + Environment.NewLine + "grammar vb;" + Environment.NewLine
 
@@ -63,31 +62,28 @@ Friend Class GrammarGenerator
             productions.SelectMany(Function(p) p.ReferencedRules))
     End Function
 
-    Private Function HandleChildren(children As List(Of ParseNodeChild), Optional delim As String = " ") As Production
+    Private Function HandleChildren(structureNode As ParseNodeStructure, children As List(Of ParseNodeChild), Optional delim As String = " ") As Production
         Return Join(delim, children.Select(
                     Function(child)
-                        ' child Is Choice c ? HandleChildren(c.Children, delim:      " | ").Parenthesize() 
-                        ' child Is Sequence s ? HandleChildren(s.Children).Parenthesize() 
-                        Return HandleField(child).Suffix("?", [when]:=child.IsOptional)
+                        Return HandleField(structureNode, child)
                     End Function))
     End Function
 
-    Private Function HandleField(child As ParseNodeChild) As Production
+    Private Function HandleField(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
         If child.IsSeparated Then
-            Return HandleSeparatedList(child)
+            Return HandleSeparatedList(structureNode, child)
         ElseIf child.IsList Then
-            Return HandleList(child)
+            Return HandleList(structureNode, child)
         Else
-            Dim childKind = child.ChildKind
-            Return HandleChildKind(childKind)
+            Return HandleChildKind(structureNode, child, child.ChildKind).Suffix("?", [when]:=child.IsOptional)
         End If
 
         Throw New NotImplementedException()
     End Function
 
-    Private Function HandleSeparatedList(child As ParseNodeChild) As Production
-        Dim childProduction = HandleChildKind(child.ChildKind)
-        Dim separatorProd = HandleChildKind(child.SeparatorsKind)
+    Private Function HandleSeparatedList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
+        Dim childProduction = HandleChildKind(structureNode, child, child.ChildKind)
+        Dim separatorProd = HandleChildKind(structureNode, child, child.SeparatorsKind)
         'If child.SeparatorsTypeId = "CommaToken" Then
         '    separator = "','"
         'Else
@@ -99,26 +95,57 @@ Friend Class GrammarGenerator
         Return result
     End Function
 
-    Private Function HandleList(child As ParseNodeChild) As Production
-        Dim childProduction = HandleChildKind(child.ChildKind)
+    Private Function HandleList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
+        Dim childProduction = HandleChildKind(structureNode, child, child.ChildKind)
         Return childProduction.Suffix("*")
     End Function
 
-    Private Function HandleChildKind(childKind As Object) As Production
+    Private Function HandleChildKind(structureNode As ParseNodeStructure,
+                                     child As ParseNodeChild,
+                                     childKind As Object) As Production
         If childKind Is Nothing Then
             Throw New NotImplementedException()
         End If
 
+        Dim x = child.ChildKind()
+        Dim y = child.ChildKind("")
+
         Dim nodeKind = TryCast(childKind, ParseNodeKind)
         Dim nodeKindList = TryCast(childKind, List(Of ParseNodeKind))
+
+        If structureNode.NodeKinds IsNot Nothing Then
+            If structureNode.NodeKinds.Count = 1 Then
+                If child.KindForNodeKind IsNot Nothing Then
+                    Dim kind As ParseNodeKind = Nothing
+                    If child.KindForNodeKind.TryGetValue(structureNode.NodeKinds(0).Name, kind) Then
+                        nodeKind = kind
+                    End If
+                End If
+            ElseIf structureNode.NodeKinds.Count > 1 Then
+                Dim tempList = New List(Of ParseNodeKind)()
+                For Each structureNodeKind In structureNode.NodeKinds
+                    Dim kind As ParseNodeKind = Nothing
+                    If child.KindForNodeKind.TryGetValue(structureNodeKind.Name, kind) Then
+                        tempList.Add(kind)
+                    End If
+                Next
+
+                If tempList.Count > 0 Then
+                    nodeKindList = tempList
+                End If
+            End If
+        End If
+
         If nodeKind IsNot Nothing Then
             Return HandleNodeKind(nodeKind)
         ElseIf nodeKindList IsNot Nothing Then
             Dim common = GetCommonStructure(nodeKindList)
-            If common IsNot Nothing Then
+            If common IsNot Nothing AndAlso Not common.IsToken Then
                 Return RuleReference(common.Name)
             Else
-                Return Join(" | ", nodeKindList.Select(Function(nk) HandleNodeKind(nk))).Parenthesize()
+                Return Join(
+                    " | ",
+                    nodeKindList.Select(Function(nk) HandleNodeKind(nk)).Distinct()).Parenthesize()
             End If
         Else
             Throw New NotImplementedException()
@@ -127,9 +154,14 @@ Friend Class GrammarGenerator
 
     Private Function HandleNodeKind(nodeKind As ParseNodeKind) As Production
         If Not String.IsNullOrEmpty(nodeKind.TokenText) Then
-            Return New Production("'" + nodeKind.TokenText + "'")
+            If nodeKind.TokenText = "\" Then
+                Return New Production("'\\'")
+            ElseIf nodeKind.TokenText = "'" Then
+                Return New Production("'\''")
+            Else
+                Return New Production("'" + nodeKind.TokenText + "'")
+            End If
         End If
-
         If nodeKind.NodeStructure IsNot Nothing Then
             Return RuleReference(nodeKind.NodeStructure.Name)
         End If
@@ -177,6 +209,10 @@ Friend Class GrammarGenerator
             Me.Text = text
             Me.ReferencedRules = If(referencedRules Is Nothing, ImmutableArray(Of String).Empty, referencedRules.ToImmutableArray())
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Text = DirectCast(obj, Production).Text
+        End Function
 
         Public Overrides Function ToString() As String
             Return Text

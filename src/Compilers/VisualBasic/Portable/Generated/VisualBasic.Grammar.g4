@@ -2,15 +2,15 @@
 grammar vb;
 
 compilation_unit
-  : option_statement*? imports_statement*? attributes_statement*? statement*? punctuation
+  : option_statement* imports_statement* attributes_statement* statement* punctuation
   ;
 
 option_statement
-  : 'Option' keyword keyword?
+  : 'Option' ('Explicit' | 'Strict' | 'Compare' | 'Infer') ('On' | 'Off' | 'Text' | 'Binary')?
   ;
 
 imports_statement
-  : 'Imports' (imports_clause(',' imports_clause)*)??
+  : 'Imports' (imports_clause(',' imports_clause)*)?
   ;
 
 imports_clause
@@ -35,26 +35,7 @@ name
   ;
 
 cref_operator_reference
-  : 'Operator' syntax_token
-  ;
-
-syntax_token
-  : character_literal_token
-  | date_literal_token
-  | decimal_literal_token
-  | floating_literal_token
-  | identifier_token
-  | integer_literal_token
-  | interpolated_string_text_token
-  | keyword
-  | punctuation
-  | string_literal_token
-  | xml_name_token
-  | xml_text_token
-  ;
-
-punctuation
-  : bad_token
+  : 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>')
   ;
 
 global_name
@@ -95,7 +76,7 @@ array_type
   ;
 
 array_rank_specifier
-  : '(' ','*? ')'
+  : '(' ','* ')'
   ;
 
 nullable_type
@@ -103,7 +84,7 @@ nullable_type
   ;
 
 predefined_type
-  : keyword
+  : ('Object' | 'Boolean' | 'Date' | 'Char' | 'String' | 'Decimal' | 'Byte' | 'SByte' | 'UShort' | 'Short' | 'UInteger' | 'Integer' | 'ULong' | 'Long' | 'Single' | 'Double')
   ;
 
 tuple_type
@@ -120,11 +101,11 @@ named_tuple_element
   ;
 
 simple_as_clause
-  : 'As' attribute_list*? type
+  : 'As' attribute_list* type
   ;
 
 attribute_list
-  : '<' (attribute(',' attribute)*)?? '>'
+  : '<' (attribute(',' attribute)*)? '>'
   ;
 
 attribute
@@ -132,11 +113,11 @@ attribute
   ;
 
 attribute_target
-  : keyword ':'
+  : ('Assembly' | 'Module') ':'
   ;
 
 argument_list
-  : '(' (argument(',' argument)*)?? ')'
+  : '(' (argument(',' argument)*)? ')'
   ;
 
 argument
@@ -147,6 +128,10 @@ argument
 
 omitted_argument
   : punctuation
+  ;
+
+punctuation
+  : bad_token
   ;
 
 range_argument
@@ -208,7 +193,7 @@ binary_conditional_expression
   ;
 
 binary_expression
-  : expression syntax_token expression
+  : expression ('+' | '-' | '*' | '/' | '\\' | '^' | '<<' | '>>' | '&' | 'Mod' | '=' | '<>' | '<' | '<=' | '>=' | '>' | 'Is' | 'IsNot' | 'Like' | 'Or' | 'Xor' | 'And' | 'OrElse' | 'AndAlso') expression
   ;
 
 cast_expression
@@ -218,19 +203,19 @@ cast_expression
   ;
 
 c_type_expression
-  : keyword '(' expression ',' type ')'
+  : 'CType' '(' expression ',' type ')'
   ;
 
 direct_cast_expression
-  : keyword '(' expression ',' type ')'
+  : 'DirectCast' '(' expression ',' type ')'
   ;
 
 try_cast_expression
-  : keyword '(' expression ',' type ')'
+  : 'TryCast' '(' expression ',' type ')'
   ;
 
 collection_initializer
-  : '{' (expression(',' expression)*)?? '}'
+  : '{' (expression(',' expression)*)? '}'
   ;
 
 conditional_access_expression
@@ -244,7 +229,7 @@ event_container
   ;
 
 keyword_event_container
-  : keyword
+  : ('MyBase' | 'Me' | 'MyClass')
   ;
 
 with_events_event_container
@@ -278,15 +263,15 @@ instance_expression
   ;
 
 me_expression
-  : keyword
+  : 'Me'
   ;
 
 my_base_expression
-  : keyword
+  : 'MyBase'
   ;
 
 my_class_expression
-  : keyword
+  : 'MyClass'
   ;
 
 interpolated_string_expression
@@ -319,7 +304,7 @@ invocation_expression
   ;
 
 label
-  : syntax_token
+  : (identifier_token | integer_literal_token | 'Next')
   ;
 
 lambda_expression
@@ -328,23 +313,23 @@ lambda_expression
   ;
 
 multi_line_lambda_expression
-  : lambda_header statement*? end_block_statement
+  : lambda_header statement* end_block_statement
   ;
 
 lambda_header
-  : attribute_list*? keyword*? keyword parameter_list? simple_as_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') parameter_list? simple_as_clause?
   ;
 
 parameter_list
-  : '(' (parameter(',' parameter)*)?? ')'
+  : '(' (parameter(',' parameter)*)? ')'
   ;
 
 parameter
-  : attribute_list*? keyword*? modified_identifier simple_as_clause? equals_value?
+  : attribute_list* ('ByVal' | 'ByRef' | 'Optional' | 'ParamArray')* modified_identifier simple_as_clause? equals_value?
   ;
 
 modified_identifier
-  : identifier_token '?'? argument_list? array_rank_specifier*?
+  : identifier_token '?'? argument_list? array_rank_specifier*
   ;
 
 equals_value
@@ -393,7 +378,7 @@ range_case_clause
   ;
 
 relational_case_clause
-  : 'Is'? punctuation expression
+  : 'Is'? ('=' | '<>' | '<' | '<=' | '>=' | '>') expression
   ;
 
 simple_case_clause
@@ -430,19 +415,19 @@ declaration_statement
   ;
 
 attributes_statement
-  : attribute_list*?
+  : attribute_list*
   ;
 
 end_block_statement
-  : 'End' keyword
+  : 'End' ('If' | 'Using' | 'With' | 'Select' | 'Structure' | 'Enum' | 'Interface' | 'Class' | 'Module' | 'Namespace' | 'Sub' | 'Function' | 'Get' | 'Set' | 'Property' | 'Operator' | 'Event' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent' | 'While' | 'Try' | 'SyncLock')
   ;
 
 enum_block
-  : enum_statement statement*? end_block_statement
+  : enum_statement statement* end_block_statement
   ;
 
 enum_statement
-  : attribute_list*? keyword*? 'Enum' identifier_token as_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows')* 'Enum' identifier_token as_clause?
   ;
 
 as_clause
@@ -461,7 +446,7 @@ new_expression
   ;
 
 anonymous_object_creation_expression
-  : 'New' attribute_list*? object_member_initializer
+  : 'New' attribute_list* object_member_initializer
   ;
 
 object_member_initializer
@@ -482,11 +467,11 @@ named_field_initializer
   ;
 
 array_creation_expression
-  : 'New' attribute_list*? type argument_list? array_rank_specifier*? collection_initializer
+  : 'New' attribute_list* type argument_list? array_rank_specifier* collection_initializer
   ;
 
 object_creation_expression
-  : 'New' attribute_list*? type argument_list? object_creation_initializer?
+  : 'New' attribute_list* type argument_list? object_creation_initializer?
   ;
 
 object_creation_initializer
@@ -499,7 +484,7 @@ object_collection_initializer
   ;
 
 enum_member_declaration
-  : attribute_list*? identifier_token equals_value?
+  : attribute_list* identifier_token equals_value?
   ;
 
 event_block
@@ -507,7 +492,7 @@ event_block
   ;
 
 event_statement
-  : attribute_list*? keyword*? 'Custom'? 'Event' identifier_token parameter_list? simple_as_clause? implements_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Custom'? 'Event' identifier_token parameter_list? simple_as_clause? implements_clause?
   ;
 
 implements_clause
@@ -515,15 +500,15 @@ implements_clause
   ;
 
 accessor_block
-  : accessor_statement statement*? end_block_statement
+  : accessor_statement statement* end_block_statement
   ;
 
 accessor_statement
-  : attribute_list*? keyword*? keyword parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Get' | 'Set' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent') parameter_list?
   ;
 
 field_declaration
-  : attribute_list*? keyword*? (variable_declarator(',' variable_declarator)*)?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'ReadOnly' | 'Dim' | 'Const' | 'WithEvents' | 'Widening' | 'Narrowing')* (variable_declarator(',' variable_declarator)*)?
   ;
 
 variable_declarator
@@ -531,7 +516,7 @@ variable_declarator
   ;
 
 incomplete_member
-  : attribute_list*? keyword*? identifier_token?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'ReadOnly' | 'Dim' | 'Const' | 'WithEvents' | 'Widening' | 'Narrowing')* identifier_token?
   ;
 
 inherits_or_implements_statement
@@ -560,15 +545,15 @@ method_base
   ;
 
 declare_statement
-  : attribute_list*? keyword*? 'Declare' keyword? keyword identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? ('Sub' | 'Function') identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
   ;
 
 literal_expression
-  : syntax_token
+  : (integer_literal_token | character_literal_token | decimal_literal_token | floating_literal_token | date_literal_token | string_literal_token | 'True' | 'False' | 'Nothing')
   ;
 
 delegate_statement
-  : attribute_list*? keyword*? 'Delegate' keyword identifier_token type_parameter_list? parameter_list? simple_as_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Delegate' ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause?
   ;
 
 type_parameter_list
@@ -576,7 +561,7 @@ type_parameter_list
   ;
 
 type_parameter
-  : keyword? identifier_token type_parameter_constraint_clause?
+  : ('In' | 'Out')? identifier_token type_parameter_constraint_clause?
   ;
 
 type_parameter_constraint_clause
@@ -594,7 +579,7 @@ constraint
   ;
 
 special_constraint
-  : keyword
+  : ('New' | 'Class' | 'Structure')
   ;
 
 type_constraint
@@ -606,7 +591,7 @@ type_parameter_single_constraint_clause
   ;
 
 method_statement
-  : attribute_list*? keyword*? keyword identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
 
 handles_clause
@@ -618,15 +603,15 @@ handles_clause_item
   ;
 
 operator_statement
-  : attribute_list*? keyword*? 'Operator' syntax_token parameter_list? simple_as_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>') parameter_list? simple_as_clause?
   ;
 
 property_statement
-  : attribute_list*? keyword*? 'Property' identifier_token parameter_list? as_clause? equals_value? implements_clause?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Property' identifier_token parameter_list? as_clause? equals_value? implements_clause?
   ;
 
 sub_new_statement
-  : attribute_list*? keyword*? 'Sub' 'New' parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Sub' 'New' parameter_list?
   ;
 
 method_block_base
@@ -637,19 +622,19 @@ method_block_base
   ;
 
 constructor_block
-  : sub_new_statement statement*? end_block_statement
+  : sub_new_statement statement* end_block_statement
   ;
 
 method_block
-  : method_statement statement*? end_block_statement
+  : method_statement statement* end_block_statement
   ;
 
 operator_block
-  : operator_statement statement*? end_block_statement
+  : operator_statement statement* end_block_statement
   ;
 
 namespace_block
-  : namespace_statement statement*? end_block_statement
+  : namespace_statement statement* end_block_statement
   ;
 
 namespace_statement
@@ -668,35 +653,35 @@ type_block
   ;
 
 class_block
-  : class_statement inherits_statement*? implements_statement*? statement*? end_block_statement
+  : class_statement inherits_statement* implements_statement* statement* end_block_statement
   ;
 
 class_statement
-  : attribute_list*? keyword*? 'Class' identifier_token type_parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Class' identifier_token type_parameter_list?
   ;
 
 interface_block
-  : interface_statement inherits_statement*? implements_statement*? statement*? end_block_statement
+  : interface_statement inherits_statement* implements_statement* statement* end_block_statement
   ;
 
 interface_statement
-  : attribute_list*? keyword*? 'Interface' identifier_token type_parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Interface' identifier_token type_parameter_list?
   ;
 
 module_block
-  : module_statement inherits_statement*? implements_statement*? statement*? end_block_statement
+  : module_statement inherits_statement* implements_statement* statement* end_block_statement
   ;
 
 module_statement
-  : attribute_list*? keyword*? 'Module' identifier_token type_parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Module' identifier_token type_parameter_list?
   ;
 
 structure_block
-  : structure_statement inherits_statement*? implements_statement*? statement*? end_block_statement
+  : structure_statement inherits_statement* implements_statement* statement* end_block_statement
   ;
 
 structure_statement
-  : attribute_list*? keyword*? 'Structure' identifier_token type_parameter_list?
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shadows' | 'MustInherit' | 'NotInheritable' | 'Partial')* 'Structure' identifier_token type_parameter_list?
   ;
 
 type_statement
@@ -711,7 +696,7 @@ do_statement
   ;
 
 while_or_until_clause
-  : keyword expression
+  : ('While' | 'Until') expression
   ;
 
 else_if_statement
@@ -761,11 +746,11 @@ executable_statement
   ;
 
 add_remove_handler_statement
-  : keyword expression ',' expression
+  : ('AddHandler' | 'RemoveHandler') expression ',' expression
   ;
 
 assignment_statement
-  : expression punctuation expression
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '\=' | '^=' | '<<=' | '>>=' | '&=') expression
   ;
 
 call_statement
@@ -773,11 +758,11 @@ call_statement
   ;
 
 continue_statement
-  : 'Continue' keyword
+  : 'Continue' ('While' | 'Do' | 'For')
   ;
 
 do_loop_block
-  : do_statement statement*? loop_statement
+  : do_statement statement* loop_statement
   ;
 
 loop_statement
@@ -793,7 +778,7 @@ error_statement
   ;
 
 exit_statement
-  : 'Exit' keyword
+  : 'Exit' ('Do' | 'For' | 'Sub' | 'Function' | 'Operator' | 'Property' | 'Try' | 'Select' | 'While')
   ;
 
 expression_statement
@@ -806,7 +791,7 @@ for_or_for_each_block
   ;
 
 for_block
-  : for_statement statement*? next_statement?
+  : for_statement statement* next_statement?
   ;
 
 for_statement
@@ -818,11 +803,11 @@ for_step_clause
   ;
 
 next_statement
-  : 'Next' (expression(',' expression)*)??
+  : 'Next' (expression(',' expression)*)?
   ;
 
 for_each_block
-  : for_each_statement statement*? next_statement?
+  : for_each_statement statement* next_statement?
   ;
 
 for_each_statement
@@ -834,15 +819,15 @@ go_to_statement
   ;
 
 label_statement
-  : syntax_token ':'
+  : (identifier_token | integer_literal_token) ':'
   ;
 
 local_declaration_statement
-  : keyword* (variable_declarator(',' variable_declarator)*)?
+  : ('Static' | 'Dim' | 'Const')* (variable_declarator(',' variable_declarator)*)?
   ;
 
 multi_line_if_block
-  : if_statement statement*? else_if_block*? else_block? end_block_statement
+  : if_statement statement* else_if_block* else_block? end_block_statement
   ;
 
 if_statement
@@ -850,11 +835,11 @@ if_statement
   ;
 
 else_if_block
-  : else_if_statement statement*?
+  : else_if_statement statement*
   ;
 
 else_block
-  : else_statement statement*?
+  : else_statement statement*
   ;
 
 on_error_go_to_statement
@@ -890,7 +875,7 @@ return_statement
   ;
 
 select_block
-  : select_statement case_block*? end_block_statement
+  : select_statement case_block* end_block_statement
   ;
 
 select_statement
@@ -898,23 +883,23 @@ select_statement
   ;
 
 case_block
-  : case_statement statement*?
+  : case_statement statement*
   ;
 
 single_line_if_statement
-  : 'If' expression 'Then' statement*? single_line_else_clause?
+  : 'If' expression 'Then' statement* single_line_else_clause?
   ;
 
 single_line_else_clause
-  : 'Else' statement*?
+  : 'Else' statement*
   ;
 
 stop_or_end_statement
-  : keyword
+  : ('Stop' | 'End')
   ;
 
 sync_lock_block
-  : sync_lock_statement statement*? end_block_statement
+  : sync_lock_statement statement* end_block_statement
   ;
 
 sync_lock_statement
@@ -926,7 +911,7 @@ throw_statement
   ;
 
 try_block
-  : try_statement statement*? catch_block*? finally_block? end_block_statement
+  : try_statement statement* catch_block* finally_block? end_block_statement
   ;
 
 try_statement
@@ -934,11 +919,11 @@ try_statement
   ;
 
 catch_block
-  : catch_statement statement*?
+  : catch_statement statement*
   ;
 
 finally_block
-  : finally_statement statement*?
+  : finally_statement statement*
   ;
 
 finally_statement
@@ -946,15 +931,15 @@ finally_statement
   ;
 
 using_block
-  : using_statement statement*? end_block_statement
+  : using_statement statement* end_block_statement
   ;
 
 using_statement
-  : 'Using' expression? (variable_declarator(',' variable_declarator)*)??
+  : 'Using' expression? (variable_declarator(',' variable_declarator)*)?
   ;
 
 while_block
-  : while_statement statement*? end_block_statement
+  : while_statement statement* end_block_statement
   ;
 
 while_statement
@@ -962,7 +947,7 @@ while_statement
   ;
 
 with_block
-  : with_statement statement*? end_block_statement
+  : with_statement statement* end_block_statement
   ;
 
 with_statement
@@ -983,7 +968,7 @@ single_line_lambda_expression
   ;
 
 member_access_expression
-  : expression? punctuation simple_name
+  : expression? ('.' | '!') simple_name
   ;
 
 mid_expression
@@ -999,7 +984,7 @@ parenthesized_expression
   ;
 
 predefined_cast_expression
-  : keyword '(' expression ')'
+  : ('CObj' | 'CBool' | 'CDate' | 'CChar' | 'CStr' | 'CDec' | 'CByte' | 'CSByte' | 'CUShort' | 'CShort' | 'CUInt' | 'CInt' | 'CULng' | 'CLng' | 'CSng' | 'CDbl') '(' expression ')'
   ;
 
 query_expression
@@ -1021,7 +1006,7 @@ query_clause
   ;
 
 aggregate_clause
-  : 'Aggregate' (collection_range_variable(',' collection_range_variable)*)? query_clause*? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Aggregate' (collection_range_variable(',' collection_range_variable)*)? query_clause* 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
   ;
 
 collection_range_variable
@@ -1045,7 +1030,7 @@ from_clause
   ;
 
 group_by_clause
-  : 'Group' (expression_range_variable(',' expression_range_variable)*)?? 'By' (expression_range_variable(',' expression_range_variable)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Group' (expression_range_variable(',' expression_range_variable)*)? 'By' (expression_range_variable(',' expression_range_variable)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
   ;
 
 expression_range_variable
@@ -1058,7 +1043,7 @@ join_clause
   ;
 
 group_join_clause
-  : 'Group' 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause*? 'On' (join_condition('And' join_condition)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Group' 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
   ;
 
 join_condition
@@ -1066,7 +1051,7 @@ join_condition
   ;
 
 simple_join_clause
-  : 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause*? 'On' (join_condition('And' join_condition)*)?
+  : 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)?
   ;
 
 let_clause
@@ -1078,15 +1063,15 @@ order_by_clause
   ;
 
 ordering
-  : expression keyword?
+  : expression ('Ascending' | 'Descending')?
   ;
 
 partition_clause
-  : keyword expression
+  : ('Skip' | 'Take') expression
   ;
 
 partition_while_clause
-  : keyword 'While' expression
+  : ('Skip' | 'Take') 'While' expression
   ;
 
 select_clause
@@ -1114,15 +1099,15 @@ name_colon_equals
   ;
 
 type_of_expression
-  : 'TypeOf' expression keyword type
+  : 'TypeOf' expression ('Is' | 'IsNot') type
   ;
 
 unary_expression
-  : syntax_token expression
+  : ('+' | '-' | 'Not' | 'AddressOf') expression
   ;
 
 xml_member_access_expression
-  : expression? '.' punctuation? '.'? xml_node
+  : expression? '.' ('.' | '@')? '.'? xml_node
   ;
 
 xml_node
@@ -1154,7 +1139,7 @@ xml_attribute
   ;
 
 xml_cref_attribute
-  : xml_name '=' punctuation cref_reference punctuation
+  : xml_name '=' ('"' | '\'') cref_reference ('"' | '\'')
   ;
 
 xml_name
@@ -1174,11 +1159,11 @@ cref_signature
   ;
 
 cref_signature_part
-  : keyword? type?
+  : ('ByVal' | 'ByRef')? type?
   ;
 
 xml_name_attribute
-  : xml_name '=' punctuation identifier_name punctuation
+  : xml_name '=' ('"' | '\'') identifier_name ('"' | '\'')
   ;
 
 xml_bracketed_name
@@ -1194,7 +1179,7 @@ xml_comment
   ;
 
 xml_document
-  : xml_declaration xml_node*? xml_node xml_node*?
+  : xml_declaration xml_node* xml_node xml_node*
   ;
 
 xml_declaration
@@ -1206,15 +1191,15 @@ xml_declaration_option
   ;
 
 xml_string
-  : punctuation xml_text_token*? punctuation
+  : ('"' | '\'') (xml_text_token)* ('"' | '\'')
   ;
 
 xml_element
-  : xml_element_start_tag xml_node*? xml_element_end_tag
+  : xml_element_start_tag xml_node* xml_element_end_tag
   ;
 
 xml_element_start_tag
-  : '<' xml_node xml_node*? '>'
+  : '<' xml_node xml_node* '>'
   ;
 
 xml_element_end_tag
@@ -1226,7 +1211,7 @@ xml_embedded_expression
   ;
 
 xml_empty_element
-  : '<' xml_node xml_node*? '/>'
+  : '<' xml_node xml_node* '/>'
   ;
 
 xml_processing_instruction
@@ -1245,12 +1230,10 @@ xml_namespace_imports_clause
   : '<' xml_attribute '>'
   ;
 
-bad_directive_trivia
-  : '#'
-  ;
-
-const_directive_trivia
-  : '#' 'Const' identifier_token '=' expression
+structured_trivia
+  : directive_trivia
+  | documentation_comment_trivia
+  | skipped_tokens_trivia
   ;
 
 directive_trivia
@@ -1267,6 +1250,14 @@ directive_trivia
   | if_directive_trivia
   | reference_directive_trivia
   | region_directive_trivia
+  ;
+
+bad_directive_trivia
+  : '#'
+  ;
+
+const_directive_trivia
+  : '#' 'Const' identifier_token '=' expression
   ;
 
 disable_warning_directive_trivia
@@ -1302,7 +1293,7 @@ external_source_directive_trivia
   ;
 
 if_directive_trivia
-  : '#' 'Else'? keyword expression 'Then'?
+  : '#' 'Else'? ('If' | 'ElseIf') expression 'Then'?
   ;
 
 reference_directive_trivia
@@ -1314,15 +1305,24 @@ region_directive_trivia
   ;
 
 documentation_comment_trivia
-  : xml_node*?
+  : xml_node*
   ;
 
 skipped_tokens_trivia
-  : syntax_token*?
+  : ('AddHandler' | 'AddressOf' | 'Alias' | 'And' | 'AndAlso' | 'As' | 'Boolean' | 'ByRef' | 'Byte' | 'ByVal' | 'Call' | 'Case' | 'Catch' | 'CBool' | 'CByte' | 'CChar' | 'CDate' | 'CDec' | 'CDbl' | 'Char' | 'CInt' | 'Class' | 'CLng' | 'CObj' | 'Const' | 'R' | 'Continue' | 'CSByte' | 'CShort' | 'CSng' | 'CStr' | 'CType' | 'CUInt' | 'CULng' | 'CUShort' | 'Date' | 'Decimal' | 'Declare' | 'Default' | 'Delegate' | 'Dim' | 'DirectCast' | 'Do' | 'Double' | 'Each' | 'Else' | 'ElseIf' | 'End' | 'Enum' | 'Erase' | 'Error' | 'Event' | 'Exit' | 'False' | 'Finally' | 'For' | 'Friend' | 'Function' | 'Get' | 'GetType' | 'GetXmlNamespace' | 'Global' | 'GoTo' | 'Handles' | 'If' | 'Implements' | 'Imports' | 'In' | 'Inherits' | 'Integer' | 'Interface' | 'Is' | 'IsNot' | 'Let' | 'Lib' | 'Like' | 'Long' | 'Loop' | 'Me' | 'Mod' | 'Module' | 'MustInherit' | 'MustOverride' | 'MyBase' | 'MyClass' | 'NameOf' | 'Namespace' | 'Narrowing' | 'Next' | 'New' | 'Not' | 'Nothing' | 'NotInheritable' | 'NotOverridable' | 'Object' | 'Of' | 'On' | 'Operator' | 'Option' | 'Optional' | 'Or' | 'OrElse' | 'Overloads' | 'Overridable' | 'Overrides' | 'ParamArray' | 'Partial' | 'Private' | 'Property' | 'Protected' | 'Public' | 'RaiseEvent' | 'ReadOnly' | 'ReDim' | 'REM' | 'RemoveHandler' | 'Resume' | 'Return' | 'SByte' | 'Select' | 'Set' | 'Shadows' | 'Shared' | 'Short' | 'Single' | 'Static' | 'Step' | 'Stop' | 'String' | 'Structure' | 'Sub' | 'SyncLock' | 'Then' | 'Throw' | 'To' | 'True' | 'Try' | 'TryCast' | 'TypeOf' | 'UInteger' | 'ULong' | 'UShort' | 'Using' | 'When' | 'While' | 'Widening' | 'With' | 'WithEvents' | 'WriteOnly' | 'Xor' | 'EndIf' | 'Gosub' | 'Variant' | 'Wend' | 'Aggregate' | 'All' | 'Ansi' | 'Ascending' | 'Assembly' | 'Auto' | 'Binary' | 'By' | 'Compare' | 'Custom' | 'Descending' | 'Disable' | 'Distinct' | 'Enable' | 'Equals' | 'Explicit' | 'ExternalSource' | 'ExternalChecksum' | 'From' | 'Group' | 'Infer' | 'Into' | 'IsFalse' | 'IsTrue' | 'Join' | 'Key' | 'Mid' | 'Off' | 'Order' | 'Out' | 'Preserve' | 'Region' | 'Skip' | 'Strict' | 'Take' | 'Text' | 'Unicode' | 'Until' | 'Warning' | 'Where' | 'Type' | 'xml' | 'Async' | 'Await' | 'Iterator' | 'Yield' | '!' | '@' | ',' | '#' | '&' | '\'' | '(' | ')' | '{' | '}' | ';' | '*' | '+' | '-' | '.' | '/' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '\\' | '^' | ':=' | '&=' | '*=' | '+=' | '-=' | '/=' | '\=' | '^=' | '<<' | '>>' | '<<=' | '>>=' | '?' | '"' | '$"' | punctuation | 'vbCrLf' | '/>' | '</' | '<!--' | '-->' | '<?' | '?>' | '<%=' | '%>' | '<![CDATA[' | ']]>' | bad_token | xml_name_token | xml_text_token | interpolated_string_text_token | identifier_token | integer_literal_token | floating_literal_token | decimal_literal_token | date_literal_token | string_literal_token | character_literal_token)*
   ;
 
-structured_trivia
-  : directive_trivia
-  | documentation_comment_trivia
-  | skipped_tokens_trivia
+syntax_token
+  : character_literal_token
+  | date_literal_token
+  | decimal_literal_token
+  | floating_literal_token
+  | identifier_token
+  | integer_literal_token
+  | interpolated_string_text_token
+  | keyword
+  | punctuation
+  | string_literal_token
+  | xml_name_token
+  | xml_text_token
   ;
