@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static bool IsValidContainer(SyntaxNode container)
             => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
 
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
+
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             if (!IsValidContainer(container))
