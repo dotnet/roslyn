@@ -9,6 +9,8 @@ Friend Class GrammarGenerator
 
     Private _nameToProductions As Dictionary(Of String, List(Of Production))
     Private _seen As New HashSet(Of String)()
+    Private _lexicalRules As ImmutableArray(Of String)
+    Private _majorRules As ImmutableArray(Of String)
 
     Public Sub New(parseTree As ParseTree)
         MyBase.New(parseTree)
@@ -18,7 +20,10 @@ Friend Class GrammarGenerator
         _nameToProductions = Me._parseTree.NodeStructures.Values.ToDictionary(
             Function(n) n.Name, Function(n) New List(Of Production)())
 
-        For Each structureNode In Me._parseTree.NodeStructures.Values
+        Dim nonTokens = _parseTree.NodeStructures.Values.Where(Function(n) Not n.IsToken)
+        Dim tokens = _parseTree.NodeStructures.Values.Where(Function(n) n.IsToken)
+
+        For Each structureNode In nonTokens.Concat(tokens)
             Dim parent = structureNode.ParentStructure
             If parent IsNot Nothing Then
                 _nameToProductions(parent.Name).Add(RuleReference(structureNode.Name))
@@ -42,14 +47,25 @@ Friend Class GrammarGenerator
             '        }
         Next
 
+        For Each token In tokens
+            If _nameToProductions.ContainsKey(token.Name) AndAlso
+               _nameToProductions(token.Name).Count = 0 Then
+
+                _nameToProductions(token.Name).Add(New Production("/* see lexical specification */"))
+            End If
+        Next
+
+        ' The grammar will bottom out with certain lexical productions. Create rules for these.
+        _lexicalRules = tokens.Select(Function(t) t.Name).ToImmutableArray()
+
         ' Define a few major sections to help keep the grammar file naturally grouped.
-        Dim majorRules = ImmutableArray.Create(
+        _majorRules = ImmutableArray.Create(
             "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "SyntaxToken")
 
         Dim result = "// <auto1-generated />" + Environment.NewLine + "grammar vb;" + Environment.NewLine
 
         ' Handle each major section first And then walk any rules Not hit transitively from them.
-        For Each rule In majorRules.Concat(_nameToProductions.Keys.OrderBy(Function(a) a))
+        For Each rule In _majorRules.Concat(_nameToProductions.Keys.OrderBy(Function(a) a))
             ProcessRule(rule, result)
         Next
 
@@ -179,8 +195,7 @@ Friend Class GrammarGenerator
                 ' Now proceed in depth-first fashion through the referenced rules to keep related rules
                 ' close by. Don't recurse into major-sections to help keep them separated in grammar file.
                 Dim references = sorted.SelectMany(Function(t) t.ReferencedRules)
-                ' .Where(function(r)  !majorRules.Concat(lexicalRules).Contains(r))
-                For Each referencedRule In references
+                For Each referencedRule In references.Where(Function(r) Not _majorRules.Concat(_lexicalRules).Contains(r))
                     ProcessRule(referencedRule, result)
                 Next
             End If

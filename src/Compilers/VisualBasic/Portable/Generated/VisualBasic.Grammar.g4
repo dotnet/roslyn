@@ -63,6 +63,60 @@ type_argument_list
   : '(' 'Of' (type(',' type)*)? ')'
   ;
 
+identifier_name
+  : identifier_token
+  ;
+
+xml_namespace_imports_clause
+  : '<' xml_attribute '>'
+  ;
+
+xml_attribute
+  : xml_node '=' xml_node
+  ;
+
+attributes_statement
+  : attribute_list*
+  ;
+
+attribute_list
+  : '<' (attribute(',' attribute)*)? '>'
+  ;
+
+attribute
+  : attribute_target? type argument_list?
+  ;
+
+attribute_target
+  : ('Assembly' | 'Module') ':'
+  ;
+
+argument_list
+  : '(' (argument(',' argument)*)? ')'
+  ;
+
+argument
+  : omitted_argument
+  | range_argument
+  | simple_argument
+  ;
+
+omitted_argument
+  : punctuation
+  ;
+
+range_argument
+  : expression 'To' expression
+  ;
+
+simple_argument
+  : name_colon_equals? expression
+  ;
+
+name_colon_equals
+  : identifier_name ':='
+  ;
+
 type
   : array_type
   | name
@@ -104,236 +158,8 @@ simple_as_clause
   : 'As' attribute_list* type
   ;
 
-attribute_list
-  : '<' (attribute(',' attribute)*)? '>'
-  ;
-
-attribute
-  : attribute_target? type argument_list?
-  ;
-
-attribute_target
-  : ('Assembly' | 'Module') ':'
-  ;
-
-argument_list
-  : '(' (argument(',' argument)*)? ')'
-  ;
-
-argument
-  : omitted_argument
-  | range_argument
-  | simple_argument
-  ;
-
-omitted_argument
-  : punctuation
-  ;
-
-punctuation
-  : bad_token
-  ;
-
-range_argument
-  : expression 'To' expression
-  ;
-
-expression
-  : aggregation
-  | await_expression
-  | binary_conditional_expression
-  | binary_expression
-  | cast_expression
-  | collection_initializer
-  | conditional_access_expression
-  | event_container
-  | get_type_expression
-  | get_xml_namespace_expression
-  | instance_expression
-  | interpolated_string_expression
-  | invocation_expression
-  | label
-  | lambda_expression
-  | literal_expression
-  | member_access_expression
-  | mid_expression
-  | name_of_expression
-  | new_expression
-  | parenthesized_expression
-  | predefined_cast_expression
-  | query_expression
-  | ternary_conditional_expression
-  | tuple_expression
-  | type
-  | type_of_expression
-  | unary_expression
-  | xml_member_access_expression
-  | xml_node
-  ;
-
-aggregation
-  : function_aggregation
-  | group_aggregation
-  ;
-
-function_aggregation
-  : identifier_token '('? expression? ')'?
-  ;
-
-group_aggregation
-  : 'Group'
-  ;
-
-await_expression
-  : 'Await' expression
-  ;
-
-binary_conditional_expression
-  : 'If' '(' expression ',' expression ')'
-  ;
-
-binary_expression
-  : expression ('+' | '-' | '*' | '/' | '\\' | '^' | '<<' | '>>' | '&' | 'Mod' | '=' | '<>' | '<' | '<=' | '>=' | '>' | 'Is' | 'IsNot' | 'Like' | 'Or' | 'Xor' | 'And' | 'OrElse' | 'AndAlso') expression
-  ;
-
-cast_expression
-  : c_type_expression
-  | direct_cast_expression
-  | try_cast_expression
-  ;
-
-c_type_expression
-  : 'CType' '(' expression ',' type ')'
-  ;
-
-direct_cast_expression
-  : 'DirectCast' '(' expression ',' type ')'
-  ;
-
-try_cast_expression
-  : 'TryCast' '(' expression ',' type ')'
-  ;
-
-collection_initializer
-  : '{' (expression(',' expression)*)? '}'
-  ;
-
-conditional_access_expression
-  : expression? '?' expression
-  ;
-
-event_container
-  : keyword_event_container
-  | with_events_event_container
-  | with_events_property_event_container
-  ;
-
-keyword_event_container
-  : ('MyBase' | 'Me' | 'MyClass')
-  ;
-
-with_events_event_container
-  : identifier_token
-  ;
-
-with_events_property_event_container
-  : with_events_event_container '.' identifier_name
-  ;
-
-identifier_name
-  : identifier_token
-  ;
-
-get_type_expression
-  : 'GetType' '(' type ')'
-  ;
-
-get_xml_namespace_expression
-  : 'GetXmlNamespace' '(' xml_prefix_name? ')'
-  ;
-
-xml_prefix_name
-  : xml_name_token
-  ;
-
-instance_expression
-  : me_expression
-  | my_base_expression
-  | my_class_expression
-  ;
-
-me_expression
-  : 'Me'
-  ;
-
-my_base_expression
-  : 'MyBase'
-  ;
-
-my_class_expression
-  : 'MyClass'
-  ;
-
-interpolated_string_expression
-  : '$"' interpolated_string_content* '"'
-  ;
-
-interpolated_string_content
-  : interpolated_string_text
-  | interpolation
-  ;
-
-interpolated_string_text
-  : interpolated_string_text_token
-  ;
-
-interpolation
-  : '{' expression interpolation_alignment_clause? interpolation_format_clause? '}'
-  ;
-
-interpolation_alignment_clause
-  : ',' expression
-  ;
-
-interpolation_format_clause
-  : ':' interpolated_string_text_token
-  ;
-
-invocation_expression
-  : expression? argument_list?
-  ;
-
-label
-  : (identifier_token | integer_literal_token | 'Next')
-  ;
-
-lambda_expression
-  : multi_line_lambda_expression
-  | single_line_lambda_expression
-  ;
-
-multi_line_lambda_expression
-  : lambda_header statement* end_block_statement
-  ;
-
-lambda_header
-  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') parameter_list? simple_as_clause?
-  ;
-
-parameter_list
-  : '(' (parameter(',' parameter)*)? ')'
-  ;
-
-parameter
-  : attribute_list* ('ByVal' | 'ByRef' | 'Optional' | 'ParamArray')* modified_identifier simple_as_clause? equals_value?
-  ;
-
-modified_identifier
-  : identifier_token '?'? argument_list? array_rank_specifier*
-  ;
-
-equals_value
-  : '=' expression
+typed_tuple_element
+  : type
   ;
 
 statement
@@ -414,10 +240,6 @@ declaration_statement
   | type_statement
   ;
 
-attributes_statement
-  : attribute_list*
-  ;
-
 end_block_statement
   : 'End' ('If' | 'Using' | 'With' | 'Select' | 'Structure' | 'Enum' | 'Interface' | 'Class' | 'Module' | 'Namespace' | 'Sub' | 'Function' | 'Get' | 'Set' | 'Property' | 'Operator' | 'Event' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent' | 'While' | 'Try' | 'SyncLock')
   ;
@@ -470,6 +292,10 @@ array_creation_expression
   : 'New' attribute_list* type argument_list? array_rank_specifier* collection_initializer
   ;
 
+collection_initializer
+  : '{' (expression(',' expression)*)? '}'
+  ;
+
 object_creation_expression
   : 'New' attribute_list* type argument_list? object_creation_initializer?
   ;
@@ -487,12 +313,28 @@ enum_member_declaration
   : attribute_list* identifier_token equals_value?
   ;
 
+equals_value
+  : '=' expression
+  ;
+
 event_block
   : event_statement accessor_block* end_block_statement
   ;
 
 event_statement
   : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* 'Custom'? 'Event' identifier_token parameter_list? simple_as_clause? implements_clause?
+  ;
+
+parameter_list
+  : '(' (parameter(',' parameter)*)? ')'
+  ;
+
+parameter
+  : attribute_list* ('ByVal' | 'ByRef' | 'Optional' | 'ParamArray')* modified_identifier simple_as_clause? equals_value?
+  ;
+
+modified_identifier
+  : identifier_token '?'? argument_list? array_rank_specifier*
   ;
 
 implements_clause
@@ -590,6 +432,10 @@ type_parameter_single_constraint_clause
   : 'As' constraint
   ;
 
+lambda_header
+  : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') parameter_list? simple_as_clause?
+  ;
+
 method_statement
   : attribute_list* ('Public' | 'Private' | 'Protected' | 'Friend' | 'Shared' | 'Shadows' | 'Overloads' | 'Overrides' | 'Partial' | 'NotOverridable' | 'Overridable' | 'MustOverride' | 'ReadOnly' | 'WriteOnly' | 'Default' | 'WithEvents' | 'Widening' | 'Narrowing' | 'Custom')* ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
@@ -600,6 +446,24 @@ handles_clause
 
 handles_clause_item
   : event_container '.' identifier_name
+  ;
+
+event_container
+  : keyword_event_container
+  | with_events_event_container
+  | with_events_property_event_container
+  ;
+
+keyword_event_container
+  : ('MyBase' | 'Me' | 'MyClass')
+  ;
+
+with_events_event_container
+  : identifier_token
+  ;
+
+with_events_property_event_container
+  : with_events_event_container '.' identifier_name
   ;
 
 operator_statement
@@ -818,6 +682,10 @@ go_to_statement
   : 'GoTo' label
   ;
 
+label
+  : (identifier_token | integer_literal_token | 'Next')
+  ;
+
 label_statement
   : (identifier_token | integer_literal_token) ':'
   ;
@@ -963,6 +831,154 @@ for_or_for_each_statement
   | for_statement
   ;
 
+expression
+  : aggregation
+  | await_expression
+  | binary_conditional_expression
+  | binary_expression
+  | cast_expression
+  | collection_initializer
+  | conditional_access_expression
+  | event_container
+  | get_type_expression
+  | get_xml_namespace_expression
+  | instance_expression
+  | interpolated_string_expression
+  | invocation_expression
+  | label
+  | lambda_expression
+  | literal_expression
+  | member_access_expression
+  | mid_expression
+  | name_of_expression
+  | new_expression
+  | parenthesized_expression
+  | predefined_cast_expression
+  | query_expression
+  | ternary_conditional_expression
+  | tuple_expression
+  | type
+  | type_of_expression
+  | unary_expression
+  | xml_member_access_expression
+  | xml_node
+  ;
+
+aggregation
+  : function_aggregation
+  | group_aggregation
+  ;
+
+function_aggregation
+  : identifier_token '('? expression? ')'?
+  ;
+
+group_aggregation
+  : 'Group'
+  ;
+
+await_expression
+  : 'Await' expression
+  ;
+
+binary_conditional_expression
+  : 'If' '(' expression ',' expression ')'
+  ;
+
+binary_expression
+  : expression ('+' | '-' | '*' | '/' | '\\' | '^' | '<<' | '>>' | '&' | 'Mod' | '=' | '<>' | '<' | '<=' | '>=' | '>' | 'Is' | 'IsNot' | 'Like' | 'Or' | 'Xor' | 'And' | 'OrElse' | 'AndAlso') expression
+  ;
+
+cast_expression
+  : c_type_expression
+  | direct_cast_expression
+  | try_cast_expression
+  ;
+
+c_type_expression
+  : 'CType' '(' expression ',' type ')'
+  ;
+
+direct_cast_expression
+  : 'DirectCast' '(' expression ',' type ')'
+  ;
+
+try_cast_expression
+  : 'TryCast' '(' expression ',' type ')'
+  ;
+
+conditional_access_expression
+  : expression? '?' expression
+  ;
+
+get_type_expression
+  : 'GetType' '(' type ')'
+  ;
+
+get_xml_namespace_expression
+  : 'GetXmlNamespace' '(' xml_prefix_name? ')'
+  ;
+
+xml_prefix_name
+  : xml_name_token
+  ;
+
+instance_expression
+  : me_expression
+  | my_base_expression
+  | my_class_expression
+  ;
+
+me_expression
+  : 'Me'
+  ;
+
+my_base_expression
+  : 'MyBase'
+  ;
+
+my_class_expression
+  : 'MyClass'
+  ;
+
+interpolated_string_expression
+  : '$"' interpolated_string_content* '"'
+  ;
+
+interpolated_string_content
+  : interpolated_string_text
+  | interpolation
+  ;
+
+interpolated_string_text
+  : interpolated_string_text_token
+  ;
+
+interpolation
+  : '{' expression interpolation_alignment_clause? interpolation_format_clause? '}'
+  ;
+
+interpolation_alignment_clause
+  : ',' expression
+  ;
+
+interpolation_format_clause
+  : ':' interpolated_string_text_token
+  ;
+
+invocation_expression
+  : expression? argument_list?
+  ;
+
+lambda_expression
+  : multi_line_lambda_expression
+  | single_line_lambda_expression
+  ;
+
+multi_line_lambda_expression
+  : lambda_header statement* end_block_statement
+  ;
+
 single_line_lambda_expression
   : lambda_header visual_basic_syntax_node
   ;
@@ -1090,14 +1106,6 @@ tuple_expression
   : '(' (simple_argument(',' simple_argument)*)? ')'
   ;
 
-simple_argument
-  : name_colon_equals? expression
-  ;
-
-name_colon_equals
-  : identifier_name ':='
-  ;
-
 type_of_expression
   : 'TypeOf' expression ('Is' | 'IsNot') type
   ;
@@ -1132,10 +1140,6 @@ base_xml_attribute
   : xml_attribute
   | xml_cref_attribute
   | xml_name_attribute
-  ;
-
-xml_attribute
-  : xml_node '=' xml_node
   ;
 
 xml_cref_attribute
@@ -1220,14 +1224,6 @@ xml_processing_instruction
 
 xml_text
   : xml_text_token*
-  ;
-
-typed_tuple_element
-  : type
-  ;
-
-xml_namespace_imports_clause
-  : '<' xml_attribute '>'
   ;
 
 structured_trivia
@@ -1325,4 +1321,56 @@ syntax_token
   | string_literal_token
   | xml_name_token
   | xml_text_token
+  ;
+
+bad_token
+  : /* see lexical specification */
+  ;
+
+character_literal_token
+  : /* see lexical specification */
+  ;
+
+date_literal_token
+  : /* see lexical specification */
+  ;
+
+decimal_literal_token
+  : /* see lexical specification */
+  ;
+
+floating_literal_token
+  : /* see lexical specification */
+  ;
+
+identifier_token
+  : /* see lexical specification */
+  ;
+
+integer_literal_token
+  : /* see lexical specification */
+  ;
+
+interpolated_string_text_token
+  : /* see lexical specification */
+  ;
+
+keyword
+  : /* see lexical specification */
+  ;
+
+punctuation
+  : bad_token
+  ;
+
+string_literal_token
+  : /* see lexical specification */
+  ;
+
+xml_name_token
+  : /* see lexical specification */
+  ;
+
+xml_text_token
+  : /* see lexical specification */
   ;
