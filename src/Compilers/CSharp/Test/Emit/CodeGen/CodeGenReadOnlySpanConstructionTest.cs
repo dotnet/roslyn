@@ -836,5 +836,198 @@ public class Test
   IL_0025:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Byte_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public static ReadOnlySpan<byte> StaticData => new byte[2];
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0;0;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.1489F923C4DCA729178B3E3233458550D8DDDF29""
+  IL_0005:  ldc.i4.2
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Bool_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public static ReadOnlySpan<bool> StaticData => new bool[2];
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "False;False;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.1489F923C4DCA729178B3E3233458550D8DDDF29""
+  IL_0005:  ldc.i4.2
+  IL_0006:  newobj     ""System.ReadOnlySpan<bool>..ctor(void*, int)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Int_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public static ReadOnlySpan<int> StaticData => new int[2];
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0;0;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""long <PrivateImplementationDetails>.05FE405753166F125559E7C9AC558654F107C7E9""
+  IL_0005:  ldc.i4.2
+  IL_0006:  newobj     ""System.ReadOnlySpan<int>..ctor(void*, int)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromArray_GenericStruct_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public struct GenericStruct<TFirst, TSecond>
+    {
+        public TFirst First;
+        public TSecond Second;
+    }
+
+    public static ReadOnlySpan<GenericStruct<int, int>> StaticData => new GenericStruct<int, int>[2];
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item.First + "","" + item.Second + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0,0;0,0;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""Test.GenericStruct<int, int>""
+  IL_0006:  call       ""System.ReadOnlySpan<Test.GenericStruct<int, int>> System.ReadOnlySpan<Test.GenericStruct<int, int>>.op_Implicit(Test.GenericStruct<int, int>[])""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromArray_CustomStruct_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public struct CustomStruct
+    {
+        public int Value;
+    }
+
+    public static ReadOnlySpan<CustomStruct> StaticData => new CustomStruct[2];
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item.Value + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0;0;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""Test.CustomStruct""
+  IL_0006:  call       ""System.ReadOnlySpan<Test.CustomStruct> System.ReadOnlySpan<Test.CustomStruct>.op_Implicit(Test.CustomStruct[])""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromArray_CustomClass_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public class CustomClass
+    {
+        public int Value;
+    }
+
+    public static ReadOnlySpan<CustomClass> StaticData => new CustomClass[2];
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item?.Value + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: ";;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""Test.CustomClass""
+  IL_0006:  call       ""System.ReadOnlySpan<Test.CustomClass> System.ReadOnlySpan<Test.CustomClass>.op_Implicit(Test.CustomClass[])""
+  IL_000b:  ret
+}");
+        }
     }
 }

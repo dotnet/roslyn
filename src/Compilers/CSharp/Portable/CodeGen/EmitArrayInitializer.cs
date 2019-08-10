@@ -352,8 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             ImmutableArray<byte> data = default;
             bool success = false;
-            int elementCount = 0;
-            TypeSymbol elementType = null;
+            int elementCount = default;
 
             if (!_module.SupportsPrivateImplClass)
             {
@@ -368,20 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (wrappedExpression is BoundArrayCreation ac)
             {
-                var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingType();
-
-                // NB: we cannot use this approach for element types larger than one byte
-                //     the issue is that metadata stores blobs in little-endian format
-                //     so anything that is larger than one byte will be incorrect on a big-endian machine
-                //     With additional runtime support it might be possible, but not yet.
-                //     See: https://github.com/dotnet/corefx/issues/26948 for more details
-                if (elementType.SpecialType.SizeInBytes() != 1)
-                {
-                    return false;
-                }
-
-                success = TryGetRawDataForArrayInit(ac.InitializerOpt, out elementCount, out data);
+                success = TryGetRawDataForArray(ac, out data, out elementCount);
             }
 
             if (!success)
@@ -435,15 +421,81 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        ///  Returns a byte blob that matches serialized content of single array initializer.    
-        ///  returns false if the initializer is null or not an array of literals
+        /// Generates a byte blob that matches serialized content of an array.
         /// </summary>
-        private bool TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out int elementCount, out ImmutableArray<byte> data)
+        /// <returns>True if the blob is generated successfully, false otherwise</returns>
+        private bool TryGetRawDataForArray(BoundArrayCreation initializer, out ImmutableArray<byte> data, out int elementCount)
+        {
+            elementCount = GetArrayElementCount(initializer);
+
+            if (elementCount < 0)
+            {
+                data = default;
+                return false;
+            }
+
+            if (elementCount == 0)
+            {
+                data = ImmutableArray<byte>.Empty;
+                return true;
+            }
+
+            var arrayType = (ArrayTypeSymbol)initializer.Type;
+            var elementType = arrayType.ElementType.EnumUnderlyingType();
+
+            if (initializer.InitializerOpt != null)
+            {
+                return TryGetRawDataForArrayInit(initializer.InitializerOpt, elementType, out data);
+            }
+
+            var elementSize = elementType.SpecialType.SizeInBytes();
+            if (elementSize == 0)
+            {
+                data = default;
+                return false;
+            }
+
+            var arraySizeInBytes = elementCount * elementSize;
+            data = ImmutableArray.Create(new byte[arraySizeInBytes]);
+            return true;
+        }
+
+        private int GetArrayElementCount(BoundArrayCreation initializer)
+        {
+            if (initializer.InitializerOpt != null)
+            {
+                return initializer.InitializerOpt.Initializers.Length;
+            }
+
+            if (initializer.Bounds == null || initializer.Bounds.Length != 1)
+            {
+                return -1;
+            }
+
+            var elementCountValue = initializer.Bounds[0].ConstantValue;
+            if (elementCountValue == null)
+            {
+                return -1;
+            }
+
+            return elementCountValue.Int32Value;
+        }
+
+        /// <summary>
+        /// Generates a byte blob that matches serialized content of single array initializer.
+        /// </summary>
+        /// <returns>True if the blob is generated successfully, false otherwise</returns>
+        private bool TryGetRawDataForArrayInit(BoundArrayInitialization initializer, TypeSymbol elementType, out ImmutableArray<byte> data)
         {
             data = default;
-            elementCount = default;
 
-            if (initializer == null)
+            // NB: we cannot use this approach for element types larger than one byte
+            //     the issue is that metadata stores blobs in little-endian format
+            //     so anything that is larger than one byte will be incorrect on a big-endian machine
+            //     With additional runtime support it might be possible, but not yet.
+            //     See: https://github.com/dotnet/corefx/issues/26948 for more details
+            var elementSize = elementType.SpecialType.SizeInBytes();
+            if (elementSize != 1)
             {
                 return false;
             }
@@ -454,14 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            elementCount = initializers.Length;
-            if (elementCount == 0)
-            {
-                data = ImmutableArray<byte>.Empty;
-                return true;
-            }
-
-            var writer = new BlobBuilder(initializers.Length * 4);
+            var writer = new BlobBuilder(initializers.Length * elementSize);
 
             foreach (var init in initializer.Initializers)
             {
