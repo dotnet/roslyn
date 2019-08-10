@@ -54,7 +54,7 @@ attribute_list
   ;
 
 attribute_target_specifier
-  : token ':'
+  : syntax_token ':'
   ;
 
 attribute
@@ -211,7 +211,8 @@ type_parameter_constraint
   ;
 
 class_or_struct_constraint
-  : ('class' | 'struct') '?'?
+  : 'class' '?'?
+  | 'struct' '?'?
   ;
 
 constructor_constraint
@@ -315,6 +316,68 @@ namespace_declaration
   : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
   ;
 
+type
+  : array_type
+  | name
+  | nullable_type
+  | omitted_type_argument
+  | pointer_type
+  | predefined_type
+  | ref_type
+  | tuple_type
+  ;
+
+array_type
+  : type array_rank_specifier+
+  ;
+
+array_rank_specifier
+  : '[' (expression (',' expression)*)? ']'
+  ;
+
+nullable_type
+  : type '?'
+  ;
+
+omitted_type_argument
+  : /* epsilon */
+  ;
+
+pointer_type
+  : type '*'
+  ;
+
+predefined_type
+  : 'bool'
+  | 'byte'
+  | 'char'
+  | 'decimal'
+  | 'double'
+  | 'float'
+  | 'int'
+  | 'long'
+  | 'object'
+  | 'sbyte'
+  | 'short'
+  | 'string'
+  | 'uint'
+  | 'ulong'
+  | 'ushort'
+  | 'void'
+  ;
+
+ref_type
+  : 'ref' 'readonly'? type
+  ;
+
+tuple_type
+  : '(' tuple_element (',' tuple_element)* ')'
+  ;
+
+tuple_element
+  : type identifier_token?
+  ;
+
 statement
   : block
   | break_statement
@@ -347,7 +410,8 @@ break_statement
   ;
 
 checked_statement
-  : ('checked' | 'unchecked') block
+  : 'checked' block
+  | 'unchecked' block
   ;
 
 common_for_each_statement
@@ -627,14 +691,6 @@ array_creation_expression
   : 'new' array_type initializer_expression?
   ;
 
-array_type
-  : type array_rank_specifier+
-  ;
-
-array_rank_specifier
-  : '[' (expression (',' expression)*)? ']'
-  ;
-
 initializer_expression
   : '{' (expression (',' expression)* ','?)? '}'
   ;
@@ -656,7 +712,8 @@ cast_expression
   ;
 
 checked_expression
-  : ('checked' | 'unchecked') '(' expression ')'
+  : 'checked' '(' expression ')'
+  | 'unchecked' '(' expression ')'
   ;
 
 conditional_access_expression
@@ -709,7 +766,8 @@ this_expression
   ;
 
 interpolated_string_expression
-  : ('$"' | '$@"') interpolated_string_content* '"'
+  : '$"' interpolated_string_content* '"'
+  | '$@"' interpolated_string_content* '"'
   ;
 
 interpolated_string_content
@@ -781,7 +839,15 @@ postfix_unary_expression
   ;
 
 prefix_unary_expression
-  : ('+' | '-' | '~' | '!' | '++' | '--' | '&' | '*' | '^') expression
+  : '!' expression
+  | '&' expression
+  | '*' expression
+  | '+' expression
+  | '++' expression
+  | '-' expression
+  | '--' expression
+  | '^' expression
+  | '~' expression
   ;
 
 query_expression
@@ -889,60 +955,6 @@ type_of_expression
   : 'typeof' '(' type ')'
   ;
 
-type
-  : array_type
-  | name
-  | nullable_type
-  | omitted_type_argument
-  | pointer_type
-  | predefined_type
-  | ref_type
-  | tuple_type
-  ;
-
-nullable_type
-  : type '?'
-  ;
-
-omitted_type_argument
-  : /* epsilon */
-  ;
-
-pointer_type
-  : type '*'
-  ;
-
-predefined_type
-  : 'bool'
-  | 'byte'
-  | 'char'
-  | 'decimal'
-  | 'double'
-  | 'float'
-  | 'int'
-  | 'long'
-  | 'object'
-  | 'sbyte'
-  | 'short'
-  | 'string'
-  | 'uint'
-  | 'ulong'
-  | 'ushort'
-  | 'void'
-  ;
-
-ref_type
-  : 'ref' 'readonly'? type
-  ;
-
-tuple_type
-  : '(' tuple_element (',' tuple_element)* ')'
-  ;
-
-tuple_element
-  : type identifier_token?
-  ;
-
 xml_node
   : xml_c_data_section
   | xml_comment
@@ -1000,7 +1012,8 @@ member_cref
   ;
 
 conversion_operator_member_cref
-  : ('implicit' | 'explicit') 'operator' type cref_parameter_list?
+  : 'explicit' 'operator' type cref_parameter_list?
+  | 'implicit' 'operator' type cref_parameter_list?
   ;
 
 cref_parameter_list
@@ -1008,7 +1021,9 @@ cref_parameter_list
   ;
 
 cref_parameter
-  : ('ref' | 'out' | 'in')? type
+  : 'in'? type
+  | 'out'? type
+  | 'ref'? type
   ;
 
 indexer_member_cref
@@ -1085,7 +1100,7 @@ directive_trivia
   ;
 
 bad_directive_trivia
-  : '#' token
+  : '#' syntax_token
   ;
 
 branching_directive_trivia
@@ -1171,7 +1186,7 @@ documentation_comment_trivia
   ;
 
 skipped_tokens_trivia
-  : token*
+  : syntax_token*
   ;
 
 base_argument_list
@@ -1209,7 +1224,7 @@ string_literal_token
   : /* see lexical specification */
   ;
 
-token
+syntax_token
   : /* see lexical specification */
   ;
 
