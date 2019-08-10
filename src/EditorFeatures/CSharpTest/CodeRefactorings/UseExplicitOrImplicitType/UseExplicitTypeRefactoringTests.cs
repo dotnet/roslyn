@@ -293,6 +293,38 @@ class Program
 }");
         }
 
+        [Fact]
+        public async Task TestWithTopLevelNullability()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string? s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string? s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
         {
             // Enabled because the diagnostic is disabled
