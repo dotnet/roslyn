@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 using System.Reflection;
 <<<<<<< HEAD
@@ -12,6 +13,8 @@ using System.Reflection;
 >>>>>>> Simplify
 =======
 using System.Runtime.InteropServices;
+>>>>>>> Simplify
+=======
 >>>>>>> Simplify
 =======
 >>>>>>> Simplify
