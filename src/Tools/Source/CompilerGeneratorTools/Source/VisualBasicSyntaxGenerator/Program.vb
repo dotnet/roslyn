@@ -101,10 +101,11 @@ Friend Module Program
     End Function
 
     Private Sub PrintUsage()
-        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
+        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test] [/grammar]")
         WriteLine("  /source        Generates syntax model source code.")
         WriteLine("  /test          Generates syntax model unit tests.")
         WriteLine("  /gettext       Generates GetText method only.")
+        WriteLine("  /grammar       Generates grammar file only.")
     End Sub
 
     Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
