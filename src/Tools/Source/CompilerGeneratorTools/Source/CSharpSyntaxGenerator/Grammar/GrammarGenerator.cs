@@ -851,7 +851,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 >>>>>>> Simplify
         {
             Text = text;
-            ReferencedRules = referencedRules == null ? ImmutableArray<string>.Empty : referencedRules.ToImmutableArray();
+            ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
         }
 
         public override string ToString() => Text;
