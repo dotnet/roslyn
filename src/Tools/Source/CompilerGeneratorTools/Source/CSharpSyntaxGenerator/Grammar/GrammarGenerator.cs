@@ -392,9 +392,9 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 
                         // Now proceed in depth-first fashion through the referenced rules to keep related rules
                         // close by. Don't recurse into major-sections to help keep them separated in grammar file.
-                        var references = sorted.SelectMany(t => t.ReferencedRules);
-                        foreach (var referencedRule in references.Where(r => !majorRules.Concat(lexicalRules).Contains(r)))
-                            processRule(referencedRule, ref result);
+                        foreach (var production in sorted)
+                            foreach (var referencedRule in production.ReferencedRules.Where(r => !majorRules.Concat(lexicalRules).Contains(r)))
+                                processRule(referencedRule, ref result);
                     }
                 }
             }
