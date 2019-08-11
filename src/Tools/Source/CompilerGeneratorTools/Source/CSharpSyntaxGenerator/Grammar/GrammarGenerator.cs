@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -221,10 +220,14 @@ namespace CSharpSyntaxGenerator.Grammar
                     // a: x ...
                     //  | y ...;
 <<<<<<< HEAD
+<<<<<<< HEAD
                     if (type.Children[0] is Field field && field.IsToken && field.Kinds.Count >= 2)
 >>>>>>> Simplify
 =======
                     if (type.Children[0] is Field field && field.IsToken && field.Kinds.Count > 0)
+>>>>>>> Simplify
+=======
+                    if (type.Children[0] is Field field && field.Kinds.Count > 0)
 >>>>>>> Simplify
                     {
                         foreach (var kind in field.Kinds)
