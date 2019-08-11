@@ -630,7 +630,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
             => GetMembers<SyntaxKind>().Where(k => k.ToString() == name).SingleOrDefault();
 
         private static IEnumerable<TEnum> GetMembers<TEnum>() where TEnum : struct, Enum
-            => typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).OfType<TEnum>();
+            => (IEnumerable<TEnum>)Enum.GetValues(typeof(TEnum));
 
 <<<<<<< HEAD
 <<<<<<< HEAD
