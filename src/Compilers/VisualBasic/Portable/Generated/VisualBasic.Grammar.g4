@@ -26,47 +26,6 @@ import_alias_clause
   : identifier_token '='
   ;
 
-name
-  : cref_operator_reference
-  | global_name
-  | qualified_cref_operator_reference
-  | qualified_name
-  | simple_name
-  ;
-
-cref_operator_reference
-  : 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>')
-  ;
-
-global_name
-  : 'Global'
-  ;
-
-qualified_cref_operator_reference
-  : name '.' cref_operator_reference
-  ;
-
-qualified_name
-  : name '.' simple_name
-  ;
-
-simple_name
-  : generic_name
-  | identifier_name
-  ;
-
-generic_name
-  : identifier_token type_argument_list
-  ;
-
-type_argument_list
-  : '(' 'Of' (type(',' type)*)? ')'
-  ;
-
-identifier_name
-  : identifier_token
-  ;
-
 xml_namespace_imports_clause
   : '<' xml_attribute '>'
   ;
@@ -117,64 +76,8 @@ name_colon_equals
   : identifier_name ':='
   ;
 
-type
-  : array_type
-  | name
-  | nullable_type
-  | predefined_type
-  | tuple_type
-  ;
-
-array_type
-  : type array_rank_specifier*
-  ;
-
-array_rank_specifier
-  : '(' ','* ')'
-  ;
-
-nullable_type
-  : type '?'
-  ;
-
-predefined_type
-  : 'Boolean'
-  | 'Byte'
-  | 'Char'
-  | 'Date'
-  | 'Decimal'
-  | 'Double'
-  | 'Integer'
-  | 'Long'
-  | 'Object'
-  | 'SByte'
-  | 'Short'
-  | 'Single'
-  | 'String'
-  | 'UInteger'
-  | 'ULong'
-  | 'UShort'
-  ;
-
-tuple_type
-  : '(' (tuple_element(',' tuple_element)*)? ')'
-  ;
-
-tuple_element
-  : named_tuple_element
-  | typed_tuple_element
-  ;
-
-named_tuple_element
-  : identifier_token simple_as_clause?
-  ;
-
-simple_as_clause
-  : 'As' attribute_list* type
-  ;
-
-typed_tuple_element
-  : type
+identifier_name
+  : identifier_token
   ;
 
 statement
@@ -228,6 +131,10 @@ simple_case_clause
 
 catch_statement
   : 'Catch' identifier_name? simple_as_clause? catch_filter_clause?
+  ;
+
+simple_as_clause
+  : 'As' attribute_list* type
   ;
 
 catch_filter_clause
@@ -307,6 +214,10 @@ array_creation_expression
   : 'New' attribute_list* type argument_list? array_rank_specifier* collection_initializer
   ;
 
+array_rank_specifier
+  : '(' ','* ')'
+  ;
+
 collection_initializer
   : '{' (expression(',' expression)*)? '}'
   ;
@@ -354,6 +265,23 @@ modified_identifier
 
 implements_clause
   : 'Implements' (qualified_name(',' qualified_name)*)?
+  ;
+
+qualified_name
+  : name '.' simple_name
+  ;
+
+simple_name
+  : generic_name
+  | identifier_name
+  ;
+
+generic_name
+  : identifier_token type_argument_list
+  ;
+
+type_argument_list
+  : '(' 'Of' (type(',' type)*)? ')'
   ;
 
 accessor_block
@@ -686,7 +614,7 @@ for_block
   ;
 
 for_statement
-  : 'For' visual_basic_syntax_node '=' expression 'To' expression for_step_clause?
+  : 'For' (expression | variable_declarator) '=' expression 'To' expression for_step_clause?
   ;
 
 for_step_clause
@@ -702,7 +630,7 @@ for_each_block
   ;
 
 for_each_statement
-  : 'For' 'Each' visual_basic_syntax_node 'In' expression
+  : 'For' 'Each' (expression | variable_declarator) 'In' expression
   ;
 
 go_to_statement
@@ -1010,7 +938,7 @@ multi_line_lambda_expression
   ;
 
 single_line_lambda_expression
-  : lambda_header visual_basic_syntax_node
+  : lambda_header (expression | statement)
   ;
 
 member_access_expression
@@ -1146,6 +1074,78 @@ unary_expression
 
 xml_member_access_expression
   : expression? '.' ('.' | '@')? '.'? xml_node
+  ;
+
+type
+  : array_type
+  | name
+  | nullable_type
+  | predefined_type
+  | tuple_type
+  ;
+
+array_type
+  : type array_rank_specifier*
+  ;
+
+nullable_type
+  : type '?'
+  ;
+
+predefined_type
+  : 'Boolean'
+  | 'Byte'
+  | 'Char'
+  | 'Date'
+  | 'Decimal'
+  | 'Double'
+  | 'Integer'
+  | 'Long'
+  | 'Object'
+  | 'SByte'
+  | 'Short'
+  | 'Single'
+  | 'String'
+  | 'UInteger'
+  | 'ULong'
+  | 'UShort'
+  ;
+
+tuple_type
+  : '(' (tuple_element(',' tuple_element)*)? ')'
+  ;
+
+tuple_element
+  : named_tuple_element
+  | typed_tuple_element
+  ;
+
+named_tuple_element
+  : identifier_token simple_as_clause?
+  ;
+
+typed_tuple_element
+  : type
+  ;
+
+name
+  : cref_operator_reference
+  | global_name
+  | qualified_cref_operator_reference
+  | qualified_name
+  | simple_name
+  ;
+
+cref_operator_reference
+  : 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>')
+  ;
+
+global_name
+  : 'Global'
+  ;
+
+qualified_cref_operator_reference
+  : name '.' cref_operator_reference
   ;
 
 xml_node
@@ -1382,7 +1382,7 @@ syntax_token
   ;
 
 punctuation
-  : bad_token
+  : /* see lexical specification */
   ;
 
 bad_token
