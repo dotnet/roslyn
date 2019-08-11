@@ -173,6 +173,10 @@ simple_as_clause
   : 'As' attribute_list* type
   ;
 
+typed_tuple_element
+  : type
+  ;
+
 statement
   : case_statement
   | catch_statement
@@ -216,6 +220,10 @@ range_case_clause
 
 relational_case_clause
   : 'Is'? ('=' | '<>' | '<' | '<=' | '>=' | '>') expression
+  ;
+
+simple_case_clause
+  : expression
   ;
 
 catch_statement
@@ -441,6 +449,10 @@ special_constraint
   | 'Structure'
   ;
 
+type_constraint
+  : type
+  ;
+
 type_parameter_single_constraint_clause
   : 'As' constraint
   ;
@@ -658,6 +670,10 @@ error_statement
 
 exit_statement
   : 'Exit' ('Do' | 'For' | 'Sub' | 'Function' | 'Operator' | 'Property' | 'Try' | 'Select' | 'While')
+  ;
+
+expression_statement
+  : expression
   ;
 
 for_or_for_each_block
@@ -945,20 +961,14 @@ instance_expression
 
 me_expression
   : 'Me'
-  | 'Me'
-  | 'Me'
   ;
 
 my_base_expression
   : 'MyBase'
-  | 'MyBase'
-  | 'MyBase'
   ;
 
 my_class_expression
   : 'MyClass'
-  | 'MyClass'
-  | 'MyClass'
   ;
 
 interpolated_string_expression
@@ -1021,6 +1031,101 @@ parenthesized_expression
 
 predefined_cast_expression
   : ('CObj' | 'CBool' | 'CDate' | 'CChar' | 'CStr' | 'CDec' | 'CByte' | 'CSByte' | 'CUShort' | 'CShort' | 'CUInt' | 'CInt' | 'CULng' | 'CLng' | 'CSng' | 'CDbl') '(' expression ')'
+  ;
+
+query_expression
+  : query_clause*
+  ;
+
+query_clause
+  : aggregate_clause
+  | distinct_clause
+  | from_clause
+  | group_by_clause
+  | join_clause
+  | let_clause
+  | order_by_clause
+  | partition_clause
+  | partition_while_clause
+  | select_clause
+  | where_clause
+  ;
+
+aggregate_clause
+  : 'Aggregate' (collection_range_variable(',' collection_range_variable)*)? query_clause* 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  ;
+
+collection_range_variable
+  : modified_identifier simple_as_clause? 'In' expression
+  ;
+
+aggregation_range_variable
+  : variable_name_equals? aggregation
+  ;
+
+variable_name_equals
+  : modified_identifier simple_as_clause? '='
+  ;
+
+distinct_clause
+  : 'Distinct'
+  ;
+
+from_clause
+  : 'From' (collection_range_variable(',' collection_range_variable)*)?
+  ;
+
+group_by_clause
+  : 'Group' (expression_range_variable(',' expression_range_variable)*)? 'By' (expression_range_variable(',' expression_range_variable)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  ;
+
+expression_range_variable
+  : variable_name_equals? expression
+  ;
+
+join_clause
+  : group_join_clause
+  | simple_join_clause
+  ;
+
+group_join_clause
+  : 'Group' 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  ;
+
+join_condition
+  : expression 'Equals' expression
+  ;
+
+simple_join_clause
+  : 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)?
+  ;
+
+let_clause
+  : 'Let' (expression_range_variable(',' expression_range_variable)*)?
+  ;
+
+order_by_clause
+  : 'Order' 'By' (ordering(',' ordering)*)?
+  ;
+
+ordering
+  : expression ('Ascending' | 'Descending')?
+  ;
+
+partition_clause
+  : ('Skip' | 'Take') expression
+  ;
+
+partition_while_clause
+  : ('Skip' | 'Take') 'While' expression
+  ;
+
+select_clause
+  : 'Select' (expression_range_variable(',' expression_range_variable)*)?
+  ;
+
+where_clause
+  : 'Where' expression
   ;
 
 ternary_conditional_expression
@@ -1225,275 +1330,12 @@ region_directive_trivia
   : '#' 'Region' string_literal_token
   ;
 
+documentation_comment_trivia
+  : xml_node*
+  ;
+
 skipped_tokens_trivia
-  : '!'
-  | '"'
-  | '#'
-  | '$"'
-  | '%>'
-  | '&'
-  | '&='
-  | '('
-  | ')'
-  | '*'
-  | '*='
-  | '+'
-  | '+='
-  | ','
-  | '-'
-  | '-->'
-  | '-='
-  | '.'
-  | '/'
-  | '/='
-  | '/>'
-  | ':'
-  | ':='
-  | ';'
-  | '<!--'
-  | '<![CDATA['
-  | '<%='
-  | '<'
-  | '</'
-  | '<<'
-  | '<<='
-  | '<='
-  | '<>'
-  | '<?'
-  | '='
-  | '>'
-  | '>='
-  | '>>'
-  | '>>='
-  | '?'
-  | '?>'
-  | '@'
-  | 'AddHandler'
-  | 'AddressOf'
-  | 'Aggregate'
-  | 'Alias'
-  | 'All'
-  | 'And'
-  | 'AndAlso'
-  | 'Ansi'
-  | 'As'
-  | 'Ascending'
-  | 'Assembly'
-  | 'Async'
-  | 'Auto'
-  | 'Await'
-  | 'Binary'
-  | 'Boolean'
-  | 'By'
-  | 'ByRef'
-  | 'ByVal'
-  | 'Byte'
-  | 'CBool'
-  | 'CByte'
-  | 'CChar'
-  | 'CDate'
-  | 'CDbl'
-  | 'CDec'
-  | 'CInt'
-  | 'CLng'
-  | 'CObj'
-  | 'CSByte'
-  | 'CShort'
-  | 'CSng'
-  | 'CStr'
-  | 'CType'
-  | 'CUInt'
-  | 'CULng'
-  | 'CUShort'
-  | 'Call'
-  | 'Case'
-  | 'Catch'
-  | 'Char'
-  | 'Class'
-  | 'Compare'
-  | 'Const'
-  | 'Continue'
-  | 'Custom'
-  | 'Date'
-  | 'Decimal'
-  | 'Declare'
-  | 'Default'
-  | 'Delegate'
-  | 'Descending'
-  | 'Dim'
-  | 'DirectCast'
-  | 'Disable'
-  | 'Distinct'
-  | 'Do'
-  | 'Double'
-  | 'Each'
-  | 'Else'
-  | 'ElseIf'
-  | 'Enable'
-  | 'End'
-  | 'EndIf'
-  | 'Enum'
-  | 'Equals'
-  | 'Erase'
-  | 'Error'
-  | 'Event'
-  | 'Exit'
-  | 'Explicit'
-  | 'ExternalChecksum'
-  | 'ExternalSource'
-  | 'False'
-  | 'Finally'
-  | 'For'
-  | 'Friend'
-  | 'From'
-  | 'Function'
-  | 'Get'
-  | 'GetType'
-  | 'GetXmlNamespace'
-  | 'Global'
-  | 'GoTo'
-  | 'Gosub'
-  | 'Group'
-  | 'Handles'
-  | 'If'
-  | 'Implements'
-  | 'Imports'
-  | 'In'
-  | 'Infer'
-  | 'Inherits'
-  | 'Integer'
-  | 'Interface'
-  | 'Into'
-  | 'Is'
-  | 'IsFalse'
-  | 'IsNot'
-  | 'IsTrue'
-  | 'Iterator'
-  | 'Join'
-  | 'Key'
-  | 'Let'
-  | 'Lib'
-  | 'Like'
-  | 'Long'
-  | 'Loop'
-  | 'Me'
-  | 'Mid'
-  | 'Mod'
-  | 'Module'
-  | 'MustInherit'
-  | 'MustOverride'
-  | 'MyBase'
-  | 'MyClass'
-  | 'NameOf'
-  | 'Namespace'
-  | 'Narrowing'
-  | 'New'
-  | 'Next'
-  | 'Not'
-  | 'NotInheritable'
-  | 'NotOverridable'
-  | 'Nothing'
-  | 'Object'
-  | 'Of'
-  | 'Off'
-  | 'On'
-  | 'Operator'
-  | 'Option'
-  | 'Optional'
-  | 'Or'
-  | 'OrElse'
-  | 'Order'
-  | 'Out'
-  | 'Overloads'
-  | 'Overridable'
-  | 'Overrides'
-  | 'ParamArray'
-  | 'Partial'
-  | 'Preserve'
-  | 'Private'
-  | 'Property'
-  | 'Protected'
-  | 'Public'
-  | 'R'
-  | 'REM'
-  | 'RaiseEvent'
-  | 'ReDim'
-  | 'ReadOnly'
-  | 'Region'
-  | 'RemoveHandler'
-  | 'Resume'
-  | 'Return'
-  | 'SByte'
-  | 'Select'
-  | 'Set'
-  | 'Shadows'
-  | 'Shared'
-  | 'Short'
-  | 'Single'
-  | 'Skip'
-  | 'Static'
-  | 'Step'
-  | 'Stop'
-  | 'Strict'
-  | 'String'
-  | 'Structure'
-  | 'Sub'
-  | 'SyncLock'
-  | 'Take'
-  | 'Text'
-  | 'Then'
-  | 'Throw'
-  | 'To'
-  | 'True'
-  | 'Try'
-  | 'TryCast'
-  | 'Type'
-  | 'TypeOf'
-  | 'UInteger'
-  | 'ULong'
-  | 'UShort'
-  | 'Unicode'
-  | 'Until'
-  | 'Using'
-  | 'Variant'
-  | 'Warning'
-  | 'Wend'
-  | 'When'
-  | 'Where'
-  | 'While'
-  | 'Widening'
-  | 'With'
-  | 'WithEvents'
-  | 'WriteOnly'
-  | 'Xor'
-  | 'Yield'
-  | '\''
-  | '\='
-  | '\\'
-  | ']]>'
-  | '^'
-  | '^='
-  | 'vbCrLf'
-  | 'xml'
-  | '{'
-  | '}'
-  | bad_token
-  | character_literal_token
-  | date_literal_token
-  | decimal_literal_token
-  | floating_literal_token
-  | identifier_token
-  | integer_literal_token
-  | interpolated_string_text_token
-  | punctuation
-  | punctuation
-  | punctuation
-  | punctuation
-  | string_literal_token
-  | xml_name_token
-  | xml_text_token
-  | xml_text_token
-  | xml_text_token
+  : syntax_token*
   ;
 
 modifier
@@ -1539,95 +1381,8 @@ syntax_token
   | xml_text_token
   ;
 
-aggregate_clause
-  : 'Aggregate' (collection_range_variable(',' collection_range_variable)*)? query_clause* 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
-  ;
-
-collection_range_variable
-  : modified_identifier simple_as_clause? 'In' expression
-  ;
-
-query_clause
-  : aggregate_clause
-  | distinct_clause
-  | from_clause
-  | group_by_clause
-  | join_clause
-  | let_clause
-  | order_by_clause
-  | partition_clause
-  | partition_while_clause
-  | select_clause
-  | where_clause
-  ;
-
-distinct_clause
-  : 'Distinct'
-  ;
-
-from_clause
-  : 'From' (collection_range_variable(',' collection_range_variable)*)?
-  ;
-
-group_by_clause
-  : 'Group' (expression_range_variable(',' expression_range_variable)*)? 'By' (expression_range_variable(',' expression_range_variable)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
-  ;
-
-expression_range_variable
-  : variable_name_equals? expression
-  ;
-
-variable_name_equals
-  : modified_identifier simple_as_clause? '='
-  ;
-
-aggregation_range_variable
-  : variable_name_equals? aggregation
-  ;
-
-join_clause
-  : group_join_clause
-  | simple_join_clause
-  ;
-
-group_join_clause
-  : 'Group' 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
-  ;
-
-join_condition
-  : expression 'Equals' expression
-  ;
-
-simple_join_clause
-  : 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)?
-  ;
-
-let_clause
-  : 'Let' (expression_range_variable(',' expression_range_variable)*)?
-  ;
-
-order_by_clause
-  : 'Order' 'By' (ordering(',' ordering)*)?
-  ;
-
-ordering
-  : expression ('Ascending' | 'Descending')?
-  ;
-
-partition_clause
-  : ('Skip' | 'Take') expression
-  ;
-
-partition_while_clause
-  : ('Skip' | 'Take') 'While' expression
-  ;
-
-select_clause
-  : 'Select' (expression_range_variable(',' expression_range_variable)*)?
-  ;
-
-where_clause
-  : 'Where' expression
+punctuation
+  : bad_token
   ;
 
 bad_token
@@ -1664,10 +1419,6 @@ interpolated_string_text_token
 
 keyword
   : /* see lexical specification */
-  ;
-
-punctuation
-  : bad_token
   ;
 
 string_literal_token

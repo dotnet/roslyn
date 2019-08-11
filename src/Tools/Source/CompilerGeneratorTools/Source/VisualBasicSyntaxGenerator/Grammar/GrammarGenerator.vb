@@ -48,6 +48,9 @@ Friend Class GrammarGenerator
             If Not structureNode.Abstract Then
                 Dim children = GetAllChildrenOfStructure(structureNode)
 
+                ' Convert rules Like `a: (x | y)` into:
+                ' a x
+                '  | y;
                 If children.Count = 1 Then
                     Dim child = children(0)
                     Dim kinds = TryCast(child.ChildKind, List(Of ParseNodeKind))
@@ -57,8 +60,8 @@ Friend Class GrammarGenerator
                             For Each kind In kinds
                                 _nameToProductions(structureNode.Name).Add(HandleChildKind(structureNode, child, kind))
                             Next
+                            Continue For
                         End If
-                        Continue For
                     End If
                 End If
 
@@ -66,16 +69,6 @@ Friend Class GrammarGenerator
                     _nameToProductions(structureNode.Name).Add(HandleChildren(structureNode, children))
                 End If
             End If
-
-            '        // Convert rules Like `a: (x | y)` into:
-            '        // a x
-            '        //  | y;
-            '        If (Type.Children.Count == 1 && Type.Children[0] Is Field field && field.IsToken)
-            '        {
-            '            nameToProductions[type.Name].AddRange(field.Kinds.Select(k =>
-            '                HandleChildren(New List <TreeTypeChild> {New Field { Type = "SyntaxToken", Kinds = { k } } })));
-            '            Continue For;
-            '        }
         Next
 
         For Each token In tokens
@@ -86,12 +79,15 @@ Friend Class GrammarGenerator
             End If
         Next
 
+        _nameToProductions("SkippedTokensTriviaSyntax").Clear()
+        _nameToProductions("SkippedTokensTriviaSyntax").Add(RuleReference("SyntaxToken").Suffix("*"))
+
         ' The grammar will bottom out with certain lexical productions. Create rules for these.
         _lexicalRules = tokens.Select(Function(t) t.Name).ToImmutableArray()
 
         ' Define a few major sections to help keep the grammar file naturally grouped.
         _majorRules = ImmutableArray.Create(
-            "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "Modifier", "SyntaxToken")
+            "CompilationUnitSyntax", "TypeSyntax", "StatementSyntax", "ExpressionSyntax", "XmlNodeSyntax", "StructuredTriviaSyntax", "Modifier", "SyntaxToken", "PunctuationSyntax")
 
         Dim result = "// <auto1-generated/>" + Environment.NewLine + "grammar vb;" + Environment.NewLine
 
@@ -208,7 +204,7 @@ Friend Class GrammarGenerator
 
     Private Sub ProcessRule(name As String, ByRef result As String)
         If name <> "VisualBasicSyntaxNode" AndAlso _seen.Add(name) Then
-            Dim sorted = _nameToProductions(name).OrderBy(Function(v) v)
+            Dim sorted = _nameToProductions(name).Distinct().OrderBy(Function(v) v)
             If sorted.Any() Then
                 result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
                           String.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine
