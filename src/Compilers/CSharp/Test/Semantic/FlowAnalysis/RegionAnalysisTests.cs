@@ -127,7 +127,7 @@ struct S
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Equal("i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("args, i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
