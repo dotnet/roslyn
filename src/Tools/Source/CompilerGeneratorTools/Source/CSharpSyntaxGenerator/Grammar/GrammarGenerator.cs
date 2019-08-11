@@ -109,6 +109,7 @@ namespace CSharpSyntaxGenerator.Grammar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if (type.Base != null && rules.TryGetValue(type.Base, out var productions))
                     productions.Add(RuleReference(type.Name));
 =======
@@ -192,6 +193,10 @@ namespace CSharpSyntaxGenerator.Grammar
                 if (type.Base is string nodeBase && nameToProductions.TryGetValue(nodeBase, out var baseProductions))
 >>>>>>> Simplify
                     baseProductions.Add(RuleReference(type.Name));
+=======
+                if (type.Base != null && nameToProductions.TryGetValue(type.Base, out var productions))
+                    productions.Add(RuleReference(type.Name));
+>>>>>>> Simplify
 
                 if (type is Node && type.Children.Count > 0)
 >>>>>>> Simplify
@@ -217,7 +222,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             // The grammar will bottom out with certain lexical productions. Create rules for these.
             var lexicalRules = nameToProductions.Values.SelectMany(ps => ps).SelectMany(p => p.ReferencedRules)
-                                                       .Where(r => !nameToProductions.ContainsKey(r)).ToArray();
+                .Where(r => !nameToProductions.TryGetValue(r, out var productions) || productions.Count == 0).ToArray();
             foreach (var name in lexicalRules)
                 nameToProductions[name] = new List<Production> { new Production("/* see lexical specification */") };
 
@@ -388,17 +393,15 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
                 {
                     // Order the productions to keep us independent from whatever changes happen in Syntax.xml.
                     var sorted = nameToProductions[name].OrderBy(v => v);
-                    if (sorted.Any())
-                    {
-                        result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
-                                  string.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine;
+                    result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
+                                string.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine;
 
-                        // Now proceed in depth-first fashion through the referenced rules to keep related rules
-                        // close by. Don't recurse into major-sections to help keep them separated in grammar file.
-                        foreach (var production in sorted)
-                            foreach (var referencedRule in production.ReferencedRules.Where(r => !majorRules.Concat(lexicalRules).Contains(r)))
+                    // Now proceed in depth-first fashion through the referenced rules to keep related rules
+                    // close by. Don't recurse into major-sections to help keep them separated in grammar file.
+                    foreach (var production in sorted)
+                        foreach (var referencedRule in production.ReferencedRules)
+                            if (!majorRules.Concat(lexicalRules).Contains(referencedRule))
                                 processRule(referencedRule, ref result);
-                    }
                 }
             }
 <<<<<<< HEAD
@@ -607,6 +610,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
             => (elementType != "SyntaxToken" ? RuleReference(elementType) :
                 field.Name == "Commas" ? new Production("','") :
                 field.Name == "Modifiers" ? RuleReference("Modifier") :
+<<<<<<< HEAD
                 field.Name == "TextTokens" ? RuleReference(nameof(SyntaxKind.XmlTextLiteralToken)) : RuleReference("Token"))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -616,15 +620,19 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
                     .WithSuffix(field.MinCount == 0 ? "*" : "+");
 >>>>>>> Simplify
 =======
+=======
+                field.Name == "TextTokens" ? RuleReference(nameof(SyntaxKind.XmlTextLiteralToken)) : RuleReference(elementType))
+>>>>>>> Simplify
                     .Suffix(field.MinCount == 0 ? "*" : "+");
 >>>>>>> Simplify
 
         private static Production HandleTokenField(Field field)
-            => field.Kinds.Count == 0 ? HandleTokenName(field.Name) : Join(" | ", field.Kinds.Select(
-                k => HandleTokenName(k.Name))).Parenthesize(when: field.Kinds.Count >= 2);
+            => field.Kinds.Count == 0
+                ? HandleTokenName(field.Name)
+                : Join(" | ", field.Kinds.Select(k => HandleTokenName(k.Name))).Parenthesize(when: field.Kinds.Count >= 2);
 
         private static Production HandleTokenName(string tokenName)
-            => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("Token") :
+            => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("SyntaxToken") :
                SyntaxFacts.GetText(kind) is var text && text != "" ? new Production(text == "'" ? "'\\''" : $"'{text}'") :
                tokenName.StartsWith("EndOf") ? new Production("") :
                tokenName.StartsWith("Omitted") ? new Production("/* epsilon */") : RuleReference(tokenName);

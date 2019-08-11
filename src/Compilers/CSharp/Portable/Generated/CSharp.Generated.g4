@@ -68,12 +68,16 @@ attribute_list
 attribute_target_specifier
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   : syntax_token ':'
 =======
   : identifier_token ':'
 >>>>>>> Generate
 =======
   : token ':'
+>>>>>>> Simplify
+=======
+  : syntax_token ':'
 >>>>>>> Simplify
   ;
 
@@ -1397,12 +1401,16 @@ directive_trivia
 bad_directive_trivia
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '#' syntax_token
 =======
   : '#' identifier_token
 >>>>>>> Generate
 =======
   : '#' token
+>>>>>>> Simplify
+=======
+  : '#' syntax_token
 >>>>>>> Simplify
   ;
 
@@ -1506,10 +1514,14 @@ documentation_comment_trivia
 
 skipped_tokens_trivia
 <<<<<<< HEAD
+<<<<<<< HEAD
   : syntax_token*
 =======
   : token*
 >>>>>>> Generate
+=======
+  : syntax_token*
+>>>>>>> Simplify
   ;
 
 base_argument_list
@@ -1548,10 +1560,14 @@ string_literal_token
   ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 syntax_token
 =======
 token
 >>>>>>> Generate
+=======
+syntax_token
+>>>>>>> Simplify
   : /* see lexical specification */
   ;
 
