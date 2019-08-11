@@ -1318,6 +1318,7 @@ cref_parameter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'in'? type
   | 'out'? type
   | 'ref'? type
@@ -1331,6 +1332,11 @@ cref_parameter
   : 'in' type
   | 'out' type
   | 'ref' type
+>>>>>>> Simplify
+=======
+  : 'in'? type
+  | 'out'? type
+  | 'ref'? type
 >>>>>>> Simplify
   ;
 

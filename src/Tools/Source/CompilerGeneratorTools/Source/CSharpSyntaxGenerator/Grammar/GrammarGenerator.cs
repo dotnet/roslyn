@@ -220,15 +220,23 @@ namespace CSharpSyntaxGenerator.Grammar
                     // Convert rules like `a: (x | y) ...` into:
                     // a: x ...
                     //  | y ...;
+<<<<<<< HEAD
                     if (type.Children[0] is Field field && field.IsToken && field.Kinds.Count >= 2)
 >>>>>>> Simplify
+=======
+                    if (type.Children[0] is Field field && field.IsToken && field.Kinds.Count > 0)
+>>>>>>> Simplify
                     {
-                        rules[type.Name].AddRange(field.Kinds.Select(k => HandleChildren(
-                            new[] { new Field { Type = "SyntaxToken", Kinds = { k } } }.Concat(type.Children.Skip(1)))));
-                        continue;
+                        foreach (var kind in field.Kinds)
+                        {
+                            field.Kinds = new List<Kind> { kind };
+                            rules[type.Name].Add(HandleChildren(type.Children));
+                        }
                     }
-
-                    rules[type.Name].Add(HandleChildren(type.Children));
+                    else
+                    {
+                        rules[type.Name].Add(HandleChildren(type.Children));
+                    }
                 }
             }
 
