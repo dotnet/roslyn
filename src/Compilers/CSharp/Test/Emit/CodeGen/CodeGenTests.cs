@@ -16705,7 +16705,7 @@ unsafe class Test
             var verifier = CompileAndVerify(source, expectedOutput: "AB");
             verifier.VerifyIL("C.G",
 @"{
-  // Code size       15 (0xf)
+  // Code size       27 (0x1b)
   .maxstack  4
   .locals init (object[] V_0)
   IL_0000:  ldarg.0
@@ -16715,10 +16715,16 @@ unsafe class Test
   IL_0004:  ldloc.0
   IL_0005:  ldc.i4.0
   IL_0006:  ldelem.ref
-  IL_0007:  ldarg.1
-  IL_0008:  call       ""string string.Concat(object, object)""
-  IL_000d:  stelem.ref
-  IL_000e:  ret
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_000e
+  IL_000a:  pop
+  IL_000b:  ldnull
+  IL_000c:  br.s       IL_0013
+  IL_000e:  callvirt   ""string object.ToString()""
+  IL_0013:  ldarg.1
+  IL_0014:  call       ""string string.Concat(string, string)""
+  IL_0019:  stelem.ref
+  IL_001a:  ret
 }");
         }
 
@@ -16789,7 +16795,7 @@ unsafe class Test
             var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
             verifier.VerifyIL("C.G",
 @"{
-  // Code size       22 (0x16)
+  // Code size       34 (0x22)
   .maxstack  4
   .locals init (object[] V_0,
                 int V_1)
@@ -16803,10 +16809,16 @@ unsafe class Test
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
   IL_000d:  ldelem.ref
-  IL_000e:  ldarg.1
-  IL_000f:  call       ""string string.Concat(object, object)""
-  IL_0014:  stelem.ref
-  IL_0015:  ret
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_001a
+  IL_0015:  callvirt   ""string object.ToString()""
+  IL_001a:  ldarg.1
+  IL_001b:  call       ""string string.Concat(string, string)""
+  IL_0020:  stelem.ref
+  IL_0021:  ret
 }");
         }
 

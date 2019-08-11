@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol, CancellationToken cancellationToken)
+        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
         {
             if (assemblySymbol == null)
             {
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            return _filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds)
+            return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
                 : ImmutableArray.Create<DocumentId>();
         }
@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
+            return state.GetPartialMetadataReference(this, fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)

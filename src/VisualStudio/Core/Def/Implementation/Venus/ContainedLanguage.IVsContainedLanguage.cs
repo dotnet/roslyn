@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            var view = field.GetValue(intellisenseHost) as IVsTextView;
-            if (view == null)
+            if (!(field.GetValue(intellisenseHost) is IVsTextView view))
             {
                 return null;
             }
@@ -77,14 +76,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int SetHost(IVsContainedLanguageHost host)
         {
+            if (ContainedDocument.ContainedLanguageHost == host)
+            {
+                return VSConstants.S_OK;
+            }
+
+            ContainedDocument.ContainedLanguageHost = host;
+
             // Are we going away due to the contained language being disconnected?
-            if (this.ContainedDocument.ContainedLanguageHost != null && host == null)
+            if (host == null)
             {
                 OnDisconnect();
-            }
-            else
-            {
-                ContainedDocument.ContainedLanguageHost = host;
             }
 
             return VSConstants.S_OK;

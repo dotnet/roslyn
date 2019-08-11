@@ -520,11 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        public static SyntaxNode GetParent(this SyntaxNode node)
-        {
-            return node != null ? node.Parent : null;
-        }
-
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
         {
             switch (node)
@@ -753,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInDeconstructionLeft(this SyntaxNode node, out SyntaxNode deconstructionLeft)
         {
             SyntaxNode previous = null;
-            for (var current = node; current != null; current = current.GetParent())
+            for (var current = node; current != null; current = current.Parent)
             {
                 if ((current is AssignmentExpressionSyntax assignment && previous == assignment.Left && assignment.IsDeconstruction()) ||
                     (current is ForEachVariableStatementSyntax @foreach && previous == @foreach.Variable))

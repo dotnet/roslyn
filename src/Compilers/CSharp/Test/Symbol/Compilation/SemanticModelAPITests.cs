@@ -17,6 +17,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
+        public void PatternIndexAndRangeIndexersSpeculativeModel()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    int Length => 0;
+    int this[int i] => i;
+    char Slice(int i, int j) => 'a';
+    void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }              
+}");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var m = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single(decl => decl.Identifier.ValueText == "M");
+            var m2 = m.WithoutTrailingTrivia();
+
+            var accesses = m.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList();
+            var indexerAccess = accesses[0];
+
+            model.TryGetSpeculativeSemanticModelForMethodBody(indexerAccess.SpanStart, m2, out var speculativeModel);
+
+            accesses = m2.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList();
+            indexerAccess = accesses[0];
+
+            var typeInfo = speculativeModel.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+
+            indexerAccess = accesses[1];
+            typeInfo = speculativeModel.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
+        }
+
+        [Fact]
         public void UnmanagedConstraintOnExtensionMethod()
         {
             var src = @"
@@ -51,9 +90,9 @@ public class Program
             comp2 = CreateCompilation(src2, parseOptions: TestOptions.Regular7_3,
                 references: new[] { comp1.ToMetadataReference() });
             comp2.VerifyDiagnostics(
-                // (11,11): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,11): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         s.GenericExtension();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "GenericExtension").WithArguments("unmanaged constructed types").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "GenericExtension").WithArguments("unmanaged constructed types", "8.0").WithLocation(11, 11));
 
             var info = checkSymbolInfo(comp2);
             Assert.Null(info.Symbol);

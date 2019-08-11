@@ -341,25 +341,23 @@ class C
         {
             Console.$$";//, @"Beep"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
 
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-                var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAsync(document, position);
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var service = CompletionService.GetService(document);
+            var completions = await service.GetCompletionsAsync(document, position);
 
-                var item = completions.Items.First(i => i.DisplayText == "Beep");
-                var edit = testDocument.GetTextBuffer().CreateEdit();
-                edit.Delete(Span.FromBounds(position - 10, position));
-                edit.Apply();
+            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var edit = testDocument.GetTextBuffer().CreateEdit();
+            edit.Delete(Span.FromBounds(position - 10, position));
+            edit.Apply();
 
-                var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(currentDocument, document);
-                var description = service.GetDescriptionAsync(document, item);
-            }
+            Assert.NotEqual(currentDocument, document);
+            var description = service.GetDescriptionAsync(document, item);
         }
     }
 }

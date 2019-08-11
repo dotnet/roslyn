@@ -1365,6 +1365,12 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
                 );
 
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "//langversion:?" }, WorkingDirectory, sdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2001: Source file '//langversion:?' could not be found.
+                Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments("//langversion:?").WithLocation(1, 1)
+                );
+
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/version", "c.csx" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
@@ -1623,17 +1629,15 @@ class C
             InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
-            InlineData(LanguageVersion.CSharp7, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Preview),
-            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
+            InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
             Assert.Equal(expectedMappedVersion, input.MapSpecifiedToEffectiveVersion());
             Assert.True(expectedMappedVersion.IsValid());
-
-            // https://github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from C# 8.0, we should update Default/Latest accordingly
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -3130,9 +3134,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3158,9 +3162,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3186,9 +3190,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3216,9 +3220,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: 25, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -4462,15 +4466,13 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "preview").WithLocation(1, 1));
+            parsedArgs.Errors.Verify();
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4479,9 +4481,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "preview").WithLocation(1, 1));
+            parsedArgs.Errors.Verify();
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:", "a.cs" }, WorkingDirectory);
@@ -4500,8 +4500,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:enable", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "preview").WithLocation(1, 1));
+                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.0. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1));
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:disable", "/langversion:7.0", "a.cs" }, WorkingDirectory);
@@ -4711,8 +4711,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4722,15 +4722,15 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:enable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4804,8 +4804,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:warnings", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Warnings' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.0", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Warnings' for C# 7.0. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Warnings, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4861,15 +4861,15 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:Warnings", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.3", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Warnings, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:annotations", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.0", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.0. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Annotations, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4925,8 +4925,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:Annotations", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.3", "preview").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Annotations, parsedArgs.CompilationOptions.NullableContextOptions);
         }
@@ -7917,7 +7917,7 @@ static void Main() {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected disable, restore or enable", outWriter.ToString().Trim());
+            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected 'disable' or 'restore'", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/nowarn:1634", source.ToString() }).Run(outWriter);

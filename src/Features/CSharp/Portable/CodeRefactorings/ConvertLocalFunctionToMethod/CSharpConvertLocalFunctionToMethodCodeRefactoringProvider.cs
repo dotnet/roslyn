@@ -33,16 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var localFunction = await refactoringHelperService.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;

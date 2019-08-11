@@ -55,7 +55,6 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(
-        AttributeTargets.Module |
         AttributeTargets.Class |
         AttributeTargets.Delegate |
         AttributeTargets.Interface |
@@ -167,6 +166,17 @@ namespace System.Diagnostics.CodeAnalysis
     public class DoesNotReturnAttribute : Attribute
     {
         public DoesNotReturnAttribute () { }
+    }
+}
+";
+
+        protected const string NotNullIfNotNullAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) { }
     }
 }
 ";
@@ -1841,6 +1851,9 @@ namespace System.Runtime.CompilerServices
 
             return comp;
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

@@ -266,9 +266,6 @@ class A
                 // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
-                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
                 // (6,33): error CS1003: Syntax error, ',' expected
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
@@ -277,7 +274,10 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
                 // (6,33): error CS1003: Syntax error, ']' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33),
+                // (6,33): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "").WithLocation(6, 33)
                 );
         }
 
@@ -4126,7 +4126,7 @@ class Program
     }
 }
 ";
-
+            // note: ErrorCode.ManagedAddr not given for Test1* because the base type after binding is considered to be System.Object
             CreateCompilation(test).GetDeclarationDiagnostics().Verify(
                 // (6,15): error CS1521: Invalid base type
                 // class Test3 : Test1*    // CS1521
@@ -4134,9 +4134,6 @@ class Program
                 // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Test1*").WithLocation(6, 15),
-                // (6,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Test1')
-                // class Test3 : Test1*    // CS1521
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Test1*").WithArguments("Test1").WithLocation(6, 15),
                 // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),

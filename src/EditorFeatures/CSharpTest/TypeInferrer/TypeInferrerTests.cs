@@ -151,7 +151,7 @@ var q = s ?? [|Goo()|];", "global::System.String");
         // This is skipped for now. This is a case where we know we can unilaterally mark the reference type as nullable, as long as the user has #nullable enable on.
         // But right now there's no compiler API to know if it is, so we have to skip this. Once there is an API, we'll have it always return a nullable reference type
         // and we'll remove the ? if it's in a non-nullable context no differently than we always generate types fully qualified and then clean up based on context.
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37178"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCoalesceInNullableEnabled()
         {
             await TestInMethodAsync(
@@ -1623,7 +1623,7 @@ for (string? s = [|Goo()|]; ; ) { }", "global::System.String?");
             await TestInMethodAsync(@"foreach (int v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37309"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForEachNullableElements()
         {
             await TestInMethodAsync(
@@ -2042,7 +2042,7 @@ class C
             await TestAsync(text, "global::System.Object");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32459")]
+        [Fact]
         public async Task TestArrayInitializerInImplicitArrayCreationInferredAsNullable()
         {
             var text =
@@ -2508,7 +2508,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Int32>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAwaitTaskOfTNullableValue()
         {
             var text =
@@ -3007,7 +3007,7 @@ class C
 @"(int i, _) =  [||]", "(global::System.Int32 i, global::System.Object _)", testNode: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36047"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDeconstructionWithNullableElement()
         {
             await TestInMethodAsync(
@@ -3031,7 +3031,7 @@ class C
             await TestAsync(text, "global::Program", testNode: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestInferringThroughGenericFunctionWithNullableReturn()
         {
             var text =
@@ -3048,6 +3048,40 @@ class Program
 }";
 
             await TestAsync(text, "global::System.String?");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringThroughGenericFunctionMissingArgument()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        string s = Identity([||]);
+    }
+
+    static T Identity<T>(T value) { return value; }
+}";
+
+            await TestAsync(text, "global::System.String", testNode: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringThroughGenericFunctionTooManyArguments()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        string s = Identity(""test"", [||]);
+    }
+
+    static T Identity<T>(T value) { return value; }
+}";
+
+            await TestAsync(text, "global::System.Object");
         }
     }
 }

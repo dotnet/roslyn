@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return mappedVersion >= parseOptions.LanguageVersion &&
-                mappedVersion < LanguageVersion.CSharp8 &&
                 parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
         }
     }

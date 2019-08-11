@@ -34,31 +34,18 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<IReplacePropertyWithMethodsService>();
             if (service == null)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var propertyDeclaration = service.GetPropertyDeclaration(token);
+            var propertyDeclaration = await service.GetPropertyDeclarationAsync(context).ConfigureAwait(false);
             if (propertyDeclaration == null)
             {
                 return;
             }
-
-            // var propertyName = service.GetPropertyName(propertyDeclaration);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration) as IPropertySymbol;
@@ -72,10 +59,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ? FeaturesResources.Replace_0_with_method
                 : FeaturesResources.Replace_0_with_methods;
 
-            // Looks good!
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
+                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                 propertyName));
         }
 

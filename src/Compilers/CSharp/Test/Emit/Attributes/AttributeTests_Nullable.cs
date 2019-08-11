@@ -934,6 +934,40 @@ C
         }
 
         [Fact]
+        public void EmitAttribute_TypeParameters()
+        {
+            var source =
+@"#nullable enable
+public interface I<T, U, V>
+    where U : class
+    where V : struct
+{
+    T F1();
+    U F2();
+    U? F3();
+    V F4();
+    V? F5();
+#nullable disable
+    T F6();
+    U F7();
+    U? F8();
+    V F9();
+    V? F10();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"I<T, U, V> where U : class! where V : struct
+    [Nullable(2)] T
+    [Nullable(1)] U
+    [NullableContext(1)] T F1()
+    [NullableContext(1)] U! F2()
+    [NullableContext(2)] U? F3()
+    [NullableContext(2)] U? F8()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Constraint_Nullable()
         {
             var source =
@@ -1695,6 +1729,37 @@ public class Program
         [Nullable({ 0, 2 })] System.Object?[] o
     System.IAsyncResult BeginInvoke(System.Object?[] o, System.AsyncCallback callback, System.Object @object)
         [Nullable({ 0, 2 })] System.Object?[] o
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_NestedEnum()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public enum E
+    {
+        A,
+        B
+    }
+    public object F1;
+    public object F2;
+    public object F3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F1
+    System.Object! F2
+    System.Object! F3
+    Program()
+    [NullableContext(0)] Program.E
+        A
+        B
+        E()
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -2566,6 +2631,91 @@ Program
         }
 
         [Fact]
+        [WorkItem(37161, "https://github.com/dotnet/roslyn/issues/37161")]
+        public void EmitPrivateMetadata_ExplicitImplementation()
+        {
+            var source =
+@"public interface I<T>
+{
+    T M(T[] args);
+    T P { get; set; }
+    T[] this[T index] { get; }
+}
+public class C : I<object?>
+{
+    object? I<object?>.M(object?[] args) => throw null!;
+    object? I<object?>.P { get; set; }
+    object?[] I<object?>.this[object? index] => throw null!;
+}";
+            // Attributes emitted for explicitly-implemented property and indexer, but not for accessors.
+            var expectedPublicOnly = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+C
+    [Nullable(2)] System.Object? I<System.Object>.P { get; set; }
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object index] { get; }
+";
+            // Attributes emitted for explicitly-implemented property and indexer, but not for accessors.
+            var expectedPublicAndInternal = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+C
+    [Nullable(2)] System.Object? I<System.Object>.P { get; set; }
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object index] { get; }
+";
+            var expectedAll = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+[NullableContext(2)] [Nullable(0)] C
+    System.Object? <I<System.Object>.P>k__BackingField
+    System.Object? I<System.Object>.M(System.Object?[]! args)
+        [Nullable({ 1, 2 })] System.Object?[]! args
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.get_Item(System.Object? index)
+        System.Object? index
+    C()
+    System.Object? I<System.Object>.P { get; set; }
+        System.Object? I<System.Object>.P.get
+        void I<System.Object>.P.set
+            System.Object? value
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object? index] { get; }
+        System.Object? index
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.get_Item(System.Object? index)
+        System.Object? index
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
         public void EmitPrivateMetadata_SynthesizedFields()
         {
             var source =
@@ -2749,7 +2899,7 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
-                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized. Consider declaring the event as nullable.
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
                 // (13,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
@@ -2788,7 +2938,7 @@ internal class B : I<object>
                 // (23,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 29),
-                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized. Consider declaring the event as nullable.
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29),
                 // (24,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
@@ -2812,10 +2962,10 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
-                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized. Consider declaring the event as nullable.
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
-                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized. Consider declaring the event as nullable.
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29)
                 );

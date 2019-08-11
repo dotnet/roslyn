@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
+        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
@@ -85,71 +87,93 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // which will be used to filter so the provider only returns out-of-scope types.
             var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
 
+            var tasksToGetCompletionItems = ArrayBuilder<Task<ImmutableArray<CompletionItem>>>.GetInstance();
+
             // Get completion items from current project. 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            await typeImportCompletionService.GetTopLevelTypesAsync(project, syntaxContext, HandlePublicAndInternalItem, cancellationToken)
-                .ConfigureAwait(false);
+            tasksToGetCompletionItems.Add(Task.Run(() => typeImportCompletionService.GetTopLevelTypesAsync(
+                project,
+                syntaxContext,
+                isInternalsVisible: true,
+                cancellationToken)));
 
-            // Get declarations from directly referenced projects and PEs
+            // Get declarations from directly referenced projects and PEs.
+            // This can be parallelized because we don't add items to CompletionContext
+            // until all the collected tasks are completed.
             var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols();
-            foreach (var assembly in referencedAssemblySymbols)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            tasksToGetCompletionItems.AddRange(
+                referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 
-                // Skip reference with only non-global alias.
-                var metadataReference = compilation.GetMetadataReference(assembly);
-                if (metadataReference.Properties.Aliases.IsEmpty ||
-                    metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
+            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
+            // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
+            // The trade-off is we might not provide unimported types until the cache is warmed up.
+            var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
+            var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
+
+            if (timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+            {
+                // No timeout. We now have all completion items ready. 
+                var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
+                foreach (var completionItems in completionItemsToAdd)
                 {
-                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                    if (assemblyProject != null && assemblyProject.SupportsCompilation)
-                    {
-                        await typeImportCompletionService.GetTopLevelTypesAsync(
-                            assemblyProject,
-                            syntaxContext,
-                            GetHandler(compilation.Assembly, assembly),
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (metadataReference is PortableExecutableReference peReference)
-                    {
-                        typeImportCompletionService.GetTopLevelTypesFromPEReference(
-                            project.Solution,
-                            compilation,
-                            peReference,
-                            syntaxContext,
-                            GetHandler(compilation.Assembly, assembly),
-                            cancellationToken);
-                    }
+                    AddItems(completionItems, completionContext, namespacesInScope, telemetryCounter);
                 }
+            }
+            else
+            {
+                // If timed out, we don't want to cancel the computation so next time the cache would be populated.
+                // We do not keep track if previous compuation for a given project/PE reference is still running. So there's a chance 
+                // we queue same computation again later. However, we expect such computation for an individual reference to be relatively 
+                // fast so the actual cycles wasted would be insignificant.
+                telemetryCounter.TimedOut = true;
             }
 
             telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
 
             return;
 
-            // Decide which item handler to use based on IVT
-            Action<CompletionItem, bool> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
-                => assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssembly)
-                        ? (Action<CompletionItem, bool>)HandlePublicAndInternalItem
-                        : HandlePublicItem;
-
-            // Add only public types to completion list
-            void HandlePublicItem(CompletionItem item, bool isPublic)
-                => AddItems(item, isPublic, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
-
-            // Add both public and internal types to completion list
-            void HandlePublicAndInternalItem(CompletionItem item, bool isPublic)
-                => AddItems(item, isPublic, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
-
-            static void AddItems(CompletionItem item, bool isPublic, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
+            async Task<ImmutableArray<CompletionItem>> HandleReferenceAsync(IAssemblySymbol referencedAssemblySymbol)
             {
-                if (isPublic || isInternalsVisible)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Skip reference with only non-global alias.
+                var metadataReference = compilation.GetMetadataReference(referencedAssemblySymbol);
+
+                if (metadataReference.Properties.Aliases.IsEmpty ||
+                    metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
+                {
+                    var assemblyProject = project.Solution.GetProject(referencedAssemblySymbol, cancellationToken);
+                    if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                    {
+                        return await typeImportCompletionService.GetTopLevelTypesAsync(
+                            assemblyProject,
+                            syntaxContext,
+                            isInternalsVisible: compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssemblySymbol),
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (metadataReference is PortableExecutableReference peReference)
+                    {
+                        return typeImportCompletionService.GetTopLevelTypesFromPEReference(
+                            project.Solution,
+                            compilation,
+                            peReference,
+                            syntaxContext,
+                            isInternalsVisible: compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssemblySymbol),
+                            cancellationToken);
+                    }
+                }
+
+                return ImmutableArray<CompletionItem>.Empty;
+            }
+
+            static void AddItems(ImmutableArray<CompletionItem> items, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
+            {
+                foreach (var item in items)
                 {
                     var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
                         // We can return cached item directly, item's span will be fixed by completion service.
-
                         // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
                         // the provider can not be used as a service by components that might be run in parallel 
                         // with completion, which would be a race.
@@ -185,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            if (ShouldCompleteWithFullyQualifyTypeName(document))
+            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
@@ -237,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
 
-            static bool ShouldCompleteWithFullyQualifyTypeName(Document document)
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
                 var workspace = document.Project.Solution.Workspace;
 
@@ -261,7 +285,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return true;
                 }
 
-                return false;
+                // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
+                // import container (e.g. namespace/class/etc. declarations).
+                //
+                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
+                // 
+                //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
+                //
+                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
+                // then we can add an using in the outer import container instead (this is not allowed in VB). 
+                //
+                // For example:
+                //
+                //      using System.Collections.Generic;
+                //      using System.Text;
+                //
+                //      namespace Foo
+                //      {
+                //          using CollectionOfStringBuilders = List<StringBuilder>;
+                //      }
+                //
+                // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
+                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -282,6 +327,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public int ReferenceCount { get; set; }
 
+            public bool TimedOut { get; set; }
+
             public TelemetryCounter()
             {
                 _tick = Environment.TickCount;
@@ -293,6 +340,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
                 CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
                 CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
+
+                if (TimedOut)
+                {
+                    CompletionProvidersLogger.LogTypeImportCompletionTimeout();
+                }
             }
         }
     }

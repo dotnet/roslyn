@@ -9280,5 +9280,75 @@ class Program
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ClassConstraint()
+        {
+            await AssertFormatAsync(
+                @"
+class Program<T>
+    where T : class?
+{
+}",
+                @"
+class Program<T>
+    where T : class ?
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLinePropertyPattern1()
+        {
+            await AssertFormatAsync(
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType()
+    {
+        _ = new List<int>() is
+        {
+            Count: { },
+        };
+    }
+}",
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType()
+    {
+        _ = new List<int>() is
+        {
+            Count:{},
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLinePropertyPattern2()
+        {
+            await AssertFormatAsync(
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType(object o)
+    {
+        _ = o is List<int> { Count: { } };
+    }
+}",
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType(object o)
+    {
+        _ = o is List<int>{Count:{}};
+    }
+}");
+        }
     }
 }

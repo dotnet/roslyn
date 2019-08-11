@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
 
             var adjustedStartingPosition = startingPosition;
-            foreach (var textSpanPair in documentReplacementSpans)
+            foreach (var (oldSpan, newSpan) in documentReplacementSpans)
             {
-                adjustedStartingPosition += textSpanPair.newSpan.Length - textSpanPair.oldSpan.Length;
+                adjustedStartingPosition += newSpan.Length - oldSpan.Length;
             }
 
             var documentComplexifiedSpans = _documentToComplexifiedSpansMap.ContainsKey(documentId)
@@ -98,17 +98,17 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 else
                 {
-                    foreach (var modifiedSpan in c.ModifiedSubSpans.OrderByDescending(t => t.oldSpan.Start))
+                    foreach (var (oldSpan, newSpan) in c.ModifiedSubSpans.OrderByDescending(t => t.oldSpan.Start))
                     {
-                        if (!appliedTextSpans.Any(s => s.Contains(modifiedSpan.oldSpan)))
+                        if (!appliedTextSpans.Any(s => s.Contains(oldSpan)))
                         {
-                            if (startingPosition == modifiedSpan.oldSpan.Start)
+                            if (startingPosition == oldSpan.Start)
                             {
-                                return startingPosition + modifiedSpan.newSpan.Start - modifiedSpan.oldSpan.Start;
+                                return startingPosition + newSpan.Start - oldSpan.Start;
                             }
-                            else if (startingPosition > modifiedSpan.oldSpan.Start)
+                            else if (startingPosition > oldSpan.Start)
                             {
-                                return startingPosition + modifiedSpan.newSpan.End - modifiedSpan.oldSpan.End;
+                                return startingPosition + newSpan.End - oldSpan.End;
                             }
                         }
                     }
@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var result = new Dictionary<TextSpan, TextSpan>();
             if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans))
             {
-                foreach (var pair in modifiedSpans)
+                foreach (var (oldSpan, newSpan) in modifiedSpans)
                 {
-                    result[pair.oldSpan] = pair.newSpan;
+                    result[oldSpan] = newSpan;
                 }
             }
 
@@ -261,9 +261,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var complexifiedSpan in complexifiedSpans)
                 {
-                    foreach (var pair in complexifiedSpan.ModifiedSubSpans)
+                    foreach (var (oldSpan, newSpan) in complexifiedSpan.ModifiedSubSpans)
                     {
-                        result[pair.oldSpan] = pair.newSpan;
+                        result[oldSpan] = newSpan;
                     }
                 }
             }

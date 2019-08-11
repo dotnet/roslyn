@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
@@ -51,8 +53,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                 var node = diagnostic.Location.FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
 
-                var typeSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as ITypeSymbol;
-                if (typeSymbol != null)
+                if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is ITypeSymbol typeSymbol)
                 {
                     var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
                     editor.ReplaceNode(node, replacementNode);

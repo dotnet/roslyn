@@ -29,17 +29,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _) &&
                 !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
             {
                 return;
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             // Only supported on classes/structs.
             var containingType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                semanticModel, root, textSpan.Start, cancellationToken);
+                semanticModel, root, textSpan.Start);
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)

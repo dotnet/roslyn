@@ -76,22 +76,21 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     if (haveDataId)
                     {
-                        using (var pooledConnection = Storage.GetPooledConnection())
-                        {
-                            // First, try to see if there was a write to this key in our in-memory db.
-                            var result = ReadBlob(
-                                pooledConnection.Connection, writeCacheDB: true,
-                                dataId, columnName, checksumOpt, cancellationToken);
-                            if (result != null)
-                            {
-                                return result;
-                            }
+                        using var pooledConnection = Storage.GetPooledConnection();
 
-                            // Wasn't in the in-memory write-cache.  Check the full on-disk file.
-                            return ReadBlob(
-                                pooledConnection.Connection, writeCacheDB: false,
-                                dataId, columnName, checksumOpt, cancellationToken);
+                        // First, try to see if there was a write to this key in our in-memory db.
+                        var result = ReadBlob(
+                            pooledConnection.Connection, writeCacheDB: true,
+                            dataId, columnName, checksumOpt, cancellationToken);
+                        if (result != null)
+                        {
+                            return result;
                         }
+
+                        // Wasn't in the in-memory write-cache.  Check the full on-disk file.
+                        return ReadBlob(
+                            pooledConnection.Connection, writeCacheDB: false,
+                            dataId, columnName, checksumOpt, cancellationToken);
                     }
                 }
 
@@ -195,11 +194,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             private bool ChecksumsMatch_MustRunInTransaction(
                 SqlConnection connection, bool writeCacheDB, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
-                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(writeCacheDB, DataTableName, ChecksumColumnName, rowId))
-                using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
-                {
-                    return reader != null && Checksum.ReadFrom(reader) == checksum;
-                }
+                using var checksumStream = connection.ReadBlob_MustRunInTransaction(writeCacheDB, DataTableName, ChecksumColumnName, rowId);
+                using var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken);
+
+                return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 
             protected bool GetAndVerifyRowId(SqlConnection connection, bool writeCacheDB, long dataId, out long rowId)
@@ -283,7 +281,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // to disk in the future.
                 Storage.EnqueueFlushTask();
             }
-
 
             public void FlushInMemoryDataToDisk(SqlConnection connection)
             {

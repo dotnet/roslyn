@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
-        // TODO: implement this once INamedTypeSymbol.Construct is fixed in https://github.com/dotnet/roslyn/issues/36046
-        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => NullableAnnotation.NotAnnotated);
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => t.GetNullability());
 
         public override int Arity => _constructedFrom.Arity;
 

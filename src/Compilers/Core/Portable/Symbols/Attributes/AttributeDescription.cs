@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMaybeNullAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfMaybeNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfNotNullAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfNotNullIfNotNullAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfDoesNotReturnIfAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfDoesNotReturnAttribute = { s_signature_HasThis_Void };
@@ -471,6 +472,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MaybeNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullAttribute", s_signaturesOfMaybeNullAttribute);
         internal static readonly AttributeDescription MaybeNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullWhenAttribute", s_signaturesOfMaybeNullWhenAttribute);
         internal static readonly AttributeDescription NotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullAttribute", s_signaturesOfNotNullAttribute);
+        internal static readonly AttributeDescription NotNullIfNotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullIfNotNullAttribute", s_signaturesOfNotNullIfNotNullAttribute);
         internal static readonly AttributeDescription NotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullWhenAttribute", s_signaturesOfNotNullWhenAttribute);
         internal static readonly AttributeDescription DoesNotReturnIfAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DoesNotReturnIfAttribute", s_signaturesOfDoesNotReturnIfAttribute);
         internal static readonly AttributeDescription DoesNotReturnAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DoesNotReturnAttribute", s_signaturesOfDoesNotReturnAttribute);

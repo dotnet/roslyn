@@ -123,6 +123,9 @@
   <data name="IDS_ThrowExpression" xml:space="preserve">
     <value>&lt;throw expression&gt;</value>
   </data>
+  <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
+    <value>&lt;switch expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -2822,10 +2825,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable, restore or enable</value>
+    <value>Expected 'disable' or 'restore'</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable, restore or enable after #pragma warning</value>
+    <value>Expected 'disable' or 'restore' after #pragma warning</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -4614,12 +4617,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5383,10 +5388,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' is uninitialized.</value>
+    <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field is uninitialized.</value>
+    <value>Non-nullable field is uninitialized. Consider declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>

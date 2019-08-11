@@ -1177,7 +1177,7 @@ class Class
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36044"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericAssignmentWithNestedNullableReferenceTypeBeingAssignedTo()
         {
             // Here, we are asserting that the return type of the generated method is T, effectively discarding

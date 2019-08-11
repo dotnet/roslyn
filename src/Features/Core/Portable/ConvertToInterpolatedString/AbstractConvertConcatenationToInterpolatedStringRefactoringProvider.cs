@@ -23,17 +23,16 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var (document, textSpan, cancellationToken) = context;
+
             // Currently only supported if there is no selection, to prevent possible confusion when
             // selecting part of what would become an interpolated string
-            if (context.Span.Length > 0)
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var document = context.Document;
-            var position = context.Span.Start;
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
@@ -91,10 +90,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(new MyCodeAction(
-                c => UpdateDocumentAsync(document, root, top, interpolatedString, c)));
+                _ => UpdateDocumentAsync(document, root, top, interpolatedString)));
         }
 
-        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString, CancellationToken c)
+        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
             var newRoot = root.ReplaceNode(top, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

@@ -28,15 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.Length > 0)
+            var (document, textSpan, cancellationToken) = context;
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(position).Parent;
             if (node == null)
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
+                        document, root, declaration, helper,
                         useExpressionBody: true, cancellationToken: c)));
                 succeeded = true;
             }
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
+                        document, root, declaration, helper,
                         useExpressionBody: false, cancellationToken: c)));
                 succeeded = true;
             }
@@ -119,12 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
-            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
+            UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var parseOptions = root.SyntaxTree.Options;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent

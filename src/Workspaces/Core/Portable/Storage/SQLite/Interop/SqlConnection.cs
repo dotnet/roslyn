@@ -119,14 +119,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public void ExecuteCommand(string command, bool throwOnError = true)
         {
-            using (var resettableStatement = GetResettableStatement(command))
+            using var resettableStatement = GetResettableStatement(command);
+            var statement = resettableStatement.Statement;
+            var result = statement.Step(throwOnError);
+            if (result != Result.DONE && throwOnError)
             {
-                var statement = resettableStatement.Statement;
-                var result = statement.Step(throwOnError);
-                if (result != Result.DONE && throwOnError)
-                {
-                    Throw(result);
-                }
+                Throw(result);
             }
         }
 

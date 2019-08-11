@@ -119,18 +119,24 @@ End Module")
 End Module")
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestMissingOnNonEmptySpan() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
+        Public Async Function TestSelection() As Task
+            Await TestFixOneAsync(
+"
         [|If a Then
             aMethod()
         Else
             bMethod()
         End If|]
-    End Sub
-End Module")
+",
+"
+        If Not a Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>

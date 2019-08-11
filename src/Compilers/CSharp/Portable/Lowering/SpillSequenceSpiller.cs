@@ -81,9 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundExpression ShallowClone()
-                => throw ExceptionUtilities.Unreachable;
-
             public void Free()
             {
                 if (_locals != null) _locals.Free();
@@ -546,7 +543,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
-            Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
             var builder = new BoundSpillSequenceBuilder();
 
             // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
@@ -848,15 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(
                 builder,
-                node.Update(
-                    operand,
-                    node.Conversion,
-                    isBaseConversion: node.IsBaseConversion,
-                    @checked: node.Checked,
-                    explicitCastInCode: node.ExplicitCastInCode,
-                    conversionGroupOpt: node.ConversionGroupOpt,
-                    constantValueOpt: node.ConstantValueOpt,
-                    type: node.Type));
+                node.UpdateOperand(operand));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)

@@ -29,22 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             string initialMarkup,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            if (actions.Length == 1)
             {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                if (actions.Length == 1)
-                {
-                    // The dialog shows up, not quick action
-                    Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
-                }
-                else if (actions.Length > 1)
-                {
-                    Assert.True(false, "Pull Members Up is provided via quick action");
-                }
-                else
-                {
-                    Assert.True(true);
-                }
+                // The dialog shows up, not quick action
+                Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
+            }
+            else if (actions.Length > 1)
+            {
+                Assert.True(false, "Pull Members Up is provided via quick action");
+            }
+            else
+            {
+                Assert.True(true);
             }
         }
 
@@ -2270,25 +2268,50 @@ namespace PushUpTest
         #region Selections and caret position
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        public async Task TestNoRefactoringCaretInArgs()
+        public async Task TestArgsIsPartOfHeader()
         {
-            var input = @"
+            var testText = @"
+using System;
+
 namespace PushUpTest
 {
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
     public class A
-    { 
+    {
     }
 
     public class B : A
     {
+        [Test]
+        [Test2]
         void C([||])
         {
-
         }
     }
 }";
+            var expected = @"
+using System;
 
-            await TestQuickActionNotProvidedAsync(input);
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+        [Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

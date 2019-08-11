@@ -229,6 +229,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckValue(result, valueKind, diagnostics);
         }
 
+        internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics);
+        }
+
+        /// <summary>
+        /// Bind an rvalue expression to its natural type.  For example, a switch expression that has not been
+        /// converted to another type has to be converted to its own natural type by applying a conversion to
+        /// that type to each of the arms of the switch expression.  This method is a bottleneck for ensuring
+        /// that such a conversion occurs when needed.  It also handles tuple expressions which need to be
+        /// converted to their own natural type because they may contain switch expressions.
+        /// </summary>
+        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            BoundExpression result;
+            switch (expression)
+            {
+                case BoundUnconvertedSwitchExpression expr:
+                    var commonType = expr.Type;
+                    var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
+                    bool hasErrors = expression.HasErrors;
+                    if (commonType is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                        commonType = CreateErrorType();
+                        hasErrors = true;
+                    }
+                    result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
+                    break;
+                case BoundTupleLiteral sourceTuple:
+                    result = new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        sourceTuple,
+                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
+                        sourceTuple.ArgumentNamesOpt,
+                        sourceTuple.InferredNamesOpt,
+                        sourceTuple.Type, // same type to keep original element names
+                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    break;
+                default:
+                    result = expression;
+                    break;
+            }
+
+            return result?.WithWasConverted();
+        }
+
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
         {
             var result = this.BindExpressionAllowArgList(node, diagnostics: diagnostics);
@@ -739,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundTupleLiteral(syntax, argumentNamesOpt: default, inferredPositions, subExpressions, tupleType);
+                        return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, subExpressions, tupleNames, inferredPositions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -824,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(node, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+            return new BoundTupleLiteral(node, boundArguments.ToImmutableAndFree(), elementNames, inferredPositions, tupleTypeOpt, hasErrors);
         }
 
         private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
@@ -1151,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = this.BindType(typeSyntax, diagnostics, out alias);
             TypeSymbol type = typeWithAnnotations.Type;
 
-            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(type, node, diagnostics);
+            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(Compilation, type, node.Location, diagnostics);
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
@@ -1161,21 +1208,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
-        private static bool CheckManagedAddr(TypeSymbol type, SyntaxNode node, DiagnosticBag diagnostics)
+        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
-            var managedKind = type.ManagedKind;
-            if (managedKind == ManagedKind.Managed)
+            switch (type.ManagedKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
-                return true;
+                case ManagedKind.Managed:
+                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
+                    return true;
+                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(compilation) is CSDiagnosticInfo diagnosticInfo:
+                    diagnostics.Add(diagnosticInfo, location);
+                    return true;
+                default:
+                    return false;
             }
-            else if (managedKind == ManagedKind.UnmanagedWithGenerics)
-            {
-                var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedConstructedTypes, diagnostics);
-                return !supported;
-            }
-
-            return false;
         }
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
@@ -2005,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberOpt = WellKnownMember.System_Range__StartAt;
                 }
 
-                if (!(memberOpt is null))
+                if (memberOpt is object)
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
                         Compilation,
@@ -2729,19 +2774,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral)
+                // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
+                if (!kind.IsIdentity)
                 {
-                    TypeWithAnnotations typeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
+                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
 
                     // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
-                    if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && typeWithAnnotations.Type.IsUnsafe())
+                    if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.IsUnsafe())
                     {
                         // CONSIDER: dev10 uses the call syntax, but this seems clearer.
                         ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
                         //CONSIDER: Return a bad expression so that HasErrors is true?
                     }
 
-                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, typeWithAnnotations.Type, diagnostics);
+                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -2758,6 +2804,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     Debug.Assert(parameterTypeWithAnnotations.HasType);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations);
+                }
+                else if (argument.NeedsToBeConverted())
+                {
+                    Debug.Assert(kind.IsIdentity);
+                    if (argument is BoundTupleLiteral sourceTuple)
+                    {
+                        TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
+                        // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
+                        arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                    }
+                    else
+                    {
+                        arguments[arg] = BindToNaturalType(argument, diagnostics);
+                    }
                 }
             }
         }
@@ -2885,8 +2945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
                     {
-                        var size = BindValue(arg, diagnostics, BindValueKind.RValue);
-                        Error(diagnostics, ErrorCode.ERR_InvalidArray, dimension[0]);
+                        var size = BindRValueWithoutTargetType(arg, diagnostics);
+                        Error(diagnostics, ErrorCode.ERR_InvalidArray, arg);
                         hasErrors = true;
                         // Capture the invalid sizes for `SemanticModel` and `IOperation`
                         sizes.Add(size);
@@ -2970,7 +3030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!bestType.IsErrorType())
             {
-                CheckManagedAddr(bestType, node, diagnostics);
+                CheckManagedAddr(Compilation, bestType, node.Location, diagnostics);
             }
 
             return BindStackAllocWithInitializer(
@@ -3323,7 +3383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
             if (!elementType.Type.IsErrorType())
             {
-                hasErrors = hasErrors || CheckManagedAddr(elementType.Type, elementTypeSyntax, diagnostics);
+                hasErrors = hasErrors || CheckManagedAddr(Compilation, elementType.Type, elementTypeSyntax.Location, diagnostics);
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;
@@ -3362,15 +3422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (countSyntax.Kind() != SyntaxKind.OmittedArraySizeExpression)
             {
                 count = BindValue(countSyntax, diagnostics, BindValueKind.RValue);
-                if (!count.HasAnyErrors)
+                count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
+                if (IsNegativeConstantForArraySize(count))
                 {
-                    // NOTE: this is different from how we would bind an array size (in which case we would allow uint, long, or ulong).
-                    count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
-                    if (!count.HasAnyErrors && IsNegativeConstantForArraySize(count))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
-                        hasErrors = true;
-                    }
+                    Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
+                    hasErrors = true;
                 }
             }
             else if (node.Initializer == null)
@@ -3397,7 +3453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalCSharp73SpanStackAllocPosition();
                 if (!inLegalPosition)
                 {
-                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node.GetFirstToken().GetLocation());
+                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node, node.GetFirstToken().GetLocation());
                 }
             }
 
@@ -3890,7 +3946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                BoundExpression argument = analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null;
+                BoundExpression argument = BindToNaturalType(analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null, diagnostics);
 
                 if (hasErrors)
                 {
@@ -4682,7 +4738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementInitializer,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
                     implicitReceiver,
-                    arguments: boundElementInitializerExpressions,
+                    arguments: boundElementInitializerExpressions.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
             }
@@ -5432,7 +5488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(node.Kind() == SyntaxKind.PointerMemberAccessExpression);
-                boundLeft = this.BindExpression(exprSyntax, diagnostics); // Not Color Color issues with ->
+                boundLeft = BindRValueWithoutTargetType(exprSyntax, diagnostics); // Not Color Color issues with ->
 
                 // CONSIDER: another approach would be to construct a BoundPointerMemberAccess (assuming such a type existed),
                 // but that would be much more cumbersome because we'd be unable to build upon the BindMemberAccess infrastructure,
@@ -5515,8 +5571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                     var newValueDiagnostics = new DiagnosticBag();
                                     newValueDiagnostics.AddRangeAndFree(valueDiagnostics);
-
-                                    return new BoundTypeOrValueExpression(left, new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
+                                    boundValue = BindToNaturalType(boundValue, newValueDiagnostics);
+                                    return new BoundTypeOrValueExpression(left,
+                                        new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
                                 }
                             }
                             break;
@@ -5631,6 +5688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If Goo itself is a dynamic thing (e.g. in `x.Goo.Bar`, `x` is dynamic, and we're
                 // currently checking Bar), then CheckValue will do nothing.
                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+                boundLeft = BindToNaturalType(boundLeft, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
             }
 
@@ -5803,6 +5861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // passing the receiver implicitly by ref (e.g. in a struct instance method invocation).
                                 // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+                                boundLeft = BindToNaturalType(boundLeft, diagnostics);
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             break;
@@ -6813,6 +6872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
+                receiver = BindToNaturalType(receiver, diagnostics);
 
                 return BindElementOrIndexerAccess(node, receiver, analyzedArguments, diagnostics);
             }
@@ -6986,7 +7046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                 {
                     result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
-                    if (!(result is null))
+                    if (result is object)
                     {
                         // This member is needed for lowering and should produce an error if not present
                         _ = GetWellKnownTypeMember(
@@ -7035,7 +7095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var attemptDiagnostics = DiagnosticBag.GetInstance();
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7051,7 +7111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
 
-            if (!(result is null))
+            if (result is object)
             {
                 diagnostics.AddRange(attemptDiagnostics);
             }
@@ -7519,12 +7579,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
+                            CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                arguments[0],
+                                BindToNaturalType(arguments[0], diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7543,7 +7605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        arguments[0],
+                        BindToNaturalType(arguments[0], diagnostics),
                         substring.ReturnType);
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7577,12 +7639,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]) &&
                             isIntNotByRef(original.Parameters[1]))
                         {
+                            CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                arguments[0],
+                                BindToNaturalType(arguments[0], diagnostics),
                                 method.ReturnType);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7598,7 +7662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 
@@ -8071,7 +8135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindConditionalAccessReceiver(ConditionalAccessExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var receiverSyntax = node.Expression;
-            var receiver = BindValue(receiverSyntax, diagnostics, BindValueKind.RValue);
+            var receiver = BindRValueWithoutTargetType(receiverSyntax, diagnostics);
             receiver = MakeMemberAccessValue(receiver, diagnostics);
 
             if (receiver.HasAnyErrors)

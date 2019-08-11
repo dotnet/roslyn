@@ -29,17 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         protected override string GetTitle()
             => CSharpFeaturesResources.Convert_to_foreach;
 
-        protected override bool IsValidCursorPosition(ForStatementSyntax forStatement, int cursorPos)
-        {
-            // If there isn't a selection, then we allow the refactoring from the start of
-            // 'for' to the start of the open paren, or in the trailing trivia of the c
-            // close paren.
-            var startSpan = TextSpan.FromBounds(forStatement.ForKeyword.SpanStart, forStatement.OpenParenToken.SpanStart);
-            var endSpan = TextSpan.FromBounds(forStatement.CloseParenToken.Span.End, forStatement.CloseParenToken.FullSpan.End);
-
-            return startSpan.IntersectsWith(cursorPos) || endSpan.IntersectsWith(cursorPos);
-        }
-
         protected override SyntaxList<StatementSyntax> GetBodyStatements(ForStatementSyntax forStatement)
             => forStatement.Statement is BlockSyntax block
                 ? block.Statements
@@ -78,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(
-                                iterationVariable, incrementor, out stepValueExpressionOpt, cancellationToken);
+                            return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
                         }
                     }
                 }
@@ -93,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         private static bool TryGetStepValue(
-            SyntaxToken iterationVariable, ExpressionSyntax incrementor,
-            out ExpressionSyntax stepValue, CancellationToken cancellationToken)
+            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax stepValue)
         {
             // support
             //  x++

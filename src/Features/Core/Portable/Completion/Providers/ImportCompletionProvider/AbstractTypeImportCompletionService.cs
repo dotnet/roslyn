@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -27,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             CacheService = workspace.Services.GetService<ITypeImportCompletionCacheService>();
         }
 
-        public async Task GetTopLevelTypesAsync(
+        public async Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
-            Action<CompletionItem, bool> handleItem,
+            bool isInternalsVisible,
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -43,22 +44,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
-            GetAccessibleTopLevelTypesWorker(
+            return GetAccessibleTopLevelTypesWorker(
                 project.Id,
                 compilation.Assembly,
                 checksum,
                 syntaxContext,
-                handleItem,
+                isInternalsVisible,
                 CacheService.ProjectItemsCache,
                 cancellationToken);
         }
 
-        public void GetTopLevelTypesFromPEReference(
+        public ImmutableArray<CompletionItem> GetTopLevelTypesFromPEReference(
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
-            Action<CompletionItem, bool> handleItem,
+            bool isInternalsVisible,
             CancellationToken cancellationToken)
         {
             var key = GetReferenceKey(peReference);
@@ -68,36 +69,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // making those items repeatedly, so simply not returning anything from this assembly, until 
                 // we have a better understanding on this sceanrio.
                 // TODO: Add telemetry
-                return;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
             {
-                return;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
-            GetAccessibleTopLevelTypesWorker(
+            return GetAccessibleTopLevelTypesWorker(
                 key,
                 assemblySymbol,
                 checksum,
                 syntaxContext,
-                handleItem,
+                isInternalsVisible,
                 CacheService.PEItemsCache,
                 cancellationToken);
-
-            return;
 
             static string GetReferenceKey(PortableExecutableReference reference)
                 => reference.FilePath ?? reference.Display;
         }
 
-        private void GetAccessibleTopLevelTypesWorker<TKey>(
+        private ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
             SyntaxContext syntaxContext,
-            Action<CompletionItem, bool> handleItem,
+            bool isInternalsVisible,
             IDictionary<TKey, ReferenceCacheEntry> cache,
             CancellationToken cancellationToken)
         {
@@ -113,10 +112,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 cache[key] = cacheEntry;
             }
 
-            foreach (var itemInfo in cacheEntry.GetItemsForContext(language, GenericTypeSuffix, syntaxContext.IsAttributeNameContext, IsCaseSensitive))
-            {
-                handleItem(itemInfo.Item, itemInfo.IsPublic);
-            }
+            return cacheEntry.GetItemsForContext(
+                language,
+                GenericTypeSuffix,
+                isInternalsVisible,
+                syntaxContext.IsAttributeNameContext,
+                IsCaseSensitive);
         }
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
@@ -238,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 private readonly string _genericTypeSuffix;
                 private readonly Checksum _checksum;
 
+                private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
+
                 public Builder(Checksum checksum, string language, string genericTypeSuffix)
                 {
                     _checksum = checksum;
@@ -246,8 +249,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                     _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 }
-
-                private ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
                 public ReferenceCacheEntry ToReferenceCacheEntry()
                 {
@@ -294,35 +295,43 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
-            public ImmutableArray<TypeImportCompletionItemInfo> GetItemsForContext(string language, string genericTypeSuffix, bool isAttributeContext, bool isCaseSensitive)
+            public ImmutableArray<CompletionItem> GetItemsForContext(
+                string language,
+                string genericTypeSuffix,
+                bool isInternalsVisible,
+                bool isAttributeContext,
+                bool isCaseSensitive)
             {
                 var isSameLanguage = Language == language;
                 if (isSameLanguage && !isAttributeContext)
                 {
-                    return ItemInfos;
+                    return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
                 }
 
-                var builder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                var builder = ArrayBuilder<CompletionItem>.GetInstance();
                 foreach (var info in ItemInfos)
                 {
-                    CompletionItem item = info.Item;
-                    if (isAttributeContext)
+                    if (info.IsPublic || isInternalsVisible)
                     {
-                        if (!info.IsAttribute)
+                        var item = info.Item;
+                        if (isAttributeContext)
                         {
-                            continue;
+                            if (!info.IsAttribute)
+                            {
+                                continue;
+                            }
+
+                            item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                         }
 
-                        item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
-                    }
+                        if (!isSameLanguage && info.IsGeneric)
+                        {
+                            // We don't want to cache this item.
+                            item = TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                        }
 
-                    if (!isSameLanguage && info.IsGeneric)
-                    {
-                        // We don't want to cache this item.
-                        item = TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                        builder.Add(item);
                     }
-
-                    builder.Add(info.WithItem(item));
                 }
 
                 return builder.ToImmutableAndFree();

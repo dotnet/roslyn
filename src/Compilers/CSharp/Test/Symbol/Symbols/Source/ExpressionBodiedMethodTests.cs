@@ -86,9 +86,9 @@ interface C
     int M() => 1;
 }", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
             comp.VerifyDiagnostics(
-                // (4,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     int M() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("default interface implementation").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(4, 9)
                 );
         }
 

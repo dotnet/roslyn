@@ -1962,12 +1962,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             }
-                        case BoundConvertedTupleLiteral tupleLiteral:
+                        case BoundConvertedTupleLiteral { SourceTuple: BoundTupleLiteral original }:
                             {
-                                // The bound tree always fully binds tuple literals. From the language point of
+                                // The bound tree fully binds tuple literals. From the language point of
                                 // view, however, converted tuple literals represent tuple conversions
                                 // from tuple literal expressions which may or may not have types
-                                type = tupleLiteral.SourceTuple.Type;
+                                type = original.Type;
                                 break;
                             }
                     }
@@ -3019,9 +3019,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
-                ? local
+                ? GetAdjustedLocalSymbol(local, forEachStatement.SpanStart)
                 : null;
         }
+
+        /// <summary>
+        /// Given a local symbol, gets an updated version of that local symbol adjusted for nullability analysis
+        /// if the analysis affects the local.
+        /// </summary>
+        /// <param name="originalSymbol">The original symbol from initial binding.</param>
+        /// <param name="position">The position the local was declared at.</param>
+        /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
+        internal abstract LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position);
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
@@ -5022,6 +5031,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override bool IsEventUsableAsFieldCore(int position, IEventSymbol symbol)
         {
             return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
+        }
+
+        public sealed override NullableContext GetNullableContext(int position)
+        {
+            var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+            NullableContextState contextState = syntaxTree.GetNullableContextState(position);
+            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+
+            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
+            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
+
+            return context;
+
+            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+                contextState switch
+                {
+                    null when defaultEnableState => (inheritedFlag | enableFlag),
+                    null => inheritedFlag,
+                    true => enableFlag,
+                    false => NullableContext.Disabled
+                };
         }
 
         #endregion

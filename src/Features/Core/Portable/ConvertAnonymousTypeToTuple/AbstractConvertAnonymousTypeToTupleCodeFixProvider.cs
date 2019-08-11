@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
@@ -117,8 +119,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 {
                     // Use the callback form as anonymous types may be nested, and we want to
                     // properly replace them even in that case.
-                    var anonCreation = current as TAnonymousObjectCreationExpressionSyntax;
-                    if (anonCreation == null)
+                    if (!(current is TAnonymousObjectCreationExpressionSyntax anonCreation))
                     {
                         return current;
                     }

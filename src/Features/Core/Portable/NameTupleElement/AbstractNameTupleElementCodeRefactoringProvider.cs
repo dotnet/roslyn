@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
+            var (document, span, cancellationToken) = context;
             var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
@@ -46,29 +43,9 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            if (span.Length > 0)
-            {
-                return default;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = span.Start;
-            var token = root.FindToken(position);
-            if (token.Span.Start == position &&
-                IsCloseParenOrComma(token))
-            {
-                token = token.GetPreviousToken();
-                if (token.Span.End != position)
-                {
-                    return default;
-                }
-            }
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var argument = root.FindNode(token.Span)
-                .GetAncestorsOrThis<TArgumentSyntax>()
-                .FirstOrDefault(node => syntaxFacts.IsTupleExpression(node.Parent));
-
+            var potentialArguments = await document.GetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
                 return default;
@@ -77,8 +54,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var tuple = (TTupleExpressionSyntax)argument.Parent;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType as INamedTypeSymbol;
-            if (tupleType == null)
+            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
             {
                 return default;
             }
@@ -97,6 +73,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (root, argument, element.Name);
         }
 

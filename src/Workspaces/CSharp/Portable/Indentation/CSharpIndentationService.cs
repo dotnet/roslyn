@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return s_instance;
         }
 
-        protected override AbstractIndenter GetIndenter(SyntacticDocument document, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
-            => new Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken);
-
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
@@ -172,8 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                var section = node as SwitchSectionSyntax;
-                if (section == null || section.Statements.Count == 0)
+                if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
                     return;
                 }
