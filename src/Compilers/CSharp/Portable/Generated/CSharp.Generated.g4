@@ -268,11 +268,16 @@ type_parameter_constraint
 
 class_or_struct_constraint
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'class' '?'?
   | 'struct' '?'?
 =======
   : ('class' | 'struct') '?'?
 >>>>>>> Generate
+=======
+  : 'class' '?'?
+  | 'struct' '?'?
+>>>>>>> Simplify
   ;
 
 constructor_constraint
@@ -500,11 +505,16 @@ break_statement
 
 checked_statement
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'checked' block
   | 'unchecked' block
 =======
   : ('checked' | 'unchecked') block
 >>>>>>> Generate
+=======
+  : 'checked' block
+  | 'unchecked' block
+>>>>>>> Simplify
   ;
 
 common_for_each_statement
@@ -853,11 +863,16 @@ cast_expression
 
 checked_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'checked' '(' expression ')'
   | 'unchecked' '(' expression ')'
 =======
   : ('checked' | 'unchecked') '(' expression ')'
 >>>>>>> Generate
+=======
+  : 'checked' '(' expression ')'
+  | 'unchecked' '(' expression ')'
+>>>>>>> Simplify
   ;
 
 conditional_access_expression
@@ -911,11 +926,16 @@ this_expression
 
 interpolated_string_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '$"' interpolated_string_content* '"'
   | '$@"' interpolated_string_content* '"'
 =======
   : ('$"' | '$@"') interpolated_string_content* '"'
 >>>>>>> Generate
+=======
+  : '$"' interpolated_string_content* '"'
+  | '$@"' interpolated_string_content* '"'
+>>>>>>> Simplify
   ;
 
 interpolated_string_content
@@ -1018,8 +1038,20 @@ prefix_unary_expression
   ;
 
 prefix_unary_expression
+<<<<<<< HEAD
   : ('+' | '-' | '~' | '!' | '++' | '--' | '&' | '*' | '^') expression
 >>>>>>> Do not sort tokens
+=======
+  : '!' expression
+  | '&' expression
+  | '*' expression
+  | '+' expression
+  | '++' expression
+  | '-' expression
+  | '--' expression
+  | '^' expression
+  | '~' expression
+>>>>>>> Simplify
   ;
 
 query_expression
@@ -1263,6 +1295,7 @@ member_cref
 conversion_operator_member_cref
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   : 'explicit' 'operator' type cref_parameter_list?
   | 'implicit' 'operator' type cref_parameter_list?
 =======
@@ -1271,6 +1304,10 @@ conversion_operator_member_cref
 =======
   : ('implicit' | 'explicit') 'operator' type cref_parameter_list?
 >>>>>>> Do not sort tokens
+=======
+  : 'explicit' 'operator' type cref_parameter_list?
+  | 'implicit' 'operator' type cref_parameter_list?
+>>>>>>> Simplify
   ;
 
 cref_parameter_list
@@ -1278,6 +1315,7 @@ cref_parameter_list
   ;
 
 cref_parameter
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   : 'in'? type
@@ -1289,6 +1327,11 @@ cref_parameter
 =======
   : ('ref' | 'out' | 'in')? type
 >>>>>>> Do not sort tokens
+=======
+  : 'in' type
+  | 'out' type
+  | 'ref' type
+>>>>>>> Simplify
   ;
 
 indexer_member_cref

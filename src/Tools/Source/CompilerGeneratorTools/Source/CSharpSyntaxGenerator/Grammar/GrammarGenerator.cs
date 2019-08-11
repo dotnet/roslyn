@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -206,6 +207,7 @@ namespace CSharpSyntaxGenerator.Grammar
 >>>>>>> Simplify
                 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Simplify
                     // Convert a rule of `a: (x | y | z)` into:
 =======
@@ -214,9 +216,15 @@ namespace CSharpSyntaxGenerator.Grammar
                     // a: x
                     //  | y;
                     if (type.Children.Count == 1 && type.Children[0] is Field field && field.IsToken)
+=======
+                    // Convert rules like `a: (x | y) ...` into:
+                    // a: x ...
+                    //  | y ...;
+                    if (type.Children[0] is Field field && field.IsToken && field.Kinds.Count >= 2)
+>>>>>>> Simplify
                     {
-                        rules[type.Name].AddRange(field.Kinds.Select(k =>
-                            HandleChildren(new List<TreeTypeChild> { new Field { Type = "SyntaxToken", Kinds = { k } } })));
+                        rules[type.Name].AddRange(field.Kinds.Select(k => HandleChildren(
+                            new[] { new Field { Type = "SyntaxToken", Kinds = { k } } }.Concat(type.Children.Skip(1)))));
                         continue;
                     }
 
@@ -482,6 +490,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Simplify
         private Production CreateProductionFromNodeChildren(TreeTypeChild[] children, string delim = " ")
 =======
@@ -495,6 +504,9 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 >>>>>>> Simplify
 =======
         private static Production HandleChildren(List<TreeTypeChild> children, string delim = " ")
+>>>>>>> Simplify
+=======
+        private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
 >>>>>>> Simplify
             => Join(delim, children.Select(child =>
                 child is Choice c ? HandleChildren(c.Children, delim: " | ").Parenthesize() :
