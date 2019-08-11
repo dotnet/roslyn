@@ -604,7 +604,7 @@ Public Class ParseNodeChild
 
 
     ' Gets the child type. Could return a NodeKind, List(NodeKind) containing the allowable node kinds of the child.
-    Public ReadOnly Property ChildKind() As Object
+    Public Property ChildKind() As Object
         Get
             If _childKind Is Nothing Then
                 Dim names(_childKindNames.Count - 1) As String
@@ -613,6 +613,10 @@ Public Class ParseNodeChild
             End If
             Return _childKind
         End Get
+
+        Set
+            _childKind = Value
+        End Set
     End Property
 
     Public ReadOnly Property DefaultChildKind() As ParseNodeKind

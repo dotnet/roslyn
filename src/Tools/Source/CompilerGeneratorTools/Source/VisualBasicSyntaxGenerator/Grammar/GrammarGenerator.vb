@@ -49,24 +49,23 @@ Friend Class GrammarGenerator
             If Not structureNode.Abstract Then
                 Dim children = GetAllChildrenOfStructure(structureNode)
 
-                ' Convert rules Like `a: (x | y)` into:
-                ' a x
-                '  | y;
-                If children.Count = 1 Then
+                ' Convert rules Like `a: (x | y) ...` into:
+                ' a: x ...
+                '  | y ...
+                If children.Count > 0 Then
                     Dim child = children(0)
                     Dim kinds = TryCast(child.ChildKind, List(Of ParseNodeKind))
                     If kinds IsNot Nothing Then
                         Dim childStructure = GetCommonStructure(kinds)
                         If childStructure.IsToken Then
                             For Each kind In kinds
-                                _nameToProductions(structureNode.Name).Add(HandleChildKind(structureNode, child, kind))
+                                child.ChildKind = kind
+                                _nameToProductions(structureNode.Name).Add(HandleChildren(structureNode, children))
                             Next
                             Continue For
                         End If
                     End If
-                End If
 
-                If children.Count > 0 Then
                     _nameToProductions(structureNode.Name).Add(HandleChildren(structureNode, children))
                 End If
             End If
@@ -129,8 +128,7 @@ Friend Class GrammarGenerator
         Dim childProduction = HandleChildKind(structureNode, child, child.ChildKind)
         Dim separatorProd = HandleChildKind(structureNode, child, child.SeparatorsKind)
 
-        Return childProduction.Suffix("(" + separatorProd.Text + " " + childProduction.Text + ")*").
-            Parenthesize().Suffix("?")
+        Return childProduction.Suffix("(" + separatorProd.Text + " " + childProduction.Text + ")*").Parenthesize().Suffix("?")
     End Function
 
     Private Function HandleList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production

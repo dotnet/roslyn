@@ -47,7 +47,8 @@ attribute
   ;
 
 attribute_target
-  : ('Assembly' | 'Module') ':'
+  : 'Assembly' ':'
+  | 'Module' ':'
   ;
 
 argument_list
@@ -354,7 +355,8 @@ type_parameter_list
   ;
 
 type_parameter
-  : ('In' | 'Out')? identifier_token type_parameter_constraint_clause?
+  : 'In'? identifier_token type_parameter_constraint_clause?
+  | 'Out'? identifier_token type_parameter_constraint_clause?
   ;
 
 type_parameter_constraint_clause
@@ -515,7 +517,8 @@ do_statement
   ;
 
 while_or_until_clause
-  : ('While' | 'Until') expression
+  : 'Until' expression
+  | 'While' expression
   ;
 
 else_if_statement
@@ -565,7 +568,8 @@ executable_statement
   ;
 
 add_remove_handler_statement
-  : ('AddHandler' | 'RemoveHandler') expression ',' expression
+  : 'AddHandler' expression ',' expression
+  | 'RemoveHandler' expression ',' expression
   ;
 
 assignment_statement
@@ -644,7 +648,8 @@ label
   ;
 
 label_statement
-  : (identifier_token | integer_literal_token) ':'
+  : identifier_token ':'
+  | integer_literal_token ':'
   ;
 
 local_declaration_statement
@@ -958,7 +963,22 @@ parenthesized_expression
   ;
 
 predefined_cast_expression
-  : ('CObj' | 'CBool' | 'CDate' | 'CChar' | 'CStr' | 'CDec' | 'CByte' | 'CSByte' | 'CUShort' | 'CShort' | 'CUInt' | 'CInt' | 'CULng' | 'CLng' | 'CSng' | 'CDbl') '(' expression ')'
+  : 'CBool' '(' expression ')'
+  | 'CByte' '(' expression ')'
+  | 'CChar' '(' expression ')'
+  | 'CDate' '(' expression ')'
+  | 'CDbl' '(' expression ')'
+  | 'CDec' '(' expression ')'
+  | 'CInt' '(' expression ')'
+  | 'CLng' '(' expression ')'
+  | 'CObj' '(' expression ')'
+  | 'CSByte' '(' expression ')'
+  | 'CShort' '(' expression ')'
+  | 'CSng' '(' expression ')'
+  | 'CStr' '(' expression ')'
+  | 'CUInt' '(' expression ')'
+  | 'CULng' '(' expression ')'
+  | 'CUShort' '(' expression ')'
   ;
 
 query_expression
@@ -1041,11 +1061,13 @@ ordering
   ;
 
 partition_clause
-  : ('Skip' | 'Take') expression
+  : 'Skip' expression
+  | 'Take' expression
   ;
 
 partition_while_clause
-  : ('Skip' | 'Take') 'While' expression
+  : 'Skip' 'While' expression
+  | 'Take' 'While' expression
   ;
 
 select_clause
@@ -1069,7 +1091,10 @@ type_of_expression
   ;
 
 unary_expression
-  : ('+' | '-' | 'Not' | 'AddressOf') expression
+  : '+' expression
+  | '-' expression
+  | 'AddressOf' expression
+  | 'Not' expression
   ;
 
 xml_member_access_expression
@@ -1193,7 +1218,8 @@ cref_signature
   ;
 
 cref_signature_part
-  : ('ByVal' | 'ByRef')? type?
+  : 'ByRef'? type?
+  | 'ByVal'? type?
   ;
 
 xml_name_attribute
@@ -1225,7 +1251,8 @@ xml_declaration_option
   ;
 
 xml_string
-  : ('"' | '\'') (xml_text_token)* ('"' | '\'')
+  : '"' (xml_text_token)* ('"' | '\'')
+  | '\'' (xml_text_token)* ('"' | '\'')
   ;
 
 xml_element
