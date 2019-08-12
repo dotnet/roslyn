@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                throw new Exception("Runtime platform not supported for testing");
+                throw new PlatformNotSupportedException("Runtime platform not supported for testing");
             }
 
             return Path.Combine(directory, "runtimes", ridName, "native", ilasmExeName);
