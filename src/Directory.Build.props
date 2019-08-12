@@ -18,7 +18,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
-    <MicroBuildVersion>2.0.55</MicroBuildVersion>
+    <MicroBuildVersion>2.0.57</MicroBuildVersion>
   </PropertyGroup>
 
   <ItemGroup>
