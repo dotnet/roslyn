@@ -231,9 +231,6 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading file '{0}': {1}</value>
-  </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
@@ -954,20 +951,6 @@ Additional information: {1}</value>
   <data name="Fading" xml:space="preserve">
     <value>Fading</value>
   </data>
-  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
-    <value>Changes are not allowed if the assembly has not been loaded.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
-  </data>
-  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
-    <value>Changes are not allowed while code is running.</value>
-  </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
@@ -988,12 +971,6 @@ Additional information: {1}</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
-    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
-    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>

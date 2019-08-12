@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 // fire and forget on a background thread:
                 try
                 {
-                    Task.Run(TrackActiveSpansAsync, _editSession.Cancellation.Token);
+                    Task.Run(TrackActiveSpansAsync, _editSession.CancellationToken);
                 }
                 catch (TaskCanceledException)
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     if (baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentActiveStatements) &&
                         TryGetSnapshot(document, out var snapshot))
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     lock (_trackingSpans)
                     {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     // Do nothing if the statements aren't available (in presence of compilation errors).
                     if (!documentAnalysis.ActiveStatements.IsDefault)

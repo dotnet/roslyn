@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
-            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
+            var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
                 context.RegisterCodeFix(

@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // try to retrieve projectId/documentId from id if possible.
                 if (id is LiveDiagnosticUpdateArgsId argsId)
                 {
-                    CurrentDocumentId = CurrentDocumentId ?? argsId.Key as DocumentId;
-                    CurrentProjectId = CurrentProjectId ?? (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
+                    CurrentDocumentId ??= argsId.Key as DocumentId;
+                    CurrentProjectId ??= (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
                 }
 
                 _builder = null;
             }
 
-            protected StateManager StateManager => this.Owner._stateManager;
+            protected StateManager StateManager => Owner._stateManager;
 
             protected Project CurrentProject => CurrentSolution.GetProject(CurrentProjectId);
             protected Document CurrentDocument => CurrentSolution.GetDocument(CurrentDocumentId);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var stateSet = this.StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
+                var stateSet = StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
                 if (stateSet == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // create builder only if there is suppressed diagnostics
                 ImmutableArray<DiagnosticData>.Builder builder = null;
-                for (int i = 0; i < diagnostics.Length; i++)
+                for (var i = 0; i < diagnostics.Length; i++)
                 {
                     var diagnostic = diagnostics[i];
                     if (diagnostic.IsSuppressed)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (builder == null)
                         {
                             builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-                            for (int j = 0; j < i; j++)
+                            for (var j = 0; j < i; j++)
                             {
                                 builder.Add(diagnostics[j]);
                             }

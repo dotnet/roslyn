@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
         {
             internal static readonly Type Type = typeof(FileNotFoundException);
 
-            private static PropertyInfo s_fusionLog = Type.GetTypeInfo().GetDeclaredProperty("FusionLog");
+            private static readonly PropertyInfo s_fusionLog = Type.GetTypeInfo().GetDeclaredProperty("FusionLog");
 
             internal static string TryGetFusionLog(object obj) => s_fusionLog?.GetValue(obj) as string;
         }

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             context.RegisterCodeFix(new MyCodeAction(
                 title,
-                c => this.FixAsync(context.Document, context.Diagnostics[0], c),
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
                 diagnosticId), context.Diagnostics);
         }
 

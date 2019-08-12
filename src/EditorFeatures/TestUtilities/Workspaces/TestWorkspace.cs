@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.ChangeDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return this.CanApplyChangeDocument;
 
                 case ApplyChangesKind.AddProjectReference:

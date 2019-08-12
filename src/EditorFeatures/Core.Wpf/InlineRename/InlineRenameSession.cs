@@ -10,21 +10,23 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -68,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ReplacementTextChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        /// <summary>
+        /// Information about whether a file rename should be allowed as part
+        /// of the rename operation, as determined by the language
+        /// </summary>
+        public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -148,6 +156,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+
+            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+
+            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynInlineRenameFile)
+                && _renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
+            {
+                FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
+            }
+            else
+            {
+                FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
+            }
 
             InitializeOpenBuffers(triggerSpan);
         }
@@ -238,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_workspace.Kind == WorkspaceKind.Interactive)
             {
                 Debug.Assert(buffer.GetRelatedDocuments().Count() == 1);
-                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
+                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(VisualStudio.Text.Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
                 if (buffer.IsReadOnly(0))
                 {
                     return false;
@@ -731,6 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // the trees for them.  If we don't support syntax, then just use the text of
                     // the document.
                     var newDocument = newSolution.GetDocument(id);
+
                     if (newDocument.SupportsSyntaxTree)
                     {
                         var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
@@ -741,11 +762,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentText(id, newText);
                     }
+
+                    // Make sure to include any document rename as well
+                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
                 }
 
                 if (_workspace.TryApplyChanges(finalSolution))
                 {
-                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
+                    // Since rename can apply file changes as well, and those file 
+                    // changes can generate new document ids, include added documents
+                    // as well as changed documents. This also ensures that any document
+                    // that was removed is not included
+                    var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
+
+                    var finalChangedIds = finalChanges
+                            .GetProjectChanges()
+                            .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                            .ToList();
+
+                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                     {
                         var notificationService = _workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(

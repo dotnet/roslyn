@@ -77,6 +77,9 @@ namespace AnalyzerRunner
                 }
             }
 
+            Console.WriteLine("Pausing 5 seconds before continuing analysis...");
+            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+
             var incrementalAnalyzerProviders = exportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>();
 
             foreach (var incrementalAnalyzerName in _options.IncrementalAnalyzerNames)

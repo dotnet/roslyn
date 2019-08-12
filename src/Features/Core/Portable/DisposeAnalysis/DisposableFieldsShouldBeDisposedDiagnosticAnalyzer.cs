@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -119,8 +118,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 foreach (var kvp in _fieldDisposeValueMap)
                 {
-                    IFieldSymbol field = kvp.Key;
-                    bool disposed = kvp.Value;
+                    var field = kvp.Key;
+                    var disposed = kvp.Value;
                     if (!disposed)
                     {
                         // Disposable field '{0}' is never disposed
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             }
                         }
 
-                        PointsToAbstractValue assignedPointsToValue = lazyPointsToAnalysisResult[simpleAssignmentOperation.Value.Kind, simpleAssignmentOperation.Value.Syntax];
+                        var assignedPointsToValue = lazyPointsToAnalysisResult[simpleAssignmentOperation.Value.Kind, simpleAssignmentOperation.Value.Syntax];
                         foreach (var location in assignedPointsToValue.Locations)
                         {
                             if (_disposeAnalysisHelper.IsDisposableCreationOrDisposeOwnershipTransfer(location, containingMethod))
@@ -258,22 +257,22 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         disposeAnalysisResult: out var disposeAnalysisResult,
                         pointsToAnalysisResult: out var pointsToAnalysisResult))
                     {
-                        BasicBlock exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
                         foreach (var fieldWithPointsToValue in disposeAnalysisResult.TrackedInstanceFieldPointsToMap)
                         {
-                            IFieldSymbol field = fieldWithPointsToValue.Key;
-                            PointsToAbstractValue pointsToValue = fieldWithPointsToValue.Value;
+                            var field = fieldWithPointsToValue.Key;
+                            var pointsToValue = fieldWithPointsToValue.Value;
 
                             if (!_disposableFields.Contains(field))
                             {
                                 continue;
                             }
 
-                            ImmutableDictionary<AbstractLocation, DisposeAbstractValue> disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
+                            var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                             var disposed = false;
                             foreach (var location in pointsToValue.Locations)
                             {
-                                if (disposeDataAtExit.TryGetValue(location, out DisposeAbstractValue disposeValue))
+                                if (disposeDataAtExit.TryGetValue(location, out var disposeValue))
                                 {
                                     switch (disposeValue.Kind)
                                     {

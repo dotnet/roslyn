@@ -33,7 +33,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -64,7 +65,8 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -92,7 +94,8 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -123,7 +126,8 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -187,7 +191,8 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also https://github.com/dotnet/roslyn/issues/36763
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -198,58 +203,8 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
-        [WorkItem(33829, "https://github.com/dotnet/roslyn/issues/33829")]
-        public void DocumentStateTrackingReadonlyInRunMode()
-        {
-            SetupMultiProjectSolution();
-            var project = new ProjectUtils.Project(ProjectName);
-            var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
-            var cSharpLibrary = new ProjectUtils.Project("CSharpLibrary1");
-
-            VisualStudio.Editor.SetText(@"
-Imports System
-Imports BasicLibrary1
-Module Module1
-    Sub Main()
-        Console.Read()
-    End Sub
-End Module
-");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            VisualStudio.Debugger.Go(waitForBreakMode: false);
-            VisualStudio.ActivateMainWindow();
-            VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
-
-            VisualStudio.SendKeys.Send(VirtualKey.T);
-            string editAndContinueDialogName = "Edit and Continue";
-            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
-            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
-
-            // This module is referred by the loaded module, but not used. So this will not be loaded
-            VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
-            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
-            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
-
-            //  This module is not referred by the loaded module. this will not be loaded
-            VisualStudio.SolutionExplorer.OpenFile(cSharpLibrary, "File1.cs");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
-
-            string microsoftVisualStudioDialogName = "Microsoft Visual Studio";
-            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudioDialogName);
-            VisualStudio.Dialog.Click(microsoftVisualStudioDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudioDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
-        }
-
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also https://github.com/dotnet/roslyn/issues/36763
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -272,7 +227,8 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        // Also https://github.com/dotnet/roslyn/issues/36763
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -305,6 +261,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
+        // Also https://github.com/dotnet/roslyn/issues/36763
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {

@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
-                    new LocalizableResourceString(
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
+                   LanguageNames.CSharp,
+                   new LocalizableResourceString(
                         nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
