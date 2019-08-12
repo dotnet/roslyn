@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string GetIlasmPath()
         {
+            if (ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                // The destkop ilasm is still necessary because a number of our tests depend on being able to 
+                // emit PDB files for net modules. That feature is not available on coreclr ilasm.
+                return Path.Combine(
+                    Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
+                    "ilasm.exe");
+            }
+
             var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
             var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
             string ridName;
