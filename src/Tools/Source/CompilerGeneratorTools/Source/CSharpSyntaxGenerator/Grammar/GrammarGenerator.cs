@@ -571,6 +571,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
         private static Production HandleSeparatedList(Field field, string elementType)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         {
             var result = RuleReference(elementType).WithSuffix(" (',' " + RuleReference(elementType) + ")*").WithSuffixIf(field.AllowTrailingSeparator != null, " ','?");
             return field.MinCount != null ? result : result.Parenthesize().WithSuffix("?");
@@ -596,6 +597,10 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
 >>>>>>> Simplify
 =======
             => RuleReference(elementType).Suffix(" (',' " + RuleReference(elementType) + ")*")
+=======
+            => RuleReference(elementType).Suffix(" (',' " + RuleReference(elementType) + ")")
+                .Suffix("*", when: field.MinCount < 2).Suffix("+", when: field.MinCount >= 2)
+>>>>>>> Require at least 2 elements for tuple exprs and types
                 .Suffix(" ','?", when: field.AllowTrailingSeparator)
                 .Parenthesize(when: field.MinCount == 0).Suffix("?", when: field.MinCount == 0);
 >>>>>>> Simplify

@@ -457,10 +457,14 @@ ref_type
 
 tuple_type
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '(' tuple_element (',' tuple_element)+ ')'
 =======
   : '(' tuple_element (',' tuple_element)* ')'
 >>>>>>> Define types before statements and exprs.
+=======
+  : '(' tuple_element (',' tuple_element)+ ')'
+>>>>>>> Require at least 2 elements for tuple exprs and types
   ;
 
 tuple_element
@@ -1153,10 +1157,14 @@ throw_expression
 
 tuple_expression
 <<<<<<< HEAD
+<<<<<<< HEAD
   : '(' argument (',' argument)+ ')'
 =======
   : '(' argument (',' argument)* ')'
 >>>>>>> Generate
+=======
+  : '(' argument (',' argument)+ ')'
+>>>>>>> Require at least 2 elements for tuple exprs and types
   ;
 
 type_of_expression
