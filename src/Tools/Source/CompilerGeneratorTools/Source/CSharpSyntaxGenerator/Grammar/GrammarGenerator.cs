@@ -104,7 +104,8 @@ namespace CSharpSyntaxGenerator.Grammar
                field.IsToken ? HandleTokenField(field) : RuleReference(field.Type);
 
         private static Production HandleSeparatedList(Field field, string elementType)
-            => RuleReference(elementType).Suffix(" (',' " + RuleReference(elementType) + ")*")
+            => RuleReference(elementType).Suffix(" (',' " + RuleReference(elementType) + ")")
+                .Suffix("*", when: field.MinCount < 2).Suffix("+", when: field.MinCount >= 2)
                 .Suffix(" ','?", when: field.AllowTrailingSeparator)
                 .Parenthesize(when: field.MinCount == 0).Suffix("?", when: field.MinCount == 0);
 

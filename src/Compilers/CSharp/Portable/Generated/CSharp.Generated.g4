@@ -371,7 +371,7 @@ ref_type
   ;
 
 tuple_type
-  : '(' tuple_element (',' tuple_element)* ')'
+  : '(' tuple_element (',' tuple_element)+ ')'
   ;
 
 tuple_element
@@ -948,7 +948,7 @@ throw_expression
   ;
 
 tuple_expression
-  : '(' argument (',' argument)* ')'
+  : '(' argument (',' argument)+ ')'
   ;
 
 type_of_expression
