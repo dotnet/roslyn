@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Get
         End Property
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35820")>
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub MethodImplementation_01()
 
@@ -2915,7 +2915,7 @@ BC30389: 'I1.T1' is not accessible in this context because it is 'Private Protec
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35820")>
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_001()
 
@@ -2940,7 +2940,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'P1' for interface 'I1'.
+BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
     Implements I1
                ~~
 </errors>
@@ -6580,7 +6580,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35820")>
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_089()
 
@@ -6605,7 +6605,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'P1' for interface 'I1'.
+BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
     Implements I1
                ~~
 </errors>
@@ -7846,7 +7846,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Frie
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35820")>
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_122()
 
@@ -7871,7 +7871,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'P1' for interface 'I1'.
+BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
     Implements I1
                ~~
 </errors>
@@ -9114,7 +9114,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Frie
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35820")>
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub EventImplementation_01()
 
@@ -9139,7 +9139,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'P1' for interface 'I1'.
+BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
     Implements I1
                ~~
 </errors>
