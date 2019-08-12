@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+        Friend Shared ReadOnly s_exportCatalog As Lazy(Of ComposableCatalog) = New Lazy(Of ComposableCatalog)(
             Function()
                 Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
@@ -49,14 +49,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(VsMetadataServiceFactory),
                                             GetType(VisualStudioMetadataReferenceManagerFactory),
                                             GetType(MockWorkspaceEventListenerProvider))
-                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+
+                Return catalog
             End Function)
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
-        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
-            ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
+        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True, Optional exportProviderFactory As IExportProviderFactory = Nothing)
+
+            If exportProviderFactory Is Nothing Then
+                exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_exportCatalog.Value)
+            End If
+
+            ExportProvider = exportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance

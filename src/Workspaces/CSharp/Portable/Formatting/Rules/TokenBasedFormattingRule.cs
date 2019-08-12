@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.Kind() == SyntaxKind.NullableType)
+                currentToken.Parent.IsKind(SyntaxKind.NullableType, SyntaxKind.ClassConstraint))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

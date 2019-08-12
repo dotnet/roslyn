@@ -13244,24 +13244,24 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
 
             comp.VerifyDiagnostics(
                 // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
-                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T>
+                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
                 // (35,23): error CS0527: Type 'ValueTuple<int, int, int, int, int, int, int, T>' in interface list is not an interface
-                // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T>
+                // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(35, 23),
-                // (25,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
+                // (25,69): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
                 //     public static ValueTuple<int, int, int, int, int, int, int, T>* M5()
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ValueTuple<int, int, int, int, int, int, int, T>*").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 19),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
                 // (23,74): error CS0066: 'Test<T>.E1': event must be of a delegate type
                 //     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E1").WithArguments("Test<T>.E1").WithLocation(23, 74),
                 // (7,44): error CS0070: The event 'Test<(int, int)>.E1' can only appear on the left hand side of += or -= (except when used from within the type 'Test<(int, int)>')
                 //         var x = Test<ValueTuple<int, int>>.E1;
                 Diagnostic(ErrorCode.ERR_BadEventUsage, "E1").WithArguments("Test<(int, int)>.E1", "Test<(int, int)>").WithLocation(7, 44),
-                // (14,37): error CS1061: 'Test1<(int, int)>' does not contain a definition for 'Item8' and no extension method 'Item8' accepting a first argument of type 'Test1<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
+                // (14,37): error CS1061: 'Test1<(int, int)>' does not contain a definition for 'Item8' and no accessible extension method 'Item8' accepting a first argument of type 'Test1<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v1.Item8);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item8").WithArguments("Test1<(int, int)>", "Item8").WithLocation(14, 37),
-                // (17,37): error CS1061: 'ITest2<(int, int)>' does not contain a definition for 'Item8' and no extension method 'Item8' accepting a first argument of type 'ITest2<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
+                // (17,37): error CS1061: 'ITest2<(int, int)>' does not contain a definition for 'Item8' and no accessible extension method 'Item8' accepting a first argument of type 'ITest2<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v2.Item8);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item8").WithArguments("ITest2<(int, int)>", "Item8").WithLocation(17, 37)
                 );

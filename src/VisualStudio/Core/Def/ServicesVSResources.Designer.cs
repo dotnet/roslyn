@@ -3382,6 +3382,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use .editorconfig compatibility mode (requires restart).
+        /// </summary>
+        internal static string Use_editorconfig_compatibility_mode {
+            get {
+                return ResourceManager.GetString("Use_editorconfig_compatibility_mode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use enhanced colors for C# and Basic.
         /// </summary>
         internal static string Use_enhanced_colors_for_C_and_Basic {
