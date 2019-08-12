@@ -34,28 +34,6 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             // maximum number of symbols to report per project.
             private const int Max = 2000;
 
-            /// <summary>
-            /// A verbose format for symbols.
-            /// </summary>
-            private static readonly SymbolDisplayFormat verboseFormat =
-                new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                    propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                    memberOptions:
-                        SymbolDisplayMemberOptions.IncludeParameters |
-                        SymbolDisplayMemberOptions.IncludeContainingType |
-                        SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                    parameterOptions:
-                        SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                        SymbolDisplayParameterOptions.IncludeExtensionThis |
-                        SymbolDisplayParameterOptions.IncludeType,
-                    miscellaneousOptions:
-                        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-
             private const string EventName = "vs/compilers/api";
             private const string PropertyName = "vs.compilers.api.pii";
 
@@ -115,9 +93,8 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     // mark all string as PII (customer data)
                     AssemblyName = new TelemetryPiiProperty(g.Key.Identity.Name),
                     AssemblyVersion = g.Key.Identity.Version.ToString(),
-                    Symbols = g.Select(s => new TelemetryPiiProperty(s.ToDisplayString(verboseFormat)))
+                    Symbols = g.Select(s => s.GetDocumentationCommentId()).Where(id => id != null).Select(id => new TelemetryPiiProperty(id))
                 });
-
 
                 lock (_reported)
                 {
