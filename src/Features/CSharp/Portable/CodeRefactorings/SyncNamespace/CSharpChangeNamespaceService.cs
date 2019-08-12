@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             old = @new = nameRef;
             return false;
 
-            static bool TryGetGlobalQualifiedName(ImmutableArray<string> newNamespaceParts, SimpleNameSyntax nameNode, string? aliasQualifier, out SyntaxNode newNode)
+#nullable enable
+            static bool TryGetGlobalQualifiedName(ImmutableArray<string> newNamespaceParts, SimpleNameSyntax nameNode, string? aliasQualifier, out SyntaxNode? newNode)
             {
                 if (IsGlobalNamespace(newNamespaceParts))
                 {
@@ -216,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 newNode = null;
                 return false;
             }
+#nullable restore
         }
 
         /// <summary>
