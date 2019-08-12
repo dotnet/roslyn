@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Spin off tasks to do all our searching in parallel
                 var tasks = new List<Task<ImmutableArray<SymbolReference>>>
                 {
-                    this.GetReferencesForMatchingTypesAsync(searchScope),
-                    this.GetReferencesForMatchingNamespacesAsync(searchScope),
-                    this.GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    this.GetReferencesForMatchingExtensionMethodsAsync(searchScope),
+                    GetReferencesForMatchingTypesAsync(searchScope),
+                    GetReferencesForMatchingNamespacesAsync(searchScope),
+                    GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
+                    GetReferencesForMatchingExtensionMethodsAsync(searchScope),
                 };
 
                 // Searching for things like "Add" (for collection initializers) and "Select"
@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // query expression valid.
                 if (searchScope.Exact)
                 {
-                    tasks.Add(this.GetReferencesForCollectionInitializerMethodsAsync(searchScope));
-                    tasks.Add(this.GetReferencesForQueryPatternsAsync(searchScope));
-                    tasks.Add(this.GetReferencesForDeconstructAsync(searchScope));
-                    tasks.Add(this.GetReferencesForGetAwaiterAsync(searchScope));
+                    tasks.Add(GetReferencesForCollectionInitializerMethodsAsync(searchScope));
+                    tasks.Add(GetReferencesForQueryPatternsAsync(searchScope));
+                    tasks.Add(GetReferencesForDeconstructAsync(searchScope));
+                    tasks.Add(GetReferencesForGetAwaiterAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
                     // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                     // allow 'Black' to bind.
-                    var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                    var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                     if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
                     {
                         var expression =
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         if (expression is TSimpleNameSyntax)
                         {
                             // Check if the expression before the dot binds to a property or field.
-                            var symbol = this._semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
+                            var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
                             if (symbol?.Kind == SymbolKind.Property || symbol?.Kind == SymbolKind.Field)
                             {
                                 // Check if we have the 'Color Color' case.
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                                         namedTypeSymbols.WhereAsArray(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
                                                         .SelectAsArray(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace));
 
-                                    return this.GetNamespaceSymbolReferences(searchScope, namespaceResults);
+                                    return GetNamespaceSymbolReferences(searchScope, namespaceResults);
                                 }
                             }
                         }

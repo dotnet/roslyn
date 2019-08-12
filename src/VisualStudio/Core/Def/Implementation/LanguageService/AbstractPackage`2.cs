@@ -90,6 +90,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // start remote host
                 EnableRemoteHostClientService();
+
+                // not every derived package support object browser and for those languages
+                // this is a no op
+                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -147,12 +151,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     _miscellaneousFilesWorkspace.StopSolutionCrawler();
                 }
 
-                if (ThreadHelper.JoinableTaskFactory.Run(() => IsInIdeModeAsync(this.Workspace, CancellationToken.None)))
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
-                    this.Workspace.StopSolutionCrawler();
+                    if (await IsInIdeModeAsync(this.Workspace, CancellationToken.None).ConfigureAwait(true))
+                    {
+                        this.Workspace.StopSolutionCrawler();
 
-                    DisableRemoteHostClientService();
-                }
+                        DisableRemoteHostClientService();
+
+                        await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true);
+                    }
+                });
 
                 // If we've created the language service then tell it it's time to clean itself up now.
                 if (_languageService != null)
@@ -166,6 +175,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        protected virtual Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        {
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        {
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
+        }
 
         private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
         {

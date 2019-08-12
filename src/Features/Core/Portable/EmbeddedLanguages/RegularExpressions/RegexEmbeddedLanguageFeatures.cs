@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -13,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
         public IDocumentHighlightsService DocumentHighlightsService { get; }
-        public AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public CompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguageFeatures(
@@ -23,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             _provider = provider;
 
             DocumentHighlightsService = new RegexDocumentHighlightsService(this);
-            DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(info);
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 

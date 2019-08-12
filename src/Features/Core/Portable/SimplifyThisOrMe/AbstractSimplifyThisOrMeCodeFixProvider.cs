@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             context.RegisterCodeFix(new MyCodeAction(
                 GetTitle(),
-                c => this.FixAsync(document, diagnostic, c),
+                c => FixAsync(document, diagnostic, c),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;

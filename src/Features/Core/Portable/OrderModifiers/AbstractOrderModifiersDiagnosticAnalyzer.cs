@@ -3,9 +3,9 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
@@ -18,8 +18,11 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected AbstractOrderModifiersDiagnosticAnalyzer(
             ISyntaxFactsService syntaxFacts,
             Option<CodeStyleOption<string>> option,
-            AbstractOrderModifiersHelpers helpers)
+            AbstractOrderModifiersHelpers helpers,
+            string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
+                   option,
+                   language,
                    new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

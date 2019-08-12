@@ -13,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFactsService.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
-                       VisualBasicOrderModifiersHelper.Instance)
+                       VisualBasicOrderModifiersHelper.Instance,
+                       LanguageNames.VisualBasic)
         End Sub
 
         Protected Overrides Sub Recurse(

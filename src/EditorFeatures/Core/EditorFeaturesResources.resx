@@ -895,4 +895,14 @@ Do you want to proceed?</value>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
   </data>
+  <data name="Rename_file" xml:space="preserve">
+    <value>Rename _file</value>
+  </data>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>Rename _file (not allowed on partial types)</value>
+    <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>Rename _file (type does not match file name)</value>
+  </data>
 </root>

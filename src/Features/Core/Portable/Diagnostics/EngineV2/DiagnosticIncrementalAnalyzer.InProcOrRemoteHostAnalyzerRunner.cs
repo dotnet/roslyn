@@ -60,27 +60,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                // due to in-process only analyzers, we need to run inproc as well for such analyzers for fix all
-                // otherwise, we don't need to run open file only analyzers for closed files even if full solution analysis is on (perf improvement)
-                //
-                // we have this open file analyzers since some of our built in analyzers such as SimplifyTypeNamesDiagnosticAnalyzer are too
-                // slow to run for whole solution when full solution analysis is on. easily taking more than an hour to run whole solution.
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => (forcedAnalysis || !a.IsOpenFileOnly(workspace)) && a.IsInProcessOnly()), project, remoteHostClient, cancellationToken);
-
                 // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
                 // that are not part of roslyn solution. these host analyzers must be sync to OOP before hand by the Host. 
-                var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
-
-                // run them concurrently in vs and remote host
-                await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
-
-                // make sure things are not cancelled
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // merge 2 results
-                return DiagnosticAnalysisResultMap.Create(
-                    inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                    inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                return await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
@@ -149,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
-                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsInProcessOnly() && (forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace))));
+                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -181,18 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return result;
                     }
                 }
-            }
-
-            private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
-            {
-                var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
-                if (analyzers.Length == 0)
-                {
-                    // return null since we can't create CompilationWithAnalyzers with 0 analyzers
-                    return null;
-                }
-
-                return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
             }
 
             private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)

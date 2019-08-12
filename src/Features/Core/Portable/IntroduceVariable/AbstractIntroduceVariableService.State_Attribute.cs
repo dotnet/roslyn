@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool IsInAttributeContext(
                 CancellationToken cancellationToken)
             {
-                if (!_service.IsInAttributeArgumentInitializer(this.Expression))
+                if (!_service.IsInAttributeArgumentInitializer(Expression))
                 {
                     return false;
                 }

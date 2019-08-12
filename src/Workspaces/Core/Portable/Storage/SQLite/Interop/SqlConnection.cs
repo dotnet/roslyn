@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -192,13 +193,13 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         }
 
         private void Rollback(bool throwOnError)
-            => this.ExecuteCommand("rollback transaction", throwOnError);
+            => ExecuteCommand("rollback transaction", throwOnError);
 
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
+        public Stream ReadBlob_MustRunInTransaction(string tableName, string columnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html
@@ -209,15 +210,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
             // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
             // SQLITE_ABORT.
-            var stream = RunInTransaction(
-                state => state.self.ReadBlob_InTransaction(state.dataTableName, state.dataColumnName, state.rowId),
-                (self: this, dataTableName, dataColumnName, rowId));
+            if (!IsInTransaction)
+            {
+                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
+            }
 
-            return stream;
-        }
-
-        private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
-        {
             const int ReadOnlyFlags = 0;
             var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)

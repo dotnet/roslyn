@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public SnippetInfo(string shortcut, string title, string description, string path)
         {
-            this.Shortcut = shortcut;
-            this.Title = title;
-            this.Description = description;
-            this.Path = path;
+            Shortcut = shortcut;
+            Title = title;
+            Description = description;
+            Path = path;
         }
     }
 }
