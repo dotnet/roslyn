@@ -57,12 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator)
         {
-            if (node is SimpleLambdaExpressionSyntax simpleLambda)
-            {
-                return ImmutableArray.Create(simpleLambda.Parameter as SyntaxNode);
-            }
-
-            return generator.GetParameters(node).ToImmutableArray<SyntaxNode>();
+            return InitializeParameterHelpers.GetParameters(node, generator);
         }
     }
 }

@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Function GetParameters(node As SyntaxNode, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
-            Throw New NotImplementedException()
+            Return InitializeParameterHelpers.GetParameters(node, generator)
         End Function
     End Class
 End Namespace

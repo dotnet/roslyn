@@ -79,12 +79,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
 
-                //functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-                //if (functionDeclaration == null)
-                //{
-                //    continue;
-                //}
-
                 var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
 
                 // Don't offer inside the "=initializer" of a parameter
