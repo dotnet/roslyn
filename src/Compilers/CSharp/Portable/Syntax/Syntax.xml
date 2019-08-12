@@ -181,7 +181,7 @@
         <summary>TypeSyntax node representing the type of the element of the array.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RankSpecifiers" Type="SyntaxList&lt;ArrayRankSpecifierSyntax&gt;">
+    <Field Name="RankSpecifiers" Type="SyntaxList&lt;ArrayRankSpecifierSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>SyntaxList of ArrayRankSpecifierSyntax nodes representing the list of rank specifiers for the array.</summary>
       </PropertyComment>
@@ -251,7 +251,7 @@
         <summary>SyntaxToken representing the open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;"/>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;" MinCount="1"/>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
       <PropertyComment>
@@ -353,7 +353,7 @@
         <summary>SyntaxToken representing the open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;">
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
       </PropertyComment>
@@ -1107,7 +1107,7 @@
         <summary>SyntaxToken representing open bracket.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" Override="true">
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" Override="true" MinCount="1">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
       </PropertyComment>
@@ -1405,7 +1405,7 @@
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
       </PropertyComment>
@@ -1483,7 +1483,7 @@
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;">
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
       </PropertyComment>
@@ -1631,7 +1631,7 @@
   </Node>
   <Node Name="QueryBodySyntax" Base="CSharpSyntaxNode">
     <Kind Name="QueryBody"/>
-    <Field Name="Clauses" Type="SyntaxList&lt;QueryClauseSyntax&gt;"/>
+    <Field Name="Clauses" Type="SyntaxList&lt;QueryClauseSyntax&gt;" MinCount="1"/>
     <Field Name="SelectOrGroup" Type="SelectOrGroupClauseSyntax"/>
     <Field Name="Continuation" Type="QueryContinuationSyntax" Optional="true"/>
   </Node>
@@ -1718,7 +1718,7 @@
     <Field Name="OrderByKeyword" Type="SyntaxToken">
       <Kind Name="OrderByKeyword"/>
     </Field>
-    <Field Name="Orderings" Type="SeparatedSyntaxList&lt;OrderingSyntax&gt;"/>
+    <Field Name="Orderings" Type="SeparatedSyntaxList&lt;OrderingSyntax&gt;" MinCount="1"/>
   </Node>
   <Node Name="OrderingSyntax" Base="CSharpSyntaxNode">
     <Kind Name="AscendingOrdering"/>
@@ -1879,7 +1879,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;" AllowTrailingSeparator="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -2006,7 +2006,7 @@
   <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
     <Kind Name="VariableDeclaration"/>
     <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;" MinCount="1"/>
   </Node>
 
   <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
@@ -2537,14 +2537,14 @@
   </Node>
   <Node Name="SwitchSectionSyntax" Base="CSharpSyntaxNode">
     <Kind Name="SwitchSection"/>
-    <Field Name="Labels" Type="SyntaxList&lt;SwitchLabelSyntax&gt;">
+    <Field Name="Labels" Type="SyntaxList&lt;SwitchLabelSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>
           Gets a SyntaxList of SwitchLabelSyntax's the represents the possible labels that control can transfer to within the section.
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;">
+    <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>
           Gets a SyntaxList of StatementSyntax's the represents the statements to be executed when control transfer to a label the belongs to the section.
@@ -2651,7 +2651,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;"/>
+    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;" AllowTrailingSeparator="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -2835,7 +2835,7 @@
         <summary>Gets the optional construct targeted by the attribute.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
+    <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
       </PropertyComment>
@@ -2938,7 +2938,7 @@
       </PropertyComment>
       <Kind Name="LessThanToken"/>
     </Field>
-    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;TypeParameterSyntax&gt;">
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;TypeParameterSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>Gets the parameter list.</summary>
       </PropertyComment>
@@ -3137,7 +3137,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;">
+    <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;" AllowTrailingSeparator="true">
       <PropertyComment>
         <summary>Gets the members declaration list.</summary>
       </PropertyComment>
@@ -3217,7 +3217,7 @@
       </PropertyComment>
       <Kind Name="ColonToken"/>
     </Field>
-    <Field Name="Types" Type="SeparatedSyntaxList&lt;BaseTypeSyntax&gt;">
+    <Field Name="Types" Type="SeparatedSyntaxList&lt;BaseTypeSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>Gets the base type references.</summary>
       </PropertyComment>
@@ -3258,7 +3258,7 @@
       </PropertyComment>
       <Kind Name="ColonToken"/>
     </Field>
-    <Field Name="Constraints" Type="SeparatedSyntaxList&lt;TypeParameterConstraintSyntax&gt;">
+    <Field Name="Constraints" Type="SeparatedSyntaxList&lt;TypeParameterConstraintSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>Gets the constraints list.</summary>
       </PropertyComment>
@@ -3753,7 +3753,7 @@
       </PropertyComment>
       <Kind Name="OpenBracketToken"/>
     </Field>
-    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" Override="true"/>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" Override="true" MinCount="1"/>
     <Field Name="CloseBracketToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the close bracket token.</summary>
@@ -3993,7 +3993,7 @@
       </PropertyComment>
       <Kind Name="OpenBracketToken"/>
     </Field>
-    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;CrefParameterSyntax&gt;" Override="true"/>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;CrefParameterSyntax&gt;" Override="true" MinCount="1"/>
     <Field Name="CloseBracketToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the close bracket token.</summary>
