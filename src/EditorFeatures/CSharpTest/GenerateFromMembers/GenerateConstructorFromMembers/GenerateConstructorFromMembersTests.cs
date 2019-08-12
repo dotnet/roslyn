@@ -709,6 +709,29 @@ class Z
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task NullableReferenceType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Z
+{
+    [|string? a;|]
+}",
+@"#nullable enable
+
+class Z
+{
+    string? a;
+
+    public Z(string? a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestUnderscoreInName1()
