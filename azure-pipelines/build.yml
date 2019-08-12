@@ -4,10 +4,11 @@ parameters:
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
+  variables:
+    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
   steps:
   - checkout: self
     clean: true
-  - template: clear-packagecaches.yml
   - template: install-dependencies.yml
 
   - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
