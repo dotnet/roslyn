@@ -145,14 +145,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             // Enable refactoring either for TupleExpression or TupleType
-            var expressionOrType = await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode;
+            var expressionOrType =
+                await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode ??
+                await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (expressionOrType == null)
             {
-                expressionOrType = await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false);
-                if (expressionOrType == null)
-                {
-                    return default;
-                }
+                return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
