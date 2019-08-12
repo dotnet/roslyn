@@ -128,6 +128,9 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                         case IInvocationOperation invocationOperation:
                             AddIfMetadataSymbol(metadataSymbolUsed, invocationOperation.TargetMethod);
                             break;
+                        case IObjectCreationOperation objectCreation:
+                            AddIfMetadataSymbol(metadataSymbolUsed, objectCreation.Constructor);
+                            break;
                     }
                 }
 
