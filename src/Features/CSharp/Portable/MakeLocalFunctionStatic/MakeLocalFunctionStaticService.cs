@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportLanguageService(typeof(MakeLocalFunctionStaticService), LanguageNames.CSharp)]
     internal sealed class MakeLocalFunctionStaticService : ILanguageService
     {
-        private readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
-
         internal async Task<Document> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var arrayNode = await SymbolFinder.FindReferencesAsync(localFunctionSymbol, document.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var rootOne = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(rootOne, s_generator);
+            var editor = new SyntaxEditor(rootOne, CSharpSyntaxGenerator.Instance);
 
             foreach (var referenceSymbol in arrayNode)
             {
@@ -49,21 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     var syntaxNode = root.FindNode(location.Location.SourceSpan); //Node for the identifier syntax
 
                     var invocation = (syntaxNode as IdentifierNameSyntax).Parent as InvocationExpressionSyntax;
+
                     if (invocation == null)
                     {
                         return document;
                     }
 
-                    var argList = invocation.ArgumentList;
-                    List<ArgumentSyntax> paramList = new List<ArgumentSyntax>();
-
-                    foreach (var parameter in parameters)
-                    {
-                        var newArgument = GenerateArgument(parameter, parameter.Name, false);
-                        paramList.Add(newArgument as ArgumentSyntax);
-                    }
-
-                    var newArgList = argList.WithArguments(argList.Arguments.AddRange(paramList));
+                    var newArguments = parameters.Select(p => CSharpSyntaxGenerator.Instance.Argument(name: null, p.RefKind, p.Name.ToIdentifierName()) as ArgumentSyntax);
+                    var newArgList = invocation.ArgumentList.WithArguments(invocation.ArgumentList.Arguments.AddRange(newArguments));
                     var newInvocation = invocation.WithArgumentList(newArgList);
 
                     editor.ReplaceNode(invocation, newInvocation);
@@ -76,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             //Adds the modifier static
             var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
-            var localFunctionWithStatic = s_generator.WithModifiers(updatedLocalFunction, modifiers);
+            var localFunctionWithStatic = CSharpSyntaxGenerator.Instance.WithModifiers(updatedLocalFunction, modifiers);
 
             editor.ReplaceNode(localFunction, localFunctionWithStatic);
 
@@ -104,9 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return parameters.ToImmutableAndFree();
             }
         }
-
-        internal SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
-            => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
     }
 
 }

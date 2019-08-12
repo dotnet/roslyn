@@ -278,15 +278,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             var syntaxGenerator = CSharpSyntaxGenerator.Instance;
-            var currentParameterList = syntaxGenerator.GetParameters(destination);
+            var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
 
             if (currentParameterList == null)
             {
                 return destination;
             }
 
-            var currentParamsCount = currentParameterList.Count;
-            var seenOptional = currentParamsCount > 0 && ((ParameterSyntax)currentParameterList[currentParamsCount - 1]).Default != null;
+            var currentParamsCount = currentParameterList.Parameters.Count;
+            var seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
             var isFirstParam = currentParamsCount == 0;
             var newParams = ArrayBuilder<SyntaxNode>.GetInstance();
 
