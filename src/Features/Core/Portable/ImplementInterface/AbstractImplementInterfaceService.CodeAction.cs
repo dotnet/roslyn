@@ -143,15 +143,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
-            {
-                switch (throughMember)
+                => throughMember switch
                 {
-                    case IFieldSymbol field: return field.Name;
-                    case IPropertySymbol property: return property.Name;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                    IFieldSymbol field => field.Name,
+                    IPropertySymbol property => property.Name,
+                    _ => throw new InvalidOperationException(),
+                };
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -224,11 +221,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var implementedVisibleMembers = new List<ISymbol>();
                 var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
 
-                foreach (var tuple in unimplementedMembers)
+                foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
-                    var interfaceType = tuple.type;
-                    var unimplementedInterfaceMembers = tuple.members;
-
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
                         var member = GenerateMember(

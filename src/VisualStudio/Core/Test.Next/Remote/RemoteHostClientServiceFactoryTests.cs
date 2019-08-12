@@ -254,8 +254,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TestService : ServiceHubServiceBase
         {
-            public TestService(Stream stream, IServiceProvider serviceProvider) :
-                base(serviceProvider, stream)
+            public TestService(Stream stream, IServiceProvider serviceProvider)
+                : base(serviceProvider, stream)
             {
                 Event = new ManualResetEvent(false);
 

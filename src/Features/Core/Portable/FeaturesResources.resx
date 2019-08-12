@@ -351,6 +351,9 @@
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine" xml:space="preserve">
+    <value>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</value>
+  </data>
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>
@@ -395,6 +398,12 @@
   </data>
   <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
@@ -495,12 +504,15 @@
   <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
-  <data name="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</value>
+  <data name="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Updating a '{0}' around an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying a generic method will prevent the debug session from continuing.</value>
@@ -537,6 +549,9 @@
   </data>
   <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
@@ -1301,15 +1316,6 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
-  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using ref structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly references will prevent the debug session from continuing.</value>
-  </data>
   <data name="local_function" xml:space="preserve">
     <value>local function</value>
   </data>
@@ -1589,6 +1595,15 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unwrap_call_chain" xml:space="preserve">
+    <value>Unwrap call chain</value>
+  </data>
+  <data name="Wrap_call_chain" xml:space="preserve">
+    <value>Wrap call chain</value>
+  </data>
+  <data name="Wrap_long_call_chain" xml:space="preserve">
+    <value>Wrap long call chain</value>
+  </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
   </data>
@@ -1683,5 +1698,14 @@ This version used in: {2}</value>
   </data>
   <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
     <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="Wrap_and_align_call_chain" xml:space="preserve">
+    <value>Wrap and align call chain</value>
+  </data>
+  <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
+    <value>Wrap and align long call chain</value>
+  </data>
+  <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
+    <value>Warning: Semantics may change when converting statement.</value>
   </data>
 </root>

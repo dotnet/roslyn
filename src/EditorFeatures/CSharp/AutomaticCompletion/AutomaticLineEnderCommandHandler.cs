@@ -151,18 +151,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         private SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
-        {
-            switch (owningNode)
+            => owningNode switch
             {
-                case BaseFieldDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case BaseMethodDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case BasePropertyDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case StatementSyntax n: return SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options);
-                case UsingDirectiveSyntax n: return SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options);
-            }
+                BaseFieldDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BaseMethodDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BasePropertyDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                StatementSyntax n => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                UsingDirectiveSyntax n => SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
 
-            return null;
-        }
+                _ => (SyntaxNode)null,
+            };
 
         /// <summary>
         /// wrap field in type

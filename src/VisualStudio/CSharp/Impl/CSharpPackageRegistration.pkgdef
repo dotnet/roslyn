@@ -8,7 +8,7 @@
 "ExcludeDefTextEditor"=dword:00000001
 "LinkedEditorGuid"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
 "Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
-@="Microsoft CSharp Editor Factory with Encoding"
+@="C# Editor with Encoding"
 
 [$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\Extensions]
 "cs"=dword:00000027
@@ -29,7 +29,7 @@
 "EditorTrustLevel"=dword:00000002
 "ExcludeDefTextEditor"=dword:00000001
 "Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
-@="Microsoft CSharp Editor Factory"
+@="C# Editor"
 
 [$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\Extensions]
 "cs"=dword:00000028

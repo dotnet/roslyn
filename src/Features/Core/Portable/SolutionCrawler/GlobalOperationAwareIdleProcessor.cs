@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
             int backOffTimeSpanInMs,
-            CancellationToken shutdownToken) :
-            base(listener, backOffTimeSpanInMs, shutdownToken)
+            CancellationToken shutdownToken)
+            : base(listener, backOffTimeSpanInMs, shutdownToken)
         {
             _globalOperation = null;
             _globalOperationTask = Task.CompletedTask;

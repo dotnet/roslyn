@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -189,7 +190,7 @@ public class DP20<T>
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
 
-            for (int i = 0; i <= 4; i++)
+            for (var i = 0; i <= 4; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">
@@ -218,7 +219,7 @@ public static class C5Ext
 }
 </Document>";
 
-            for (int i = 6; i <= 9; i++)
+            for (var i = 6; i <= 9; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">
@@ -295,7 +296,7 @@ class C{i}
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new CSharpChangeSignatureCommandHandler();
+                var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
 
                 var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
                 Assert.True(state.IsUnspecified);

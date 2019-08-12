@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public int LocateExpandedList(IVsLiteTreeList child, out uint iIndex)
         {
-            for (int i = 0; i < Changes.Length; i++)
+            for (var i = 0; i < Changes.Length; i++)
             {
                 if (Changes[i].GetChildren() == child)
                 {

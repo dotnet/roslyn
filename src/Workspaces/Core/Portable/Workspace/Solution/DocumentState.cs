@@ -401,12 +401,14 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentState UpdateFilePath(string filePath)
         {
+            var newAttributes = this.Attributes.With(filePath: filePath);
+
             // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
             // file path and diagnostic options for that tree.
             var newTreeSource = CreateLazyFullyParsedTree(
                 this.TextAndVersionSource,
                 this.Id.ProjectId,
-                GetSyntaxTreeFilePath(this.Attributes),
+                GetSyntaxTreeFilePath(newAttributes),
                 _options,
                 _analyzerConfigSetSource,
                 _languageServices,
@@ -416,7 +418,7 @@ namespace Microsoft.CodeAnalysis
                 _languageServices,
                 this.solutionServices,
                 this.Services,
-                this.Attributes.With(filePath: filePath),
+                newAttributes,
                 _options,
                 _analyzerConfigSetSource,
                 this.sourceTextOpt,

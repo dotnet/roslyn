@@ -400,5 +400,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return !symbol.IsStatic && !symbol.IsSealed && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
         }
+
+        internal static bool RequiresInstanceReceiver(this Symbol symbol)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Method => ((MethodSymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Property => ((PropertySymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Field => ((FieldSymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Event => ((EventSymbol)symbol).RequiresInstanceReceiver,
+                _ => throw new ArgumentException("only methods, properties, fields and events can take a receiver", nameof(symbol)),
+            };
+        }
     }
 }

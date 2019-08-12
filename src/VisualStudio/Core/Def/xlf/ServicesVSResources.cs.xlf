@@ -57,6 +57,11 @@
         <target state="translated">Zpět</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Počítají se závislosti...</target>
@@ -102,6 +107,11 @@
         <target state="translated">V jiných operátorech</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">Rozhraní nemůže mít pole.</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Live_analysis">
         <source>Live analysis</source>
         <target state="translated">Dynamická analýza</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1791,11 +1806,6 @@ Další informace: {1}</target>
       <trans-unit id="Options">
         <source>Options</source>
         <target state="translated">Možnosti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Vyzkoušejte verzi Preview našeho rozšíření pro dynamickou analýzu kódu, které poskytuje více oprav pro běžné problémy při návrhu, vytváření názvů, výkonu a spolehlivosti rozhraní API.</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_show_this_again">

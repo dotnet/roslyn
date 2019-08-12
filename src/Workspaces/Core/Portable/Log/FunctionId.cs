@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
-        Experiment_ABTesting,
+        FxCopAnalyzersInstall,
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,
@@ -460,5 +460,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellisense_CompletionProviders_Data,
         SnapshotService_IsExperimentEnabledAsync,
         PartialLoad_FullyLoaded,
+        Liveshare_UnknownCodeAction,
     }
 }

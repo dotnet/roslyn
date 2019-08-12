@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
-        private IEnumerable<string> _renameAccessKeys = new[]
+        private readonly IEnumerable<string> _renameAccessKeys = new[]
             {
                 RenameShortcutKey.RenameOverloads,
                 RenameShortcutKey.SearchInComments,
@@ -142,6 +142,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _focusedElement = _tabNavigableChildren[current];
             }
 
+            // We have found the next control in _tabNavigableChildren, but not all controls are
+            // visible in all sessions. For example, "Rename Overloads" only applies if there the
+            // symbol has overloads. Therefore, continue searching for the next control in
+            // _tabNavigableChildren that's actually valid in this session.
+            while (!_focusedElement.IsVisible)
+            {
+                var current = _tabNavigableChildren.IndexOf(_focusedElement);
+                current = selector(current);
+                _focusedElement = _tabNavigableChildren[current];
+            }
+
             _focusedElement.Focus();
             ShowCaret();
         }
@@ -185,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (_rootDependencyObject != null && _rootInputElement != null)
             {
-                foreach (string accessKey in _renameAccessKeys)
+                foreach (var accessKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Register(accessKey, _rootInputElement);
                 }
@@ -196,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnAccessKeyPressed(object sender, AccessKeyPressedEventArgs args)
         {
-            foreach (string accessKey in _renameAccessKeys)
+            foreach (var accessKey in _renameAccessKeys)
             {
                 if (string.Compare(accessKey, args.Key, StringComparison.OrdinalIgnoreCase) == 0)
                 {
@@ -240,14 +251,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override AutomationPeer OnCreateAutomationPeer()
         {
-            return new DashboardAutomationPeer(this);
+            return new DashboardAutomationPeer(this, _model.OriginalName);
         }
 
         private void DisconnectFromPresentationSource()
         {
             if (_rootInputElement != null)
             {
-                foreach (string registeredKey in _renameAccessKeys)
+                foreach (var registeredKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Unregister(registeredKey, _rootInputElement);
                 }
@@ -271,6 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInComments => EditorFeaturesResources.Include_comments;
         public string SearchInStrings => EditorFeaturesResources.Include_strings;
         public string ApplyRename => EditorFeaturesResources.Apply1;
+        public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
         public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }

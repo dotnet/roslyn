@@ -10,13 +10,16 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
+    /// Tests for the region analysis APIs.
+    /// </summary>
+    /// <remarks>
     /// Please add your tests to other files if possible:
     ///     * FlowDiagnosticTests.cs - all tests on Diagnostics
     ///     * IterationJumpYieldStatementTests.cs - while, do, for, foreach, break, continue, goto, iterator (yield break, yield return)
     ///     * TryLockUsingStatementTests.cs - try-catch-finally, lock, &amp; using statement
     ///     * PatternsVsRegions.cs - region analysis tests for pattern matching
-    /// </summary>
-    public partial class FlowAnalysisTests : FlowTestBase
+    /// </remarks>
+    public partial class RegionAnalysisTests : FlowTestBase
     {
         #region "Expressions"
 
@@ -6358,6 +6361,64 @@ namespace ConsoleApp39
             Assert.Equal("test", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("test", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("this, test, a", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact, WorkItem(37427, "https://github.com/dotnet/roslyn/issues/37427")]
+        public void RegionWithLocalFunctions()
+        {
+            // local functions inside the region
+            var s1 = @"
+class A
+{
+    static void M(int p)
+    {
+        int i, j;
+        i = 1;
+        /*<bind>*/
+        int L1() => 1;
+        int k;
+        j = i;
+        int L2() => 2;
+        /*</bind>*/
+        k = j;
+    }
+}
+";
+            // local functions outside the region
+            var s2 = @"
+class A
+{
+    static void M(int p)
+    {
+        int i, j;
+        i = 1;
+        int L1() => 1;
+        /*<bind>*/
+        int k;
+        j = i;
+        /*</bind>*/
+        int L2() => 2;
+        k = j;
+    }
+}
+";
+            foreach (var s in new[] { s1, s2 })
+            {
+                var analysisResults = CompileAndAnalyzeDataFlowStatements(s);
+                var dataFlowAnalysisResults = analysisResults;
+                Assert.True(dataFlowAnalysisResults.Succeeded);
+                Assert.Equal("k", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+                Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+                Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+                Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+                Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+                Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+                Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("p, i, k", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            }
         }
 
         #endregion

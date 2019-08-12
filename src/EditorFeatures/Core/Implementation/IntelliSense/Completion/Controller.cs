@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         public void MakeMostRecentItem(string item)
         {
-            bool updated = false;
+            var updated = false;
 
             while (!updated)
             {

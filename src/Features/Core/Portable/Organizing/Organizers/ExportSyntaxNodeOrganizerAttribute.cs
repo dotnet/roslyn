@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportSyntaxNodeOrganizerAttribute : ExportAttribute
     {
-        public ExportSyntaxNodeOrganizerAttribute(string languageName) :
-            base(typeof(ISyntaxOrganizer))
+        public ExportSyntaxNodeOrganizerAttribute(string languageName)
+            : base(typeof(ISyntaxOrganizer))
         {
             Language = languageName;
         }

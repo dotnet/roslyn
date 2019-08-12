@@ -257,14 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
-            {
-                // We skip the unconverted left and right, they are only meant for lowering
-                this.Visit(node.ConvertedLeft);
-                this.Visit(node.ConvertedRight);
-                return null;
-            }
-
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
             {
                 return false;

@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             try
             {
-                int result = VSConstants.S_OK;
+                var result = VSConstants.S_OK;
                 LanguageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
                     "Intellisense",
                     allowCancel: true,

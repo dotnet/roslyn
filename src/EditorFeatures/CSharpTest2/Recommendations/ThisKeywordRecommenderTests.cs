@@ -343,6 +343,42 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        public async Task TestInStaticLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    int Method()
+    {
+        static void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        public async Task TestInNestedInStaticLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    int Method()
+    {
+        static void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethod()
         {
@@ -1032,7 +1068,7 @@ class Program
     }
     void Helper(Program x) { }
 }
-", matchPriority: SymbolMatchPriority.Keyword);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

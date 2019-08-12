@@ -341,8 +341,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return false;
-
-            bool IsInstanceMemberReference(IOperation operation)
+            static bool IsInstanceMemberReference(IOperation operation)
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }

@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
-            ArrayBuilder<CommentTrackingSpan> spansToSelect,int positionOfStart, int positionOfEnd)
+            ArrayBuilder<CommentTrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
         {
             if (positionOfStart < 0 || positionOfEnd < 0)
             {
@@ -344,10 +344,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         private static bool SpanIncludesAllTextOnIncludedLines(SnapshotSpan span)
         {
-            var firstAndLastLine = DetermineFirstAndLastLine(span);
+            var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
-            var firstNonWhitespacePosition = firstAndLastLine.firstLine.GetFirstNonWhitespacePosition();
-            var lastNonWhitespacePosition = firstAndLastLine.lastLine.GetLastNonWhitespacePosition();
+            var firstNonWhitespacePosition = firstLine.GetFirstNonWhitespacePosition();
+            var lastNonWhitespacePosition = lastLine.GetLastNonWhitespacePosition();
 
             var allOnFirst = !firstNonWhitespacePosition.HasValue ||
                               span.Start.Position <= firstNonWhitespacePosition.Value;

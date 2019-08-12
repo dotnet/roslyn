@@ -121,15 +121,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             // TelemetryScope<Operation> can't be shared
             var eventName = functionId.GetEventName();
 
-            switch (kind)
+            return kind switch
             {
-                case LogType.Trace:
-                    return _session.StartOperation(eventName);
-                case LogType.UserAction:
-                    return _session.StartUserTask(eventName);
-                default:
-                    return FatalError.Report(new Exception($"unknown type: {kind}"));
-            }
+                LogType.Trace => _session.StartOperation(eventName),
+                LogType.UserAction => _session.StartUserTask(eventName),
+                _ => (object)FatalError.Report(new Exception($"unknown type: {kind}")),
+            };
         }
 
         private TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)

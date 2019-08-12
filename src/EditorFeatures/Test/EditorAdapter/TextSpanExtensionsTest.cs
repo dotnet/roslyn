@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSpan()
         {
-            void del(int start, int length)
+            static void del(int start, int length)
             {
                 var textSpan = new TextSpan(start, length);
                 var span = textSpan.ToSpan();

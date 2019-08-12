@@ -2244,7 +2244,7 @@ End Class
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2500,7 +2500,7 @@ int bar;
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2555,7 +2555,7 @@ int bar;
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2852,7 +2852,7 @@ public class SomeClass : Base
                 document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
                 var textBuffer = workspace.Documents.Single().TextBuffer;
-                string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+                var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
 
                 Assert.Equal(after, actualCodeAfterCommit);
             }

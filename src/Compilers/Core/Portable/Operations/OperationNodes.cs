@@ -8177,7 +8177,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+            : base(OperationKind.PropertySubpattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
         }
         public abstract IOperation Member { get; }

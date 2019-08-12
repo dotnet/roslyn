@@ -16,17 +16,18 @@ namespace System.Runtime.CompilerServices
         AttributeTargets.Parameter |
         AttributeTargets.Property |
         AttributeTargets.ReturnValue,
-        AllowMultiple = false)]
+        AllowMultiple = false,
+        Inherited = false)]
     public sealed class NullableAttribute : Attribute
     {
-        public readonly byte[] Flags;
+        public readonly byte[] NullableFlags;
         public NullableAttribute(byte flag)
         {
-            Flags = new byte[] { flag };
+            NullableFlags = new byte[] { flag };
         }
         public NullableAttribute(byte[] flags)
         {
-            Flags = flags;
+            NullableFlags = flags;
         }
     }
 }

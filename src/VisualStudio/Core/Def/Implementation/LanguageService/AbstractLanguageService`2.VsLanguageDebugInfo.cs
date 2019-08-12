@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetNameOfLocation, CancellationToken.None))
                 {
                     string name = null;
-                    int lineOffset = 0;
+                    var lineOffset = 0;
                     var succeeded = false;
 
                     if (_languageDebugInfo != null)
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
                             if (nullablePoint.HasValue)
                             {
-                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                                 if (document != null)
                                 {
                                     var point = nullablePoint.Value;
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
                 {
-                    int result = VSConstants.E_NOTIMPL;
+                    var result = VSConstants.E_NOTIMPL;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Validating_breakpoint_location,
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.E_FAIL;
                     }
 
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                    var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
                         var point = nullablePoint.Value;
@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.E_INVALIDARG;
                     }
 
-                    int result = VSConstants.E_FAIL;
+                    var result = VSConstants.E_FAIL;
                     string pbstrTextInternal = null;
 
                     _waitIndicator.Wait(
@@ -393,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         action: waitContext =>
                     {
                         var debugger = _languageService.Debugger;
-                        DBGMODE[] debugMode = new DBGMODE[1];
+                        var debugMode = new DBGMODE[1];
 
                         var cancellationToken = waitContext.CancellationToken;
                         if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
@@ -415,7 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                     if (!dataTipInfo.IsDefault)
                                     {
                                         var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
-                                        string textOpt = dataTipInfo.Text;
+                                        var textOpt = dataTipInfo.Text;
 
                                         pSpan[0] = resultSpan.ToVsTextSpan();
                                         result = debugger.GetDataTipValue((IVsTextLines)pBuffer, pSpan, textOpt, out pbstrTextInternal);

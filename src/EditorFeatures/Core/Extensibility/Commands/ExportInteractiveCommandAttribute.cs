@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         public IEnumerable<string> ContentTypes { get; }
 
-        public ExportInteractiveAttribute(Type t, params string[] contentTypes) :
-            base(t)
+        public ExportInteractiveAttribute(Type t, params string[] contentTypes)
+            : base(t)
         {
             this.ContentTypes = contentTypes;
         }

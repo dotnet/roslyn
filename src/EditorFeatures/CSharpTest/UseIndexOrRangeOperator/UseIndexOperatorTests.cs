@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
@@ -63,6 +64,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -71,6 +73,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -85,6 +88,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -93,6 +97,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -109,6 +114,7 @@ class C
 @"
 using System.Linq;
 
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] ss)
@@ -119,6 +125,7 @@ class C
 @"
 using System.Linq;
 
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] ss)
@@ -328,11 +335,27 @@ class C
 }", parameters: s_testParameters);
         }
 
+        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMissingWithNoSystemIndex()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v = s[[||]s.Length - 1];
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestArray()
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -341,6 +364,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -355,6 +379,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -364,6 +389,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -379,6 +405,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -388,6 +415,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -403,6 +431,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -411,6 +440,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -425,6 +455,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -433,6 +464,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)

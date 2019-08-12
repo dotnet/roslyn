@@ -60,11 +60,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
-                document, context.Span, cancellationToken).ConfigureAwait(false);
+                document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (tupleExprOrTypeNode == null || tupleType == null)
             {
@@ -498,7 +496,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var options = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
-                    autoInsertionLocation: false);
+                    autoInsertionLocation: false,
+                    parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
                     currentContainer, namedTypeSymbol, options, cancellationToken);

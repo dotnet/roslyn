@@ -1099,7 +1099,7 @@ End Class
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                       <Workspace>
                           <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
@@ -1129,7 +1129,7 @@ End Class
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion2(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                       <Workspace>
                           <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
@@ -1950,6 +1950,62 @@ End Module</Document>)
                 state.SendReturn()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(expected, state.GetDocumentText())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_NotFullyTyped(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                  <Document>
+Class Class1
+    Sub Main(args As String())
+        $$
+    End Sub
+End Class
+</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
+                state.SendTypeChars("System.TimeSpan.FromMin")
+                state.SendReturn()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal(<text>
+Class Class1
+    Sub Main(args As String())
+        System.TimeSpan.FromMinutes
+    End Sub
+End Class
+</text>.NormalizedValue, state.GetDocumentText())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_FullyTyped(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                  <Document>
+Class Class1
+    Sub Main(args As String())
+        $$
+    End Sub
+End Class
+</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
+
+                state.SendTypeChars("System.TimeSpan.FromMinutes")
+                state.SendReturn()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal(<text>
+Class Class1
+    Sub Main(args As String())
+        System.TimeSpan.FromMinutes
+
+    End Sub
+End Class
+</text>.NormalizedValue, state.GetDocumentText())
             End Using
         End Function
 

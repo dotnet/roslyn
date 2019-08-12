@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -655,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            List<string> namespaceContainers = new List<string>();
+            var namespaceContainers = new List<string>();
             GetNamespaceContainers(namespaceDecl.Name, namespaceContainers);
 
             if (namespaceContainers.Count + indexDone > containers.Count ||
@@ -664,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            indexDone = indexDone + namespaceContainers.Count;
+            indexDone += namespaceContainers.Count;
             if (indexDone == containers.Count)
             {
                 return namespaceDecl;
@@ -684,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
         {
-            for (int i = 0; i < namespaceContainers.Count; ++i)
+            for (var i = 0; i < namespaceContainers.Count; ++i)
             {
                 if (namespaceContainers[i] != containers[indexDone + i])
                 {

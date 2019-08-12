@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         private static string ExtractAccessKey(string localizedLabel, string defaultValue)
         {
-            int underscoreIndex = localizedLabel.IndexOf('_');
+            var underscoreIndex = localizedLabel.IndexOf('_');
 
             if (underscoreIndex >= 0 && underscoreIndex < localizedLabel.Length - 1)
             {

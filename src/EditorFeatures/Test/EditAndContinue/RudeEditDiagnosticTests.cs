@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
-                RudeEditKind.RefStruct,
-                RudeEditKind.ReadOnlyStruct,
-                RudeEditKind.ReadOnlyReferences,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
             };
 
@@ -61,6 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
                 RudeEditKind.RenamingCapturedVariable,
+                RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
             };
 

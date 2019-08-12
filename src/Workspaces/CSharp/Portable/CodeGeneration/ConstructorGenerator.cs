@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
             if (reusableSyntax != null)

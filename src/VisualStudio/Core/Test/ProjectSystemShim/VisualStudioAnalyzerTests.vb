@@ -29,7 +29,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing, New MockDiagnosticUpdateSourceRegistrationService())
+            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+                                    Function()
+                                        Return Nothing
+                                    End Function)
+
+            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, New MockDiagnosticUpdateSourceRegistrationService())
 
             Dim file = Path.GetTempFileName()
             Dim eventHandler = New EventHandlers(file)

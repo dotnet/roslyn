@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             IEnumerable<(TextSpan Span, int Id, SourceText Text, string DocumentName, DocumentId DocumentId)> EnumerateAllSpans()
             {
-                int sourceIndex = 0;
+                var sourceIndex = 0;
                 foreach (var markedSource in markedSources)
                 {
                     var documentName = TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
                 var threadId = new Guid("00000000-0000-0000-0000-000000000010");
 
-                int index = 0;
+                var index = 0;
                 foreach (var (span, id, text, documentName, documentId) in EnumerateAllSpans().OrderBy(s => s.Id))
                 {
                     yield return new ActiveStatementDebugInfo(
@@ -129,15 +129,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             while (true)
             {
-                string startStr = "/*delete" + marker;
-                string endStr = "*/";
-                int start = src.IndexOf(startStr);
+                var startStr = "/*delete" + marker;
+                var endStr = "*/";
+                var start = src.IndexOf(startStr);
                 if (start == -1)
                 {
                     return src;
                 }
 
-                int end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
+                var end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
                 src = src.Substring(0, start) + src.Substring(end);
             }
         }
@@ -146,18 +146,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             while (true)
             {
-                string startStr = "/*insert" + marker + "[";
-                string endStr = "*/";
+                var startStr = "/*insert" + marker + "[";
+                var endStr = "*/";
 
-                int start = src.IndexOf(startStr);
+                var start = src.IndexOf(startStr);
                 if (start == -1)
                 {
                     return src;
                 }
 
-                int startOfLineCount = start + startStr.Length;
-                int endOfLineCount = src.IndexOf(']', startOfLineCount);
-                int lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
+                var startOfLineCount = start + startStr.Length;
+                var endOfLineCount = src.IndexOf(']', startOfLineCount);
+                var lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
 
                 var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
 

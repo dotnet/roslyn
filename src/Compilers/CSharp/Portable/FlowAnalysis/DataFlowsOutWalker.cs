@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dataFlowsOut;
         }
 
+        protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
+        {
+            _dataFlowsOut.Clear();
+            return base.Scan(ref badRegion);
+        }
+
         protected override void EnterRegion()
         {
             // to handle loops properly, we must assume that every variable that flows in is

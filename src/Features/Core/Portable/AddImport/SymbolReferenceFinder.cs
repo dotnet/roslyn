@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly Document _document;
             private readonly SemanticModel _semanticModel;
 
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ISymbol _containingTypeOrAssembly;
             private readonly ISet<INamespaceSymbol> _namespacesInScope;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly AbstractAddImportFeatureService<TSimpleNameSyntax> _owner;
@@ -62,8 +60,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                     Contract.ThrowIfNull(symbolSearchService);
                 }
 
-                _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
                 _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 _namespacesInScope = GetNamespacesInScope(cancellationToken);
@@ -388,19 +384,19 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
                 SyntaxNode expression, CancellationToken cancellationToken)
             {
-                return GetViableExtensionMethodsWorker(methodSymbols, cancellationToken).WhereAsArray(
+                return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
                     s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
             }
 
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
-                ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
-                ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+                ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
             {
-                return GetViableExtensionMethodsWorker(methodSymbols, cancellationToken).WhereAsArray(
+                return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
                     s => _owner.IsViableExtensionMethod(s.Symbol, typeSymbol));
             }
+
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
-                ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, CancellationToken cancellationToken)
+                ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
             {
                 return methodSymbols.WhereAsArray(
                     s => s.Symbol.IsExtensionMethod &&
@@ -475,7 +471,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node, searchScope.CancellationToken);
+                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
@@ -524,7 +520,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // "Select", but that name has no bearing on the code in question that we're
                 // trying to fix up.
                 var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-                var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type, searchScope.CancellationToken);
+                var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type);
 
                 if (predicate != null)
                 {

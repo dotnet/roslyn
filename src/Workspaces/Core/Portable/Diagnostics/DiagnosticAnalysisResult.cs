@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             IsEmpty = false;
 
             // do after all fields are assigned.
-            DocumentIds = DocumentIds ?? CreateDocumentIds();
+            DocumentIds ??= CreateDocumentIds();
             IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
         }
 

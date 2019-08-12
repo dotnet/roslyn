@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IOperation iop when iop.GetType().GetInterfaces().Any(i => i.Name == "IRecursivePatternOperation"):
+                    case IRecursivePatternOperation _:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:

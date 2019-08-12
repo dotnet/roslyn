@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -169,7 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     //       IWaitIndicator abstraction (which is a thin wrapper on top of IVsThreadedWaitDialog) directly
                     //       for now, we use the one LB created before calling us. meaning we don't update
                     //       text on the wait dialog window
-                    _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
+                    // 
+                    //       this also needs to run under threading context otherwise, we can deadlock on VS
+                    ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -343,13 +344,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    // We only include suppressions if light bulb is asking for everything.
-                    // If the light bulb is only asking for code fixes, then we don't include suppressions.
-                    var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
+                    // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
+                    // See https://github.com/dotnet/roslyn/issues/29589
+                    const bool includeSuppressionFixes = true;
 
                     var fixes = Task.Run(
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
@@ -751,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // the UI thread.
                     var refactorings = Task.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, cancellationToken),
+                            document, selection, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);

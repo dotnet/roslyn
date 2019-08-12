@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listenerProvider);
+            DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
             DiagnosticService.Register(updateSource);
 
             if (createTaggerProvider)

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
@@ -195,7 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
-                    if (method.IsReadOnly)
+                    // Don't show the readonly modifier if the containing type is already readonly
+                    // ContainingSymbol is used to guard against methods which are not members of their ContainingType (e.g. lambdas and local functions)
+                    if (method.IsReadOnly && (method.ContainingSymbol as INamedTypeSymbol)?.IsReadOnly != true)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }

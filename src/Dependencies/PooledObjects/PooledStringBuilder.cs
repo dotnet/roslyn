@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public string ToStringAndFree()
         {
-            string result = this.Builder.ToString();
+            var result = this.Builder.ToString();
             this.Free();
 
             return result;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public string ToStringAndFree(int startIndex, int length)
         {
-            string result = this.Builder.ToString(startIndex, length);
+            var result = this.Builder.ToString(startIndex, length);
             this.Free();
 
             return result;

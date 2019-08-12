@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             OptionSet options = null,
             CancellationToken cancellationToken = default)
         {
-            options = options ?? workspace.Options;
+            options ??= workspace.Options;
             var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IRecommendationService>();
 
             return await languageRecommender.GetRecommendedSymbolsAtPositionAsync(

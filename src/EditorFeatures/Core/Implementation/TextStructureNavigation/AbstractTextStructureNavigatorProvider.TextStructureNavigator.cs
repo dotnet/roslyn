@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 // If at the end of the file, go back one character so stuff works
                 if (position == textLength && position > 0)
                 {
-                    position = position - 1;
+                    position -= 1;
                 }
 
                 // If we're at the EOL position, return the line break's extent
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     if (parent != null)
                     {
                         // Find node immediately after the current in the children collection.
-                        SyntaxNodeOrToken? nodeOrToken = parent.Value
+                        var nodeOrToken = parent.Value
                             .ChildNodesAndTokens()
                             .SkipWhile(child => child != node)
                             .Skip(1)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     if (parent != null)
                     {
                         // Find node immediately before the current in the children collection.
-                        SyntaxNodeOrToken? nodeOrToken = parent.Value
+                        var nodeOrToken = parent.Value
                             .ChildNodesAndTokens()
                             .Reverse()
                             .SkipWhile(child => child != node)
