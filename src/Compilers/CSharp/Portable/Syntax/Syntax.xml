@@ -2787,9 +2787,9 @@
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
-    <Choice>
-      <Field Name="StaticKeyword" Type="SyntaxToken" Optional="true"/>
-      <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
+    <Choice Optional="true">
+      <Field Name="StaticKeyword" Type="SyntaxToken"/>
+      <Field Name="Alias" Type="NameEqualsSyntax"/>
     </Choice>
     <Field Name="Name" Type="NameSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">

@@ -16,6 +16,9 @@ namespace CSharpSyntaxGenerator
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]
         public List<TreeTypeChild> Children;
+
+        [XmlAttribute]
+        public bool Optional;
     }
 
     public class Sequence : TreeTypeChild
