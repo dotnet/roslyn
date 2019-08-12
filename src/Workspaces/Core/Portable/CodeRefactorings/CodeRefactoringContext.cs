@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Add supplied <paramref name="action"/> to the list of refactorings that will be offered to the user.
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the refactoring.</param>
-        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, applicableToSpan: null);
+        public void RegisterRefactoring(CodeAction action) => RegisterRefactoring(action, applicableToSpan: null); // We could pass this.Span as applicableToSpan instead but that would cause these refactorings to always be closest to current selection
 
         /// <summary>
         /// Add supplied <paramref name="action"/> applicable to <paramref name="applicableToSpan"/> to the list of refactorings that will be offered to the user.
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <paramref name="applicableToSpan"/> should represent a logical section within the original document that the <paramref name="action"/> is 
         /// applicable to. It doesn't have to precisely represent the exact <see cref="TextSpan"/> that will get changed.
         /// </remarks>
-        internal void RegisterRefactoring(CodeAction action, TextSpan applicableToSpan) => RegisterRefactoring(action, applicableToSpan);
+        internal void RegisterRefactoring(CodeAction action, TextSpan applicableToSpan) => RegisterRefactoring(action, new Nullable<TextSpan>(applicableToSpan));
 
         private void RegisterRefactoring(CodeAction action, TextSpan? applicableToSpan)
         {
