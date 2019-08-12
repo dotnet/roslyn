@@ -520,7 +520,7 @@ grammar csharp;" + string.Concat(normalizedRules.Select(t => generateRule(t.name
         private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
 >>>>>>> Simplify
             => Join(delim, children.Select(child =>
-                child is Choice c ? HandleChildren(c.Children, delim: " | ").Parenthesize() :
+                child is Choice c ? HandleChildren(c.Children, delim: " | ").Parenthesize().Suffix("?", when: c.Optional) :
                 child is Sequence s ? HandleChildren(s.Children).Parenthesize() :
                 child is Field f ? HandleField(f).Suffix("?", when: f.IsOptional) : throw new InvalidOperationException()));
 

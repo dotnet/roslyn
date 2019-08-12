@@ -22,7 +22,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static'? | name_equals?) name ';'
+  : 'using' ('static' | name_equals)? name ';'
   ;
 
 name_equals
