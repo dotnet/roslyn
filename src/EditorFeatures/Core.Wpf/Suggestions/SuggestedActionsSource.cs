@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan.ToSpan());
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan?.ToSpan());
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     PredefinedSuggestedActionCategoryNames.Refactoring,
                     actions: actions,
                     priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
-                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan.ToSpan());
+                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan?.ToSpan());
             }
 
             public Task<bool> HasSuggestedActionsAsync(
