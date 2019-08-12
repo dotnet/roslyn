@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -63,6 +64,14 @@ namespace CSharpSyntaxGenerator
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
 
+            // The syntax.xml doc contains some nodes that are useful for other tools, but which are
+            // not needed by this syntax generator.  Specifically, we have `<Choice>` and
+            // `<Sequence>` nodes in the xml file to help others tools understand the relationship
+            // between some fields (i.e. 'only one of these children can be non-null').  To make our
+            // life easier, we just flatten all those nodes, grabbing all the nested `<Field>` nodes
+            // and placing into a single linear list that we can then process.
+            FlattenChildren(tree);
+
             if (writeSignatures)
             {
                 SignatureWriter.Write(Console.Out, tree);
@@ -88,6 +97,51 @@ namespace CSharpSyntaxGenerator
             }
 
             return 0;
+        }
+
+        private static void FlattenChildren(Tree tree)
+        {
+            foreach (var type in tree.Types)
+            {
+                switch (type)
+                {
+                    case AbstractNode node:
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
+                        break;
+                    case Node node:
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
+                        break;
+                }
+            }
+        }
+
+        private static void FlattenChildren(
+            List<TreeTypeChild> fieldsAndChoices, List<Field> fields, bool makeOptional)
+        {
+            foreach (var fieldOrChoice in fieldsAndChoices)
+            {
+                switch (fieldOrChoice)
+                {
+                    case Field field:
+                        if (makeOptional && !AbstractFileWriter.IsAnyNodeList(field.Type))
+                        {
+                            field.Optional = "true";
+                        }
+
+                        fields.Add(field);
+                        break;
+                    case Choice choice:
+                        // Children of choices are always optional (since the point is to
+                        // chose from one of them and leave out the rest).
+                        FlattenChildren(choice.Children, fields, makeOptional: true);
+                        break;
+                    case Sequence sequence:
+                        FlattenChildren(sequence.Children, fields, makeOptional);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown child type.");
+                }
+            }
         }
 
         private static void WriteUsage()

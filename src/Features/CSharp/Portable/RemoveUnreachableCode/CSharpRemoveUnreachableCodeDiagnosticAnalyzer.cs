@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            if (options == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions options))
             {
                 return;
             }

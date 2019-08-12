@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool CanCreateRecoverableTree(SyntaxNode root)
             {
-                var cu = root as CompilationUnitSyntax;
-                return base.CanCreateRecoverableTree(root) && cu != null && cu.AttributeLists.Count == 0;
+                return base.CanCreateRecoverableTree(root) && root is CompilationUnitSyntax cu && cu.AttributeLists.Count == 0;
             }
 
             public override SyntaxTree CreateRecoverableTree(

@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (CheckManagedAddr(elementType, initializerSyntax, diagnostics))
+            if (CheckManagedAddr(Compilation, elementType, initializerSyntax.Location, diagnostics))
             {
                 hasErrors = true;
             }

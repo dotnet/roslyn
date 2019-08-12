@@ -63,22 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             // C# might have trivia with the accessors that needs to be preserved.  
             // so we will update the existing accessors instead of creating new ones
             var accessorListSyntax = ((PropertyDeclarationSyntax)property).AccessorList;
-            var existingAccessors = GetExistingAccessors(accessorListSyntax);
+            var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(
-                options, existingAccessors.getAccessor,
-                getAccessorStatement, generator);
+            var newGetter = GetUpdatedAccessor(options, getAccessor, getAccessorStatement);
 
             SyntaxNode newSetter = null;
-            if (existingAccessors.setAccessor != null)
+            if (setAccessor != null)
             {
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(
-                    options, existingAccessors.setAccessor,
-                    setAccessorStatement, generator);
+                newSetter = GetUpdatedAccessor(options, setAccessor, setAccessorStatement);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -90,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
 
         private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
-            SyntaxNode accessor, SyntaxNode statement, SyntaxGenerator generator)
+            SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
