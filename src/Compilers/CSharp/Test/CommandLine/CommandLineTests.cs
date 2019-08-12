@@ -11271,6 +11271,76 @@ class C { }";
 
             CleanupAllGeneratedFiles(srcFile.Path);
         }
+
+        [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
+        [Theory]
+        [InlineData(ReportDiagnostic.Error, true)]
+        [InlineData(ReportDiagnostic.Error, false)]
+        [InlineData(ReportDiagnostic.Warn, true)]
+        [InlineData(ReportDiagnostic.Warn, false)]
+        [InlineData(ReportDiagnostic.Info, true)]
+        [InlineData(ReportDiagnostic.Info, false)]
+        [InlineData(ReportDiagnostic.Hidden, true)]
+        [InlineData(ReportDiagnostic.Hidden, false)]
+        [InlineData(ReportDiagnostic.Suppress, true)]
+        [InlineData(ReportDiagnostic.Suppress, false)]
+        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault)
+        {
+            var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic);
+        }
+
+        [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
+        [Theory]
+        [InlineData(ReportDiagnostic.Error, true)]
+        [InlineData(ReportDiagnostic.Error, false)]
+        [InlineData(ReportDiagnostic.Warn, true)]
+        [InlineData(ReportDiagnostic.Warn, false)]
+        [InlineData(ReportDiagnostic.Info, true)]
+        [InlineData(ReportDiagnostic.Info, false)]
+        [InlineData(ReportDiagnostic.Hidden, true)]
+        [InlineData(ReportDiagnostic.Hidden, false)]
+        [InlineData(ReportDiagnostic.Suppress, true)]
+        [InlineData(ReportDiagnostic.Suppress, false)]
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic);
+        }
+
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic reportDiagnostic)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{descriptor.Id}.severity = {reportDiagnostic.ToAnalyzerConfigString()}");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path },
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+
+            var expectedErrorCode = reportDiagnostic == ReportDiagnostic.Error ? 1 : 0;
+            Assert.Equal(expectedErrorCode, exitCode);
+
+            if (reportDiagnostic == ReportDiagnostic.Error || reportDiagnostic == ReportDiagnostic.Warn || reportDiagnostic == ReportDiagnostic.Info)
+            {
+                var prefix = reportDiagnostic == ReportDiagnostic.Error ? "error" : reportDiagnostic == ReportDiagnostic.Warn ? "warning" : "info";
+                Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
+            }
+            else
+            {
+                Assert.DoesNotContain(descriptor.Id.ToString(), outWriter.ToString());
+            }
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

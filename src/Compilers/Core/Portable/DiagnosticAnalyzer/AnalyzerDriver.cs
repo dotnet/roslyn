@@ -1508,7 +1508,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation)
         {
-            return compilation.Options.FilterDiagnostic(diagnostic);
+            return diagnostic.Location == Location.None ?
+                filterNoLocationDiagnostic(diagnostic, compilation) :
+                compilation.Options.FilterDiagnostic(diagnostic);
+
+            static Diagnostic filterNoLocationDiagnostic(Diagnostic diagnostic, Compilation compilation)
+            {
+                // No location diagnostics can be configured by SpecificDiagnosticOptions from CompilationOptions OR
+                // by compilation wide analyzer config options.
+
+                // Check if there is a compilation option to configure the severity of the diagnostic.
+                if (compilation.Options.SpecificDiagnosticOptions.TryGetValue(diagnostic.Id, out var configuredSeverity))
+                {
+                    return diagnostic.WithReportDiagnostic(configuredSeverity);
+                }
+
+                // Otherwise, check if there is an analyzer config option to configure the severity.
+                // Given that the diagnostic has no source location, we look at the diagnostic options for all
+                // syntax trees in the compilation and ensure there is a uniform configured severity.
+                configuredSeverity = ReportDiagnostic.Default;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (tree.DiagnosticOptions.TryGetValue(diagnostic.Id, out var treeSeverity))
+                    {
+                        if (configuredSeverity == ReportDiagnostic.Default)
+                        {
+                            configuredSeverity = treeSeverity;
+                        }
+                        else if (configuredSeverity != treeSeverity)
+                        {
+                            // In case of mismatch configuration use the default diagnostic severity.
+                            return diagnostic;
+                        }
+                    }
+                }
+
+                return configuredSeverity != ReportDiagnostic.Default ?
+                    diagnostic.WithReportDiagnostic(configuredSeverity) :
+                    diagnostic;
+            }
         }
 
         private static async Task<(AnalyzerActions actions, ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)> GetAnalyzerActionsAsync(
@@ -1816,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options or compilation wide analyzer config options.
         /// </summary>
         internal static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,

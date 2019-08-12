@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options or compilation wide analyzer config options.
         /// </summary>
         internal bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
@@ -308,10 +308,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
+                // Diagnostic configuration via compilation options (ruleset or /nowarn) or via compilation wide analyzer config options overrides the author.
                 if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
+                }
+                else if (analyzerExecutor.Compilation != null &&
+                    isConfiguredWithAnalyzerConfigOptions(diag, analyzerExecutor.Compilation, out var hasCompilationWideSuppression))
+                {
+                    isSuppressed = hasCompilationWideSuppression;
                 }
 
                 if (!isSuppressed)
@@ -332,6 +337,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+
+            static bool isConfiguredWithAnalyzerConfigOptions(DiagnosticDescriptor diagnosticDescriptor, Compilation compilation, out bool hasCompilationWideSuppression)
+            {
+                hasCompilationWideSuppression = false;
+                if (compilation.SyntaxTrees.IsEmpty())
+                {
+                    return false;
+                }
+
+                var hasConfigurationEntry = false;
+                var hasTreeWithoutConfiguration = false;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (!tree.DiagnosticOptions.TryGetValue(diagnosticDescriptor.Id, out var configuredValue))
+                    {
+                        hasTreeWithoutConfiguration = true;
+                    }
+                    else
+                    {
+                        hasConfigurationEntry = true;
+                        if (configuredValue != ReportDiagnostic.Suppress)
+                        {
+                            hasCompilationWideSuppression = false;
+                            return true;
+                        }
+                    }
+                }
+
+                hasCompilationWideSuppression = !hasTreeWithoutConfiguration;
+                return hasConfigurationEntry;
+            }
         }
 
         internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)
