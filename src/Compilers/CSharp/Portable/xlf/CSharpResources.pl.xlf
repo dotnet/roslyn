@@ -8891,8 +8891,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
