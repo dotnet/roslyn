@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">Tornar '{0}' herdável</target>
+        <target state="translated">Alterar '{0}' para herdável</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+        <target state="translated">Cla&amp;ssificar Importações</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="AddHandler_statement">
         <source>AddHandler statement</source>
-        <target state="translated">Instrução AdicionarManipuladora</target>
+        <target state="translated">Instrução AddHandler</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveHandler_statement">
@@ -1554,37 +1554,37 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
-        <target state="translated">Bloco Tentar</target>
+        <target state="translated">Bloco Try</target>
         <note>{Locked="Try"} "Try" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Catch_clause">
         <source>Catch clause</source>
-        <target state="translated">Cláusula Obter</target>
+        <target state="translated">Cláusula Catch</target>
         <note>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Finally_clause">
         <source>Finally clause</source>
-        <target state="translated">Cláusula Finalmente</target>
+        <target state="translated">Cláusula Finally</target>
         <note>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_statement">
         <source>Using statement</source>
-        <target state="translated">Usando instrução</target>
+        <target state="translated">Instrução Using</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_block">
         <source>Using block</source>
-        <target state="translated">Bloco Usando</target>
+        <target state="translated">Bloco Using</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="With_statement">
         <source>With statement</source>
-        <target state="translated">Instrução Com</target>
+        <target state="translated">Instrução With</target>
         <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="With_block">
         <source>With block</source>
-        <target state="translated">Bloco Com</target>
+        <target state="translated">Bloco With</target>
         <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="SyncLock_statement">
@@ -1599,17 +1599,17 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="For_Each_statement">
         <source>For Each statement</source>
-        <target state="translated">Instrução Para Cada</target>
+        <target state="translated">Instrução For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="For_Each_block">
         <source>For Each block</source>
-        <target state="translated">Bloco Para Cada</target>
+        <target state="translated">Bloco For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="On_Error_statement">
         <source>On Error statement</source>
-        <target state="translated">Instrução Em Caso de Erro</target>
+        <target state="translated">Instrução On Error</target>
         <note>{Locked="On Error"} "On Error" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Resume_statement">
@@ -1619,12 +1619,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Yield_statement">
         <source>Yield statement</source>
-        <target state="translated">Instrução Rendimento</target>
+        <target state="translated">Instrução Yield</target>
         <note>{Locked="Yield"} "Yield" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Await_expression">
         <source>Await expression</source>
-        <target state="translated">Expressão Aguardar</target>
+        <target state="translated">Expressão Await</target>
         <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Lambda">
@@ -1639,7 +1639,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Select_clause">
         <source>Select clause</source>
-        <target state="translated">Cláusula Selecionar</target>
+        <target state="translated">Cláusula Select</target>
         <note>{Locked="Select"} "Select" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="From_clause">
@@ -1654,22 +1654,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Let_clause">
         <source>Let clause</source>
-        <target state="translated">Cláusula Deixar</target>
+        <target state="translated">Cláusula Let</target>
         <note>{Locked="Let"} "Let" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_clause">
         <source>Join clause</source>
-        <target state="translated">Cláusula Ingressar</target>
+        <target state="translated">Cláusula Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_Join_clause">
         <source>Group Join clause</source>
-        <target state="translated">Cláusula Ingressar Grupo</target>
+        <target state="translated">Cláusula Group Join</target>
         <note>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_By_clause">
         <source>Group By clause</source>
-        <target state="translated">Cláusula Agrupar Por</target>
+        <target state="translated">Cláusula Group By</target>
         <note>{Locked="Group By"} "Group By" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Function_aggregation">
@@ -1679,22 +1679,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Take_While_clause">
         <source>Take While clause</source>
-        <target state="translated">Cláusula Obter Durante</target>
+        <target state="translated">Cláusula Take While</target>
         <note>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Skip_While_clause">
         <source>Skip While clause</source>
-        <target state="translated">Cláusula Ignorar Durante</target>
+        <target state="translated">Cláusula Skip While</target>
         <note>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Ordering_clause">
         <source>Ordering clause</source>
-        <target state="translated">Cláusula Ordenação</target>
+        <target state="translated">Cláusula Ordering</target>
         <note>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Condição Ingressar</target>
+        <target state="translated">Condição Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1709,7 +1709,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
-        <target state="translated">como cláusula</target>
+        <target state="translated">cláusula as</target>
         <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="type_parameters">

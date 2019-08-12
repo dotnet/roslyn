@@ -130,6 +130,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentCompletionPresenterSession.CompletionItemFilters
         End Function
 
+        Public Overrides Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Overrides Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Throw New NotImplementedException()
+        End Sub
+
         Public Overrides Function HasSuggestedItem() As Boolean
             ' SuggestionModeItem is always not null but is displayed only when SuggestionMode = True
             Return CurrentCompletionPresenterSession.SuggestionMode
@@ -190,6 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional inlineDescription As String = Nothing,
+                               Optional automationText As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
@@ -225,6 +234,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     document, Me.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
+
+            ' AutomationText property is only supported by Modern Completion
+            Assert.Null(automationText)
         End Function
 
         Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task

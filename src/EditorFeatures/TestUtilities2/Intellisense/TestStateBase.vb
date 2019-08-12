@@ -195,6 +195,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
 
+        Public MustOverride Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+
+        Public MustOverride Sub SetCompletionItemExpanderState(isSelected As Boolean)
+
         Public MustOverride Function HasSuggestedItem() As Boolean
 
         Public MustOverride Function IsSoftSelected() As Boolean
@@ -255,6 +259,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional inlineDescription As String = Nothing,
+                               Optional automationText As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
         Public MustOverride Function WaitForUIRenderedAsync() As Task

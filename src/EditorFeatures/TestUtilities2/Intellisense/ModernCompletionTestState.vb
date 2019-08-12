@@ -215,6 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional isHardSelected As Boolean? = Nothing,
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
                                                     Optional inlineDescription As String = Nothing,
+                                                    Optional automationText As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
 
             Dim view = If(projectionsView, TextView)
@@ -266,6 +267,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If inlineDescription IsNot Nothing Then
                 Assert.Equal(inlineDescription, items.SelectedItem.Suffix)
             End If
+
+            If automationText IsNot Nothing Then
+                Assert.Equal(automationText, items.SelectedItem.AutomationText)
+            End If
         End Function
 
         Public Overrides Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
@@ -313,6 +318,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
         End Function
+
+        Public Overrides Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Overrides Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
 
         Public Overrides Function HasSuggestedItem() As Boolean
             AssertNoAsynchronousOperationsRunning()

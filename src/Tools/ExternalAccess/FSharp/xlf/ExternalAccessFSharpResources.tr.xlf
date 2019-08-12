@@ -4,127 +4,127 @@
     <body>
       <trans-unit id="AddAssemblyReference">
         <source>Add an assembly reference to '{0}'</source>
-        <target state="new">Add an assembly reference to '{0}'</target>
+        <target state="translated">'{0}' öğesine bir derleme başvurusu ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="AddNewKeyword">
         <source>Add 'new' keyword</source>
-        <target state="new">Add 'new' keyword</target>
+        <target state="translated">'new' anahtar sözcüğünü ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="AddProjectReference">
         <source>Add a project reference to '{0}'</source>
-        <target state="new">Add a project reference to '{0}'</target>
+        <target state="translated">'{0}' öğesine proje başvurusu ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotDetermineSymbol">
         <source>Cannot determine the symbol under the caret</source>
-        <target state="new">Cannot determine the symbol under the caret</target>
+        <target state="translated">Giriş işareti altındaki sembol belirlenemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotNavigateUnknown">
         <source>Cannot navigate to the requested location</source>
-        <target state="new">Cannot navigate to the requested location</target>
+        <target state="translated">İstenen konuma gidilemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ExceptionsHeader">
         <source>Exceptions:</source>
-        <target state="new">Exceptions:</target>
+        <target state="translated">Özel Durumlar:</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpDisposablesClassificationType">
         <source>F# Disposable Types</source>
-        <target state="new">F# Disposable Types</target>
+        <target state="translated">F# Atılabilir Türleri</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpFunctionsOrMethodsClassificationType">
         <source>F# Functions / Methods</source>
-        <target state="new">F# Functions / Methods</target>
+        <target state="translated">F # İşlevleri/Metotları</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpMutableVarsClassificationType">
         <source>F# Mutable Variables / Reference Cells</source>
-        <target state="new">F# Mutable Variables / Reference Cells</target>
+        <target state="translated">F# Değişebilir Değişkenleri/Başvuru Hücreleri</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpPrintfFormatClassificationType">
         <source>F# Printf Format</source>
-        <target state="new">F# Printf Format</target>
+        <target state="translated">F# Printf Biçimi</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpPropertiesClassificationType">
         <source>F# Properties</source>
-        <target state="new">F# Properties</target>
+        <target state="translated">F# Özellikleri</target>
         <note />
       </trans-unit>
       <trans-unit id="GenericParametersHeader">
         <source>Generic parameters:</source>
-        <target state="new">Generic parameters:</target>
+        <target state="translated">Genel parametreler:</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterface">
         <source>Implement interface</source>
-        <target state="new">Implement interface</target>
+        <target state="translated">Arabirimi uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterfaceWithoutTypeAnnotation">
         <source>Implement interface without type annotation</source>
-        <target state="new">Implement interface without type annotation</target>
+        <target state="translated">Tür ek açıklaması olmadan arabirimi uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="LocatingSymbol">
         <source>Locating the symbol under the caret...</source>
-        <target state="new">Locating the symbol under the caret...</target>
+        <target state="translated">Giriş işareti altındaki sembol bulunuyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="NameCanBeSimplified">
         <source>Name can be simplified.</source>
-        <target state="new">Name can be simplified.</target>
+        <target state="translated">Ad basitleştirilebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="NavigateToFailed">
         <source>Navigate to symbol failed: {0}</source>
-        <target state="new">Navigate to symbol failed: {0}</target>
+        <target state="translated">Sembole gidilemedi: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="NavigatingTo">
         <source>Navigating to symbol...</source>
-        <target state="new">Navigating to symbol...</target>
+        <target state="translated">Sembole gidiliyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="PrefixValueNameWithUnderscore">
         <source>Prefix '{0}' with underscore</source>
-        <target state="new">Prefix '{0}' with underscore</target>
+        <target state="translated">'{0}' için ön ek olarak alt çizgi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnusedOpens">
         <source>Remove unused open declarations</source>
-        <target state="new">Remove unused open declarations</target>
+        <target state="translated">Kullanılmayan açık bildirimleri kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="RenameValueToDoubleUnderscore">
         <source>Rename '{0}' to '__'</source>
-        <target state="new">Rename '{0}' to '__'</target>
+        <target state="translated">'{0}' öğesini '__' olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="RenameValueToUnderscore">
         <source>Rename '{0}' to '_'</source>
-        <target state="new">Rename '{0}' to '_'</target>
+        <target state="translated">'{0}' öğesini '_' olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="SimplifyName">
         <source>Simplify name</source>
-        <target state="new">Simplify name</target>
+        <target state="translated">Adı basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="TheValueIsUnused">
         <source>The value is unused</source>
-        <target state="new">The value is unused</target>
+        <target state="translated">Değer kullanılmıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="UnusedOpens">
         <source>Open declaration can be removed.</source>
-        <target state="new">Open declaration can be removed.</target>
+        <target state="translated">Açık bildirim kaldırılabilir.</target>
         <note />
       </trans-unit>
     </body>
