@@ -37,14 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-        {
-            registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
-
-            Document = document ?? throw new ArgumentNullException(nameof(document));
-            Span = span;
-            _registerRefactoring = (action, textSpan) => registerRefactoring(action);
-            CancellationToken = cancellationToken;
-        }
+            : this(document, span, (action, textSpan) => registerRefactoring(action), cancellationToken)
+        { }
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.

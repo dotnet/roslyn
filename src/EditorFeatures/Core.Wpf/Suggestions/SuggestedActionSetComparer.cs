@@ -17,20 +17,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _targetSpan = targetSpan;
         }
 
-        private static int Distance(Span? textSpan, TextSpan? targetSpan)
+        private static int Distance(Span? maybeA, TextSpan? maybeB)
         {
             // If we don't have a text span or target point we cannot calculate the distance between them
-            if (!textSpan.HasValue || !targetSpan.HasValue)
+            if (!maybeA.HasValue || !maybeB.HasValue)
             {
                 return int.MaxValue;
             }
 
-            var span = textSpan.Value;
-            var target = targetSpan.Value;
+            var a = maybeA.Value;
+            var b = maybeB.Value;
 
-            // The distance of two spans is the sum of distance of their starts and their ends
-            var startsDistance = Math.Abs(span.Start - target.Start);
-            var endsDistance = Math.Abs(span.End - target.End);
+            // The distance of two spans is symetric sumation of:
+            // - the distance of a's start to b's start
+            // - the distance of a's end to b's end
+            //
+            // This particular metric has been chosen because it is both simple
+            // and uses the all the information in both spans. A weighting (i.e.
+            // the distance of starts is more important) could be added but it
+            // didn't seem necessary.
+            //
+            // E.g.: for spans [ ] and $ $ the distance is distanceOfStarts+distanceOfEnds:
+            // $ $ [  ] has distance 2+3
+            // $ [   ]$ has distance 1+0
+            // $[    ]$ has distance 0+0
+            // $ []   $ has distance 1+3
+            // $[]    $ has distance 0+4
+            var startsDistance = Math.Abs(a.Start - b.Start);
+            var endsDistance = Math.Abs(a.End - b.End);
 
             return startsDistance + endsDistance;
         }
