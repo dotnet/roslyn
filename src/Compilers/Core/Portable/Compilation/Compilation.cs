@@ -2699,7 +2699,7 @@ namespace Microsoft.CodeAnalysis
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (hasUnsuppressedErrors(diagnostics))
+            if (!metadataOnly && hasUnsuppressedErrors(diagnostics))
             {
                 return false;
             }
