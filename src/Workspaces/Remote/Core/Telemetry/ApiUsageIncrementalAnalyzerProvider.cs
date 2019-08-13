@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     {
                         // use telemetry API directly rather than Logger abstraction for PII data
                         var telemetryEvent = new TelemetryEvent(EventName);
-                        telemetryEvent.Properties[PropertyName] = new TelemetryComplexProperty(apiPerAssemlby);
+                        telemetryEvent.Properties[PropertyName] = new TelemetryComplexProperty(apiPerAssembly);
 
                         try
                         {
