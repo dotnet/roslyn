@@ -3,10 +3,10 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -87,6 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+
+            if (typeInfo.Type.IsValueType)
+            {
+                return default;
+            }
+
+            switch (symbolInfo.Symbol)
+            {
+                case IFieldSymbol { HasConstantValue: true }: return default;
+                case ILocalSymbol { HasConstantValue: true }: return default;
+            }
 
             string messageTemplate = null;
 
