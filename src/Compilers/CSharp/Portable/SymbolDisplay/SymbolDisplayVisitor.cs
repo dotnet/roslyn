@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitWithAnnotation(TypeWithAnnotations type)
         {
-            Debug.Assert(!(type.Type is null));
+            Debug.Assert(type.Type is object);
             Visit(type.Type);
             AddNullableAnnotations(type);
         }

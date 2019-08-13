@@ -408,17 +408,16 @@ class C
                 index: 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30027")]
-        [WorkItem(30027, "https://github.com/dotnet/roslyn/issues/30027")]
+        [Fact]
         public async Task UpgradeAllProjectsToCSharp8_NullableReferenceType()
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""True"">
         <Document>
 class C
 {
-    void A(string? [|s|])
+    void A(string[|?|] s)
     {
     }
 }

@@ -5,9 +5,17 @@ variables:
   - name: PublicDevRelease_30_Channel_Id
     value: 3
 
+  # .NET Core 5 Dev
+  - name: NetCore_5_Dev_Channel_Id
+    value: 131
+
   # .NET Tools - Validation
   - name: PublicValidationRelease_30_Channel_Id
     value: 9
+
+  # .NET Tools - Latest
+  - name: NetCore_Tools_Latest_Channel_Id
+    value: 2
 
   # .NET Core 3.0 Internal Servicing
   - name: InternalServicing_30_Channel_Id

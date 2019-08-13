@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                var builder = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -259,12 +259,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(codeAction);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                var builder = ArrayBuilder<CodeAction>.GetInstance(2);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
                 var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
                 {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            var builder = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length);
+            using var builderDisposer = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 builder.Add(codeFixData);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
