@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 }
 
                 var groupByAssembly = metadataSymbolUsed.GroupBy(s => s.ContainingAssembly);
-                var apiPerAssemlby = groupByAssembly.Select(g => new
+                var apiPerAssembly = groupByAssembly.Select(g => new
                 {
                     // mark all string as PII (customer data)
                     AssemblyName = new TelemetryPiiProperty(g.Key.Identity.Name),
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     {
                         // use telemetry API directly rather than Logger abstraction for PII data
                         var telemetryEvent = new TelemetryEvent(EventName);
-                        telemetryEvent.Properties[PropertyName] = new TelemetryComplexProperty(apiPerAssemlby);
+                        telemetryEvent.Properties[PropertyName] = new TelemetryComplexProperty(apiPerAssembly);
 
                         try
                         {
