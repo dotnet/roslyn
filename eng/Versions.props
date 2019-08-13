@@ -7,7 +7,7 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>2</MinorVersion>
-    <PatchVersion>1</PatchVersion>
+    <PatchVersion>2</PatchVersion>
     <PreReleaseVersionLabel>beta4</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
