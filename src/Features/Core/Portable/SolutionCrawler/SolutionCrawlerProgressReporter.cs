@@ -16,14 +16,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
-            private int _progressStartCount;
-            private int _progressEvaluateCount;
-
-            public SolutionCrawlerProgressReporter()
-            {
-                _progressStartCount = 0;
-                _progressEvaluateCount = 0;
-            }
+            private int _progressStartCount = 0;
+            private int _progressEvaluateCount = 0;
 
             public event EventHandler<ProgressData> ProgressChanged;
 
@@ -40,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (_progressStartCount > 0)
                 {
-                    var progressData = new ProgressData(ProgressStatus.PendingItemUpdated, pendingItemCount);
+                    var progressData = new ProgressData(ProgressStatus.PendingItemCountUpdated, pendingItemCount);
                     OnProgressChanged(progressData);
                 }
             }

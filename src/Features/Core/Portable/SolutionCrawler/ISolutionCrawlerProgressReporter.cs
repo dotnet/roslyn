@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public ProgressStatus Status { get; }
 
         /// <summary>
-        /// number of pending work item in the queue
+        /// number of pending work item in the queue. 
+        /// null means N/A for the associated <see cref="Status"/>
         /// </summary>
         public int? PendingItemCount { get; }
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         Started,
         Paused,
-        PendingItemUpdated,
+        PendingItemCountUpdated,
         Evaluating,
         Stoped
     }

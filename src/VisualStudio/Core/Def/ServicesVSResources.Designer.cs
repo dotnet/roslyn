@@ -1016,11 +1016,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Evaluating.
+        ///   Looks up a localized string similar to Evaluating ({0} tasks in queue).
         /// </summary>
-        internal static string Evaluating {
+        internal static string Evaluating_0_tasks_in_queue {
             get {
-                return ResourceManager.GetString("Evaluating", resourceCulture);
+                return ResourceManager.GetString("Evaluating_0_tasks_in_queue", resourceCulture);
             }
         }
         
@@ -2255,11 +2255,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paused.
+        ///   Looks up a localized string similar to Paused ({0} tasks in queue).
         /// </summary>
-        internal static string Paused {
+        internal static string Paused_0_tasks_in_queue {
             get {
-                return ResourceManager.GetString("Paused", resourceCulture);
+                return ResourceManager.GetString("Paused_0_tasks_in_queue", resourceCulture);
             }
         }
         
@@ -3157,15 +3157,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Target_Namespace_colon {
             get {
                 return ResourceManager.GetString("Target_Namespace_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to tasks in queue.
-        /// </summary>
-        internal static string tasks_in_queue {
-            get {
-                return ResourceManager.GetString("tasks_in_queue", resourceCulture);
             }
         }
         
