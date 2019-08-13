@@ -43,9 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             VisualStudioWorkspace workspace)
         {
             _lastTimeReported = DateTimeOffset.UtcNow;
-            _lastPendingItemCount = 0;
-            _lastProgressStatus = ProgressStatus.Paused;
             _resettableDelay = null;
+
+            ResetProgressStatus();
 
             _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
 
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             if (started)
             {
-                ResetStatus();
+                ResetProgressStatus();
 
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(default);
@@ -168,14 +168,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 _taskHandler = null;
 
-                ResetStatus();
+                ResetProgressStatus();
             }
+        }
 
-            void ResetStatus()
-            {
-                _lastPendingItemCount = 0;
-                _lastProgressStatus = ProgressStatus.Paused;
-            }
+        private void ResetProgressStatus()
+        {
+            _lastPendingItemCount = 0;
+            _lastProgressStatus = ProgressStatus.Paused;
+            _lastShownProgressStatus = ProgressStatus.Paused;
         }
 
         private static void ChangeProgress(ITaskHandler taskHandler, string message)
