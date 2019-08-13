@@ -1297,7 +1297,7 @@ partial class Program
         {
             await TestInRegularAndScriptAsync(
 @"
-#nullable enable 
+#nullable enable
 
 class Program
 {
@@ -1309,11 +1309,8 @@ class Program
 class Program
 {
     private string? name;
-    string? Name 
-    {
-        get => name;
-        set => name = value;
-    }
+
+    string? Name { get => name; set => name = value; }
 }");
         }
     }
