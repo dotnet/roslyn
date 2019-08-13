@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 => new TCompletionItem
                 {
                     Label = item.DisplayText,
-                    InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
+                    InsertText = item.GetInsertionText(),
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
