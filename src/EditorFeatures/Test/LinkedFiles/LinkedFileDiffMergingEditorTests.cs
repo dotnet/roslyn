@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
 
 #pragma warning disable RS0005
-                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)));
+                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
 #pragma warning restore RS0005
             }
         }

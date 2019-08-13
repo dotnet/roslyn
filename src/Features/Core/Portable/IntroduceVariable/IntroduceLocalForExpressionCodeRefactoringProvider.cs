@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             context.RegisterRefactoring(new MyCodeAction(
                 string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                c => IntroduceLocalAsync(document, expressionStatement, c)));
+                c => IntroduceLocalAsync(document, expressionStatement, c)),
+                expressionStatement.Span);
         }
 
         protected async Task<TExpressionStatementSyntax> GetExpressionStatementAsync(CodeRefactoringContext context)

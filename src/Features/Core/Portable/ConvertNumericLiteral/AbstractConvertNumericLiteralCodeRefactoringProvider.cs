@@ -103,14 +103,16 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
             void RegisterRefactoringWithResult(string text, string title)
             {
-                context.RegisterRefactoring(new MyCodeAction(title, c =>
-                {
-                    var generator = SyntaxGenerator.GetGenerator(document);
-                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
-                        .WithTriviaFrom(numericToken);
-                    var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
-                    return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
-                }));
+                context.RegisterRefactoring(
+                    new MyCodeAction(title, c =>
+                    {
+                        var generator = SyntaxGenerator.GetGenerator(document);
+                        var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                            .WithTriviaFrom(numericToken);
+                        var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
+                        return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
+                    }),
+                    numericToken.Span);
             }
         }
 

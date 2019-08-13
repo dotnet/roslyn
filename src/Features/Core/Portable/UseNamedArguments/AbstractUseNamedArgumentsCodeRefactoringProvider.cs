@@ -102,12 +102,14 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)),
+                        argument.Span);
 
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                        argument.Span);
                 }
                 else
                 {

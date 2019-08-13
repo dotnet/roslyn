@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingDocument, siblingBanner, c)));
+                        new MyCodeAction(c => AddBannerAsync(document, root, siblingDocument, siblingBanner, c)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
                         document, root, lambdaNode,
-                        useExpressionBody: true, c)));
+                        useExpressionBody: true, c)), lambdaNode.Span);
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
                         document, root, lambdaNode,
-                        useExpressionBody: false, c)));
+                        useExpressionBody: false, c)), lambdaNode.Span);
             }
         }
 

@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
                 FeaturesResources.Convert_to_struct,
                 scopes.ToImmutableAndFree(),
-                isInlinable: false));
+                isInlinable: false),
+                tupleExprOrTypeNode.Span);
         }
 
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)

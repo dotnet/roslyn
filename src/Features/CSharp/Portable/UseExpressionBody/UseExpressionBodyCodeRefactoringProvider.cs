@@ -80,22 +80,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: true, cancellationToken: c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        helper.UseExpressionBodyTitle.ToString(),
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, optionSet, helper,
+                            useExpressionBody: true, cancellationToken: c)),
+                        declaration.Span);
                 succeeded = true;
             }
 
             var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
             if (canOffer)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: false, cancellationToken: c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        helper.UseBlockBodyTitle.ToString(),
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, optionSet, helper,
+                            useExpressionBody: false, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
