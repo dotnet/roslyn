@@ -664,6 +664,12 @@ Do you want to continue?</value>
   <data name="Remove_Suppression" xml:space="preserve">
     <value>Remove Suppression</value>
   </data>
+  <data name="Configure_0_severity" xml:space="preserve">
+    <value>Configure {0} severity</value>
+  </data>
+  <data name="Configure_0_code_style" xml:space="preserve">
+    <value>Configure {0} code style</value>
+  </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>

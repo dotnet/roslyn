@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
-                using (var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name))
+                using (var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name))
                 {
                     var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
 

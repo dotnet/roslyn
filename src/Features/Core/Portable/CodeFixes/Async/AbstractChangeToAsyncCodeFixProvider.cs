@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             var newRoot = result.Item2;
             var otherDocument = document.Project.Solution.GetDocument(syntaxTree);
             return new MyCodeAction(
-                await this.GetDescription(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
+                await GetDescription(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
                 token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot)));
         }
 

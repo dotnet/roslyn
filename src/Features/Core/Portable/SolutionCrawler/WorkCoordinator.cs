@@ -621,8 +621,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public ReanalyzeScope(IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
             {
-                projectIds = projectIds ?? SpecializedCollections.EmptyEnumerable<ProjectId>();
-                documentIds = documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
+                documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
 
                 _solutionId = null;
                 _projectOrDocumentIds = new HashSet<object>(projectIds);

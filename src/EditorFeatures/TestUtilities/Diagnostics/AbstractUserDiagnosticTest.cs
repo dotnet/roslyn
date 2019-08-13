@@ -195,10 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var actions = fixes.SelectAsArray(f => f.Action);
 
-            actions = actions.SelectMany(a => a is TopLevelSuppressionCodeAction
-                ? a.NestedCodeActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
-
             actions = MassageActions(actions);
 
             if (scope == null)

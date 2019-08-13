@@ -120,13 +120,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
                         using (baseSolution.Services.CacheService?.EnableCaching(documentsByProject.Key))
                         {
-                            // Rename is going to be in 4 phases.
+                            // Rename is going to be in 5 phases.
                             // 1st phase - Does a simple token replacement
                             // If the 1st phase results in conflict then we perform then:
                             //      2nd phase is to expand and simplify only the reference locations with conflicts
                             //      3rd phase is to expand and simplify all the conflict locations (both reference and non-reference)
                             // If there are unresolved Conflicts after the 3rd phase then in 4th phase, 
                             //      We complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
+                            // If the OptionSet has RenameFile to true, we rename files with the type declaration
                             for (int phase = 0; phase < 4; phase++)
                             {
                                 // Step 1:
@@ -229,6 +230,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #if DEBUG
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
+
+                    // Step 5: Rename declaration files
+                    if (_optionSet.GetOption(RenameOptions.RenameFile))
+                    {
+                        var definitionLocations = _renameLocationSet.Symbol.Locations;
+                        var definitionDocuments = definitionLocations
+                            .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
+                            .Distinct();
+
+                        if (definitionDocuments.Count() == 1)
+                        {
+                            // At the moment, only single document renaming is allowed
+                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                        }
+                    }
+
                     return conflictResolution;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

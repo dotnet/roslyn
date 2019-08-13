@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 throw new ArgumentNullException(nameof(declaredSymbol));
             }
 
-            SemanticModel semanticModel = context.SemanticModel;
+            var semanticModel = context.SemanticModel;
 
-            INamespaceOrTypeSymbol containingSymbol = declaredSymbol.ContainingSymbol as INamespaceOrTypeSymbol;
+            var containingSymbol = declaredSymbol.ContainingSymbol as INamespaceOrTypeSymbol;
 
             if (containingSymbol == null)
             {

@@ -48,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken)
             End Function
 
-            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
+            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode, treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.SyntaxTree(root, options, fileName, encoding)
+                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, treeDiagnosticReportingOptionsOpt)
             End Function
 
             Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
@@ -60,7 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MyBase.CanCreateRecoverableTree(root) AndAlso cu IsNot Nothing AndAlso cu.Attributes.Count = 0
             End Function
 
-            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As SyntaxNode) As SyntaxTree
+            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId,
+                                                            filePath As String,
+                                                            optionsOpt As ParseOptions,
+                                                            text As ValueSource(Of TextAndVersion),
+                                                            encoding As Encoding,
+                                                            root As SyntaxNode,
+                                                            treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+
                 Debug.Assert(CanCreateRecoverableTree(root))
                 Return RecoverableSyntaxTree.CreateRecoverableTree(
                     Me,
@@ -70,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     text,
                     encoding,
                     DirectCast(root, CompilationUnitSyntax),
-                    diagnosticOptions:=Nothing)
+                    treeDiagnosticReportingOptionsOpt)
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

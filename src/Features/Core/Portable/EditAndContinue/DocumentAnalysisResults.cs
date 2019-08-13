@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private DocumentAnalysisResults(ImmutableArray<RudeEditDiagnostic> rudeEdits)
         {
             _hasCompilationErrors = rudeEdits.Length == 0;
-            this.RudeEditErrors = rudeEdits;
+            RudeEditErrors = rudeEdits;
         }
 
         public DocumentAnalysisResults(
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(exceptionRegionsOpt.IsDefault || exceptionRegionsOpt.Length == activeStatements.Length);
             }
 
-            this.RudeEditErrors = rudeEdits;
-            this.SemanticEdits = semanticEditsOpt;
-            this.ActiveStatements = activeStatements;
-            this.ExceptionRegions = exceptionRegionsOpt;
-            this.LineEdits = lineEditsOpt;
+            RudeEditErrors = rudeEdits;
+            SemanticEdits = semanticEditsOpt;
+            ActiveStatements = activeStatements;
+            ExceptionRegions = exceptionRegionsOpt;
+            LineEdits = lineEditsOpt;
             _hasCompilationErrors = hasSemanticErrors;
         }
 

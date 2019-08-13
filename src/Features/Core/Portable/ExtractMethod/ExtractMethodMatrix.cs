@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
@@ -199,26 +197,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 bool writtenOutside) :
                 this()
             {
-                this.DataFlowIn = dataFlowIn;
-                this.DataFlowOut = dataFlowOut;
-                this.AlwaysAssigned = alwaysAssigned;
-                this.VariableDeclared = variableDeclared;
-                this.ReadInside = readInside;
-                this.WrittenInside = writtenInside;
-                this.ReadOutside = readOutside;
-                this.WrittenOutside = writtenOutside;
+                DataFlowIn = dataFlowIn;
+                DataFlowOut = dataFlowOut;
+                AlwaysAssigned = alwaysAssigned;
+                VariableDeclared = variableDeclared;
+                ReadInside = readInside;
+                WrittenInside = writtenInside;
+                ReadOutside = readOutside;
+                WrittenOutside = writtenOutside;
             }
 
             public bool Equals(Key key)
             {
-                return this.DataFlowIn == key.DataFlowIn &&
-                       this.DataFlowOut == key.DataFlowOut &&
-                       this.AlwaysAssigned == key.AlwaysAssigned &&
-                       this.VariableDeclared == key.VariableDeclared &&
-                       this.ReadInside == key.ReadInside &&
-                       this.WrittenInside == key.WrittenInside &&
-                       this.ReadOutside == key.ReadOutside &&
-                       this.WrittenOutside == key.WrittenOutside;
+                return DataFlowIn == key.DataFlowIn &&
+                       DataFlowOut == key.DataFlowOut &&
+                       AlwaysAssigned == key.AlwaysAssigned &&
+                       VariableDeclared == key.VariableDeclared &&
+                       ReadInside == key.ReadInside &&
+                       WrittenInside == key.WrittenInside &&
+                       ReadOutside == key.ReadOutside &&
+                       WrittenOutside == key.WrittenOutside;
             }
 
             public override bool Equals(object obj)
@@ -235,14 +233,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var hashCode = 0;
 
-                hashCode = this.DataFlowIn ? 1 << 7 | hashCode : hashCode;
-                hashCode = this.DataFlowOut ? 1 << 6 | hashCode : hashCode;
-                hashCode = this.AlwaysAssigned ? 1 << 5 | hashCode : hashCode;
-                hashCode = this.VariableDeclared ? 1 << 4 | hashCode : hashCode;
-                hashCode = this.ReadInside ? 1 << 3 | hashCode : hashCode;
-                hashCode = this.WrittenInside ? 1 << 2 | hashCode : hashCode;
-                hashCode = this.ReadOutside ? 1 << 1 | hashCode : hashCode;
-                hashCode = this.WrittenOutside ? 1 << 0 | hashCode : hashCode;
+                hashCode = DataFlowIn ? 1 << 7 | hashCode : hashCode;
+                hashCode = DataFlowOut ? 1 << 6 | hashCode : hashCode;
+                hashCode = AlwaysAssigned ? 1 << 5 | hashCode : hashCode;
+                hashCode = VariableDeclared ? 1 << 4 | hashCode : hashCode;
+                hashCode = ReadInside ? 1 << 3 | hashCode : hashCode;
+                hashCode = WrittenInside ? 1 << 2 | hashCode : hashCode;
+                hashCode = ReadOutside ? 1 << 1 | hashCode : hashCode;
+                hashCode = WrittenOutside ? 1 << 0 | hashCode : hashCode;
 
                 return hashCode;
             }

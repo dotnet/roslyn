@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
 
         internal SymbolMappingResult(Project project, ISymbol symbol)
         {
-            this.Project = project;
-            this.Symbol = symbol;
+            Project = project;
+            Symbol = symbol;
         }
 
         public Solution Solution => Project.Solution;

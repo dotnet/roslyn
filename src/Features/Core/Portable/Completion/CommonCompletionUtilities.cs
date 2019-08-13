@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
         {
-            int start = position;
+            var start = position;
             while (start > 0 && isWordStartCharacter(text[start - 1]))
             {
                 start--;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // text).  However, if they bring up completion in the "middle" of a word, then they will
             // "overwrite" the text. Useful for correcting misspellings or just replacing unwanted
             // code with new code.
-            int end = position;
+            var end = position;
             if (start != position || alwaysExtendEndSpan)
             {
                 while (end < text.Length && isWordCharacter(text[end]))
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // etc.
             characterPosition = characterPosition - value.Length + 1;
 
-            for (int i = 0; i < value.Length; i++, characterPosition++)
+            for (var i = 0; i < value.Length; i++, characterPosition++)
             {
                 if (characterPosition < 0 || characterPosition >= text.Length)
                 {

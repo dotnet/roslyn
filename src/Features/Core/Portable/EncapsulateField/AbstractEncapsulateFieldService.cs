@@ -408,21 +408,21 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             public Result(Solution solutionWithProperty, string name, Glyph glyph)
             {
-                this.Solution = solutionWithProperty;
-                this.Name = name;
-                this.Glyph = glyph;
+                Solution = solutionWithProperty;
+                Name = name;
+                Glyph = glyph;
             }
 
             public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols) :
                 this(solutionWithProperty, name, glyph)
             {
-                this.FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
+                FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
             }
 
             public Result(Solution originalSolution, params IFieldSymbol[] fields) :
                 this(originalSolution, string.Empty, Glyph.Error)
             {
-                this.FailedFields = fields.ToImmutableArrayOrEmpty();
+                FailedFields = fields.ToImmutableArrayOrEmpty();
             }
 
             public Solution Solution { get; }
