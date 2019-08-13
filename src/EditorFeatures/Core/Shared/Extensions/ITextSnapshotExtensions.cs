@@ -72,10 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return null;
             }
 
-            var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, document.Name);
-
             // partial mode is always cancellable
-            using (operationContext.AddScope(allowCancellation: true, description))
+            using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
