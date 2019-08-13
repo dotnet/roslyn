@@ -2,9 +2,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -19,109 +16,69 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
-            private readonly IAsynchronousOperationListener _listener;
+            private int _progressStartCount;
+            private int _progressEvaluateCount;
 
-            // use event map and event queue so that we can guarantee snapshot and sequential ordering of events from
-            // multiple consumer from possibly multiple threads
-            private readonly SimpleTaskQueue _eventQueue;
-            private readonly EventMap _eventMap;
-
-            // this is to reduce number of times we report progress on same file. this is purely for perf
-            private string _lastReportedFilePath;
-
-            private int _count;
-
-            public SolutionCrawlerProgressReporter(IAsynchronousOperationListener listener)
+            public SolutionCrawlerProgressReporter()
             {
-                _listener = listener;
-                _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-                _eventMap = new EventMap();
-
-                _count = 0;
+                _progressStartCount = 0;
+                _progressEvaluateCount = 0;
             }
 
-            public bool InProgress
-            {
-                get
-                {
-                    return _count > 0;
-                }
-            }
+            public event EventHandler<ProgressData> ProgressChanged;
 
-            public event EventHandler<ProgressData> ProgressChanged
-            {
-                add
-                {
-                    _eventMap.AddEventHandler(nameof(ProgressChanged), value);
-                }
+            public bool InProgress => _progressStartCount > 0;
 
-                remove
+            public void Start() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Started);
+            public void Stop() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Stoped);
+
+            private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Evaluating);
+            private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Paused);
+
+
+            public void UpdatePendingItemCount(int pendingItemCount)
+            {
+                if (_progressStartCount > 0)
                 {
-                    _eventMap.RemoveEventHandler(nameof(ProgressChanged), value);
+                    var progressData = new ProgressData(ProgressStatus.PendingItemUpdated, pendingItemCount);
+                    OnProgressChanged(progressData);
                 }
             }
 
-            public Task Start()
+            public IDisposable Evaluating()
             {
-                if (Interlocked.Increment(ref _count) == 1)
-                {
-                    _lastReportedFilePath = null;
-
-                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
-                    var progressData = new ProgressData(ProgressStatus.Started, filePathOpt: null);
-                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
-                }
-
-                return Task.CompletedTask;
+                return new ProgressStatusRAII(this);
             }
 
-            public Task Stop()
+            private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
             {
-                if (Interlocked.Decrement(ref _count) == 0)
+                var start = (status == ProgressStatus.Started || status == ProgressStatus.Evaluating);
+                if (start ? (Interlocked.Increment(ref referenceCount) == 1) : (Interlocked.Decrement(ref referenceCount) == 0))
                 {
-                    _lastReportedFilePath = null;
-
-                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
-                    var progressData = new ProgressData(ProgressStatus.Stoped, filePathOpt: null);
-                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
+                    var progressData = new ProgressData(status, pendingItemCount: null);
+                    OnProgressChanged(progressData);
                 }
-
-                return Task.CompletedTask;
             }
 
-            public Task Update(string filePath)
+            private void OnProgressChanged(ProgressData progressData)
             {
-                if (_count > 0)
-                {
-                    if (_lastReportedFilePath == filePath)
-                    {
-                        // don't report same file multiple times
-                        return Task.CompletedTask;
-                    }
-
-                    _lastReportedFilePath = filePath;
-
-                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportUpdate");
-                    var progressData = new ProgressData(ProgressStatus.Updated, filePath);
-                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
-                }
-
-                return Task.CompletedTask;
+                ProgressChanged?.Invoke(this, progressData);
             }
 
-            private Task RaiseEvent(string eventName, ProgressData progressData)
+            private struct ProgressStatusRAII : IDisposable
             {
-                // this method name doesn't have Async since it should work as async void.
-                var ev = _eventMap.GetEventHandlers<EventHandler<ProgressData>>(eventName);
-                if (ev.HasHandlers)
+                private readonly SolutionCrawlerProgressReporter _owner;
+
+                public ProgressStatusRAII(SolutionCrawlerProgressReporter owner)
                 {
-                    return _eventQueue.ScheduleTask(() =>
-                    {
-                        ev.RaiseEvent(handler => handler(this, progressData));
-                    });
+                    _owner = owner;
+                    _owner.Evaluate();
                 }
 
-                return Task.CompletedTask;
+                public void Dispose()
+                {
+                    _owner.Pause();
+                }
             }
         }
 

@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Enqueue(item);
                     _normalPriorityProcessor.Enqueue(item);
                     _lowPriorityProcessor.Enqueue(item);
+
+                    ReportPendingWorkItemCount();
                 }
 
                 public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
@@ -155,6 +157,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _logAggregator = new LogAggregator();
                 }
 
+                private void ReportPendingWorkItemCount()
+                {
+                    var pendingItemCount = _highPriorityProcessor.WorkItemCount + _normalPriorityProcessor.WorkItemCount + _lowPriorityProcessor.WorkItemCount;
+                    _registration.ProgressReporter.UpdatePendingItemCount(pendingItemCount);
+                }
+
                 private async Task ProcessDocumentAnalyzersAsync(
                     Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
@@ -182,30 +190,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
-                    // this is a best effort progress report. since we don't clear up
-                    // reported progress when work is done or cancelled. it is possible
-                    // that last reported work is left in report even if it is already processed.
-                    // but when everything is finished, report should get cleared
-                    _ = _registration.ProgressReporter.Update(GetFilePath(value));
-
-                    foreach (var analyzer in analyzers)
+                    using (_registration.ProgressReporter.Evaluating())
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            return;
-                        }
+                        ReportPendingWorkItemCount();
 
-                        var local = analyzer;
-                        if (local == null)
+                        foreach (var analyzer in analyzers)
                         {
-                            return;
-                        }
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
 
-                        await GetOrDefaultAsync(value, async (v, c) =>
-                        {
-                            await runnerAsync(local, v, c).ConfigureAwait(false);
-                            return default(object);
-                        }, cancellationToken).ConfigureAwait(false);
+                            var local = analyzer;
+                            if (local == null)
+                            {
+                                return;
+                            }
+
+                            await GetOrDefaultAsync(value, async (v, c) =>
+                            {
+                                await runnerAsync(local, v, c).ConfigureAwait(false);
+                                return default(object);
+                            }, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
 
@@ -241,26 +248,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
-
-                private static string GetFilePath(object value)
-                {
-                    if (value is Document document)
-                    {
-                        return document.FilePath;
-                    }
-
-                    if (value is Project project)
-                    {
-                        return project.FilePath;
-                    }
-
-                    if (value is Solution solution)
-                    {
-                        return solution.FilePath;
-                    }
-
-                    throw ExceptionUtilities.UnexpectedValue(value);
                 }
 
                 private static async Task<TResult> GetOrDefaultAsync<TData, TResult>(TData value, Func<TData, CancellationToken, Task<TResult>> funcAsync, CancellationToken cancellationToken)
