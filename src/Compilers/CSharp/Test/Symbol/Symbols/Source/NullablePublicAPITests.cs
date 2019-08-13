@@ -2217,5 +2217,35 @@ public class C
             Assert.Equal("s", symbol.Name);
             Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
         }
+
+        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        public void MissingSymbols_ReinferedParent()
+        {
+            var source = @"
+class C
+{
+    public void A<T>(T t) where T:class
+    {
+        var c = new F<T>[] { }.Select(v => new { Value = v.Item }).ToArray();
+    }
+    private class F<T>
+    {
+        public F(T oldItem) => Item = oldItem;
+        public T Item { get; }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var select = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Select").Single();
+            var symbolInfo = model.GetSymbolInfo(select);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
     }
 }

@@ -270,6 +270,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
@@ -283,6 +284,7 @@
     <Field Name="OperandConversion" Type="Conversion"/>
     <Field Name="ResultConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!-- Not really an operator since overload resolution is never required. -->
@@ -362,6 +364,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
@@ -379,6 +382,7 @@
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
@@ -417,6 +421,7 @@
     <Field Name="LeftConversion" Type="Conversion"/>
     <Field Name="FinalConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
   
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
@@ -640,6 +645,7 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
+    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!--
@@ -1446,6 +1452,7 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
     
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder?"/>
@@ -1614,6 +1621,7 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="BinderOpt" Type="Binder?" />
+    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
@@ -1765,6 +1773,7 @@
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder?"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
+    <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow"/>
   </Node>
 
   <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
