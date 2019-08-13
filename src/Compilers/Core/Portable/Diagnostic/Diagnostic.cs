@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a unsuppressed diagnostic with an effective error severity.
         /// </summary>
-        internal bool IsReportedError()
+        internal bool HasUnsuppressedError()
             => Severity == DiagnosticSeverity.Error && !IsSuppressed;
     }
 

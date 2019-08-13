@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (CommonCompiler.HasUnsuppressedErrors(diagnostics))
+            if (CommonCompiler.HasUnsuppressableErrors(diagnostics))
             {
                 return null;
             }
@@ -2698,6 +2698,11 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (hasUnsuppressedErrors(diagnostics))
+            {
+                return false;
+            }
 
             Cci.PdbWriter nativePdbWriter = null;
             DiagnosticBag metadataDiagnostics = null;
@@ -2819,6 +2824,18 @@ namespace Microsoft.CodeAnalysis
                 emitMetadataStream?.Close();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
+            }
+
+            static bool hasUnsuppressedErrors(DiagnosticBag diagnostics)
+            {
+                foreach (var diag in diagnostics.AsEnumerable())
+                {
+                    if (diag.HasUnsuppressedError())
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 

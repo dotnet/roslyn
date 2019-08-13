@@ -568,26 +568,11 @@ namespace Microsoft.CodeAnalysis
         /// non-error diagnostic were later elevated to an error through filtering (e.g., through
         /// warn-as-error).
         /// </summary>
-        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        internal static bool HasUnsuppressableErrors(DiagnosticBag diagnostics)
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
                 if (diag.IsUnsuppressableError())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if there are any unsuppressed error diagnostics in the bag.
-        /// </summary>
-        private static bool HasReportedErrors(DiagnosticBag diagnostics)
-        {
-            foreach (var diag in diagnostics.AsEnumerable())
-            {
-                if (diag.IsReportedError())
                 {
                     return true;
                 }
@@ -858,7 +843,7 @@ namespace Microsoft.CodeAnalysis
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -906,7 +891,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -1018,7 +1003,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    if (HasUnsuppressedErrors(diagnostics))
+                                    if (HasUnsuppressableErrors(diagnostics))
                                     {
                                         return;
                                     }
@@ -1060,11 +1045,6 @@ namespace Microsoft.CodeAnalysis
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
                                 analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                             }
-                        }
-
-                        if (HasReportedErrors(diagnostics))
-                        {
-                            success = false;
                         }
                     }
                     finally
@@ -1119,7 +1099,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (HasUnsuppressedErrors(diagnostics))
+                if (HasUnsuppressableErrors(diagnostics))
                 {
                     return;
                 }
@@ -1139,7 +1119,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerExceptionDiagnostics != null)
             {
                 diagnostics.AddRange(analyzerExceptionDiagnostics);
-                if (HasUnsuppressedErrors(analyzerExceptionDiagnostics))
+                if (HasUnsuppressableErrors(analyzerExceptionDiagnostics))
                 {
                     return;
                 }

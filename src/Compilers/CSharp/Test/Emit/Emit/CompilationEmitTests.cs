@@ -5163,5 +5163,33 @@ public class DerivingClass<T> : BaseClass<T>
                 Assert.Equal("refMod.netmodule", a.ContainingModule.Name);
             });
         }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit()
+        {
+            string source = @"
+class X
+{
+    int _f;
+}";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var compilation = CreateCompilation(source, options: options);
+
+            EmitResult emitResult;
+            using (var output = new MemoryStream())
+            {
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
+
+                Assert.Equal(0, output.Length);
+            }
+
+            Assert.False(emitResult.Success);
+
+            emitResult.Diagnostics.Verify(
+                // (4,9): error CS0169: The field 'X._f' is never used
+                //     int _f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("X._f").WithLocation(4, 9).WithWarningAsError(true));
+        }
     }
 }
