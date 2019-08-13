@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // okay, wrap the return type in Task<T>
-                returnType = genericTaskType.Construct(returnType);
+                returnType = genericTaskType.ConstructWithNullability(returnType);
             }
 
             private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
