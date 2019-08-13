@@ -3837,7 +3837,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact]
+        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void ForEachAwaitFlow_SimpleAwaitForEachLoop()
         {
             string source = @"
@@ -3857,15 +3857,11 @@ class Program
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            // https://github.com/dotnet/roslyn/issues/30362 should signal `await`.
-            // https://github.com/dotnet/roslyn/issues/30362 missing await on `MoveNextAsync()` and `DisposeAsync()` calls
-            // https://github.com/dotnet/roslyn/issues/30362 showing `Dispose()` instead of `DisposeAsync()`
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -3882,26 +3878,24 @@ Block[B0] - Entry
                       Operand: 
                         IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
                   Arguments(0)
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B2] - Block
             Predecessors: [B1] [B3]
             Statements (0)
             Jump if False (Regular) to Block[B7]
-                IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'pets')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
-                  Arguments(0)
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression: 
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'pets')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
+                      Arguments(0)
                 Finalizing: {R5}
                 Leaving: {R3} {R2} {R1}
-
             Next (Regular) Block[B3]
                 Entering: {R4}
-
         .locals {R4}
         {
             Locals: [System.String value]
@@ -3915,7 +3909,6 @@ Block[B0] - Entry
                         IPropertyReferenceOperation: System.String System.Collections.Generic.IAsyncEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'string')
                           Instance Receiver: 
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
-
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
                       Expression: 
                         IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
@@ -3926,7 +3919,6 @@ Block[B0] - Entry
                                 ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.String) (Syntax: 'value')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
                 Next (Regular) Block[B2]
                     Leaving: {R4}
         }
@@ -3939,26 +3931,25 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'pets')
                   Value: 
-                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'pets')
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'pets')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (ExplicitReference)
+                        (ImplicitReference)
                       Operand: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
-
             Jump if True (Regular) to Block[B6]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'pets')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'pets')
-
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'pets')
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B4]
             Statements (1)
-                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'pets')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'pets')
-                  Arguments(0)
-
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'pets')
+                  Expression: 
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'pets')
+                      Arguments(0)
             Next (Regular) Block[B6]
         Block[B6] - Block
             Predecessors: [B4] [B5]
@@ -3966,7 +3957,6 @@ Block[B0] - Entry
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B7] - Exit
     Predecessors: [B2]
     Statements (0)
