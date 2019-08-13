@@ -17,6 +17,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
+        /// Default telemetry session
+        /// </summary>
+        [Obsolete("use RoslynServices.SessionOpt instead", error: false)]
+        public static TelemetrySession SessionOpt => RoslynServices.SessionOpt;
+
+        /// <summary>
+        /// Check whether current user is microsoft internal or not
+        /// </summary>
+        [Obsolete("use RoslynServices.IsUserMicrosoftInternal instead", error: false)]
+        public static bool IsUserMicrosoftInternal => RoslynServices.IsUserMicrosoftInternal;
+
+        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
