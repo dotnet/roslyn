@@ -546,11 +546,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
         {
-            var attributeLists = GetAttributeLists(node);
-            var start = attributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
-                        node.SpanStart;
+            var attributeList = GetAttributeLists(node);
+            if (attributeList.Any())
+            {
+                var endOfAttributeLists = attributeList.Last().Span.End;
+                var afterAttributesToken = node.FindTokenOnRightOfPosition(endOfAttributeLists);
 
-            return start;
+                return Math.Min(afterAttributesToken.Span.Start, node.Span.End);
+            }
+
+            return node.SpanStart;
         }
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<CodeFixProvider>.GetInstance(out var builder);
 
                 try
                 {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
     }

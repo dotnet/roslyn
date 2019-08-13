@@ -13,7 +13,7 @@ stages:
   - job:
     displayName: Symbol Publishing
     dependsOn: setupMaestroVars
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], variables.PublicRelease_30_Channel_Id)
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicRelease_30_Channel_Id))
     variables:
       - group: DotNet-Symbol-Server-Pats
     pool:
@@ -46,7 +46,7 @@ stages:
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
       - name: IsStableBuild
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.IsStableBuild'] ]
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], variables.PublicRelease_30_Channel_Id)
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicRelease_30_Channel_Id))
     pool:
       vmImage: 'windows-2019'
     steps:
@@ -126,7 +126,7 @@ stages:
     - job:
       displayName: Symbol Availability
       dependsOn: setupMaestroVars
-      condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], variables.PublicRelease_30_Channel_Id)
+      condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicRelease_30_Channel_Id))
       pool:
         vmImage: 'windows-2019'
       steps:

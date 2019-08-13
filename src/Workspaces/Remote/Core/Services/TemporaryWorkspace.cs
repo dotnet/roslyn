@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -11,19 +13,31 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
-        public TemporaryWorkspace(Solution solution)
+        private TemporaryWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory>();
+
+            foreach (var factory in documentOptionsProviderFactories)
+            {
+                var documentOptionsProvider = factory.Value.TryCreate(this);
+
+                if (documentOptionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(documentOptionsProvider);
+                }
+            }
+        }
+
+        public TemporaryWorkspace(Solution solution) : this()
+        {
             this.SetCurrentSolution(solution);
         }
 
-        public TemporaryWorkspace(SolutionInfo solutionInfo)
-            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
+        public TemporaryWorkspace(SolutionInfo solutionInfo) : this()
         {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
-
             this.OnSolutionAdded(solutionInfo);
         }
 
