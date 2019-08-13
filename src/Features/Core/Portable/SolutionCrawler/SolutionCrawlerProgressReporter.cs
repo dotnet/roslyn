@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public IDisposable Evaluating()
+            /// <summary>
+            /// return RAII object that marking evaluation scope
+            /// </summary>
+            public IDisposable GetEvaluatingScope()
             {
                 return new ProgressStatusRAII(this);
             }
