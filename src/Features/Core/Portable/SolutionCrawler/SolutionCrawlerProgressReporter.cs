@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
             {
-                var start = (status == ProgressStatus.Started || status == ProgressStatus.Evaluating);
+                var start = status == ProgressStatus.Started || status == ProgressStatus.Evaluating;
                 if (start ? (Interlocked.Increment(ref referenceCount) == 1) : (Interlocked.Decrement(ref referenceCount) == 0))
                 {
                     var progressData = new ProgressData(status, pendingItemCount: null);
