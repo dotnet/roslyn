@@ -2,16 +2,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -173,29 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            public string DisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.Name;
-                }
-            }
-
-            public string FullDisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.ToDisplayString();
-                }
-            }
-
-            public Glyph Glyph
-            {
-                get
-                {
-                    return this.RenameSymbol.GetGlyph();
-                }
-            }
+            public string DisplayName => RenameSymbol.Name;
+            public string FullDisplayName => RenameSymbol.ToDisplayString();
+            public Glyph Glyph => RenameSymbol.GetGlyph();
 
             public string GetFinalSymbolName(string replacementText)
             {
@@ -256,6 +240,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 return _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
                     this.GetFinalSymbolName(replacementText), throwOnFailure: false);
+            }
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo()
+            {
+                if (RenameSymbol.Kind == SymbolKind.NamedType)
+                {
+                    if (RenameSymbol.Locations.Length > 1)
+                    {
+                        return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
+                    }
+
+                    if (OriginalNameMatches(_document, RenameSymbol.Name))
+                    {
+                        return InlineRenameFileRenameInfo.Allowed;
+                    }
+
+                    return InlineRenameFileRenameInfo.TypeDoesNotMatchFileName;
+                }
+
+                return InlineRenameFileRenameInfo.NotAllowed;
+
+                // Local Functions
+
+                static bool OriginalNameMatches(Document document, string name)
+                    => Path.GetFileNameWithoutExtension(document.Name)
+                        .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

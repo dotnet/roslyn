@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
@@ -40,23 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             }
 
             var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-            if (identifier == default)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != identifier.Span)
-            {
-                return;
-            }
-
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
+            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            if (localFunction == default)
             {
                 return;
             }
@@ -65,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             {
                 return;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));

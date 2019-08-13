@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
                             installerService, packageSource.Source,
-                            package.PackageName, this.IncludePrerelease, document));
+                            package.PackageName, IncludePrerelease, document));
                     }
                 }
             }

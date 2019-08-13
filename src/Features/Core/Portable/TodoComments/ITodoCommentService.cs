@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -18,8 +17,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoCommentDescriptor(string text, int priority) : this()
         {
-            this.Text = text;
-            this.Priority = priority;
+            Text = text;
+            Priority = priority;
         }
     }
 
@@ -34,9 +33,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoComment(TodoCommentDescriptor descriptor, string message, int position) : this()
         {
-            this.Descriptor = descriptor;
-            this.Message = message;
-            this.Position = position;
+            Descriptor = descriptor;
+            Message = message;
+            Position = position;
         }
     }
 

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var attributesToRemove = AttributesToRemove(compilation);
 
                 var getAccessor = GenerateGetAccessor(
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 var setMethod = property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     this.State.ClassOrStructType,
+                     State.ClassOrStructType,
                      attributesToRemove);
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 var getMethod = property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     this.State.ClassOrStructType,
+                     State.ClassOrStructType,
                      attributesToRemove);
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);

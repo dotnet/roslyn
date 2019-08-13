@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal CompletionTrigger(CompletionTriggerKind kind, char character = (char)0)
             : this()
         {
-            this.Kind = kind;
-            this.Character = character;
+            Kind = kind;
+            Character = character;
         }
 
         /// <summary>

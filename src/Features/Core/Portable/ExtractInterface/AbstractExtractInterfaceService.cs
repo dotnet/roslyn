@@ -178,6 +178,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
+            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
+            var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
+
             var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
 
             var unformattedInterfaceDocument = await GetUnformattedInterfaceDocumentAsync(
@@ -187,6 +191,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
                 interfaceDocumentId,
+                fileBanner,
                 cancellationToken).ConfigureAwait(false);
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -291,7 +296,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
             }
 
-            Solution annotatedSolution = solution;
+            var annotatedSolution = solution;
             foreach (var root in currentRoots)
             {
                 var document = annotatedSolution.GetDocument(root.Key);
@@ -334,6 +339,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             IEnumerable<string> folders,
             INamedTypeSymbol extractedInterfaceSymbol,
             DocumentId interfaceDocumentId,
+            ImmutableArray<SyntaxTrivia> fileBanner,
             CancellationToken cancellationToken)
         {
             var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
@@ -348,7 +354,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 options: new CodeGenerationOptions(contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: false),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return unformattedInterfaceDocument;
+            var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return unformattedInterfaceDocument.WithSyntaxRoot(syntaxRoot.WithPrependedLeadingTrivia(fileBanner));
         }
 
         private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)

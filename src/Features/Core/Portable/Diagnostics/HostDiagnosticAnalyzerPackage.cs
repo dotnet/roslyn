@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public HostDiagnosticAnalyzerPackage(string name, ImmutableArray<string> assemblies)
         {
-            this.Name = name;
-            this.Assemblies = assemblies;
+            Name = name;
+            Assemblies = assemblies;
         }
     }
 }

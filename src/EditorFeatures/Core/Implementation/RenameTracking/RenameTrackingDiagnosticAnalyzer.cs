@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer, IInProcessAnalyzer
+    internal sealed class RenameTrackingDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RenameTracking";
         public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
@@ -20,29 +22,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-
-        public bool OpenFileOnly(Workspace workspace)
-            => true;
-
-#pragma warning disable RS1026 // Enable concurrent execution
-        public override void Initialize(AnalysisContext context)
-#pragma warning restore RS1026 // Enable concurrent execution
+        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-        }
-
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
-        {
-            var diagnostics = RenameTrackingTaggerProvider.GetDiagnosticsAsync(context.Tree, DiagnosticDescriptor, context.CancellationToken).WaitAndGetResult_CanCallOnBackground(context.CancellationToken);
-
-            foreach (var diagnostic in diagnostics)
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var diagnostic = RenameTrackingTaggerProvider.TryGetDiagnostic(syntaxTree, DiagnosticDescriptor, cancellationToken);
+            if (diagnostic is null)
             {
-                context.ReportDiagnostic(diagnostic);
+                return ImmutableArray<Diagnostic>.Empty;
             }
+
+            return ImmutableArray.Create(diagnostic);
         }
+
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
     }
 }

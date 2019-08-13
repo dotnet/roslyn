@@ -2795,7 +2795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.GroupByClause,
                              SyntaxKind.SimpleJoinClause,
                              SyntaxKind.GroupJoinClause
-                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
+                            ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
                             Return
 
                         Case SyntaxKind.LocalDeclarationStatement

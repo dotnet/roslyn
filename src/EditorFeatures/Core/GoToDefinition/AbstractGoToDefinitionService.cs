@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,12 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        protected AbstractGoToDefinitionService(IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenter = streamingPresenter;
         }
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
                 document.Project,
-                _streamingPresenters,
+                _streamingPresenter,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,
                 cancellationToken: cancellationToken);

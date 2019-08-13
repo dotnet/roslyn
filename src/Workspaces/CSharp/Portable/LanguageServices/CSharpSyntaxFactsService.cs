@@ -1511,6 +1511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
         }
 
+        public bool IsTypeDeclaration(SyntaxNode node)
+            => SyntaxFacts.IsTypeDeclaration(node.Kind());
+
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         public void AddFirstMissingCloseBrace(
