@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 if (SelectionResult.SelectionInExpression)
                 {
-                    returnType = genericTaskType.Construct(returnType);
+                    returnType = genericTaskType.ConstructWithNullability(returnType);
                     return;
                 }
 
