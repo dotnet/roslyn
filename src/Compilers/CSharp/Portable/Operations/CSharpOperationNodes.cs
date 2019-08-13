@@ -1383,6 +1383,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return _operationFactory.Create(_usingStatement.Body);
         }
+
+        public override bool IsAsynchronous
+            => _usingStatement.AwaitOpt != null;
     }
 
     internal sealed class CSharpLazyVariableDeclaratorOperation : LazyVariableDeclaratorOperation

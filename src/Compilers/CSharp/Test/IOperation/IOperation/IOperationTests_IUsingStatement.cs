@@ -70,7 +70,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
-        [Fact]
+        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void IUsingAwaitStatement_SimpleAwaitUsing()
         {
             string source = @"
@@ -89,9 +89,8 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30362 should show `await`
             string expectedOperationTree = @"
-IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
+IUsingOperation (IsAsynchronous) (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
   Locals: Local_1: System.IAsyncDisposable c
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c = disposable')

@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     public struct ForEachStatementInfo : IEquatable<ForEachStatementInfo>
     {
         /// <summary>
+        /// Whether this is an asynchronous foreach.
+        /// </summary>
+        public bool IsAsynchronous { get; }
+
+        /// <summary>
         /// Gets the &quot;GetEnumerator&quot; method.
         /// </summary>
         public IMethodSymbol GetEnumeratorMethod { get; }
@@ -55,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="ForEachStatementInfo" /> structure.
         /// </summary>
-        internal ForEachStatementInfo(IMethodSymbol getEnumeratorMethod,
+        internal ForEachStatementInfo(bool isAsync,
+                                      IMethodSymbol getEnumeratorMethod,
                                       IMethodSymbol moveNextMethod,
                                       IPropertySymbol currentProperty,
                                       IMethodSymbol disposeMethod,
@@ -63,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       Conversion elementConversion,
                                       Conversion currentConversion)
         {
+            this.IsAsynchronous = isAsync;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.MoveNextMethod = moveNextMethod;
             this.CurrentProperty = currentProperty;

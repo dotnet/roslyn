@@ -1100,6 +1100,12 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
             _boundUsingStatement = boundUsingStatement
         End Sub
 
+        Public Overrides ReadOnly Property IsAsynchronous As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Protected Overrides Function CreateResources() As IOperation
             Return _operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement)
         End Function

@@ -3791,6 +3791,7 @@ Block[B7] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
+        [WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void IForEachLoopStatement_SimpleAwaitForEachLoop()
         {
             string source = @"
@@ -3805,16 +3806,18 @@ class Program
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30362 how do we flag `await`?
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
       Initializer: 
         null
   Collection: 
-    IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IAsyncEnumerable<System.String>, IsImplicit) (Syntax: 'pets')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
@@ -3829,7 +3832,8 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)
 ";
-            VerifyOperationTreeForTest<ForEachStatementSyntax>(source + s_IAsyncEnumerable, expectedOperationTree);
+
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source + s_IAsyncEnumerable + s_ValueTask, expectedOperationTree);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
@@ -3973,59 +3977,59 @@ Block[B7] - Exit
         private static string s_ValueTask = @"
 namespace System.Threading.Tasks
 {
-    [AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
+    [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(System.Runtime.CompilerServices.ValueTaskMethodBuilder))]
     public struct ValueTask
     {
         public Awaiter GetAwaiter() => null;
-        public class Awaiter : INotifyCompletion
+        public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         {
             public void OnCompleted(Action a) { }
             public bool IsCompleted => true;
             public void GetResult() { }
         }
     }
-    [AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
+    [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(System.Runtime.CompilerServices.ValueTaskMethodBuilder<>))]
     public struct ValueTask<T>
     {
         public Awaiter GetAwaiter() => null;
-        public class Awaiter : INotifyCompletion
+        public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         {
             public void OnCompleted(Action a) { }
             public bool IsCompleted => true;
-            public T GetResult() => default(T);
+            public T GetResult() => default;
         }
     }
 }
 namespace System.Runtime.CompilerServices
 {
-    class AsyncMethodBuilderAttribute : Attribute
+    public class AsyncMethodBuilderAttribute : Attribute
     {
        public AsyncMethodBuilderAttribute(Type t) { }
     }
-}
-class ValueTaskMethodBuilder
-{
-    public static ValueTaskMethodBuilder Create() => null;
-    internal ValueTaskMethodBuilder(ValueTask task) { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetException(Exception e) { }
-    public void SetResult() { }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public ValueTask Task => default(ValueTask);
-}
-class ValueTaskMethodBuilder<T>
-{
-    public static ValueTaskMethodBuilder<T> Create() => null;
-    internal ValueTaskMethodBuilder(ValueTask<T> task) { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetException(Exception e) { }
-    public void SetResult(T t) { }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public ValueTask<T> Task => default(ValueTask<T>);
+    public class ValueTaskMethodBuilder
+    {
+        public static ValueTaskMethodBuilder Create() => null;
+        internal ValueTaskMethodBuilder(System.Threading.Tasks.ValueTask task) { }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void SetException(Exception e) { }
+        public void SetResult() { }
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public System.Threading.Tasks.ValueTask Task => default;
+    }
+    public class ValueTaskMethodBuilder<T>
+    {
+        public static ValueTaskMethodBuilder<T> Create() => null;
+        internal ValueTaskMethodBuilder(System.Threading.Tasks.ValueTask<T> task) { }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void SetException(Exception e) { }
+        public void SetResult(T t) { }
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public System.Threading.Tasks.ValueTask<T> Task => default;
+    }
 }";
     }
 }

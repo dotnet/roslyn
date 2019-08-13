@@ -139,6 +139,30 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class BaseForEachLoopOperation : BaseLoopOperation, IForEachLoopOperation
     {
         public abstract ForEachLoopOperationInfo Info { get; }
+        public bool IsAsynchronous => Info?.IsAsynchronous == true;
+
+        /// <summary>
+        /// Optional loop control variable in VB that refers to the operation for declaring a new local variable or reference an existing variable or an expression.
+        /// This field is always null for C#.
+        /// </summary>
+        public abstract IOperation LoopControlVariable { get; }
+        /// <summary>
+        /// Collection value over which the loop iterates.
+        /// </summary>
+        public abstract IOperation Collection { get; }
+        /// <summary>
+        /// Optional list of comma separate operations to execute at loop bottom for VB.
+        /// This list is always empty for C#.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> NextVariables { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitForEachLoop(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitForEachLoop(this, argument);
+        }
     }
 
     internal sealed partial class ForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation

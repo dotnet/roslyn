@@ -1533,7 +1533,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
-                                                    enumeratorInfoOpt.NeedsDisposal,
+                                                    isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,

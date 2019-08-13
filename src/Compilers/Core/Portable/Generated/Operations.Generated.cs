@@ -165,6 +165,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// This list is always empty for C#.
         /// </summary>
         ImmutableArray<IOperation> NextVariables { get; }
+        /// <summary>
+        /// Whether this for each loop is asynchronous.
+        /// Always false for VB.
+        /// </summary>
+        bool IsAsynchronous { get; }
     }
     /// <summary>
     /// Represents a for loop.
@@ -431,6 +436,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Locals declared within the <see cref="Resources" /> with scope spanning across this entire <see cref="IUsingOperation" />.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
+        /// Whether this for using is asynchronous.
+        /// Always false for VB.
+        /// </summary>
+        bool IsAsynchronous { get; }
     }
     /// <summary>
     /// Represents an operation that drops the resulting value and the type of the underlying wrapped <see cref="Operation" />.
