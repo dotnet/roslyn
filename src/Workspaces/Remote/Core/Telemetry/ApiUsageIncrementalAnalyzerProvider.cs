@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 var crossLanguageSolutionOpt =
                     project.ProjectReferences.Any(p => project.Solution.GetProject(p.ProjectId)?.Language != project.Language) ? project.Solution : null;
 
-                var metadataSymbolUsed = new HashSet<ISymbol>();
+                var metadataSymbolUsed = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
                 foreach (var document in project.Documents)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
