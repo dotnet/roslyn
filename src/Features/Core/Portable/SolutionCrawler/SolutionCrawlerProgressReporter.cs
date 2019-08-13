@@ -15,11 +15,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// what this reporter care is we show start/stop background work and show things are moving or paused
         /// without too much cost.
         /// 
-        /// due to how solution cralwer callers Start/Stop (see caller of the those 2), those 2 can't have a race
+        /// due to how solution cralwer calls Start/Stop (see caller of those 2), those 2 can't have a race
         /// and that is all we care for this reporter
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
+            // we use ref count here since solution crawler has multiple queues per priority
+            // where an item can be enqueued and dequeued independently. 
+            // first item added in any of those queues will cause the "start" event to be sent
+            // and the very last item processed from those queues will cause "stop" event to be sent
+            // evaluating and paused is also ref counted since work in the lower priority queue can
+            // be canceled due to new higher priority work item enqueued to higher queue.
+            // but before lower priority work actually exit due to cancellation, higher work could
+            // start processing. causing an overlap. the ref count make sure that exiting lower
+            // work doesn't flip evaluating state to paused state.
             private int _progressStartCount = 0;
             private int _progressEvaluateCount = 0;
 
