@@ -29,7 +29,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private ProgressStatus _lastProgressStatus;
         private ProgressStatus _lastShownProgressStatus;
 
-        // enqueue refresh if updating task center is pushed out
+        // _resettableDelay makes sure that we at the end update status to correct value.
+        // in contrast to _lastTimeReported makes sure that we only update at least s_minimumInterval interval.
+        //
+        // for example, when an event stream comes in as below (assuming 200ms minimum interval)
+        // e1 -> (100ms)-> e2 -> (300ms)-> e3 -> (100ms) -> e4
+        //
+        // actual status shown to users without _resettableDelay will be 
+        // e1 -> e3.
+        //
+        // e2 and e4 will be skipped since interval was smaller than min interval.
+        // losing e2 is fine, but e4 is problematic since the user now could see the wrong status 
+        // until the next event comes in. 
+        // for example, it could show "Evaluating" when it is actually "Paused" until the next event
+        // which could be long time later.
+        // what _resettableDelay does is making sure that if the next event doesn't come in 
+        // within certain delay, it updates status to e4 (current).
         private ResettableDelay _resettableDelay;
 
         // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
@@ -73,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 case ProgressStatus.Started:
                     StartedOrStopped(started: true);
                     break;
-                case ProgressStatus.PendingItemUpdated:
+                case ProgressStatus.PendingItemCountUpdated:
                     _lastPendingItemCount = progressData.PendingItemCount.Value;
                     ProgressUpdated();
                     break;
@@ -116,8 +131,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             string GetMessage()
             {
-                var status = (_lastProgressStatus == ProgressStatus.Paused) ? ServicesVSResources.Paused : ServicesVSResources.Evaluating;
-                return $"{status} ({_lastPendingItemCount} {ServicesVSResources.tasks_in_queue})";
+                var statusMessage = (_lastProgressStatus == ProgressStatus.Paused) ? ServicesVSResources.Paused_0_tasks_in_queue : ServicesVSResources.Evaluating_0_tasks_in_queue;
+                return string.Format(statusMessage, _lastPendingItemCount);
             }
 
             void EnqueueRefresh()

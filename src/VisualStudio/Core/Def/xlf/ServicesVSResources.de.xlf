@@ -87,9 +87,9 @@
         <target state="new">Enable nullable reference analysis IDE features</target>
         <note />
       </trans-unit>
-      <trans-unit id="Evaluating">
-        <source>Evaluating</source>
-        <target state="new">Evaluating</target>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="new">Evaluating ({0} tasks in queue)</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -332,9 +332,9 @@
         <target state="translated">Voreinstellungen für Klammern:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paused">
-        <source>Paused</source>
-        <target state="new">Paused</target>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="new">Paused ({0} tasks in queue)</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1691,11 +1691,6 @@ Zusätzliche Informationen: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">Eingefügte Eigenschaften, Ereignisse und Methoden hier ablegen:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="tasks_in_queue">
-        <source>tasks in queue</source>
-        <target state="new">tasks in queue</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

@@ -191,28 +191,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     CancellationToken cancellationToken)
                 {
                     using var evaluating = _registration.ProgressReporter.Evaluating();
+
+                    ReportPendingWorkItemCount();
+                    foreach (var analyzer in analyzers)
                     {
-                        ReportPendingWorkItemCount();
-
-                        foreach (var analyzer in analyzers)
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                return;
-                            }
-
-                            var local = analyzer;
-                            if (local == null)
-                            {
-                                return;
-                            }
-
-                            await GetOrDefaultAsync(value, async (v, c) =>
-                            {
-                                await runnerAsync(local, v, c).ConfigureAwait(false);
-                                return default(object);
-                            }, cancellationToken).ConfigureAwait(false);
+                            return;
                         }
+
+                        var local = analyzer;
+                        if (local == null)
+                        {
+                            return;
+                        }
+
+                        await GetOrDefaultAsync(value, async (v, c) =>
+                        {
+                            await runnerAsync(local, v, c).ConfigureAwait(false);
+                            return default(object);
+                        }, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
