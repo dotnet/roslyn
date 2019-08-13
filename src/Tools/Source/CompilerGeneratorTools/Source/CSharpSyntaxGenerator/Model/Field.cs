@@ -16,6 +16,9 @@ namespace CSharpSyntaxGenerator
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]
         public List<TreeTypeChild> Children;
+
+        [XmlAttribute]
+        public bool Optional;
     }
 
     public class Sequence : TreeTypeChild
@@ -45,15 +48,18 @@ namespace CSharpSyntaxGenerator
         public string New;
 
         [XmlAttribute]
-        public string MinCount;
+        public int MinCount;
 
         [XmlAttribute]
-        public string AllowTrailingSeparator;
+        public bool AllowTrailingSeparator;
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
-        public List<Kind> Kinds;
+        public List<Kind> Kinds = new List<Kind>();
 
         [XmlElement]
         public Comment PropertyComment;
+
+        public bool IsToken => Type == "SyntaxToken";
+        public bool IsOptional => Optional == "true";
     }
 }
