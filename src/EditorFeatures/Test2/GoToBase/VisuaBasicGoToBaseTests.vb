@@ -350,12 +350,12 @@ End Interface")
             Await TestAsync(
 "Class C
     Implements I
-    Public Overridable Sub M() Implements I.M
+    Public Overridable Sub N() Implements I.M
     End Sub
 End Class
 Class D
     Inherits C
-    Public Shadows Sub $$M()
+    Public Shadows Sub $$N()
     End Sub
 End Class
 Interface I

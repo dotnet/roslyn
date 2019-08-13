@@ -25,14 +25,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             var baseClassesAndInterfaces = FindBaseTypesAndInterfaces(symbol.ContainingType);
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
-            // These are implicit interface implementations not matching by name such as void I.M();
-            results.AddRange(
-                await ConvertToSymbolAndProjectIdsAsync(
-                    symbol.ExplicitInterfaceImplementations(),
-                    project,
-                    cancellationToken).ConfigureAwait(false));
+            var classAndStructMembers = ArrayBuilder<ISymbol>.GetInstance();
 
-            foreach (var type in baseClassesAndInterfaces)
+            foreach (var type in baseClassesAndInterfaces.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct))
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
@@ -43,26 +38,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 
                     if (sourceMember.Symbol != null)
                     {
-                        // These are explicit interface implementations matching by name.
-                        if (type?.TypeKind == TypeKind.Interface)
-                        {
-                            if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
-                            {
-                                var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
-
-                                if (implementation != null &&
-                                    SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
-                                {
-                                    results.Add(sourceMember);
-                                }
-                            }
-                        }
-                        else if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
+                        if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
                         {
                             results.Add(sourceMember);
                         }
+
+                        classAndStructMembers.Add(sourceMember.Symbol);
                     }
                 }
+            }
+
+            //foreach (var type in baseClassesAndInterfaces.WhereAsArray(t => t.TypeKind == TypeKind.Interface))
+            //{
+            //    foreach (var member in type.GetMembers(symbol.Name))
+            //    {
+            //        var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
+            //         SymbolAndProjectId.Create(member, project.Id),
+            //         solution,
+            //         cancellationToken).ConfigureAwait(false);
+
+            //        if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
+            //        {
+            //            var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
+
+            //            if (implementation != null &&
+            //                SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
+            //            {
+            //                results.Add(sourceMember);
+            //            }
+            //        }
+            //    }
+            //}
+
+
+            results.AddRange(
+                await ConvertToSymbolAndProjectIdsAsync(
+                    symbol.ExplicitOrImplicitInterfaceImplementations(),
+                    project,
+              cancellationToken).ConfigureAwait(false));
+
+            // These are implicit interface implementations not matching by name such as void I.M();
+            foreach (var s in classAndStructMembers)
+            {
+                results.AddRange(
+                    await ConvertToSymbolAndProjectIdsAsync(
+                        s.ExplicitOrImplicitInterfaceImplementations(),
+                        project,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             // Distinct is required to remove duplicates of VB explicit interface implementations
