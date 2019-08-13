@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // $[    ]$ has distance 0+0
             // $ []   $ has distance 1+3
             // $[]    $ has distance 0+4
+            // $ [ ]  $ has distance 1+2
+            // [ $ $  ] has distance 1+2
+            // $  [ $ ] has distance 2+1
             var startsDistance = Math.Abs(a.Start - b.Start);
             var endsDistance = Math.Abs(a.End - b.End);
 
