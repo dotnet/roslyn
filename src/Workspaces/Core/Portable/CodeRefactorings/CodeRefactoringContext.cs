@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
         /// </summary>
         internal CodeRefactoringContext(
-             Document document,
-             TextSpan span,
+            Document document,
+            TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
             CancellationToken cancellationToken)
         {

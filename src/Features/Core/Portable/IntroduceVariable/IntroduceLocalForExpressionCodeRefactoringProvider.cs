@@ -48,9 +48,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
-            context.RegisterRefactoring(new MyCodeAction(
-                string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                c => IntroduceLocalAsync(document, expressionStatement, c)),
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
+                    c => IntroduceLocalAsync(document, expressionStatement, c)),
                 expressionStatement.Span);
         }
 
