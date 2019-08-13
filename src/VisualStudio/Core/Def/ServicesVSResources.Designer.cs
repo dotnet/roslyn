@@ -1016,6 +1016,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Evaluating.
+        /// </summary>
+        internal static string Evaluating {
+            get {
+                return ResourceManager.GetString("Evaluating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event type is invalid.
         /// </summary>
         internal static string Event_type_is_invalid {
@@ -1467,15 +1476,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Learn_more {
             get {
                 return ResourceManager.GetString("Learn_more", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Live analysis.
-        /// </summary>
-        internal static string Live_analysis {
-            get {
-                return ResourceManager.GetString("Live_analysis", resourceCulture);
             }
         }
         
@@ -2255,6 +2255,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Paused.
+        /// </summary>
+        internal static string Paused {
+            get {
+                return ResourceManager.GetString("Paused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pick members.
         /// </summary>
         internal static string Pick_members {
@@ -2819,6 +2828,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Running low priority background processes.
+        /// </summary>
+        internal static string Running_low_priority_background_processes {
+            get {
+                return ResourceManager.GetString("Running_low_priority_background_processes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sample Identifier:.
         /// </summary>
         internal static string Sample_Identifier_colon {
@@ -3139,6 +3157,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Target_Namespace_colon {
             get {
                 return ResourceManager.GetString("Target_Namespace_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tasks in queue.
+        /// </summary>
+        internal static string tasks_in_queue {
+            get {
+                return ResourceManager.GetString("tasks_in_queue", resourceCulture);
             }
         }
         

@@ -2,8 +2,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -22,6 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private TaskCompletionSource<VoidResult> _currentTask;
         private DateTimeOffset _lastTimeReported;
 
+        private int _lastPendingItemCount;
+        private ProgressStatus _lastProgressStatus;
+        private ProgressStatus _lastShownProgressStatus;
+
+        // enqueue refresh if updating task center is pushed out
+        private ResettableDelay _resettableDelay;
+
         // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
         // and can be called concurrently.
         private volatile ITaskHandler _taskHandler;
@@ -33,12 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             VisualStudioWorkspace workspace)
         {
             _lastTimeReported = DateTimeOffset.UtcNow;
+            _lastPendingItemCount = 0;
+            _lastProgressStatus = ProgressStatus.Paused;
+            _resettableDelay = null;
 
             _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
 
             _options = new TaskHandlerOptions()
             {
-                Title = ServicesVSResources.Live_analysis,
+                Title = ServicesVSResources.Running_low_priority_background_processes,
                 ActionsAfterCompletion = CompletionActions.None
             };
 
@@ -60,36 +73,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 case ProgressStatus.Started:
                     StartedOrStopped(started: true);
                     break;
-                case ProgressStatus.Updated:
-                    ProgressUpdated(progressData.FilePathOpt);
+                case ProgressStatus.PendingItemUpdated:
+                    _lastPendingItemCount = progressData.PendingItemCount.Value;
+                    ProgressUpdated();
                     break;
                 case ProgressStatus.Stoped:
                     StartedOrStopped(started: false);
+                    break;
+                case ProgressStatus.Evaluating:
+                case ProgressStatus.Paused:
+                    _lastProgressStatus = progressData.Status;
+                    ProgressUpdated();
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(progressData.Status);
             }
         }
 
-        private void ProgressUpdated(string filePathOpt)
+        private void ProgressUpdated()
         {
+            // we prefer showing evaluating if progress is flipping between evaluate and pause
+            // in short period of time.
+            var forceUpdate = _lastShownProgressStatus == ProgressStatus.Paused &&
+                              _lastProgressStatus == ProgressStatus.Evaluating;
+
             var current = DateTimeOffset.UtcNow;
-            if (current - _lastTimeReported < s_minimumInterval)
+            if (!forceUpdate && current - _lastTimeReported < s_minimumInterval)
             {
                 // make sure we are not flooding UI. 
-                // this is just presentation, fine to not updating UI especially since
+                // this is just presentation, fine to not updating UI right away especially since
                 // at the end, this notification will go away automatically
+                // but to make UI to be updated to right status eventually if task takes long time to finish
+                // we enqueue refresh task.
+                EnqueueRefresh();
                 return;
             }
 
+            _lastShownProgressStatus = _lastProgressStatus;
             _lastTimeReported = current;
-            ChangeProgress(_taskHandler, filePathOpt != null ? string.Format(ServicesVSResources.Analyzing_0, FileNameUtilities.GetFileName(filePathOpt)) : null);
+
+            ChangeProgress(_taskHandler, GetMessage());
+
+            string GetMessage()
+            {
+                var status = (_lastProgressStatus == ProgressStatus.Paused) ? ServicesVSResources.Paused : ServicesVSResources.Evaluating;
+                return $"{status} ({_lastPendingItemCount} {ServicesVSResources.tasks_in_queue})";
+            }
+
+            void EnqueueRefresh()
+            {
+                if (_resettableDelay != null)
+                {
+                    _resettableDelay.Reset();
+                    return;
+                }
+
+                _resettableDelay = new ResettableDelay((int)s_minimumInterval.TotalMilliseconds, AsynchronousOperationListenerProvider.NullListener);
+                _resettableDelay.Task.SafeContinueWith(_ =>
+                {
+                    _resettableDelay = null;
+                    ProgressUpdated();
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
         }
 
         private void StartedOrStopped(bool started)
         {
             if (started)
             {
+                ResetStatus();
+
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(default);
 
@@ -114,6 +167,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _currentTask = null;
 
                 _taskHandler = null;
+
+                ResetStatus();
+            }
+
+            void ResetStatus()
+            {
+                _lastPendingItemCount = 0;
+                _lastProgressStatus = ProgressStatus.Paused;
             }
         }
 
