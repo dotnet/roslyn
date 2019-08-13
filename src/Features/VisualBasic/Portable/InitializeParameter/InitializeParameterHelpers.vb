@@ -15,14 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Shared Function GetBody(node As SyntaxNode) As SyntaxNode
             Return node
         End Function
+
         Public Shared Function GetParameters(node As SyntaxNode, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
             If node.GetType() = GetType(LambdaExpressionSyntax) Then
                 Dim simpleLambda = DirectCast(node, LambdaExpressionSyntax)
                 Dim simpleLambdaHeader = simpleLambda.SubOrFunctionHeader.GetParameterList.Parameters
                 Return simpleLambdaHeader.Cast(Of SyntaxNode).ToImmutableArray()
             End If
-            Return generator.GetParameters(node).ToImmutableArray()
 
+            Return generator.GetParameters(node).ToImmutableArray()
         End Function
 
         Private Shared Function GetStatements(functionDeclaration As SyntaxNode) As SyntaxList(Of StatementSyntax)

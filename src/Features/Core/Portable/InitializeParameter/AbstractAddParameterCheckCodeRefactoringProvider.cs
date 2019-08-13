@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                  FeaturesResources.Add_null_checks_for_all_parameters,
                      c => UpdateDocumentForRefactoringAsync(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
         }
+
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
@@ -146,8 +147,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     return parameter;
                 }
             }
+
             return null;
         }
+
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
             IOperation statement, IParameterSymbol parameter,
