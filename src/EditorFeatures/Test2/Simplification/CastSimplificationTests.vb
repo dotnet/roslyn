@@ -5075,7 +5075,7 @@ class Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotSimplifyNullableWithBangOperator() As Task
+        Public Async Function TestCSharp_SimplifyNullableWithBangOperator() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5105,7 +5105,7 @@ class Program
     void M()
     {
         string? s1 = null;
-        string s2 = M1<string>(s1!, "hello");
+        string s2 = M1(s1!, "hello");
     }
 
     static T M1<T>(T t1, T t2) where T : class? =>
