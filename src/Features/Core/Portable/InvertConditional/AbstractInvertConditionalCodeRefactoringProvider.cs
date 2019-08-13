@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
             context.RegisterRefactoring(new MyCodeAction(
                 FeaturesResources.Invert_conditional,
-                c => InvertConditionalAsync(document, position, c)));
+                c => InvertConditionalAsync(document, position, c)),
+                conditional.Span);
         }
 
         private static async Task<TConditionalExpressionSyntax> FindConditionalAsync(Document document, int position, CancellationToken cancellationToken)
