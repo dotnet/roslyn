@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
@@ -22,12 +21,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var baseClassesAndInterfaces = FindBaseTypesAndInterfaces(symbol.ContainingType);
+            var baseClasses = FindBaseTypesAndInterfaces(symbol.ContainingType)
+                .WhereAsArray(t => t.TypeKind == TypeKind.Class);
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
-            var classAndStructMembers = ArrayBuilder<ISymbol>.GetInstance();
+            // Overridded and hidden members to be reviewed for explicit and implicit interface implementations.
+            var baseClassesMembers = ArrayBuilder<ISymbol>.GetInstance();
 
-            foreach (var type in baseClassesAndInterfaces.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct))
+            foreach (var type in baseClasses)
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
@@ -38,47 +39,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 
                     if (sourceMember.Symbol != null)
                     {
+                        // Add to results overridden members only. Do not add hidden members.
                         if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
                         {
                             results.Add(sourceMember);
                         }
 
-                        classAndStructMembers.Add(sourceMember.Symbol);
+                        // Add both overridden and hidden members.
+                        baseClassesMembers.Add(sourceMember.Symbol);
                     }
                 }
             }
 
-            //foreach (var type in baseClassesAndInterfaces.WhereAsArray(t => t.TypeKind == TypeKind.Interface))
-            //{
-            //    foreach (var member in type.GetMembers(symbol.Name))
-            //    {
-            //        var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
-            //         SymbolAndProjectId.Create(member, project.Id),
-            //         solution,
-            //         cancellationToken).ConfigureAwait(false);
-
-            //        if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
-            //        {
-            //            var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
-
-            //            if (implementation != null &&
-            //                SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
-            //            {
-            //                results.Add(sourceMember);
-            //            }
-            //        }
-            //    }
-            //}
-
-
+            // This is called for all: class, struct or interface member.
             results.AddRange(
                 await ConvertToSymbolAndProjectIdsAsync(
                     symbol.ExplicitOrImplicitInterfaceImplementations(),
                     project,
-              cancellationToken).ConfigureAwait(false));
+                    cancellationToken).ConfigureAwait(false));
 
-            // These are implicit interface implementations not matching by name such as void I.M();
-            foreach (var s in classAndStructMembers)
+            // In case of class, we find overridden and inherited members.
+            // Then, find all explicit and implicit interface implementations.
+            // Explicit ones may not match by name such as N() Implements I.M().
+            foreach (var s in baseClassesMembers)
             {
                 results.AddRange(
                     await ConvertToSymbolAndProjectIdsAsync(
@@ -87,8 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                         cancellationToken).ConfigureAwait(false));
             }
 
-            // Distinct is required to remove duplicates of VB explicit interface implementations
-            // which may match by name.
+            // Remove duplicates.
             return results.ToImmutableAndFree().Distinct();
         }
 
