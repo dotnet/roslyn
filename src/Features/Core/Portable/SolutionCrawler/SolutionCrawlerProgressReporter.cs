@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// 
         /// what this reporter care is we show start/stop background work and show things are moving or paused
         /// without too much cost.
+        /// 
+        /// due to how solution cralwer callers Start/Stop (see caller of the those 2), those 2 can't have a race
+        /// and that is all we care for this reporter
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
@@ -41,7 +44,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             /// <summary>
-            /// return RAII object that marking evaluation scope
+            /// Allows the solution crawler to start evaluating work enqueued to it. 
+            /// Returns an IDisposable that the caller must dispose of to indicate that it no longer needs the crawler to continue evaluating. 
+            /// Multiple callers can call into this simultaneously. 
+            /// Only when the last one actually disposes the scope-object will the crawler 
+            /// actually revert back to the paused state where no work proceeds.
             /// </summary>
             public IDisposable GetEvaluatingScope()
             {
