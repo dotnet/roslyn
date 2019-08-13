@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Progress reporter
         /// 
-        /// initial implementation doesn't care about each specific item's progress. 
-        /// but as a whole whether there is anything going on. later if there is any need to track each item's progress specifically such as
-        /// higher/normal/lower queue, then we can change this to track those separately.
+        /// this progress reporter is a best effort implementation. it doesn't stop world to find out accurate data
+        /// 
+        /// what this reporter care is we show start/stop background work and show things are moving or paused
+        /// without too much cost.
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
