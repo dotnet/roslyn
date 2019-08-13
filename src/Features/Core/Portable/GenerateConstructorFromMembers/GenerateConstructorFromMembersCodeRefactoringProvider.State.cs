@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
                     let constructorTypes = c.Parameters.Select(p => p.GetTypeWithAnnotatedNullability())
                     let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.GetTypeWithAnnotatedNullability())
-                    where constructorTypes.SequenceEqual(symbolTypes)
+                    where constructorTypes.SequenceEqual(symbolTypes, AllNullabilityIgnoringSymbolComparer.Instance)
                     select c;
 
                 return q.FirstOrDefault();

@@ -379,6 +379,49 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestDelegatingConstructorWithNullabilityDifferences()
+        {
+            // For this test we have a problem: the existing constructor has different nullability than
+            // the underlying field. We will still offer to use the delegating constructor even though it has a nullability issue
+            // the user can then easily fix. If they don't want that, they can also just use the first option.
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Z
+{
+    [|string? a;
+    int b;|]
+
+    public Z(string a)
+    {
+        this.a = a;
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Z
+{
+    string? a;
+    int b;
+
+    public Z(string a)
+    {
+        this.a = a;
+    }
+
+    public Z(string? a, int b{|Navigation:)|} : this(a)
+    {
+        this.b = b;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingWithExistingConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
