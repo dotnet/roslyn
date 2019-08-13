@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                 }
             }
 
-            return results.ToImmutableAndFree();
+            // Distinct is required to remove duplicates of VB explicit interface implementations
+            // which may match by name.
+            return results.ToImmutableAndFree().Distinct();
         }
 
         private static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
