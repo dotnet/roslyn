@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
                 }
 
+                // if this project has cross language p2p references, then pass in solution, otherwise, don't give in
+                // solution since checking whether symbol is cross language symbol or not is expansive and
+                // we know that population of solution with both C# and VB are very tiny. 
+                // so no reason to pay the cost for common cases.
+                var crossLanguageSolutionOpt =
+                    project.ProjectReferences.Any(p => project.Solution.GetProject(p.ProjectId)?.Language != project.Language) ? project.Solution : null;
+
                 var metadataSymbolUsed = new HashSet<ISymbol>();
                 foreach (var document in project.Documents)
                 {
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                         // this only gather reference and method call symbols but not type being used.
                         // if we want all types from metadata used, we need to add more cases 
                         // which will make things more expansive.
-                        CollectApisUsed(operation, metadataSymbolUsed);
+                        CollectApisUsed(operation, crossLanguageSolutionOpt, metadataSymbolUsed, cancellationToken);
                     }
                 }
 
@@ -118,23 +125,25 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 return;
 
                 // local functions
-                static void CollectApisUsed(IOperation operation, HashSet<ISymbol> metadataSymbolUsed)
+                static void CollectApisUsed(
+                    IOperation operation, Solution solutionOpt, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
                 {
                     switch (operation)
                     {
                         case IMemberReferenceOperation memberOperation:
-                            AddIfMetadataSymbol(metadataSymbolUsed, memberOperation.Member);
+                            AddIfMetadataSymbol(solutionOpt, memberOperation.Member, metadataSymbolUsed, cancellationToken);
                             break;
                         case IInvocationOperation invocationOperation:
-                            AddIfMetadataSymbol(metadataSymbolUsed, invocationOperation.TargetMethod);
+                            AddIfMetadataSymbol(solutionOpt, invocationOperation.TargetMethod, metadataSymbolUsed, cancellationToken);
                             break;
                         case IObjectCreationOperation objectCreation:
-                            AddIfMetadataSymbol(metadataSymbolUsed, objectCreation.Constructor);
+                            AddIfMetadataSymbol(solutionOpt, objectCreation.Constructor, metadataSymbolUsed, cancellationToken);
                             break;
                     }
                 }
 
-                static void AddIfMetadataSymbol(HashSet<ISymbol> metadataSymbolUsed, ISymbol symbol)
+                static void AddIfMetadataSymbol(
+                    Solution solutionOpt, ISymbol symbol, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
                 {
                     // get symbol as it is defined in metadata
                     symbol = symbol.OriginalDefinition;
@@ -144,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                         return;
                     }
 
-                    if (symbol.Locations.All(l => l.Kind == LocationKind.MetadataFile))
+                    if (symbol.Locations.All(l => l.Kind == LocationKind.MetadataFile) &&
+                        solutionOpt?.GetProject(symbol.ContainingAssembly, cancellationToken) == null)
                     {
                         metadataSymbolUsed.Add(symbol);
                     }
