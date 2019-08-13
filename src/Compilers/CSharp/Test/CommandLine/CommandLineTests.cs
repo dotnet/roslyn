@@ -11271,6 +11271,58 @@ class C { }";
 
             CleanupAllGeneratedFiles(srcFile.Path);
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void CompilerWarnAsErrorDoesNotEmit(bool warnAsError)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    int _f;     // CS0169: unused field
+}");
+            var additionalArgs = warnAsError ? new[] { "/warnaserror" } : null;
+            var expectedErrorCount = warnAsError ? 1 : 0;
+            var expectedWarningCount = !warnAsError ? 1 : 0;
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                      additionalArgs,
+                                      expectedErrorCount: expectedErrorCount,
+                                      expectedWarningCount: expectedWarningCount);
+
+            var expectedOutput = warnAsError ? "error CS0169" : "warning CS0169";
+            Assert.Contains(expectedOutput, output);
+
+            string binaryPath = Path.Combine(dir.Path, "temp.dll");
+            Assert.True(File.Exists(binaryPath) == !warnAsError);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void AnalyzerWarnAsErrorDoesNotEmit(bool warnAsError)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+
+            var additionalArgs = warnAsError ? new[] { "/warnaserror" } : null;
+            var expectedErrorCount = warnAsError ? 1 : 0;
+            var expectedWarningCount = !warnAsError ? 1 : 0;
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                      additionalArgs,
+                                      expectedErrorCount: expectedErrorCount,
+                                      expectedWarningCount: expectedWarningCount,
+                                      analyzers: new[] { new WarningDiagnosticAnalyzer() });
+
+            var expectedDiagnosticSeverity = warnAsError ? "error" : "warning";
+            Assert.Contains($"{expectedDiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning01.Id}", output);
+
+            string binaryPath = Path.Combine(dir.Path, "temp.dll");
+            Assert.True(File.Exists(binaryPath) == !warnAsError);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

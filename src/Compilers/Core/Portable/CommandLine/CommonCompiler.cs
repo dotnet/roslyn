@@ -580,6 +580,21 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Returns true if there are any unsuppressed error diagnostics in the bag.
+        /// </summary>
+        private static bool HasReportedErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerable())
+            {
+                if (diag.IsReportedError())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
@@ -1044,12 +1059,12 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
                                 analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-
-                                if (HasUnsuppressedErrors(diagnostics))
-                                {
-                                    success = false;
-                                }
                             }
+                        }
+
+                        if (HasReportedErrors(diagnostics))
+                        {
+                            success = false;
                         }
                     }
                     finally

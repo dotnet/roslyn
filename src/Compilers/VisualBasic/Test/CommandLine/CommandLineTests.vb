@@ -9554,6 +9554,73 @@ End Class"
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub CompilerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim expectedErrorCount = If(warnAsError, 1, 0)
+            Dim expectedWarningCount = If(Not warnAsError, 1, 0)
+            Dim additionalFlags = If(warnAsError, {"/warnaserror"}, Nothing)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount)
+
+            Dim expectedOutput = If(warnAsError, "error BC40008", "warning BC40008")
+            Assert.Contains(expectedOutput, output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub AnalyzerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
+            Dim source = "
+Class C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim expectedErrorCount = If(warnAsError, 2, 0)
+            Dim expectedWarningCount = If(Not warnAsError, 2, 0)
+            Dim analyzer As DiagnosticAnalyzer = New WarningDiagnosticAnalyzer() ' Reports 2 warnings for each named type.
+            Dim additionalFlags = If(warnAsError, {"/warnaserror"}, Nothing)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount,
+                                      analyzers:=ImmutableArray.Create(analyzer))
+
+            Dim expectedODiagnosticSeverity = If(warnAsError, "error", "warning")
+            Assert.Contains($"{expectedODiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning01.Id}", output)
+            Assert.Contains($"{expectedODiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning03.Id}", output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
