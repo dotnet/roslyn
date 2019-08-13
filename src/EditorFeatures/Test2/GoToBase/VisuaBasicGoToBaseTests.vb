@@ -267,13 +267,13 @@ end interface")
             Await TestAsync(
 "class C
     inherits D
-    public override sub $$M()
+    public overrides sub $$M()
     end sub
 end class
 class D 
     public overridable sub [|M|]()
     end sub
-    public overridable void M(a as integer)
+    public overridable sub M(a as integer)
     end sub
 end class")
         End Function
@@ -283,13 +283,13 @@ end class")
             Await TestAsync(
 "class C
     inherits D
-    public override sub $$M(a as integer)
+    public overrides sub $$M(a as integer)
     end sub
 end class
 class D 
     public overridable sub M()
     end sub
-    public overridable void [|M|](a as integer)
+    public overridable sub [|M|](a as integer)
     end sub
 end class")
         End Function
@@ -475,7 +475,7 @@ end class
 
 class D
     inherits C
-    public override sub $$M()
+    public overrides sub $$M()
     end sub
 end class")
         End Function
@@ -490,7 +490,7 @@ end class
 
 class D
     inherits C
-    public override sub M()
+    public overrides sub M()
     end sub
 end class")
         End Function
