@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
-        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
+        /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
 
@@ -320,6 +320,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
+        /// <returns>
+        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if the project language of this project doesn't support producing compilations.
+        /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
         {
             return _solution.State.GetCompilationAsync(_projectState, cancellationToken);
