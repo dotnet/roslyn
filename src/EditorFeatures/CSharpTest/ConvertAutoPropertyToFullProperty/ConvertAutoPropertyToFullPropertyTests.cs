@@ -1291,5 +1291,30 @@ partial class Program
 
             await TestMissingAsync("public int G[||]oo { get; set; }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task NullBackingField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable 
+
+class Program
+{
+    string? Name[||] { get; set; }
+}",
+@"
+#nullable enable
+
+class Program
+{
+    private string? name;
+    string? Name 
+    {
+        get => name;
+        set => name = value;
+    }
+}");
+        }
     }
 }
