@@ -1974,6 +1974,43 @@ class C : IGoo
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? [||]GetName()
+    {
+        return this.name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? Name => this.name;
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
