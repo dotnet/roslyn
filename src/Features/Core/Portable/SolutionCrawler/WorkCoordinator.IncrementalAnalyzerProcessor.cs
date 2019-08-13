@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
-                    using (_registration.ProgressReporter.Evaluating())
+                    using var evaluating = _registration.ProgressReporter.Evaluating();
                     {
                         ReportPendingWorkItemCount();
 
