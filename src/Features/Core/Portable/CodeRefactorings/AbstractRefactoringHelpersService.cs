@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             //   - The smallest node whose FullSpan includes the whole (trimmed) selection
             //   - Using FullSpan is important because it handles over-selection with comments
             //   - Travels upwards through same-sized (FullSpan) nodes, extracting
+            //   - Skipping a few / parts of Tokens at the beginning/end is ok as long as a whole node hasn't been skipped.
             // - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
             // Note: Whether we have selection or location has to be checked against original selection because selecting just
             // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
@@ -271,12 +272,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
                     // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
                     // if user selected only its attributes.
+                    //
+                    // As for partial selection we allow them as long as no nodes have been skipped. I.e. it's ok to skip part of tokens at the beginning 
+                    // or endof the smallest encompassing node but not a whole (child) Node.
 
                     // Selection contains only AttributeLists -> don't consider current Node
                     var spanWithoutAttributes = GetSpanWithoutAttributes(selectedNode, root, syntaxFacts);
                     if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
                     {
                         break;
+                    }
+
+                    // selection starts somewhere in the selectionNode
+                    if (selectionTrimmed.Start > selectionNode.Span.Start)
+                    {
+                        // selection starts so late it skipped one whole node -> bail out
+                        if (root.FindToken(selectionTrimmed.Start).Parent != root.FindToken(selectionNode.Span.Start).Parent)
+                        { continue; }
+                    }
+
+                    // selection ends somewhere in the selectionNode
+                    if (selectionTrimmed.End < selectionNode.Span.End)
+                    {
+                        // selection ends so early it skipped one whole node -> bail out
+                        if (root.FindToken(selectionTrimmed.End).Parent != root.FindToken(selectionNode.Span.End).Parent)
+                        { continue; }
                     }
 
                     relevantNodesBuilder.Add(selectedNode);
