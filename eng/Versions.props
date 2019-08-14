@@ -255,6 +255,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Client" />
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.CodeSchema" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common" />
