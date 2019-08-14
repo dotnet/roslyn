@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">Символы необходимо сравнивать на равенство, а не на тождественность.</target>
+        <source>Symbols should be compared for equality with an EqualityComparer.</source>
+        <target state="needs-review-translation">Символы необходимо сравнивать на равенство, а не на тождественность.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
