@@ -53,11 +53,22 @@ namespace IOperationGenerator
         [XmlElement(ElementName = "OperationKind", Type = typeof(OperationKind))]
         public OperationKind? OperationKind;
 
+        [XmlAttribute(AttributeName = "SkipClassGeneration")]
+        public string SkipClassGenerationText;
+        public bool SkipClassGeneration => SkipClassGenerationText == "true";
+
         public virtual bool IsAbstract => true;
     }
 
     public class Node : AbstractNode
     {
+        [XmlAttribute]
+        public string? VisitorName;
+
+        [XmlAttribute(AttributeName = "SkipInVisitor")]
+        public string SkipInVisitorText;
+        public bool SkipInVisitor => SkipInVisitorText == "true";
+
         public override bool IsAbstract => false;
     }
 

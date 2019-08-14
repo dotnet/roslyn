@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 // < auto-generated />
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
+    #region Interfaces
     /// <summary>
     /// Represents an invalid operation with one or more child operations.
     /// <para>
@@ -2753,4 +2756,490 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    #endregion
+
+    #region Implementations
+    internal sealed partial class BranchOperation : Operation, IBranchOperation
+    {
+        internal BranchOperation(ILabelSymbol target, BranchKind branchKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.Branch, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Target = target;
+            BranchKind = branchKind;
+        }
+        public ILabelSymbol Target { get; }
+        public BranchKind BranchKind { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitBranch(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBranch(this, argument);
+    }
+    internal sealed partial class EmptyOperation : Operation, IEmptyOperation
+    {
+        internal EmptyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.Empty, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitEmpty(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEmpty(this, argument);
+    }
+    internal sealed partial class StopOperation : Operation, IStopOperation
+    {
+        internal StopOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.Stop, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitStop(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStop(this, argument);
+    }
+    internal sealed partial class EndOperation : Operation, IEndOperation
+    {
+        internal EndOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.End, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitEnd(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEnd(this, argument);
+    }
+    internal sealed partial class LiteralOperation : Operation, ILiteralOperation
+    {
+        internal LiteralOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.Literal, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitLiteral(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLiteral(this, argument);
+    }
+    internal sealed partial class LocalReferenceOperation : Operation, ILocalReferenceOperation
+    {
+        internal LocalReferenceOperation(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.LocalReference, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Local = local;
+            IsDeclaration = isDeclaration;
+        }
+        public ILocalSymbol Local { get; }
+        public bool IsDeclaration { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitLocalReference(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLocalReference(this, argument);
+    }
+    internal sealed partial class ParameterReferenceOperation : Operation, IParameterReferenceOperation
+    {
+        internal ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.ParameterReference, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Parameter = parameter;
+        }
+        public IParameterSymbol Parameter { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitParameterReference(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParameterReference(this, argument);
+    }
+    internal sealed partial class InstanceReferenceOperation : Operation, IInstanceReferenceOperation
+    {
+        internal InstanceReferenceOperation(InstanceReferenceKind referenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.InstanceReference, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ReferenceKind = referenceKind;
+        }
+        public InstanceReferenceKind ReferenceKind { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInstanceReference(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInstanceReference(this, argument);
+    }
+    internal sealed partial class ConditionalAccessInstanceOperation : Operation, IConditionalAccessInstanceOperation
+    {
+        internal ConditionalAccessInstanceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.ConditionalAccessInstance, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitConditionalAccessInstance(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditionalAccessInstance(this, argument);
+    }
+    internal sealed partial class DefaultValueOperation : Operation, IDefaultValueOperation
+    {
+        internal DefaultValueOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.DefaultValue, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitDefaultValue(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultValue(this, argument);
+    }
+    internal sealed partial class TypeOfOperation : Operation, ITypeOfOperation
+    {
+        internal TypeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.TypeOf, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TypeOperand = typeOperand;
+        }
+        public ITypeSymbol TypeOperand { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitTypeOf(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypeOf(this, argument);
+    }
+    internal sealed partial class SizeOfOperation : Operation, ISizeOfOperation
+    {
+        internal SizeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.SizeOf, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TypeOperand = typeOperand;
+        }
+        public ITypeSymbol TypeOperand { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitSizeOf(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSizeOf(this, argument);
+    }
+    internal sealed partial class OmittedArgumentOperation : Operation, IOmittedArgumentOperation
+    {
+        internal OmittedArgumentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.OmittedArgument, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitOmittedArgument(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitOmittedArgument(this, argument);
+    }
+    internal abstract partial class BaseCaseClauseOperation : Operation, ICaseClauseOperation
+    {
+        protected BaseCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            CaseKind = caseKind;
+            Label = label;
+        }
+        public CaseKind CaseKind { get; }
+        public ILabelSymbol Label { get; }
+    }
+    internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation, IDefaultCaseClauseOperation
+    {
+        internal DefaultCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(caseKind, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitDefaultCaseClause(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultCaseClause(this, argument);
+    }
+    internal abstract partial class BasePatternOperation : Operation, IPatternOperation
+    {
+        protected BasePatternOperation(ITypeSymbol inputType, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            InputType = inputType;
+        }
+        public ITypeSymbol InputType { get; }
+    }
+    internal sealed partial class DeclarationPatternOperation : BasePatternOperation, IDeclarationPatternOperation
+    {
+        internal DeclarationPatternOperation(ITypeSymbol matchedType, bool matchesNull, ISymbol declaredSymbol, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            MatchedType = matchedType;
+            MatchesNull = matchesNull;
+            DeclaredSymbol = declaredSymbol;
+        }
+        public ITypeSymbol MatchedType { get; }
+        public bool MatchesNull { get; }
+        public ISymbol DeclaredSymbol { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitDeclarationPattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDeclarationPattern(this, argument);
+    }
+    internal sealed partial class DiscardOperation : Operation, IDiscardOperation
+    {
+        internal DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DiscardSymbol = discardSymbol;
+        }
+        public IDiscardSymbol DiscardSymbol { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardOperation(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardOperation(this, argument);
+    }
+    internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
+    {
+        internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.FlowCaptureReference, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Id = id;
+        }
+        public CaptureId Id { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitFlowCaptureReference(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFlowCaptureReference(this, argument);
+    }
+    internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
+    {
+        internal CaughtExceptionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.CaughtException, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitCaughtException(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCaughtException(this, argument);
+    }
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
+    {
+        internal StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.StaticLocalInitializationSemaphore, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Local = local;
+        }
+        public ILocalSymbol Local { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitStaticLocalInitializationSemaphore(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStaticLocalInitializationSemaphore(this, argument);
+    }
+    internal sealed partial class DiscardPatternOperation : BasePatternOperation, IDiscardPatternOperation
+    {
+        internal DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.DiscardPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardPattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardPattern(this, argument);
+    }
+    internal sealed partial class PlaceholderOperation : Operation, IPlaceholderOperation
+    {
+        internal PlaceholderOperation(PlaceholderKind placeholderKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            PlaceholderKind = placeholderKind;
+        }
+        public PlaceholderKind PlaceholderKind { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitPlaceholder(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPlaceholder(this, argument);
+    }
+    #endregion
+    #region Visitors
+    public abstract partial class OperationVisitor
+    {
+        public virtual void Visit(IOperation operation) => operation?.Accept(this);
+        public virtual void DefaultVisit(IOperation operation) { /* no-op */ }
+        internal virtual void VisitNoneOperation(IOperation operation) { /* no-op */ }
+        public virtual void VisitInvalid(IInvalidOperation operation) => DefaultVisit(operation);
+        public virtual void VisitBlock(IBlockOperation operation) => DefaultVisit(operation);
+        public virtual void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSwitch(ISwitchOperation operation) => DefaultVisit(operation);
+        public virtual void VisitForEachLoop(IForEachLoopOperation operation) => DefaultVisit(operation);
+        public virtual void VisitForLoop(IForLoopOperation operation) => DefaultVisit(operation);
+        public virtual void VisitForToLoop(IForToLoopOperation operation) => DefaultVisit(operation);
+        public virtual void VisitWhileLoop(IWhileLoopOperation operation) => DefaultVisit(operation);
+        public virtual void VisitLabeled(ILabeledOperation operation) => DefaultVisit(operation);
+        public virtual void VisitBranch(IBranchOperation operation) => DefaultVisit(operation);
+        public virtual void VisitEmpty(IEmptyOperation operation) => DefaultVisit(operation);
+        public virtual void VisitReturn(IReturnOperation operation) => DefaultVisit(operation);
+        public virtual void VisitLock(ILockOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTry(ITryOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUsing(IUsingOperation operation) => DefaultVisit(operation);
+        public virtual void VisitExpressionStatement(IExpressionStatementOperation operation) => DefaultVisit(operation);
+        public virtual void VisitLocalFunction(ILocalFunctionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitStop(IStopOperation operation) => DefaultVisit(operation);
+        public virtual void VisitEnd(IEndOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRaiseEvent(IRaiseEventOperation operation) => DefaultVisit(operation);
+        public virtual void VisitLiteral(ILiteralOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConversion(IConversionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInvocation(IInvocationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitArrayElementReference(IArrayElementReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitLocalReference(ILocalReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitParameterReference(IParameterReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFieldReference(IFieldReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitMethodReference(IMethodReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitPropertyReference(IPropertyReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitEventReference(IEventReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUnaryOperator(IUnaryOperation operation) => DefaultVisit(operation);
+        public virtual void VisitBinaryOperator(IBinaryOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConditional(IConditionalOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCoalesce(ICoalesceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAnonymousFunction(IAnonymousFunctionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitObjectCreation(IObjectCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitArrayCreation(IArrayCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInstanceReference(IInstanceReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitIsType(IIsTypeOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAwait(IAwaitOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSimpleAssignment(ISimpleAssignmentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCompoundAssignment(ICompoundAssignmentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitParenthesized(IParenthesizedOperation operation) => DefaultVisit(operation);
+        public virtual void VisitEventAssignment(IEventAssignmentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConditionalAccess(IConditionalAccessOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedString(IInterpolatedStringOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitMemberInitializer(IMemberInitializerOperation operation) => DefaultVisit(operation);
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
+        public virtual void VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitNameOf(INameOfOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTuple(ITupleOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDynamicInvocation(IDynamicInvocationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTranslatedQuery(ITranslatedQueryOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDelegateCreation(IDelegateCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDefaultValue(IDefaultValueOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTypeOf(ITypeOfOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSizeOf(ISizeOfOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAddressOf(IAddressOfOperation operation) => DefaultVisit(operation);
+        public virtual void VisitIsPattern(IIsPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation) => DefaultVisit(operation);
+        public virtual void VisitThrow(IThrowOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDeclarationExpression(IDeclarationExpressionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitOmittedArgument(IOmittedArgumentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFieldInitializer(IFieldInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitVariableInitializer(IVariableInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitPropertyInitializer(IPropertyInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitParameterInitializer(IParameterInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitArrayInitializer(IArrayInitializerOperation operation) => DefaultVisit(operation);
+        public virtual void VisitVariableDeclarator(IVariableDeclaratorOperation operation) => DefaultVisit(operation);
+        public virtual void VisitVariableDeclaration(IVariableDeclarationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitArgument(IArgumentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCatchClause(ICatchClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSwitchCase(ISwitchCaseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDefaultCaseClause(IDefaultCaseClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitPatternCaseClause(IPatternCaseClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRangeCaseClause(IRangeCaseClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRelationalCaseClause(IRelationalCaseClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolation(IInterpolationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConstantPattern(IConstantPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDeclarationPattern(IDeclarationPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTupleBinaryOperator(ITupleBinaryOperation operation) => DefaultVisit(operation);
+        public virtual void VisitMethodBodyOperation(IMethodBodyOperation operation) => DefaultVisit(operation);
+        public virtual void VisitConstructorBodyOperation(IConstructorBodyOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDiscardOperation(IDiscardOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFlowCapture(IFlowCaptureOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitIsNull(IIsNullOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCaughtException(ICaughtExceptionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRangeOperation(IRangeOperation operation) => DefaultVisit(operation);
+        public virtual void VisitReDim(IReDimOperation operation) => DefaultVisit(operation);
+        public virtual void VisitReDimClause(IReDimClauseOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRecursivePattern(IRecursivePatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitDiscardPattern(IDiscardPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSwitchExpression(ISwitchExpressionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation) => DefaultVisit(operation);
+        public virtual void VisitPropertySubpattern(IPropertySubpatternOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitAggregateQuery(IAggregateQueryOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitPlaceholder(IPlaceholderOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+    }
+    public abstract partial class OperationVisitor<TArgument, TResult>
+    {
+        public virtual TResult Visit(IOperation operation, TArgument argument) => operation is null ? default(TResult) : operation.Accept(this, argument);
+        public virtual TResult DefaultVisit(IOperation operation, TArgument argument) => default(TResult);
+        internal virtual TResult VisitNoneOperation(IOperation operation, TArgument argument) => default(TResult);
+        public virtual TResult VisitInvalid(IInvalidOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitBlock(IBlockOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSwitch(ISwitchOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitForEachLoop(IForEachLoopOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitForLoop(IForLoopOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitForToLoop(IForToLoopOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitWhileLoop(IWhileLoopOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitLabeled(ILabeledOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitBranch(IBranchOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitEmpty(IEmptyOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitReturn(IReturnOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitLock(ILockOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTry(ITryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitUsing(IUsingOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitExpressionStatement(IExpressionStatementOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitLocalFunction(ILocalFunctionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitStop(IStopOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitEnd(IEndOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitLiteral(ILiteralOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConversion(IConversionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitInvocation(IInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitArrayElementReference(IArrayElementReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitLocalReference(ILocalReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitParameterReference(IParameterReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitFieldReference(IFieldReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitMethodReference(IMethodReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitPropertyReference(IPropertyReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitEventReference(IEventReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitUnaryOperator(IUnaryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitBinaryOperator(IBinaryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConditional(IConditionalOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitCoalesce(ICoalesceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitAnonymousFunction(IAnonymousFunctionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitObjectCreation(IObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitArrayCreation(IArrayCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitInstanceReference(IInstanceReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitIsType(IIsTypeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitAwait(IAwaitOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSimpleAssignment(ISimpleAssignmentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitCompoundAssignment(ICompoundAssignmentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitParenthesized(IParenthesizedOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitEventAssignment(IEventAssignmentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConditionalAccess(IConditionalAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitInterpolatedString(IInterpolatedStringOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitMemberInitializer(IMemberInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
+        public virtual TResult VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitNameOf(INameOfOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTuple(ITupleOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDynamicInvocation(IDynamicInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTranslatedQuery(ITranslatedQueryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDelegateCreation(IDelegateCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDefaultValue(IDefaultValueOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTypeOf(ITypeOfOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSizeOf(ISizeOfOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitAddressOf(IAddressOfOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitIsPattern(IIsPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitThrow(IThrowOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDeclarationExpression(IDeclarationExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitOmittedArgument(IOmittedArgumentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitFieldInitializer(IFieldInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitVariableInitializer(IVariableInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitPropertyInitializer(IPropertyInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitParameterInitializer(IParameterInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitArrayInitializer(IArrayInitializerOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitVariableDeclarator(IVariableDeclaratorOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitVariableDeclaration(IVariableDeclarationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitArgument(IArgumentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitCatchClause(ICatchClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSwitchCase(ISwitchCaseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitPatternCaseClause(IPatternCaseClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRangeCaseClause(IRangeCaseClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitInterpolation(IInterpolationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConstantPattern(IConstantPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDeclarationPattern(IDeclarationPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTupleBinaryOperator(ITupleBinaryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitMethodBodyOperation(IMethodBodyOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitConstructorBodyOperation(IConstructorBodyOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDiscardOperation(IDiscardOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitFlowCapture(IFlowCaptureOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitIsNull(IIsNullOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitCaughtException(ICaughtExceptionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRangeOperation(IRangeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitReDim(IReDimOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitReDimClause(IReDimClauseOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRecursivePattern(IRecursivePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitDiscardPattern(IDiscardPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSwitchExpression(ISwitchExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitPropertySubpattern(IPropertySubpatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitAggregateQuery(IAggregateQueryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitPlaceholder(IPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+    }
+    #endregion
 }

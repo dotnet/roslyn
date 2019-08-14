@@ -531,11 +531,18 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
         {
             return new DeclarationPatternOperation(
-                operation.InputType, operation.MatchedType, operation.DeclaredSymbol, operation.MatchesNull,
-                ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
+                operation.MatchedType,
+                operation.MatchesNull,
+                operation.DeclaredSymbol,
+                operation.InputType,
+                ((Operation)operation).OwningSemanticModel,
+                operation.Syntax,
+                operation.Type,
+                operation.ConstantValue,
+                operation.IsImplicit);
         }
 
-        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
+        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
             return new RecursivePatternOperation(
                 operation.InputType,
@@ -549,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 operation.IsImplicit);
         }
 
-        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
+        public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
         {
             return new PropertySubpatternOperation(
                 semanticModel: ((Operation)operation).OwningSemanticModel,

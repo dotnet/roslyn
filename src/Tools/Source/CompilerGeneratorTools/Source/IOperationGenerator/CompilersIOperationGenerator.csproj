@@ -2,9 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">x64</Platform>
-    <PlatformTarget>x64</PlatformTarget>
-    <Platforms>x64</Platforms>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.IOperationGenerator</RootNamespace>
     <AssemblyName>IOperationGenerator</AssemblyName>
