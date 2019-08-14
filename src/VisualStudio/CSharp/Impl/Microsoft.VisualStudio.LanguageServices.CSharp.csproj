@@ -44,6 +44,7 @@
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
