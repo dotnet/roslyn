@@ -86,17 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
-            var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
-
-            if (typeInfo.Type.IsValueType)
-            {
-                return default;
-            }
-
             switch (symbolInfo.Symbol)
             {
                 case IFieldSymbol { HasConstantValue: true }: return default;
                 case ILocalSymbol { HasConstantValue: true }: return default;
+            }
+
+            var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+
+            if (typeInfo.Type?.IsValueType == true)
+            {
+                return default;
             }
 
             string messageTemplate = null;
