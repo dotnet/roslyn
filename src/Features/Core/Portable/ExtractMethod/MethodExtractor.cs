@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             status = result.Item2;
 
-            var checkedStatus = await CheckTypeAsync(document.Document, context, context.GetLocation(), analyzeResult.ReturnType.WithoutNullability(), cancellationToken).ConfigureAwait(false);
+            var checkedStatus = await CheckTypeAsync(document.Document, context, context.GetLocation(), analyzeResult.ReturnType, cancellationToken).ConfigureAwait(false);
             return checkedStatus.With(status);
         }
 

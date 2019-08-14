@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var returnTypeTuple = AdjustReturnType(model, returnType);
 
                 returnType = returnTypeTuple.typeSymbol;
-                var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymouseType;
+                var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymousType;
                 var awaitTaskReturn = returnTypeTuple.awaitTaskReturn;
 
                 // create new document
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
             }
 
-            private (ITypeSymbol typeSymbol, bool hasAnonymouseType, bool awaitTaskReturn) AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
+            private (ITypeSymbol typeSymbol, bool hasAnonymousType, bool awaitTaskReturn) AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
             {
                 // check whether return type contains anonymous type and if it does, fix it up by making it object
                 var returnTypeHasAnonymousType = returnType.ContainsAnonymousType();
@@ -214,8 +214,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
                     bool isInExpressionOrHasReturnStatement)
             {
-
-
                 var model = _semanticDocument.SemanticModel;
                 var compilation = model.Compilation;
                 if (isInExpressionOrHasReturnStatement)
@@ -241,14 +239,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            protected virtual ITypeSymbol GetReturnTypeFromStatement(SemanticModel semanticModel)
+            protected ITypeSymbol GetReturnTypeFromStatement(SemanticModel semanticModel)
             {
                 var compilation = semanticModel.Compilation;
                 return SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
             }
 
-            protected virtual ITypeSymbol GetReturnTypeFromReturnVariable(SemanticDocument semanticDocument, VariableInfo variableToUseAsReturnValue)
-            => variableToUseAsReturnValue.GetVariableType(semanticDocument);
+            protected ITypeSymbol GetReturnTypeFromReturnVariable(SemanticDocument semanticDocument, VariableInfo variableToUseAsReturnValue)
+                => variableToUseAsReturnValue.GetVariableType(semanticDocument);
 
             private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
             {
@@ -422,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 foreach (var symbol in candidates)
                 {
-                    if (IsThisParameter(symbol) ||
+                    if (symbol.IsThisParameter() ||
                         IsInteractiveSynthesizedParameter(symbol))
                     {
                         continue;
@@ -620,9 +618,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
-                ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
-                IParameterSymbol parameter => parameter.GetTypeWithAnnotatedNullability(),
                 IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                _ when symbol is ILocalSymbol || symbol is IParameterSymbol => symbol.GetSymbolType(),
                 _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
             };
 
@@ -649,16 +646,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return style;
-            }
-
-            private bool IsThisParameter(ISymbol localOrParameter)
-            {
-                if (localOrParameter is IParameterSymbol parameter)
-                {
-                    return parameter.IsThis;
-                }
-
-                return false;
             }
 
             private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
@@ -923,8 +910,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(dataFlowAnalysisData);
 
                 // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => IsThisParameter(s)) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+                return dataFlowAnalysisData.ReadInside.Any(s => s.IsThisParameter()) ||
+                       dataFlowAnalysisData.WrittenInside.Any(s => s.IsThisParameter());
             }
 
             protected VariableInfo CreateFromSymbolCommon<T>(

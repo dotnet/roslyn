@@ -284,21 +284,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declStatement == null)
+                    if (statement is LocalDeclarationStatementSyntax declStatement)
                     {
-                        // found one
-                        return OperationStatus.Succeeded;
-                    }
-
-                    foreach (var variable in declStatement.Declaration.Variables)
-                    {
-                        if (variable.Initializer != null)
+                        foreach (var variable in declStatement.Declaration.Variables)
                         {
-                            // found one
-                            return OperationStatus.Succeeded;
+                            if (variable.Initializer != null)
+                            {
+                                // found one
+                                return OperationStatus.Succeeded;
+                            }
                         }
                     }
+
+                    return OperationStatus.Succeeded;
                 }
 
                 return OperationStatus.NoActiveStatement;
@@ -453,8 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 // We don't have a good refactoring for this, so we just annotate the conflict
                                 // For instance, when a local declared by a pattern declaration (`3 is int i`) is
                                 // used outside the block we're trying to extract.
-                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
-                                if (designation == null)
+                                if (!(pattern.Designation is SingleVariableDesignationSyntax designation))
                                 {
                                     break;
                                 }
@@ -695,10 +692,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // Return type can be updated to not be null
                 var newType = methodSymbolResult.Data.ReturnType.WithNullability(NullableAnnotation.NotAnnotated);
-                var newMethodDeclaration = methodDeclaration.ReplaceNode(methodDeclaration.ReturnType, newType.GenerateTypeSyntax());
 
                 var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = oldRoot.ReplaceNode(methodDeclaration, newMethodDeclaration);
+                var newRoot = oldRoot.ReplaceNode(methodDeclaration.ReturnType, newType.GenerateTypeSyntax());
 
                 var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
                 return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
