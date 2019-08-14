@@ -1080,15 +1080,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
                 {
-                    return CreateResult(SpecialType.System_Object);
+                    return CreateResult(SpecialType.System_Object, NullableAnnotation.Annotated);
                 }
 
-                // TODO: mark the reference case with a ? once we can check if we're within a nullable context
-                // (tracked by https://github.com/dotnet/roslyn/issues/36101)
                 return rightTypes
-                    .Select(x => x.InferredType.IsValueType
-                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType.WithoutNullability())) // Goo() ?? 0
-                                     : x); // Goo() ?? ""
+                    .Select(x => new TypeInferenceInfo(MakeNullable(x.InferredType, this.Compilation))); // Goo() ?? ""
+
+                static ITypeSymbol MakeNullable(ITypeSymbol symbol, Compilation compilation)
+                {
+                    if (symbol.IsErrorType())
+                    {
+                        // We could be smart and infer this as an ErrorType?, but in the #nullable disable case we don't know if this is intended to be
+                        // a struct (where the question mark is legal) or a class (where it isn't). We'll thus avoid sticking question marks in this case.
+                        // https://github.com/dotnet/roslyn/issues/37852 tracks fixing this is a much fancier way.
+                        return symbol;
+                    }
+                    else if (symbol.IsValueType)
+                    {
+                        return compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(symbol.WithoutNullability());
+                    }
+                    else if (symbol.IsReferenceType)
+                    {
+                        return symbol.WithNullability(NullableAnnotation.Annotated);
+                    }
+                    else // it's neither a value nor reference type, so is an unconstrained generic
+                    {
+                        return symbol;
+                    }
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalAccessExpression(ConditionalAccessExpressionSyntax expression)

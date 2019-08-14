@@ -3,15 +3,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\net472\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
-    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\net472\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\netcoreapp2.1\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
-  <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -242,13 +242,13 @@
     <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
 
     <!-- Repack optimized dependencies -->
-    <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
-                                      DestinationFolder="$(VisualStudioBuildPackagesDir)"
-                                      NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
-                                      Parts="%(_PackageToRepack.Parts)"
-                                      ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
+    <Microsoft.DotNet.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
+                                                DestinationFolder="$(VisualStudioBuildPackagesDir)"
+                                                NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
+                                                Parts="%(_PackageToRepack.Parts)"
+                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
       <Output TaskParameter="NewPackage" ItemName="FileWrites" />
-    </Roslyn.Tools.ReplacePackageParts>
+    </Microsoft.DotNet.Tools.ReplacePackageParts>
 
     <!-- Copy unoptimized dependencies -->
     <Copy SourceFiles="@(_PackageToCopy)" DestinationFolder="$(VisualStudioBuildPackagesDir)">

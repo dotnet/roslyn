@@ -16,35 +16,20 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class TemporaryWorkspaceOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;
-        private readonly ImmutableArray<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
 
         [ImportingConstructor]
         public TemporaryWorkspaceOptionsServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
+            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders)
         {
             _providers = optionProviders.ToImmutableArray();
-            _documentOptionsProviderFactories = documentOptionsProviderFactories.ToImmutableArray();
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // give out new option service per workspace
-            var service = new OptionServiceFactory.OptionService(
+            return new OptionServiceFactory.OptionService(
                 new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>()),
                 workspaceServices);
-
-            foreach (var factory in _documentOptionsProviderFactories)
-            {
-                var documentOptionsProvider = factory.TryCreate(workspaceServices.Workspace);
-
-                if (documentOptionsProvider != null)
-                {
-                    service.RegisterDocumentOptionsProvider(documentOptionsProvider);
-                }
-            }
-
-            return service;
         }
     }
 }

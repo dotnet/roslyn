@@ -26,5 +26,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public bool IsActiveTabProvisional()
             => _inProc.IsActiveTabProvisional();
+
+        public bool IsUIContextActive(Guid context)
+            => _inProc.IsUIContextActive(context);
     }
 }

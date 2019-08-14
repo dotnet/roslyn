@@ -9357,5 +9357,52 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        public async Task SpaceAroundEnumMemberDeclarationIgnored()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true }
+            };
+            await AssertFormatAsync(
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}",
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        public async Task SpaceAroundEnumMemberDeclarationSingle()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, false }
+            };
+            await AssertFormatAsync(
+                @"
+enum TestEnum
+{
+    Short = 1,
+    LongItemName = 2
+}",
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}", changedOptionSet: changingOptions);
+        }
+
     }
 }
