@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis
         public abstract override string ToString();
         public abstract int Length { get; }
         protected abstract IEnumerable<char> GetChars();
+        private Rope() { }
 
         /// <summary>
         /// A rope can wrap a simple string.
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
         public override int GetHashCode()
         {
             int result = Length;
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A rope that wraps a simple string.
         /// </summary>
-        private class StringRope : Rope
+        private sealed class StringRope : Rope
         {
             private readonly string _value;
             public StringRope(string value) => _value = value;
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A rope that represents the concatenation of two ropes.
         /// </summary>
-        private class ConcatRope : Rope
+        private sealed class ConcatRope : Rope
         {
             private readonly Rope _left, _right;
             public override int Length { get; }
