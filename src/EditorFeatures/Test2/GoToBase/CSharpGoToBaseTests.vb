@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public Class CSharpGoToBaseTests
         Inherits GoToBaseTestsBase
         Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True) As Task
-            Await TestAsync(source, "C#", shouldSucceed)
+            Await TestAsync(source, LanguageNames.CSharp, shouldSucceed)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>

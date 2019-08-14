@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public Class VisualBasicGoToBaseTests
         Inherits GoToBaseTestsBase
         Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True) As Task
-            Await TestAsync(source, "Visual Basic", shouldSucceed)
+            Await TestAsync(source, LanguageNames.VisualBasic, shouldSucceed)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -214,10 +214,6 @@ interface I
     sub M()
 end interface")
         End Function
-
-        Interface I
-            Sub M()
-        End Interface
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestInterfaceWithOneMethodOverload() As Task

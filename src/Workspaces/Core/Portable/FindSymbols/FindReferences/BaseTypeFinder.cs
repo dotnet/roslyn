@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var baseClasses = FindBaseTypesAndInterfaces(symbol.ContainingType)
-                .WhereAsArray(t => t.TypeKind == TypeKind.Class);
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var interfaceImplementations = ArrayBuilder<ISymbol>.GetInstance();
 
-            // Overridded and hidden members to be reviewed for explicit and implicit interface implementations.
-            var baseClassesMembers = ArrayBuilder<ISymbol>.GetInstance();
+            // This is called for all: class, struct or interface member.
+            interfaceImplementations.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
 
-            foreach (var type in baseClasses)
+            // The type scenario. Iterate over all base classes to find overridden and hidden (new/Shadows) methods.
+            foreach (var type in FindBaseTypes(symbol.ContainingType))
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
@@ -45,39 +45,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                             results.Add(sourceMember);
                         }
 
-                        // Add both overridden and hidden members.
-                        baseClassesMembers.Add(sourceMember.Symbol);
+                        // For both overridden and inherited members, 
+                        // find all explicit and implicit interface implementations.
+                        // We need to start from each base class for cases like N() Implements I.M() 
+                        // where N() can be hidden or overwritted in a nested class later on.
+                        interfaceImplementations.AddRange(member.ExplicitOrImplicitInterfaceImplementations());
                     }
                 }
             }
 
-            // This is called for all: class, struct or interface member.
+            // Remove duplicates from interface implementations before adding their projects.
             results.AddRange(
                 await ConvertToSymbolAndProjectIdsAsync(
-                    symbol.ExplicitOrImplicitInterfaceImplementations(),
+                    interfaceImplementations.ToImmutableAndFree().Distinct(),
                     project,
                     cancellationToken).ConfigureAwait(false));
 
-            // In case of class, we find overridden and inherited members.
-            // Then, find all explicit and implicit interface implementations.
-            // Explicit ones may not match by name such as N() Implements I.M().
-            foreach (var s in baseClassesMembers)
-            {
-                results.AddRange(
-                    await ConvertToSymbolAndProjectIdsAsync(
-                        s.ExplicitOrImplicitInterfaceImplementations(),
-                        project,
-                        cancellationToken).ConfigureAwait(false));
-            }
-
-            // Remove duplicates.
             return results.ToImmutableAndFree().Distinct();
         }
 
         private static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+            => FindBaseTypes(type).AddRange(type.AllInterfaces);
+
+        private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
         {
             var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-            typesBuilder.AddRange(type.AllInterfaces);
 
             var currentType = type.BaseType;
             while (currentType != null)
