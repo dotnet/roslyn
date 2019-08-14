@@ -11284,7 +11284,15 @@ class C
 {
     int _f;     // CS0169: unused field
 }");
-            var additionalArgs = warnAsError ? new[] { "/warnaserror" } : null;
+
+            var docName = "temp.xml";
+            var pdbName = "temp.pdb";
+            var additionalArgs = new[] { $"/doc:{docName}", $"/pdb:{pdbName}", "/debug" };
+            if (warnAsError)
+            {
+                additionalArgs = additionalArgs.Append("/warnaserror").AsArray();
+            }
+
             var expectedErrorCount = warnAsError ? 1 : 0;
             var expectedWarningCount = !warnAsError ? 1 : 0;
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
@@ -11297,6 +11305,12 @@ class C
 
             string binaryPath = Path.Combine(dir.Path, "temp.dll");
             Assert.True(File.Exists(binaryPath) == !warnAsError);
+
+            string pdbPath = Path.Combine(dir.Path, pdbName);
+            Assert.True(File.Exists(pdbPath) == !warnAsError);
+
+            string xmlDocFilePath = Path.Combine(dir.Path, docName);
+            Assert.True(File.Exists(xmlDocFilePath) == !warnAsError);
         }
 
         [Theory]

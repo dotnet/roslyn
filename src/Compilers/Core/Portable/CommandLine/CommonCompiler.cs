@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.AnalyzerConfig;
-using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -964,6 +962,22 @@ namespace Microsoft.CodeAnalysis
                             filterOpt: null,
                             cancellationToken: cancellationToken);
 
+                        // Prior to generating the xml documentation file,
+                        // we apply programmatic suppressions for compiler warnings from diagnostic suppressors.
+                        // If there are still any unsuppressed errors or warnings escalated to errors
+                        // then we bail out from generating the documentation file.
+                        // This maintains the compiler invariant that xml documentation file should not be
+                        // generated in presence of diagnostics that break the build.
+                        if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
+                        {
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                        }
+
+                        if (diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
+                        {
+                            return;
+                        }
+
                         if (success)
                         {
                             // NOTE: as native compiler does, we generate the documentation file
@@ -1038,13 +1052,11 @@ namespace Microsoft.CodeAnalysis
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                            diagnostics.AddRange(hostDiagnostics);
 
-                            if (!diagnostics.IsEmptyWithoutResolution)
-                            {
-                                // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-                            }
+                            // Apply diagnostic suppressions for analyzer compiler diagnostics from diagnostic suppressors.
+                            hostDiagnostics = analyzerDriver.ApplyProgrammaticSuppressions(hostDiagnostics, compilation);
+
+                            diagnostics.AddRange(hostDiagnostics);
                         }
                     }
                     finally

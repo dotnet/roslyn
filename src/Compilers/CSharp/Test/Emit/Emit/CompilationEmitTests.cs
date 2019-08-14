@@ -5178,12 +5178,14 @@ class X
 
             using var output = new MemoryStream();
             using var pdbStream = new MemoryStream();
+            using var xmlDocumentationStream = new MemoryStream();
 
-            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream: null, win32Resources: null);
+            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream, win32Resources: null);
             Assert.False(emitResult.Success);
 
             Assert.Equal(0, output.Length);
             Assert.Equal(0, pdbStream.Length);
+            Assert.Equal(0, xmlDocumentationStream.Length);
 
             emitResult.Diagnostics.Verify(
                 // (4,9): error CS0169: The field 'X._f' is never used

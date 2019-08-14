@@ -2724,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool GenerateResourcesAndDocumentationComments(
+        internal override bool GenerateResourcesAndDocumentationCommentsCore(
             CommonPEModuleBuilder moduleBuilder,
             Stream xmlDocStream,
             Stream win32Resources,

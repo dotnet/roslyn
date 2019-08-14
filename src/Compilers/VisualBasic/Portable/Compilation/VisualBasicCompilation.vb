@@ -2344,7 +2344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+        Friend Overrides Function GenerateResourcesAndDocumentationCommentsCore(
             moduleBuilder As CommonPEModuleBuilder,
             xmlDocStream As Stream,
             win32Resources As Stream,

@@ -79,6 +79,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
+        /// or warnings promoted to error via /warnaserror which are not suppressed.
+        /// </summary>
+        public bool HasAnyUnsuppressedErrorsOrWarnAsErrors()
+        {
+            if (IsEmptyWithoutResolution)
+            {
+                return false;
+            }
+
+            foreach (Diagnostic diagnostic in Bag)
+            {
+                if (diagnostic.IsUnsuppressedError())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns true if the bag has any non-lazy diagnostics with DefaultSeverity=Error. Does not consider warnings or informationals
         /// or warnings promoted to error via /warnaserror.
         /// </summary>

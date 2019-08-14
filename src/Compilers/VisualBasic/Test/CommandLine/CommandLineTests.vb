@@ -9575,9 +9575,14 @@ End Class"
             Dim file = dir.CreateFile("temp.vb")
             file.WriteAllText(source)
 
+            Dim docName As String = "doc.xml"
+            Dim additionalFlags = {$"/doc:{docName}", "/debug:full"}
+            If warnAsError Then
+                additionalFlags = additionalFlags.Append("/warnaserror").AsArray()
+            End If
+
             Dim expectedErrorCount = If(warnAsError, 1, 0)
             Dim expectedWarningCount = If(Not warnAsError, 1, 0)
-            Dim additionalFlags = If(warnAsError, {"/warnaserror"}, Nothing)
             Dim output = VerifyOutput(dir, file,
                                       includeCurrentAssemblyAsAnalyzerReference:=False,
                                       additionalFlags,
@@ -9589,6 +9594,12 @@ End Class"
 
             Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
             Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
+
+            Dim pdbPath As String = Path.Combine(dir.Path, "temp.pdb")
+            Assert.True(IO.File.Exists(pdbPath) = Not warnAsError)
+
+            Dim docPath As String = Path.Combine(dir.Path, docName)
+            Assert.True(IO.File.Exists(docPath) = Not warnAsError)
         End Sub
 
         <Theory>

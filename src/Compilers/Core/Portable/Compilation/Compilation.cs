@@ -2124,7 +2124,28 @@ namespace Microsoft.CodeAnalysis
         /// Update resources and generate XML documentation comments.
         /// </summary>
         /// <returns>True if successful.</returns>
-        internal abstract bool GenerateResourcesAndDocumentationComments(
+        internal bool GenerateResourcesAndDocumentationComments(
+            CommonPEModuleBuilder moduleBeingBuilt,
+            Stream xmlDocumentationStream,
+            Stream win32ResourcesStream,
+            string outputNameOverride,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
+            if (diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
+            {
+                return false;
+            }
+
+            return GenerateResourcesAndDocumentationCommentsCore(moduleBeingBuilt,
+                xmlDocumentationStream, win32ResourcesStream, outputNameOverride, diagnostics, cancellationToken);
+        }
+
+        /// <summary>
+        /// Update resources and generate XML documentation comments.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        internal abstract bool GenerateResourcesAndDocumentationCommentsCore(
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream xmlDocumentationStream,
             Stream win32ResourcesStream,
@@ -2699,7 +2720,7 @@ namespace Microsoft.CodeAnalysis
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!metadataOnly && hasUnsuppressedErrors(diagnostics))
+            if (!metadataOnly && diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
             {
                 return false;
             }
@@ -2824,18 +2845,6 @@ namespace Microsoft.CodeAnalysis
                 emitMetadataStream?.Close();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
-            }
-
-            static bool hasUnsuppressedErrors(DiagnosticBag diagnostics)
-            {
-                foreach (var diag in diagnostics.AsEnumerable())
-                {
-                    if (diag.HasUnsuppressedError())
-                    {
-                        return true;
-                    }
-                }
-                return false;
             }
         }
 
