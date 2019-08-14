@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static INamedTypeSymbol GetContainingTypeOrThis(this ISymbol symbol)
+        public static INamedTypeSymbol? GetContainingTypeOrThis(this ISymbol symbol)
         {
             if (symbol is INamedTypeSymbol namedType)
             {
