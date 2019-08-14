@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SyntaxDiffer
+    internal abstract class SyntaxDiffer
     {
         private const int InitialStackSize = 8;
         private const int MaxSearchLength = 8;
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis
         private readonly HashSet<GreenNode> _nodeSimilaritySet = new HashSet<GreenNode>();
         private readonly HashSet<string> _tokenTextSimilaritySet = new HashSet<string>();
 
-        private SyntaxDiffer(SyntaxNode oldNode, SyntaxNode newNode, bool computeNewText)
+        protected SyntaxDiffer(SyntaxNode oldNode, SyntaxNode newNode, bool computeNewText)
         {
-            _oldNodes.Push((SyntaxNodeOrToken)oldNode);
-            _newNodes.Push((SyntaxNodeOrToken)newNode);
+            _oldNodes.Push(oldNode);
+            _newNodes.Push(newNode);
 
             _oldSpan = oldNode.FullSpan;
             _computeNewText = computeNewText;
@@ -53,10 +53,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         // return a set of text changes that when applied to the old document produces the new document
-        internal static IList<TextChange> GetTextChanges(SyntaxNode oldNode, SyntaxNode newNode)
-        {
-            return new SyntaxDiffer(oldNode, newNode, computeNewText: true).ComputeTextChangesFromOld();
-        }
+        internal static IList<TextChange> GetTextChanges(SyntaxNode oldNode, SyntaxNode newNode) =>
+            oldNode.GetDiffer(newNode, computeNewText: true).ComputeTextChangesFromOld();
 
         private IList<TextChange> ComputeTextChangesFromOld()
         {
@@ -89,10 +87,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         // return which spans of text in the new document are possibly different than text in the old document
-        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxNode oldNode, SyntaxNode newNode)
-        {
-            return new SyntaxDiffer(oldNode, newNode, computeNewText: false).ComputeSpansInNew();
-        }
+        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxNode oldNode, SyntaxNode newNode) =>
+            oldNode.GetDiffer(newNode, computeNewText: false).ComputeSpansInNew();
 
         private IList<TextSpan> ComputeSpansInNew()
         {
@@ -500,10 +496,42 @@ namespace Microsoft.CodeAnalysis
             return node1.UnderlyingNode == node2.UnderlyingNode;
         }
 
-        private static bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
+        private bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
-            return node1.IsSimilarTo(node2);
+            if (node1.RawKind == node2.RawKind)
+            {
+                return true;
+            }
+
+            if (node1.IsToken || node2.IsToken)
+            {
+                return false;
+            }
+
+            return AreSimilar(node1.AsNode(), node2.AsNode());
         }
+
+        private bool AreSimilar(SyntaxNode node1, SyntaxNode node2)
+        {
+            if (node1.RawKind == node2.RawKind)
+            {
+                return true;
+            }
+
+            if (node1.GetType() == node2.GetType())
+            {
+                return true;
+            }
+
+            if (AreSimilarCore(node1, node2))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        protected abstract bool AreSimilarCore(SyntaxNode node1, SyntaxNode node2);
 
         private struct ChangeRecord
         {

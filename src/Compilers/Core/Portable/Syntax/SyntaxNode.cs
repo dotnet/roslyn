@@ -1221,27 +1221,7 @@ recurse:
 
         #endregion
 
-        internal bool IsSimilarTo(SyntaxNode other)
-        {
-            if (this.RawKind == other.RawKind)
-            {
-                return true;
-            }
-
-            if (this.GetType() == other.GetType())
-            {
-                return true;
-            }
-
-            if (this.IsSimilarToCore(other))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private protected virtual bool IsSimilarToCore(SyntaxNode other) => false;
+        internal abstract SyntaxDiffer GetDiffer(SyntaxNode newNode, bool computeNewText);
 
         /// <summary>
         /// Determines if two nodes are the same, disregarding trivia differences.

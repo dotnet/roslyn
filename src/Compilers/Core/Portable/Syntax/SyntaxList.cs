@@ -13,64 +13,41 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
         }
 
-        public override string Language
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
+        public override string Language => throw ExceptionUtilities.Unreachable;
 
         protected override SyntaxTree SyntaxTreeCore => this.Parent.SyntaxTree;
 
-        protected internal override SyntaxNode ReplaceCore<TNode>(IEnumerable<TNode> nodes = null, Func<TNode, TNode, SyntaxNode> computeReplacementNode = null, IEnumerable<SyntaxToken> tokens = null, Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null, IEnumerable<SyntaxTrivia> trivia = null, Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
-        {
+        protected internal override SyntaxNode ReplaceCore<TNode>(IEnumerable<TNode> nodes = null, Func<TNode, TNode, SyntaxNode> computeReplacementNode = null, IEnumerable<SyntaxToken> tokens = null, Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null, IEnumerable<SyntaxTrivia> trivia = null, Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode ReplaceNodeInListCore(SyntaxNode originalNode, IEnumerable<SyntaxNode> replacementNodes)
-        {
+        protected internal override SyntaxNode ReplaceNodeInListCore(SyntaxNode originalNode, IEnumerable<SyntaxNode> replacementNodes) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode InsertNodesInListCore(SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore)
-        {
+        protected internal override SyntaxNode InsertNodesInListCore(SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode ReplaceTokenInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens)
-        {
+        protected internal override SyntaxNode ReplaceTokenInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode InsertTokensInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens, bool insertBefore)
-        {
+        protected internal override SyntaxNode InsertTokensInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens, bool insertBefore) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode ReplaceTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia)
-        {
+        protected internal override SyntaxNode ReplaceTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode InsertTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
-        {
+        protected internal override SyntaxNode InsertTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
-        {
+        protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia)
-        {
+        protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia) =>
             throw ExceptionUtilities.Unreachable;
-        }
 
-        protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)
-        {
+        protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false) =>
             throw ExceptionUtilities.Unreachable;
-        }
+
+        internal override SyntaxDiffer GetDiffer(SyntaxNode newNode, bool computeNewText) =>
+            throw ExceptionUtilities.Unreachable;
     }
 }

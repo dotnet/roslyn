@@ -658,21 +658,6 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        internal bool IsSimilarTo(SyntaxNodeOrToken other)
-        {
-            if (this.RawKind == other.RawKind)
-            {
-                return true;
-            }
-
-            if (this.IsToken || other.IsToken)
-            {
-                return false;
-            }
-
-            return this._nodeOrParent.IsSimilarTo(other._nodeOrParent);
-        }
-
         /// <summary>
         /// Determines whether the supplied <see cref="SyntaxNodeOrToken"/> is equal to this
         /// <see cref="SyntaxNodeOrToken"/>.

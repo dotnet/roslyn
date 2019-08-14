@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
-Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -474,22 +471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxTree.GetDiagnostics(Me)
         End Function
 
-        Private Protected Overrides Function IsSimilarToCore(other As SyntaxNode) As Boolean
-            Dim kindGroup =
-                Function(node As SyntaxNode) As Integer
-                    Select Case node.Kind()
-                        Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
-                            Return 1
-                        Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
-                            Return 2
-                        Case Else
-                            Return -1
-                    End Select
-                End Function
-
-            Dim meGroup = kindGroup(Me)
-
-            Return meGroup <> -1 AndAlso meGroup = kindGroup(other)
+        Friend Overrides Function GetDiffer(newNode As SyntaxNode, computeNewText As Boolean) As SyntaxDiffer
+            Return New VisualBasicSyntaxDiffer(Me, newNode, computeNewText)
         End Function
 
         Protected Overrides Function IsEquivalentToCore(node As SyntaxNode, Optional topLevel As Boolean = False) As Boolean
