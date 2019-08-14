@@ -896,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each implementedProp In implementedProperties
                     Dim accessor = If(getter, implementedProp.GetMethod, implementedProp.SetMethod)
-                    If accessor IsNot Nothing Then
+                    If accessor IsNot Nothing AndAlso accessor.RequiresImplementation() Then
                         builder.Add(accessor)
                     End If
                 Next
