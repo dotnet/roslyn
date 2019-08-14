@@ -334,5 +334,6 @@ namespace Analyzer.Utilities
         public const string SystemNetHttpUnixCurlHandler = "System.Net.Http.Unix.CurlHandler";
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
+        public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
     }
 }
