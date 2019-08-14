@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
+                        document, root, declaration, helper,
                         useExpressionBody: true, cancellationToken: c)));
                 succeeded = true;
             }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
+                        document, root, declaration, helper,
                         useExpressionBody: false, cancellationToken: c)));
                 succeeded = true;
             }
@@ -117,12 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
-            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
+            UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var parseOptions = root.SyntaxTree.Options;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent
