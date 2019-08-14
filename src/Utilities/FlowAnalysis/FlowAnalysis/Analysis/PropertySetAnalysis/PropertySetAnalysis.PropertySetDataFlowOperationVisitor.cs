@@ -43,9 +43,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             private PooledDictionary<AnalysisEntity, TrackedAssignmentData> TrackedFieldPropertyAssignmentsOpt;
 
             /// <summary>
-            /// The type containing the property set we're tracking.
+            /// The types containing the property set we're tracking.
             /// </summary>
-            private readonly INamedTypeSymbol TrackedTypeSymbol;
+            private readonly ImmutableHashSet<INamedTypeSymbol> TrackedTypeSymbols;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -58,8 +58,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 this._visitedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
 
-                this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
-                Debug.Assert(this.TrackedTypeSymbol != null);
+                ImmutableHashSet<INamedTypeSymbol>.Builder builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+                foreach (string typeToTrackMetadataName in analysisContext.TypeToTrackMetadataNames)
+                {
+                    this.WellKnownTypeProvider.TryGetTypeByMetadataName(typeToTrackMetadataName, out INamedTypeSymbol trackedTypeSymbol);
+                    builder.Add(trackedTypeSymbol);
+                }
+
+                TrackedTypeSymbols = builder.ToImmutableHashSet();
+                Debug.Assert(this.TrackedTypeSymbols.Any());
 
                 if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
@@ -149,62 +156,72 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (!Equals(operation.Type, this.TrackedTypeSymbol))
+                if (this.TrackedTypeSymbols.Contains(operation.Type))
                 {
-                    return abstractValue;
-                }
-
-                ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
-                if (!constructorMapper.PropertyAbstractValues.IsEmpty)
-                {
-                    abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
-                }
-                else if (constructorMapper.MapFromPointsToAbstractValue != null)
-                {
-                    ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                    try
+                    ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
+                    if (!constructorMapper.PropertyAbstractValues.IsEmpty)
                     {
-                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                        abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
+                    }
+                    else if (constructorMapper.MapFromPointsToAbstractValue != null)
+                    {
+                        ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        try
                         {
-                            builder.Add(this.GetPointsToAbstractValue(argumentOperation));
-                        }
+                            foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                            {
+                                builder.Add(this.GetPointsToAbstractValue(argumentOperation));
+                            }
 
-                        abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
-                    }
-                    finally
-                    {
-                        builder.Free();
-                    }
-                }
-                else if (constructorMapper.MapFromValueContentAbstractValue != null)
-                {
-                    Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
-                    ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                    ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
-                    try
-                    {
-                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                            abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
+                        }
+                        finally
                         {
-                            pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
-                            valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
+                            builder.Free();
                         }
-
-                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
                     }
-                    finally
+                    else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
-                        pointsToBuilder.Free();
-                        valueContentBuilder.Free();
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                        try
+                        {
+                            foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                            {
+                                pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
+                                valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
+                            }
+
+                            abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
+                        }
+                        finally
+                        {
+                            pointsToBuilder.Free();
+                            valueContentBuilder.Free();
+                        }
                     }
+                    else
+                    {
+                        Debug.Fail("Unhandled ConstructorMapper");
+                        return abstractValue;
+                    }
+
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
+                    this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                 }
                 else
                 {
-                    Debug.Fail("Unhandled ConstructorMapper");
-                    return abstractValue;
+                    if (TryFindNonTrackedTypeHazardousUsageEvaluator(operation.Constructor, operation, operation.Arguments, out var hazardousUsageEvaluator, out var propertySetInstance))
+                    {
+                        this.EvaluatePotentialHazardousUsage(
+                            operation.Syntax,
+                            operation.Constructor,
+                            propertySetInstance,
+                            (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator(operation.Constructor, abstractValue));
+                    }
                 }
 
-                PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
-                this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                 return abstractValue;
             }
 
@@ -215,7 +232,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
                 // at the end of the CFG we can figure out which assignment operations to flag.
                 if (this.TrackedFieldPropertyAssignmentsOpt != null
-                    && this.TrackedTypeSymbol.Equals(operation.Target.Type)
+                    && this.TrackedTypeSymbols.Contains(operation.Target.Type)
                     && (operation.Target.Kind == OperationKind.PropertyReference
                         || operation.Target.Kind == OperationKind.FieldReference
                         || operation.Target.Kind == OperationKind.FlowCaptureReference))
@@ -278,7 +295,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && Equals(propertyReferenceOperation.Instance?.Type, this.TrackedTypeSymbol)
+                    && propertyReferenceOperation.Instance != null
+                    && this.TrackedTypeSymbols.Contains(propertyReferenceOperation.Instance.Type)
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
                         propertyReferenceOperation.Property.Name,
                         out PropertyMapper propertyMapper,
@@ -457,9 +475,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.
                 IOperation propertySetInstance = visitedInstance;
-                if ((Equals(visitedInstance?.Type, this.TrackedTypeSymbol)
+                if ((visitedInstance != null
+                    && this.TrackedTypeSymbols.Contains(visitedInstance.Type)
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
-                    || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
+                    || TryFindNonTrackedTypeHazardousUsageEvaluator(method, visitedInstance, visitedArguments, out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     this.EvaluatePotentialHazardousUsage(
                         originalOperation.Syntax,
@@ -473,37 +492,46 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 return baseValue;
+            }
 
-                // Local functions.
-                bool TryFindNonTrackedTypeHazardousUsageEvaluator(out HazardousUsageEvaluator evaluator, out IOperation instance)
+            /// <summary>
+            /// Find the hazardous usage evaluator for the non tracked type.
+            /// </summary>
+            /// <param name="method">The petential hazardous method.</param>
+            /// <param name="visitedInstance">Instance of this invocation.</param>
+            /// <param name="visitedArguments">IArgumentOperations of this invocation.</param>
+            /// <param name="evaluator">Target evaluator.</param>
+            /// <param name="instance">The tracked argument.</param>
+            bool TryFindNonTrackedTypeHazardousUsageEvaluator(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, out HazardousUsageEvaluator evaluator, out IOperation instance)
+            {
+                evaluator = null;
+                instance = null;
+                if (!this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
+                        visitedInstance?.Type as INamedTypeSymbol ?? method.ContainingType,
+                        out string containingTypeName))
                 {
-                    evaluator = null;
-                    instance = null;
-                    if (!this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
-                            visitedInstance?.Type as INamedTypeSymbol ?? method.ContainingType,
-                            out string containingTypeName))
-                    {
-                        return false;
-                    }
-
-                    // This doesn't handle the case of multiple instances of the type being tracked.
-                    // If that's needed one day, will need to extend this.
-                    foreach (IArgumentOperation argumentOperation in visitedArguments)
-                    {
-                        if (Equals(argumentOperation.Value?.Type, this.TrackedTypeSymbol)
-                            && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
-                                    containingTypeName,
-                                    method.MetadataName,
-                                    argumentOperation.Parameter.MetadataName,
-                                    out evaluator))
-                        {
-                            instance = argumentOperation.Value;
-                            return true;
-                        }
-                    }
-
                     return false;
                 }
+
+                // This doesn't handle the case of multiple instances of the type being tracked.
+                // If that's needed one day, will need to extend this.
+                foreach (IArgumentOperation argumentOperation in visitedArguments)
+                {
+                    IOperation value = argumentOperation.Value;
+                    ITypeSymbol argumentTypeSymbol = value is IConversionOperation conversionOperation ? conversionOperation.Operand.Type : value.Type;
+                    if (this.TrackedTypeSymbols.Contains(argumentTypeSymbol)
+                        && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
+                                containingTypeName,
+                                method.MetadataName,
+                                argumentOperation.Parameter.MetadataName,
+                                out evaluator))
+                    {
+                        instance = argumentOperation.Value;
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             /// <summary>
@@ -571,7 +599,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 base.ProcessReturnValue(returnValue);
 
                 if (returnValue != null
-                    && this.TrackedTypeSymbol.Equals(returnValue.Type)
+                    && this.TrackedTypeSymbols.Contains(returnValue.Type)
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
                         out HazardousUsageEvaluator hazardousUsageEvaluator))
                 {
