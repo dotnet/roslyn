@@ -280,9 +280,11 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.M1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics(
 <errors>
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </errors>
             )
         End Sub
@@ -333,6 +335,9 @@ End Class
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
             i2.M1()
             ~~~~~
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </error>)
 #End If
         End Sub
@@ -384,6 +389,9 @@ End Class
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
             i2.M1()
             ~~~~~
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </error>)
 #End If
         End Sub
@@ -415,9 +423,11 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.M1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics(
 <errors>
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </errors>
             )
         End Sub
@@ -1262,6 +1272,9 @@ End Class
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
             i2.M1()
             ~~~~~
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </error>)
         End Sub
 
@@ -1309,6 +1322,9 @@ End Class
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
             i2.M1()
             ~~~~~
+BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
+    Sub M1() Implements I1.M1
+                        ~~~~~
 </error>)
         End Sub
 
@@ -3189,14 +3205,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3335,6 +3358,9 @@ C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             i2.P1 += 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
 #End If
         End Sub
@@ -3509,6 +3535,9 @@ C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             i2.P1 += 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
 #End If
         End Sub
@@ -3660,14 +3689,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6352,6 +6388,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             i2.P1 += 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
         End Sub
 
@@ -6487,6 +6526,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             i2.P1 += 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
         End Sub
 
@@ -6837,14 +6879,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Readonly Property P1 As Integer Implements I1.P1
+    Readonly Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Readonly Property P1 As Integer Implements I1.P1 ' 2
+                                               ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6896,6 +6945,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             Dim x = i2.P1
                     ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
 </error>)
 #End If
         End Sub
@@ -6949,6 +7001,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             Dim x = i2.P1
                     ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
 </error>)
 #End If
         End Sub
@@ -6982,14 +7037,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Readonly Property P1 As Integer Implements I1.P1
+    Readonly Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Readonly Property P1 As Integer Implements I1.P1 ' 2
+                                               ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7798,6 +7860,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             Dim x = i2.P1
                     ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
 </error>)
         End Sub
 
@@ -7843,6 +7908,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             Dim x = i2.P1
                     ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Readonly Property P1 As Integer Implements I1.P1
+                                               ~~~~~
 </error>)
         End Sub
 
@@ -8105,8 +8173,16 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Writeonly Property P1 As Integer Implements I1.P1
+                                                ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+</expected>
+            )
         End Sub
 
         <Fact>
@@ -8157,6 +8233,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             i2.P1 = 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Writeonly Property P1 As Integer Implements I1.P1
+                                                ~~~~~
 </error>)
 #End If
         End Sub
@@ -8209,6 +8288,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             i2.P1 = 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Writeonly Property P1 As Integer Implements I1.P1
+                                                ~~~~~
 </error>)
 #End If
         End Sub
@@ -8247,8 +8329,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Writeonly Property P1 As Integer Implements I1.P1
+                                                ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9066,6 +9155,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             i2.P1 = 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
         End Sub
 
@@ -9111,6 +9203,9 @@ End Class
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             i2.P1 = 1
             ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
 </error>)
         End Sub
 
@@ -9401,8 +9496,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Custom Event P1 As System.Action Implements I1.P1
+                                                ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
+    Event P1 As System.Action Implements I1.P1
+                                         ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9464,6 +9566,9 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             RemoveHandler i2.P1, Nothing
                           ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Custom Event P1 As System.Action Implements I1.P1
+                                                ~~~~~
 </error>)
 #End If
         End Sub
@@ -9527,6 +9632,9 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Frie
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             RemoveHandler i2.P1, Nothing
                           ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Custom Event P1 As System.Action Implements I1.P1
+                                                ~~~~~
 </error>)
 #End If
         End Sub
@@ -9569,8 +9677,16 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Custom Event P1 As System.Action Implements I1.P1
+                                                ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
+    Event P1 As System.Action Implements I1.P1
+                                         ~~~~~
+</expected>
+            )
         End Sub
 
         <Fact>
@@ -10514,6 +10630,9 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
             RemoveHandler i2.P1, Nothing
                           ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
+    Event P1 As System.Action Implements I1.P1
+                                         ~~~~~
 </error>)
         End Sub
 
@@ -10563,6 +10682,9 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Frie
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
             RemoveHandler i2.P1, Nothing
                           ~~~~~
+BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
+    Event P1 As System.Action Implements I1.P1
+                                         ~~~~~
 </error>)
         End Sub
 
