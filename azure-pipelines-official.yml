@@ -145,6 +145,15 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Ngen Logs
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
+      ArtifactName: 'NGen Logs'
+      publishLocation: Container
+    continueOnError: true
+    condition: succeeded()
+
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
     inputs:

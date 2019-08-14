@@ -1317,4 +1317,7 @@ I agree to all of the foregoing:</value>
     <value>Type Parameter</value>
     <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
   </data>
+  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
+    <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
 </root>

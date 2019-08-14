@@ -184,6 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // include lambda itself.
                 firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
             }
+            else if (node.IsKind(SyntaxKindEx.PropertyPatternClause))
+            {
+                // include the pattern recursive pattern syntax and/or subpattern
+                firstTokenOfNode = firstTokenOfNode.GetPreviousToken();
+            }
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line

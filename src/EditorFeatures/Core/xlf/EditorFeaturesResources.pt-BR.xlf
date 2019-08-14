@@ -37,6 +37,16 @@
         <target state="translated">Ainda quer continuar? Isso pode produzir código desfeito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="new">items from unimported namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="new">Expander</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
         <target state="translated">O método de extração encontrou os seguintes problemas:</target>
@@ -65,11 +75,6 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">Palavra-chave – Controle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="translated">A operação ainda não está pronta para "{0}". Consulte canto inferior esquerdo para obter mais detalhes.</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -210,6 +215,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Cadeia de caracteres - Textual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="new">Waiting for background work to finish...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">

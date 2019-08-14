@@ -13,13 +13,6 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
 
-    <!-- 
-      Reference ILAsm deploy project to make sure it's built since we need its outputs, but not reference the outputs themselves.
-      Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
-      GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
-    -->
-    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
-
   </ItemGroup>
   <ItemGroup>
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
