@@ -33,7 +33,7 @@ if ($Framework.StartsWith("netcoreapp")) {
 }
 
 if ($Internal) {
-    $Queue = "Windows.10.Amd64.ClientRS5.Perf"
+    $Queue = "Windows.10.Amd64.19H1.Tiger.Perf"
     $PerfLabArguments = "--upload-to-perflab-container"
     $ExtraBenchmarkDotNetArguments = ""
     $Creator = ""
