@@ -76,24 +76,30 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // Although GetTypeInfo can return nullability for uses of all sorts of things, it's not always useful for quick info.
             // For example, if you have a call to a method with a nullable return, the fact it can be null is already captured
             // in the return type shown -- there's no flow analysis information there.
-            if (symbolInfo.Symbol.Kind != SymbolKind.Event &&
-                symbolInfo.Symbol.Kind != SymbolKind.Field &&
-                symbolInfo.Symbol.Kind != SymbolKind.Local &&
-                symbolInfo.Symbol.Kind != SymbolKind.Parameter &&
-                symbolInfo.Symbol.Kind != SymbolKind.Property &&
-                symbolInfo.Symbol.Kind != SymbolKind.RangeVariable)
-            {
-                return default;
-            }
-
             switch (symbolInfo.Symbol)
             {
+                // Ignore constant values for nullability flow state
                 case IFieldSymbol { HasConstantValue: true }: return default;
                 case ILocalSymbol { HasConstantValue: true }: return default;
+
+                // Symbols with useful quick info
+                case IFieldSymbol _:
+                case ILocalSymbol _:
+                case IParameterSymbol _:
+                case IPropertySymbol _:
+                case IRangeVariableSymbol _:
+                    break;
+
+                default:
+                    return default;
             }
 
             var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
 
+            // Nullability is a reference type only feature, value types can use
+            // something like "int?"  to be nullable but that ends up encasing as
+            // Nullable<int>, which isn't exactly the same. To avoid confusion and
+            // extra noise, we won't show nullable flow state for value types
             if (typeInfo.Type?.IsValueType == true)
             {
                 return default;
