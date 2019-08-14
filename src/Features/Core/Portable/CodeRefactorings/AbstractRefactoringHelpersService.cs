@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRightOrIn == default)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // assume non-trivia token can't span multiple lines
