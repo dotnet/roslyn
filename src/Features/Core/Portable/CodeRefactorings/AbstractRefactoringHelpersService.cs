@@ -282,20 +282,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         break;
                     }
 
-                    // selection starts somewhere in the selectionNode
-                    if (selectionTrimmed.Start > selectionNode.Span.Start)
+                    // selection starts somewhere in the selectionNode &&
+                    // selection starts in a child node that isn't on the edge of selectionNode -> a node has been skipped
+                    if (selectionTrimmed.Start > selectionNode.Span.Start &&
+                        root.FindToken(selectionTrimmed.Start).Parent?.Span.Start > selectionNode.Span.Start)
                     {
-                        // selection starts so late it skipped one whole node -> bail out
-                        if (root.FindToken(selectionTrimmed.Start).Parent != root.FindToken(selectionNode.Span.Start).Parent)
-                        { continue; }
+                        continue;
                     }
 
-                    // selection ends somewhere in the selectionNode
-                    if (selectionTrimmed.End < selectionNode.Span.End)
+                    // selection ends somewhere in the selectionNode &&
+                    // selection starts in a child node that isn't on the edge of selectionNode -> a node has been skipped
+                    if (selectionTrimmed.End < selectionNode.Span.End &&
+                        root.FindToken(selectionTrimmed.End).Parent?.Span.End < selectionNode.Span.End)
                     {
-                        // selection ends so early it skipped one whole node -> bail out
-                        if (root.FindToken(selectionTrimmed.End).Parent != root.FindToken(selectionNode.Span.End).Parent)
-                        { continue; }
+                        continue;
                     }
 
                     relevantNodesBuilder.Add(selectedNode);
