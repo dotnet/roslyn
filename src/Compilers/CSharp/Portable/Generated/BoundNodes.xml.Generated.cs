@@ -6577,8 +6577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundQueryClause : BoundExpression
     {
-        public BoundQueryClause(SyntaxNode syntax, BoundExpression value, RangeVariableSymbol? definedSymbol, Binder binder, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.QueryClause, syntax, type, hasErrors || value.HasErrors())
+        public BoundQueryClause(SyntaxNode syntax, BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.QueryClause, syntax, type, hasErrors || value.HasErrors() || operation.HasErrors() || cast.HasErrors() || unoptimizedForm.HasErrors())
         {
 
             Debug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6587,7 +6587,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Value = value;
             this.DefinedSymbol = definedSymbol;
+            this.Operation = operation;
+            this.Cast = cast;
             this.Binder = binder;
+            this.UnoptimizedForm = unoptimizedForm;
         }
 
 
@@ -6597,15 +6600,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public RangeVariableSymbol? DefinedSymbol { get; }
 
+        public BoundExpression? Operation { get; }
+
+        public BoundExpression? Cast { get; }
+
         public Binder Binder { get; }
+
+        public BoundExpression? UnoptimizedForm { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitQueryClause(this);
 
-        public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol? definedSymbol, Binder binder, TypeSymbol type)
+        public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type)
         {
-            if (value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || operation != this.Operation || cast != this.Cast || binder != this.Binder || unoptimizedForm != this.UnoptimizedForm || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundQueryClause(this.Syntax, value, definedSymbol, binder, type, this.HasErrors);
+                var result = new BoundQueryClause(this.Syntax, value, definedSymbol, operation, cast, binder, unoptimizedForm, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8769,6 +8778,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             this.Visit(node.Value);
+            this.Visit(node.Operation);
+            this.Visit(node.Cast);
+            this.Visit(node.UnoptimizedForm);
             return null;
         }
         public override BoundNode? VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
@@ -9826,8 +9838,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundExpression? operation = (BoundExpression?)this.Visit(node.Operation);
+            BoundExpression? cast = (BoundExpression?)this.Visit(node.Cast);
+            BoundExpression? unoptimizedForm = (BoundExpression?)this.Visit(node.UnoptimizedForm);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(value, node.DefinedSymbol, node.Binder, type);
+            return node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, type);
         }
         public override BoundNode? VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
@@ -11582,16 +11597,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundExpression? operation = (BoundExpression?)this.Visit(node.Operation);
+            BoundExpression? cast = (BoundExpression?)this.Visit(node.Cast);
+            BoundExpression? unoptimizedForm = (BoundExpression?)this.Visit(node.UnoptimizedForm);
             BoundQueryClause updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, infoAndType.Type);
+                updatedNode = node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, node.Type);
+                updatedNode = node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, node.Type);
             }
             return updatedNode;
         }
@@ -13277,7 +13295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("definedSymbol", node.DefinedSymbol, null),
+            new TreeDumperNode("operation", null, new TreeDumperNode[] { Visit(node.Operation, null) }),
+            new TreeDumperNode("cast", null, new TreeDumperNode[] { Visit(node.Cast, null) }),
             new TreeDumperNode("binder", node.Binder, null),
+            new TreeDumperNode("unoptimizedForm", null, new TreeDumperNode[] { Visit(node.UnoptimizedForm, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

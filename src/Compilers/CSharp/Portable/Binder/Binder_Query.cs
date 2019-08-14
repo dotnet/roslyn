@@ -618,9 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundQueryClause(
                 syntax: syntax, value: expression,
                 definedSymbol: definedSymbol,
-                queryInvocation: queryInvocation,
+                operation: queryInvocation,
                 binder: this,
-                castInvocation: castInvocation, unoptimizedForm: unoptimizedForm,
+                cast: castInvocation, unoptimizedForm: unoptimizedForm,
                 type: TypeOrError(expression));
         }
 

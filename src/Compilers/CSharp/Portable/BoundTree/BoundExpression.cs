@@ -218,33 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration)
-        {
-            if (useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration)
-            {
-                var result = new BoundIndexerAccess(
-                   this.Syntax,
-                   this.ReceiverOpt,
-                   this.Indexer,
-                   this.Arguments,
-                   this.ArgumentNamesOpt,
-                   this.ArgumentRefKindsOpt,
-                   this.Expanded,
-                   this.ArgsToParamsOpt,
-                   this.BinderOpt,
-                   useSetterForDefaultArgumentGeneration,
-                   this.OriginalIndexersOpt,
-                   this.Type,
-                   this.HasErrors)
-                {
-                    WasCompilerGenerated = this.WasCompilerGenerated,
-                };
-
-                return result;
-            }
-
-            return this;
-        }
+        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
+            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
 
         public override LookupResultKind ResultKind
         {
