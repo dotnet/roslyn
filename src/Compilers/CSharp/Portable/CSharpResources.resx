@@ -5747,6 +5747,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
     <value>Expected 'warnings', 'annotations', or end of directive</value>
   </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
   </data>

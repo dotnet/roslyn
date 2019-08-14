@@ -67,11 +67,6 @@
         <target state="translated">키워드 - 제어</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="translated">"{0}"에 대한 작업이 아직 준비되지 않았습니다. 자세한 내용은 왼쪽 아래 모서리를 참조하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">연산자 - 오버로드됨</target>
@@ -210,6 +205,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">문자열 - 축자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="new">Waiting for background work to finish...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">

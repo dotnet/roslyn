@@ -378,11 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxListBuilder<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.NamespaceDeclaration)
-            {
-                return (NamespaceDeclarationSyntax)this.EatNode();
-            }
-
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
@@ -2005,10 +2000,9 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseMemberDeclaration(
-            CSharp.Syntax.MemberDeclarationSyntax member)
+        private static bool CanReuseMemberDeclaration(SyntaxKind kind)
         {
-            switch (member?.Kind())
+            switch (kind)
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
@@ -2025,6 +2019,7 @@ tryAgain:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.NamespaceDeclaration:
                     return true;
                 default:
                     return false;
@@ -2075,8 +2070,7 @@ tryAgain:
             // don't reuse members if they were previously declared under a different type keyword kind
             if (this.IsIncrementalAndFactoryContextMatches)
             {
-                var member = this.CurrentNode as CSharp.Syntax.MemberDeclarationSyntax;
-                if (CanReuseMemberDeclaration(member))
+                if (CanReuseMemberDeclaration(CurrentNodeKind))
                 {
                     return (MemberDeclarationSyntax)this.EatNode();
                 }

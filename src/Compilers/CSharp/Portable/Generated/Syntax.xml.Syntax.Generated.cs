@@ -4182,8 +4182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>
-    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for 
-    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for
+    /// AnonymousMethodExpressionSyntax.  This will always be null.
     /// </summary>
     public override ExpressionSyntax ExpressionBody 
     {
@@ -16663,6 +16663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>Gets the optional semicolon token.</summary>
     public override SyntaxToken SemicolonToken 
     {
         get

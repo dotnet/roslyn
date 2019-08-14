@@ -5,6 +5,7 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
@@ -61,7 +62,7 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
             )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub MethodImplementation_02()
 
@@ -1716,13 +1717,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics(
-<errors>
-BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'ITest33'.
-    Sub M1() Implements ITest33.M1
-                        ~~~~~~~~~~
-</errors>
-            )
+            comp1.AssertTheseEmitDiagnostics()
         End Sub
 
         <Fact>
@@ -2952,7 +2947,7 @@ BC30149: Class 'C' must implement 'P1' for interface 'I1'.
             )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_002()
 
@@ -3757,7 +3752,7 @@ End Class
             comp1.AssertTheseDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")> ' Also ensure that C.P1.Get is not metadata virtual and doesn't attempt to implement I1.P1.Get
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_019()
 
@@ -3795,10 +3790,36 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
+
+                                Dim i1P1 As PropertySymbol = p1.ExplicitInterfaceImplementations.Single()
+                                Assert.Equal(If(DirectCast(i1P1.ContainingModule, PEModuleSymbol).ImportOptions = MetadataImportOptions.All, "", "WriteOnly ") + "Property I1.P1 As System.Int32", i1P1.ToTestDisplayString())
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Set.IsMetadataVirtual)
+                                Assert.True(p1Set.IsMetadataFinal)
+                                Assert.False(p1Set.IsMustOverride)
+                                Assert.False(p1Set.IsOverridable)
+                                Assert.Equal("Sub I1.set_P1(value As System.Int32)", p1Set.ExplicitInterfaceImplementations.Single().ToTestDisplayString())
+
+                                Assert.False(p1Get.IsMetadataVirtual)
+                                Assert.False(p1Get.IsMetadataFinal)
+                                Assert.False(p1Get.IsMustOverride)
+                                Assert.False(p1Get.IsOverridable)
+                                Assert.Empty(p1Get.ExplicitInterfaceImplementations)
+                            End Sub
+
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")> ' Also ensure that C.P1.Get is not metadata virtual and doesn't attempt to implement I1.P1.Get
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_020()
 
@@ -3830,10 +3851,36 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
+
+                                Dim i1P1 As PropertySymbol = p1.ExplicitInterfaceImplementations.Single()
+                                Assert.Equal(If(DirectCast(i1P1.ContainingModule, PEModuleSymbol).ImportOptions = MetadataImportOptions.All, "", "WriteOnly ") + "Property I1.P1 As System.String", i1P1.ToTestDisplayString())
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Set.IsMetadataVirtual)
+                                Assert.True(p1Set.IsMetadataFinal)
+                                Assert.False(p1Set.IsMustOverride)
+                                Assert.False(p1Set.IsOverridable)
+                                Assert.Equal("Sub I1.set_P1(value As System.String)", p1Set.ExplicitInterfaceImplementations.Single().ToTestDisplayString())
+
+                                Assert.False(p1Get.IsMetadataVirtual)
+                                Assert.False(p1Get.IsMetadataFinal)
+                                Assert.False(p1Get.IsMustOverride)
+                                Assert.False(p1Get.IsOverridable)
+                                Assert.Empty(p1Get.ExplicitInterfaceImplementations)
+                            End Sub
+
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")> ' Also ensure that C.P1.Set is not metadata virtual and doesn't attempt to implement I1.P1.Set
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_021()
 
@@ -3871,10 +3918,36 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
+
+                                Dim i1P1 As PropertySymbol = p1.ExplicitInterfaceImplementations.Single()
+                                Assert.Equal(If(DirectCast(i1P1.ContainingModule, PEModuleSymbol).ImportOptions = MetadataImportOptions.All, "", "ReadOnly ") + "Property I1.P1 As System.Int32", i1P1.ToTestDisplayString())
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Get.IsMetadataVirtual)
+                                Assert.True(p1Get.IsMetadataFinal)
+                                Assert.False(p1Get.IsMustOverride)
+                                Assert.False(p1Get.IsOverridable)
+                                Assert.Equal("Function I1.get_P1() As System.Int32", p1Get.ExplicitInterfaceImplementations.Single().ToTestDisplayString())
+
+                                Assert.False(p1Set.IsMetadataVirtual)
+                                Assert.False(p1Set.IsMetadataFinal)
+                                Assert.False(p1Set.IsMustOverride)
+                                Assert.False(p1Set.IsOverridable)
+                                Assert.Empty(p1Set.ExplicitInterfaceImplementations)
+                            End Sub
+
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")> ' Also ensure that C.P1.Set is not metadata virtual and doesn't attempt to implement I1.P1.Set
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_022()
 
@@ -3882,7 +3955,7 @@ End Class
 "
 public interface I1
 {
-    int P1 {get => throw null; private set => throw null;}
+    string P1 {get => throw null; private set => throw null;}
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -3897,7 +3970,7 @@ Public Class C
         P1 = "C.P1.Get"
     End Sub
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As String Implements I1.P1
 
     Shared Sub Main()
         Dim i1 As I1 = new C()
@@ -3908,10 +3981,36 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
+
+                                Dim i1P1 As PropertySymbol = p1.ExplicitInterfaceImplementations.Single()
+                                Assert.Equal(If(DirectCast(i1P1.ContainingModule, PEModuleSymbol).ImportOptions = MetadataImportOptions.All, "", "ReadOnly ") + "Property I1.P1 As System.String", i1P1.ToTestDisplayString())
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Get.IsMetadataVirtual)
+                                Assert.True(p1Get.IsMetadataFinal)
+                                Assert.False(p1Get.IsMustOverride)
+                                Assert.False(p1Get.IsOverridable)
+                                Assert.Equal("Function I1.get_P1() As System.String", p1Get.ExplicitInterfaceImplementations.Single().ToTestDisplayString())
+
+                                Assert.False(p1Set.IsMetadataVirtual)
+                                Assert.False(p1Set.IsMetadataFinal)
+                                Assert.False(p1Set.IsMustOverride)
+                                Assert.False(p1Set.IsOverridable)
+                                Assert.Empty(p1Set.ExplicitInterfaceImplementations)
+                            End Sub
+
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_023()
 
@@ -3946,9 +4045,12 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_024()
 
@@ -3984,9 +4086,12 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_025()
 
@@ -3994,7 +4099,7 @@ End Class
 "
 public interface I1
 {
-    int P1 {get => throw null; private set => throw null;}
+    string P1 {get => throw null; private set => throw null;}
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -4009,7 +4114,7 @@ Public Class C
         P1 = "C.P1.Get"
     End Sub
 
-    ReadOnly Property P1 As Integer Implements I1.P1
+    ReadOnly Property P1 As String Implements I1.P1
 
     Shared Sub Main()
         Dim i1 As I1 = new C()
@@ -4020,6 +4125,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -6504,7 +6612,7 @@ BC30149: Class 'C' must implement 'P1' for interface 'I1'.
             )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_090()
 
@@ -7770,7 +7878,7 @@ BC30149: Class 'C' must implement 'P1' for interface 'I1'.
             )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_123()
 
@@ -9038,7 +9146,7 @@ BC30149: Class 'C' must implement 'P1' for interface 'I1'.
             )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35821")>
+        <Fact>
         <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub EventImplementation_02()
 

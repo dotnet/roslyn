@@ -457,6 +457,11 @@
         <target state="translated">未使用的值已明確指派至捨棄</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
         <target state="translated">使用 C# 和 Basic 的進階色彩</target>

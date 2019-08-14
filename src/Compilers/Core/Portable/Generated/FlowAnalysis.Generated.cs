@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
+    #region Interfaces
     /// <summary>
     /// Represents that an intermediate result is being captured.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
@@ -108,4 +109,5 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IMethodSymbol Symbol { get; }
     }
+    #endregion
 }

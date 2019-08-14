@@ -1405,57 +1405,14 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
-    /// </summary>
-    internal sealed partial class BranchOperation : Operation, IBranchOperation
-    {
-        public BranchOperation(ILabelSymbol target, BranchKind branchKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.Branch, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Target = target;
-            BranchKind = branchKind;
-        }
-        /// <summary>
-        /// Label that is the target of the branch.
-        /// </summary>
-        public ILabelSymbol Target { get; }
-        /// <summary>
-        /// Kind of the branch.
-        /// </summary>
-        public BranchKind BranchKind { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitBranch(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitBranch(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents a clause of a C# case or a VB Case.
     /// </summary>
     internal abstract partial class BaseCaseClauseOperation : Operation, ICaseClauseOperation
     {
         protected BaseCaseClauseOperation(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            this(caseKind, label: null, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            CaseKind = caseKind;
         }
-        /// <summary>
-        /// Kind of the clause.
-        /// </summary>
-        public CaseKind CaseKind { get; }
-
-        public abstract ILabelSymbol Label { get; }
     }
 
     /// <summary>
@@ -1813,32 +1770,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
-    /// </summary>
-    internal sealed partial class ConditionalAccessInstanceOperation : Operation, IConditionalAccessInstanceOperation
-    {
-        public ConditionalAccessInstanceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ConditionalAccessInstance, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitConditionalAccessInstance(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitConditionalAccessInstance(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents a conditional operation with:
     ///  1. <see cref="IConditionalOperation.Condition"/> to be tested,
     ///  2. <see cref="IConditionalOperation.WhenTrue"/> operation to be executed when <see cref="IConditionalOperation.Condition"/> is true and
@@ -2067,85 +1998,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return _lazyOperandInterlocked;
             }
-        }
-    }
-
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    internal sealed partial class DefaultValueOperation : Operation, IDefaultValueOperation
-    {
-        public DefaultValueOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.DefaultValue, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDefaultValue(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDefaultValue(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents an empty statement.
-    /// </summary>
-    internal sealed partial class EmptyOperation : Operation, IEmptyOperation
-    {
-        public EmptyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.Empty, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitEmpty(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitEmpty(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a VB End statement.
-    /// </summary>
-    internal sealed partial class EndOperation : Operation, IEndOperation
-    {
-        public EndOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.End, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitEnd(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitEnd(this, argument);
         }
     }
 
@@ -3448,34 +3300,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    /// <summary>
-    /// Represents a C# this or base expression, or a VB Me, MyClass, or MyBase expression.
-    /// </summary>
-    internal sealed partial class InstanceReferenceOperation : Operation, IInstanceReferenceOperation
-    {
-        public InstanceReferenceOperation(InstanceReferenceKind referenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.InstanceReference, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ReferenceKind = referenceKind;
-        }
-        public InstanceReferenceKind ReferenceKind { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitInstanceReference(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitInstanceReference(this, argument);
-        }
-    }
-
     /// <remarks>
     /// Represents an interpolated string expression.
     /// </remarks>
@@ -4492,65 +4316,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a textual literal numeric, string, etc. expression.
-    /// </summary>
-    internal sealed partial class LiteralOperation : Operation, ILiteralOperation
-    {
-        public LiteralOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.Literal, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitLiteral(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitLiteral(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a reference to a declared local variable.
-    /// </summary>
-    internal sealed partial class LocalReferenceOperation : Operation, ILocalReferenceOperation
-    {
-        public LocalReferenceOperation(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.LocalReference, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Local = local;
-            IsDeclaration = isDeclaration;
-        }
-        /// <summary>
-        /// Referenced local variable.
-        /// </summary>
-        public ILocalSymbol Local { get; }
-        public bool IsDeclaration { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitLocalReference(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitLocalReference(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
     internal abstract partial class BaseLockOperation : Operation, ILockOperation
@@ -5194,32 +4959,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents an argument value that has been omitted in an invocation.
-    /// </summary>
-    internal sealed partial class OmittedArgumentOperation : Operation, IOmittedArgumentOperation
-    {
-        public OmittedArgumentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.OmittedArgument, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitOmittedArgument(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitOmittedArgument(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
     internal abstract partial class BaseParameterInitializerOperation : SymbolInitializer, IParameterInitializerOperation
@@ -5302,37 +5041,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a reference to a parameter.
-    /// </summary>
-    internal sealed partial class ParameterReferenceOperation : Operation, IParameterReferenceOperation
-    {
-        public ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ParameterReference, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Parameter = parameter;
-        }
-        /// <summary>
-        /// Referenced parameter.
-        /// </summary>
-        public IParameterSymbol Parameter { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitParameterReference(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitParameterReference(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
     internal abstract partial class BaseParenthesizedOperation : Operation, IParenthesizedOperation
@@ -5407,39 +5115,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return _lazyOperandInterlocked;
             }
-        }
-    }
-
-    /// <summary>
-    /// Represents a general placeholder when no more specific kind of placeholder is available.
-    /// A placeholder is an expression whose meaning is inferred from context.
-    /// </summary>
-    internal sealed partial class PlaceholderOperation : Operation, IPlaceholderOperation
-    {
-        public PlaceholderOperation(PlaceholderKind placeholderKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21294
-            // base(OperationKind.Placeholder, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            PlaceholderKind = placeholderKind;
-        }
-
-        public PlaceholderKind PlaceholderKind { get; }
-
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitPlaceholder(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitPlaceholder(this, argument);
         }
     }
 
@@ -5646,8 +5321,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
 
-        public sealed override ILabelSymbol Label => null;
-
         public override IEnumerable<IOperation> Children
         {
             get
@@ -5754,8 +5427,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Relation = relation;
         }
-
-        public sealed override ILabelSymbol Label => null;
 
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
@@ -5917,9 +5588,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class BaseSingleValueCaseClauseOperation : BaseCaseClauseOperation, ISingleValueCaseClauseOperation
     {
         public BaseSingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.SingleValue, semanticModel, syntax, type, constantValue, isImplicit)
+            base(CaseKind.SingleValue, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Label = label;
         }
 
         public override IEnumerable<IOperation> Children
@@ -5936,7 +5606,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Case value.
         /// </summary>
         public abstract IOperation Value { get; }
-        public override ILabelSymbol Label { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -5992,88 +5661,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    /// <summary>
-    /// Represents default case in C# or Case Else in VB.
-    /// </summary>
-    internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation, IDefaultCaseClauseOperation
+    internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation
     {
         public DefaultCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
+            this(CaseKind.Default, label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Label = label;
-        }
-        public override ILabelSymbol Label { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDefaultCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDefaultCaseClause(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a SizeOf expression.
-    /// </summary>
-    internal sealed partial class SizeOfOperation : Operation, ISizeOfOperation
-    {
-        public SizeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.SizeOf, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            TypeOperand = typeOperand;
-        }
-        /// <summary>
-        /// Type operand.
-        /// </summary>
-        public ITypeSymbol TypeOperand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitSizeOf(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitSizeOf(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a VB Stop statement.
-    /// </summary>
-    internal sealed partial class StopOperation : Operation, IStopOperation
-    {
-        public StopOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.Stop, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitStop(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitStop(this, argument);
         }
     }
 
@@ -6569,37 +6161,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return _lazyElementsInterlocked;
             }
-        }
-    }
-
-    /// <summary>
-    /// Represents a TypeOf expression.
-    /// </summary>
-    internal sealed partial class TypeOfOperation : Operation, ITypeOfOperation
-    {
-        public TypeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.TypeOf, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            TypeOperand = typeOperand;
-        }
-        /// <summary>
-        /// Type operand.
-        /// </summary>
-        public ITypeSymbol TypeOperand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitTypeOf(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitTypeOf(this, argument);
         }
     }
 
@@ -7998,7 +7559,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a C# declaration pattern.
     /// </summary>
-    internal sealed partial class DeclarationPatternOperation : Operation, IDeclarationPatternOperation
+    internal sealed partial class DeclarationPatternOperation : BasePatternOperation, IDeclarationPatternOperation
     {
         public DeclarationPatternOperation(
             ITypeSymbol inputType,
@@ -8008,38 +7569,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
-        {
-            InputType = inputType;
-            MatchedType = matchedType;
-            DeclaredSymbol = declaredSymbol;
-            MatchesNull = matchesNull;
-        }
-        public bool MatchesNull { get; }
-        /// <summary>
-        /// Symbol declared by the pattern.
-        /// </summary>
-        public ISymbol DeclaredSymbol { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-
-        public ITypeSymbol MatchedType { get; }
-
-        public ITypeSymbol InputType { get; }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDeclarationPattern(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDeclarationPattern(this, argument);
-        }
+            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        { }
     }
 
     internal abstract partial class BaseRecursivePatternOperation : Operation, IRecursivePatternOperation
@@ -8271,9 +7802,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class BasePatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
         protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Pattern, semanticModel, syntax, type, constantValue, isImplicit)
+            base(CaseKind.Pattern, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Label = label;
         }
 
         public override IEnumerable<IOperation> Children
@@ -8298,7 +7828,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Guard expression associated with the pattern case clause.
         /// </summary>
         public abstract IOperation Guard { get; }
-        public override ILabelSymbol Label { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPatternCaseClause(this);
@@ -8986,25 +8515,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Id = id;
         }
-
-        public CaptureId Id { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFlowCaptureReference(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFlowCaptureReference(this, argument);
-        }
     }
 
     internal sealed partial class FlowCaptureOperation : Operation, IFlowCaptureOperation
@@ -9070,52 +8580,17 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
     {
         public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.CaughtException, semanticModel: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
+            this(semanticModel: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
         {
-        }
-
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return Array.Empty<IOperation>();
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitCaughtException(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitCaughtException(this, argument);
         }
     }
 
-    internal sealed class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
     {
         public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
             base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: default, isImplicit: true)
         {
             Local = local;
-        }
-
-        public ILocalSymbol Local { get; }
-
-        public override IEnumerable<IOperation> Children
-        {
-            get => Array.Empty<IOperation>();
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitStaticLocalInitializationSemaphore(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitStaticLocalInitializationSemaphore(this, argument);
         }
     }
 
@@ -9347,45 +8822,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class DiscardOperation : Operation, IDiscardOperation
-    {
-        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            DiscardSymbol = discardSymbol;
-        }
-
-        public IDiscardSymbol DiscardSymbol { get; }
-
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDiscardOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDiscardOperation(this, argument);
-        }
-    }
-
-    internal sealed class DiscardPatternOperation : Operation, IDiscardPatternOperation
+    internal sealed partial class DiscardPatternOperation : BasePatternOperation, IDiscardPatternOperation
     {
         public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(OperationKind.DiscardPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+            base(inputType, OperationKind.DiscardPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
-            InputType = inputType;
-        }
-        public ITypeSymbol InputType { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDiscardPattern(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDiscardPattern(this, argument);
         }
     }
 

@@ -457,6 +457,11 @@
         <target state="translated">未使用の値が discard に明示的に割り当てられます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
         <target state="translated">C# および Basic 用に拡張された色を使用</target>

@@ -120,9 +120,6 @@ and any `NullableContextAttribute` attributes on immediate children.
 If there are no single `byte` values, there are no changes.
 Otherwise, a `NullableContext(value)` attribute is created at that level where `value` is most common
 value (preferring `0` over `1` and preferring `1` over `2`), and all `NullableAttribute` and `NullableContextAttribute` attributes with that value are removed.
-That iterative process continues up to, and including, the top-level containing type definition.
-If the common value at the top-level type definition is a value other than `0` (the default),
-a `NullableContext(value)` attribute is emitted.
 
 Note that an assembly compiled with C#8 where all reference types are oblivious will have no
 `NullableContextAttribute` and no `NullableAttribute` attributes emitted.

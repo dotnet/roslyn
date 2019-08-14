@@ -115,5 +115,10 @@ namespace Microsoft.CodeAnalysis
         {
             return typeSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
         }
+
+        public static IMethodSymbol ConstructWithNullability(this IMethodSymbol methodSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return methodSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
+        }
     }
 }
