@@ -527,12 +527,12 @@ namespace IOperationGenerator
             return properties;
         }
 
-        private string GetSubName(string operationName) => operationName[1..^9];
+        private static string GetSubName(string operationName) => operationName[1..^9];
 
         private bool IsIOperationType(string typeName) => _typeMap.ContainsKey(typeName) ||
                                                           (IsImmutableArray(typeName, out var innerType) && IsIOperationType(innerType));
 
-        private bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
+        private static bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
         {
             const string ImmutableArrayPrefix = "ImmutableArray<";
             if (typeName.StartsWith(ImmutableArrayPrefix, StringComparison.Ordinal))

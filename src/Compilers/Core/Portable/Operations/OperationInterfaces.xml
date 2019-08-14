@@ -2776,7 +2776,7 @@
     <Property Name="Group" Type="IOperation" />
     <Property Name="Aggregation" Type="IOperation" />
   </Node>
-  <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor ="true">
+  <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor="true">
     <Comments>
       <summary>Represents a C# fixed statement.</summary>
     </Comments>
