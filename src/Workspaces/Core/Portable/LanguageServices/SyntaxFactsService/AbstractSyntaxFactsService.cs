@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool =
             new ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>(() => new Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>());
+
+        public abstract ISyntaxKindsService SyntaxKinds { get; }
 
         // Matches the following:
         //
@@ -491,5 +494,86 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
+
+        public bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+            => IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
+
+        public bool IsOnHeader<THoleSyntax>(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<THoleSyntax> holes)
+            where THoleSyntax : SyntaxNode
+        {
+            var headerSpan = TextSpan.FromBounds(
+                start: GetStartOfNodeExcludingAttributes(ownerOfHeader),
+                end: lastTokenOrNodeOfHeader.FullSpan.End);
+
+            // Is in header check is inclusive, being on the end edge of an header still counts
+            if (!headerSpan.IntersectsWith(position))
+            {
+                return false;
+            }
+
+            // Holes are exclusive: 
+            // To be consistent with other 'being on the edge' of Tokens/Nodes a position is 
+            // in a hole (not in a header) only if it's inside _inside_ a hole, not only on the edge.
+            if (holes.Any(h => h.Span.Contains(position) && position > h.Span.Start))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to get an ancestor of a Token on current position or of Token directly to left:
+        /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
+        /// </summary>
+        protected TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
+        {
+            var tokenToRightOrIn = root.FindToken(position);
+            var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
+            if (nodeToRightOrIn != null)
+            {
+                return nodeToRightOrIn;
+            }
+
+            // not at the beginning of a Token -> no (different) token to the left
+            if (tokenToRightOrIn.FullSpan.Start != position && tokenToRightOrIn.RawKind != SyntaxKinds.EndOfFileToken)
+            {
+                return null;
+            }
+
+            return tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
+        }
+
+        protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
+        {
+            var attributeLists = GetAttributeLists(node);
+            var start = attributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        node.SpanStart;
+
+            return start;
+        }
+
+        public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
+
+        public bool IsAwaitKeyword(SyntaxToken token)
+            => token.RawKind == SyntaxKinds.AwaitKeyword;
+
+        public bool IsIdentifier(SyntaxToken token)
+            => token.RawKind == SyntaxKinds.IdentifierToken;
+
+        public bool IsGlobalNamespaceKeyword(SyntaxToken token)
+            => token.RawKind == SyntaxKinds.GlobalKeyword;
+
+        public bool IsHashToken(SyntaxToken token)
+            => token.RawKind == SyntaxKinds.HashToken;
+
+        public bool HasIncompleteParentMember(SyntaxNode node)
+            => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
+
+        public bool IsUsingStatement(SyntaxNode node)
+            => node.RawKind == SyntaxKinds.UsingStatement;
+
+        public bool IsReturnStatement(SyntaxNode node)
+            => node.RawKind == SyntaxKinds.ReturnStatement;
     }
 }

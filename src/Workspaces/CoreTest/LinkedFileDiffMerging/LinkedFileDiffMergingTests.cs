@@ -12,43 +12,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     {
         private void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
         {
-            using (var workspace = new AdhocWorkspace())
+            using var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution;
+            var startSourceText = SourceText.From(startText);
+            var documentIds = new List<DocumentId>();
+
+            for (var i = 0; i < updatedTexts.Count; i++)
             {
-                var solution = workspace.CurrentSolution;
-                var startSourceText = SourceText.From(startText);
-                var documentIds = new List<DocumentId>();
+                var projectId = ProjectId.CreateNewId();
+                var documentId = DocumentId.CreateNewId(projectId);
+                documentIds.Add(documentId);
 
-                for (int i = 0; i < updatedTexts.Count; i++)
+                var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "ProjectName" + i, "AssemblyName" + i, languageName);
+
+                solution = solution
+                    .AddProject(projectInfo)
+                    .AddDocument(documentId, "DocumentName", startSourceText, filePath: "FilePath");
+            }
+
+            var startingSolution = solution;
+            var updatedSolution = solution;
+
+            for (var i = 0; i < updatedTexts.Count; i++)
+            {
+                var text = updatedTexts[i];
+                if (text != startText)
                 {
-                    var projectId = ProjectId.CreateNewId();
-                    var documentId = DocumentId.CreateNewId(projectId);
-                    documentIds.Add(documentId);
-
-                    var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "ProjectName" + i, "AssemblyName" + i, languageName);
-
-                    solution = solution
-                        .AddProject(projectInfo)
-                        .AddDocument(documentId, "DocumentName", startSourceText, filePath: "FilePath");
+                    updatedSolution = updatedSolution
+                        .WithDocumentText(documentIds[i], SourceText.From(text));
                 }
+            }
 
-                var startingSolution = solution;
-                var updatedSolution = solution;
-
-                for (int i = 0; i < updatedTexts.Count; i++)
-                {
-                    var text = updatedTexts[i];
-                    if (text != startText)
-                    {
-                        updatedSolution = updatedSolution
-                            .WithDocumentText(documentIds[i], SourceText.From(text));
-                    }
-                }
-
-                var mergedSolution = updatedSolution.WithMergedLinkedFileChangesAsync(startingSolution).Result;
-                for (int i = 0; i < updatedTexts.Count; i++)
-                {
-                    Assert.Equal(expectedMergedText, mergedSolution.GetDocument(documentIds[i]).GetTextAsync().Result.ToString());
-                }
+            var mergedSolution = updatedSolution.WithMergedLinkedFileChangesAsync(startingSolution).Result;
+            for (var i = 0; i < updatedTexts.Count; i++)
+            {
+                Assert.Equal(expectedMergedText, mergedSolution.GetDocument(documentIds[i]).GetTextAsync().Result.ToString());
             }
         }
     }

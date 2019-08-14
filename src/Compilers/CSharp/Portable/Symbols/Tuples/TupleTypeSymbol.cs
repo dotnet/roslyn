@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -1507,8 +1506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allTypeArguments.Free();
             return haveChanges;
         }
-
-        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         #region Use-Site Diagnostics
 

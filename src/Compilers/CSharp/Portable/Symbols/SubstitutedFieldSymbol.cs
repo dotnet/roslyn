@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && OriginalDefinition == other.OriginalDefinition;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()

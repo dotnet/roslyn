@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// is applicable, and satisfies type parameter constraints, based on the
         /// "this" argument type. Otherwise, returns null.
         /// </summary>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, Compilation compilation)
+        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType)
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            method = method.InferExtensionMethodTypeArguments(receiverType, compilation, ref useSiteDiagnostics);
+            method = InferExtensionMethodTypeArguments(method, receiverType, ref useSiteDiagnostics);
             if ((object)method == null)
             {
                 return null;
@@ -96,6 +98,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
+        /// <summary>
+        /// If the extension method is applicable based on the "this" argument type, return
+        /// the method constructed with the inferred type arguments. If the method is not an
+        /// unconstructed generic method, type inference is skipped. If the method is not
+        /// applicable, or if constraints when inferring type parameters from the "this" type
+        /// are not satisfied, the return value is null.
+        /// </summary>
+        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert(method.IsExtensionMethod);
+            Debug.Assert((object)thisType != null);
+
+            if (!method.IsGenericMethod || method != method.ConstructedFrom)
+            {
+                return method;
+            }
+
+            // We never resolve extension methods on a dynamic receiver.
+            if (thisType.IsDynamic())
+            {
+                return null;
+            }
+
+            var containingAssembly = method.ContainingAssembly;
+            var errorNamespace = containingAssembly.GlobalNamespace;
+            var conversions = new TypeConversions(containingAssembly.CorLibrary);
+
+            // There is absolutely no plausible syntax/tree that we could use for these
+            // synthesized literals.  We could be speculatively binding a call to a PE method.
+            var syntaxTree = CSharpSyntaxTree.Dummy;
+            var syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
+
+            // Create an argument value for the "this" argument of specific type,
+            // and pass the same bad argument value for all other arguments.
+            var thisArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, thisType) { WasCompilerGenerated = true };
+            var otherArgumentType = new ExtendedErrorTypeSymbol(errorNamespace, name: string.Empty, arity: 0, errorInfo: null, unreported: false);
+            var otherArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, otherArgumentType) { WasCompilerGenerated = true };
+
+            var paramCount = method.ParameterCount;
+            var arguments = new BoundExpression[paramCount];
+
+            for (int i = 0; i < paramCount; i++)
+            {
+                var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
+                arguments[i] = argument;
+            }
+
+            var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                conversions,
+                method,
+                arguments.AsImmutable(),
+                useSiteDiagnostics: ref useSiteDiagnostics);
+
+            if (typeArgs.IsDefault)
+            {
+                return null;
+            }
+
+            // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
+            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
+            if (typeArgs.Any(t => !t.HasType))
+            {
+                typeArgsForConstruct = typeArgs.ZipAsArray(
+                    method.TypeParameters,
+                    (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
+            }
+
+            return method.Construct(typeArgsForConstruct);
+        }
+
+
         internal override MethodSymbol CallsiteReducedFromMethod
         {
             get { return _reducedFrom.ConstructIfGeneric(_typeArguments); }
@@ -110,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            _reducedFrom.Parameters[0].TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+            _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
@@ -346,6 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => _reducedFrom.ReturnTypeFlowAnalysisAnnotations;
 
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => _reducedFrom.ReturnNotNullIfParameterNotNull;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => _reducedFrom.FlowAnalysisAnnotations;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.RefCustomModifiers); }
@@ -424,12 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj) return true;
 
             ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
-            return (object)other != null && _reducedFrom.Equals(other._reducedFrom);
+            return (object)other != null && _reducedFrom.Equals(other._reducedFrom, compareKind);
         }
 
         public override int GetHashCode()
@@ -471,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public sealed override bool Equals(object obj)
+            public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)
                 {
@@ -486,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = obj as ReducedExtensionMethodParameterSymbol;
                 return (object)other != null &&
                     this.Ordinal == other.Ordinal &&
-                    this.ContainingSymbol.Equals(other.ContainingSymbol);
+                    this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }
 
             public sealed override int GetHashCode()

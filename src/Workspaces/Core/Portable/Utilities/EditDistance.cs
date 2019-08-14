@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
         private static char[] ConvertToLowercaseArray(string text)
         {
             var array = ArrayPool<char>.GetArray(text.Length);
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 array[i] = CaseInsensitiveComparison.ToLower(text[i]);
             }
@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
             var width = matrix.GetLength(0);
             var height = matrix.GetLength(1);
 
-            for (int i = 0; i < width; i++)
+            for (var i = 0; i < width; i++)
             {
                 matrix[i, 0] = Infinity;
 
@@ -157,7 +157,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            for (int j = 0; j < height; j++)
+            for (var j = 0; j < height; j++)
             {
                 matrix[0, j] = Infinity;
 
@@ -494,7 +494,7 @@ namespace Roslyn.Utilities
             var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
             Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
-            for (int i = 1; i <= sourceLength; i++)
+            for (var i = 1; i <= sourceLength; i++)
             {
                 var lastMatchIndex_inTarget = 0;
                 var sourceChar = source[i - 1];
@@ -517,7 +517,7 @@ namespace Roslyn.Utilities
                     matrix[i + 1, jEnd + 2] = Infinity;
                 }
 
-                for (int j = jStart; j <= jEnd; j++)
+                for (var j = jStart; j <= jEnd; j++)
                 {
                     var targetChar = target[j - 1];
 

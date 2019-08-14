@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
         End Function
 
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
-            Assert.NotNull(session)
+            Assert.True(session IsNot Nothing, "AssertCompletionSession")
         End Function
 
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
@@ -296,15 +296,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Private Function GetRoslynCompletionItemOpt(editorCompletionItem As Data.CompletionItem) As CompletionItem
-            Dim roslynCompletionItem As CompletionItem = Nothing
-            If editorCompletionItem?.Properties.TryGetProperty(RoslynItem, roslynCompletionItem) Then
-                Return roslynCompletionItem
-            End If
-
-            Return Nothing
-        End Function
-
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -327,6 +318,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
         End Function
+
+        Public Overrides Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Overrides Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
 
         Public Overrides Function HasSuggestedItem() As Boolean
             AssertNoAsynchronousOperationsRunning()

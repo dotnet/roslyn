@@ -57,6 +57,11 @@
         <target state="translated">Voltar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calculando dependentes...</target>
@@ -102,6 +107,11 @@
         <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">A interface não pode ter campo.</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Live_analysis">
         <source>Live analysis</source>
         <target state="translated">Análise ao vivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1793,11 +1808,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Opções</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Experimente a versão de visualização da nossa extensão de análise de código em tempo real, que fornece mais correções para problemas comuns de design, nomenclatura, desempenho e confiabilidade de API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">Nunca mostrar isso novamente</target>
@@ -1843,30 +1853,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Esmaecimento</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">As alterações não serão permitidas se o assembly não tiver sido carregado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Não serão permitidas alterações se o projeto não for criado quando a depuração iniciar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Não serão permitidas alterações se o projeto não for carregado e compilado quando a depuração iniciar.
-
-O 'Carregamento da solução leve' está habilitado para a solução atual. Desabilite-o para garantir que todos os projetos estejam carregados quando a depuração iniciar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">As alterações não são permitidas enquanto o código está em execução.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferir usar função anônima em vez de local</target>
@@ -1902,19 +1888,9 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
         <target state="translated">preferir propriedades automáticas</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Erro ao ler o arquivo '{0}': {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">O módulo foi descarregado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Não é possível aplicar alterações -- o módulo '{0}' foi descarregado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1956,11 +1932,6 @@ Eu concordo com todo o conteúdo supracitado:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Sincronizar Modo de Exibição de Classe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Não é possível aplicar as alterações – erro inesperado: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

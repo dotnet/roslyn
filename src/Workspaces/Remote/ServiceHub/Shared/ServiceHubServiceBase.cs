@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +16,8 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     // TODO: all service hub service should be extract to interface so that it can support multiple hosts.
     //       right now, tightly coupled to service hub
-    internal abstract class ServiceHubServiceBase : IDisposable
+    internal abstract class ServiceHubServiceBase : ServiceBase
     {
-        private static int s_instanceId;
-
-        private readonly JsonRpc _rpc;
-
-        protected readonly int InstanceId;
-
-        protected readonly TraceSource Logger;
-        protected readonly AssetStorage AssetStorage;
-
-        [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
-        protected readonly JsonRpc Rpc;
-
         /// <summary>
         /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
         /// can use to find matching caller and callee while exchanging data
@@ -46,14 +33,84 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RoslynServices _lazyRoslynServices;
 
-        private bool _disposed;
-
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream) :
-            this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+            : this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
         {
         }
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
+            : base(serviceProvider, stream, jsonConverters)
+        {
+        }
+
+        protected RoslynServices RoslynServices
+        {
+            get
+            {
+                if (_lazyRoslynServices == null)
+                {
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
+                }
+
+                return _lazyRoslynServices;
+            }
+        }
+
+        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_solutionInfo);
+
+            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
+        }
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
+            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
+        }
+
+        public virtual void Initialize(PinnedSolutionInfo info)
+        {
+            // set pinned solution info
+            _lazyRoslynServices = null;
+            _solutionInfo = info;
+        }
+
+        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var solutionController = (ISolutionController)roslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Base type with servicehub helper methods. this is not tied to how Roslyn OOP works. 
+    /// 
+    /// any type that derived from this type is supposed to be an entry point for servicehub services.
+    /// name of the type should match one appears in GenerateServiceHubConfigurationFiles.targets 
+    /// and signature of either its constructor or static CreateAsync must follow the convension
+    /// ctor(Stream stream, IServiceProvider serviceProvider).
+    /// 
+    /// see servicehub detail from VSIDE onenote
+    /// https://microsoft.sharepoint.com/teams/DD_VSIDE
+    /// </summary>
+    internal abstract class ServiceBase : IDisposable
+    {
+        private static int s_instanceId;
+
+        private readonly JsonRpc _rpc;
+
+        protected readonly int InstanceId;
+
+        protected readonly TraceSource Logger;
+        protected readonly AssetStorage AssetStorage;
+
+        [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
+        protected readonly JsonRpc Rpc;
+
+        private bool _disposed;
+
+        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
             _disposed = false;
@@ -81,19 +138,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected event EventHandler Disconnected;
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
-
-        protected RoslynServices RoslynServices
-        {
-            get
-            {
-                if (_lazyRoslynServices == null)
-                {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-                }
-
-                return _lazyRoslynServices;
-            }
-        }
 
         protected bool IsDisposed => ((IDisposableObservable)_rpc).IsDisposed;
 
@@ -131,19 +175,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
 
-        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_solutionInfo);
-
-            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
-        }
-
-        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             // do nothing here
@@ -152,13 +183,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void LogError(string message)
         {
             Log(TraceEventType.Error, message);
-        }
-
-        public virtual void Initialize(PinnedSolutionInfo info)
-        {
-            // set pinned solution info
-            _lazyRoslynServices = null;
-            _solutionInfo = info;
         }
 
         public void Dispose()

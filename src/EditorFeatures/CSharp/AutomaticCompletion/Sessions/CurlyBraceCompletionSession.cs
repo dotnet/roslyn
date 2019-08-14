@@ -60,19 +60,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
             // alright, it is in right shape.
             var undoHistory = GetUndoHistory(session.TextView);
-            using (var transaction = undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion))
+            using var transaction = undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
+
+            var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
             {
-                var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
-                {
-                    document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
-                    FormatTrackingSpan(session, shouldHonorAutoFormattingOnCloseBraceOption: false, rules: GetFormattingRules(document));
+                document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
+                FormatTrackingSpan(session, shouldHonorAutoFormattingOnCloseBraceOption: false, rules: GetFormattingRules(document));
 
-                    // put caret at right indentation
-                    PutCaretOnLine(session, session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).GetContainingLineNumber() + 1);
+                // put caret at right indentation
+                PutCaretOnLine(session, session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).GetContainingLineNumber() + 1);
 
-                    transaction.Complete();
-                }
+                transaction.Complete();
             }
         }
 
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return false;
             }
 
-            for (int i = start; i <= end; i++)
+            for (var i = start; i <= end; i++)
             {
                 if (!char.IsWhiteSpace(snapshot[i]))
                 {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     var endToken = snapshot.FindToken(endPosition, CancellationToken.None);
                     if (endToken.IsKind(SyntaxKind.CloseBraceToken))
                     {
-                        endPosition = endPosition - (endToken.Span.Length + startToken.Span.Length);
+                        endPosition -= (endToken.Span.Length + startToken.Span.Length);
                     }
                 }
             }

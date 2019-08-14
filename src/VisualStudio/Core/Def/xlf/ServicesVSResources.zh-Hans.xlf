@@ -57,6 +57,11 @@
         <target state="translated">后退</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">正在计算依赖项...</target>
@@ -102,6 +107,11 @@
         <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">接口不可具有字段。</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Live_analysis">
         <source>Live analysis</source>
         <target state="translated">实时分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1793,11 +1808,6 @@ Additional information: {1}</source>
         <target state="translated">选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">尝试我们的预览版实时代码分析扩展，它为常见的 API 设计、命名、性能和可靠性问题提供了更多修复</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">永不再显示</target>
@@ -1843,30 +1853,6 @@ Additional information: {1}</source>
         <target state="translated">淡入淡出</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">未加载程序集时不允许进行更改。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">如果项目不是在启动调试时生成的，则不允许进行更改。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">如果项目不是在启动调试时加载和生成的，则不允许进行更改。
-
-已为当前解决方案启用“轻型解决方案加载”。在开始调试时将其禁用，以确保加载全部项目。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">代码正在运行，此时不允许进行更改。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">首选本地函数而不是匿名函数</target>
@@ -1902,19 +1888,9 @@ Additional information: {1}</source>
         <target state="translated">首选自动属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">读取文件“{0}”时出错: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">已卸载模块。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">无法应用更改 - 已卸载模块“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1956,11 +1932,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">同步类视图</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">无法应用更改 - 意外错误:“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

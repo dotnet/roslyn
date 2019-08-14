@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, string language) :
-                base(optionSet, language)
+            public FormattedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, string language)
+                : base(optionSet, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (this.SecondTokenIsFirstTokenOnLine)
                 {
                     var builder = StringBuilderPool.Allocate();
-                    for (int i = 0; i < this.LineBreaks; i++)
+                    for (var i = 0; i < this.LineBreaks; i++)
                     {
                         builder.Append(newLine);
                     }

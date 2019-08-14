@@ -65,19 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ObjectCreationExpressionSyntax objectCreationNode:
-                    return objectCreationNode.Initializer;
-                case ArrayCreationExpressionSyntax arrayCreationNode:
-                    return arrayCreationNode.Initializer;
-                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
-                    return implicitArrayNode.Initializer;
-            }
-
-            return null;
-        }
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
+                ArrayCreationExpressionSyntax arrayCreationNode => arrayCreationNode.Initializer,
+                ImplicitArrayCreationExpressionSyntax implicitArrayNode => implicitArrayNode.Initializer,
+                _ => null,
+            };
 
         private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
@@ -239,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // current implementation of engine gives higher priority on new line operations over space operations if
                 // two are conflicting.
-                // ex) new line operation says add 1 line between tokens, and 
+                // ex) new line operation says add 1 line between tokens, and
                 //     space operation says give 1 space between two tokens (basically means remove new lines)
                 //     then, engine will pick new line operation and ignore space operation
 
@@ -282,15 +276,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    // Assembly and module-level attributes followed by non-attributes should have
-                    // a blank line after them.
+                    // Assembly and module-level attributes followed by non-attributes should have a blank line after
+                    // them, unless it's the end of the file which will already have a blank line.
                     if (previousToken.Parent is AttributeListSyntax parent)
                     {
                         if (parent.Target != null &&
                             (parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.AssemblyKeyword) ||
                              parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.ModuleKeyword)))
                         {
-                            if (!(currentToken.Parent is AttributeListSyntax))
+                            if (!currentToken.IsKind(SyntaxKind.EndOfFileToken) && !(currentToken.Parent is AttributeListSyntax))
                             {
                                 return 2;
                             }
@@ -423,6 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             else if (previousToken.Parent is ExternAliasDirectiveSyntax)
             {
                 return currentToken.Parent is ExternAliasDirectiveSyntax ? 1 : 2;
+            }
+            else if (currentToken.Parent is LocalFunctionStatementSyntax)
+            {
+                return 2;
             }
             else
             {

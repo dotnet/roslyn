@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                // It's correct to throw out nullability here -- if you have a field of type Foo? and it implements IEquatable, it's still implementing IEquatable<Foo>.
                 var constructed = iequatableType.Construct(memberType.WithoutNullability());
                 return memberType.AllInterfaces.Contains(constructed);
             }

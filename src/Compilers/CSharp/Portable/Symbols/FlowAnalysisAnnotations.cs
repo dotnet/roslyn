@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         NotNullWhenTrue = 1 << 4,
         NotNullWhenFalse = 1 << 5,
         NotNull = NotNullWhenTrue | NotNullWhenFalse,
-        AssertsTrue = 1 << 6,
-        AssertsFalse = 1 << 7,
+        DoesNotReturnIfFalse = 1 << 6,
+        DoesNotReturnIfTrue = 1 << 7,
+        DoesNotReturn = DoesNotReturnIfTrue | DoesNotReturnIfFalse,
     }
 }

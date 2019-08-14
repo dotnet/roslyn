@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {

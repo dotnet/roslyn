@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0660
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
-                    map = new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(concurrencyLevel: 1, capacity: 1);
+                    map = new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(concurrencyLevel: 1, capacity: 1, comparer: SymbolEqualityComparer.ConsiderEverything);
                     return Interlocked.CompareExchange(ref _implementationForInterfaceMemberMap, map, null) ?? map;
                 }
             }
@@ -309,11 +311,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ReferenceEquals(this, t2);
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
-            var t2 = obj as TypeSymbol;
-            if ((object)t2 == null) return false;
-            return this.Equals(t2, TypeCompareKind.ConsiderEverything);
+            var t2 = other as TypeSymbol;
+            if (t2 is null)
+            {
+                return false;
+            }
+            return this.Equals(t2, compareKind);
         }
 
         /// <summary>
@@ -370,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>();
+            var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -447,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer, EqualsConsiderEverything);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))
@@ -1707,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
         }
 
         private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)

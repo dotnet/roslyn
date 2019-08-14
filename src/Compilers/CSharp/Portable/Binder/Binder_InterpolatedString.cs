@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.Interpolation:
                         {
                             var interpolation = (InterpolationSyntax)content;
-                            var value = BindValue(interpolation.Expression, diagnostics, Binder.BindValueKind.RValue);
+                            var value = BindRValueWithoutTargetType(interpolation.Expression, diagnostics);
                             // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
                             // when we perform overload resolution, to report a problem. So we do that check by calling
                             // GenerateConversionForAssignment with objectType. However we want to preserve the original expression's

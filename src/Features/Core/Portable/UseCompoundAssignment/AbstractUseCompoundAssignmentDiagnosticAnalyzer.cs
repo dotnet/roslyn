@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             ISyntaxFactsService syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   CodeStyleOptions.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

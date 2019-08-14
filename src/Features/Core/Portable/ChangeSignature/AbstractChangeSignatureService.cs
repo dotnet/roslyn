@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
             var definitionToUse = new Dictionary<SyntaxNode, ISymbol>();
 
-            bool hasLocationsInMetadata = false;
+            var hasLocationsInMetadata = false;
 
             var symbols = FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var document = solution.GetDocument(documentId);
 
             var root = tree.GetRoot();
-            SyntaxNode node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+            var node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
             var updater = document.GetLanguageService<AbstractChangeSignatureService>();
             nodeToUpdate = updater.FindNodeToUpdate(document, node);
 
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var argumentToParameterMap = new Dictionary<IUnifiedArgumentSyntax, IParameterSymbol>();
             var parameterToIndexMap = new Dictionary<IParameterSymbol, int>();
 
-            for (int i = 0; i < declarationParametersToPermute.Count; i++)
+            for (var i = 0; i < declarationParametersToPermute.Count; i++)
             {
                 var decl = declarationParametersToPermute[i];
                 var arg = argumentsToPermute[i];
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var updatedIndex = updatedSignature.GetUpdatedIndex(originalIndex);
 
                 // If there's no value, then we may be handling a method with more parameters than the original symbol (like BeginInvoke).
-                parameterToIndexMap[decl] = updatedIndex.HasValue ? updatedIndex.Value : -1;
+                parameterToIndexMap[decl] = updatedIndex ?? -1;
             }
 
             // 3. Sort the arguments that need to be reordered
@@ -423,8 +423,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // 4. Add names to arguments where necessary.
 
             var newArguments = new List<IUnifiedArgumentSyntax>();
-            int expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
-            bool seenNamedArgument = false;
+            var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
+            var seenNamedArgument = false;
 
             foreach (var argument in argumentsToPermute)
             {
@@ -452,9 +452,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // 5. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
 
-            bool removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
+            var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
 
-            for (int i = declarationParametersToPermute.Count; i < arguments.Count; i++)
+            for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
             {
                 if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Count)
                 {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             List<IParameterSymbol> originalParameters,
             bool isReducedExtensionMethod)
         {
-            int position = -1 + (isReducedExtensionMethod ? 1 : 0);
+            var position = -1 + (isReducedExtensionMethod ? 1 : 0);
             var parametersToPermute = new List<IParameterSymbol>();
 
             foreach (var argument in arguments)
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return 0;
             }
 
-            for (int i = 0; i < parameters.Count - 1; i++)
+            for (var i = 0; i < parameters.Count - 1; i++)
             {
                 // `$$,` points to the argument before the separator
                 // but `,$$` points to the argument following the separator

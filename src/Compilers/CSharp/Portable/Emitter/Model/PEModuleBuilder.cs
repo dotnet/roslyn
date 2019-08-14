@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
         }
 
-        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
+        private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
@@ -352,6 +353,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool IgnoreAccessibility => false;
 
         /// <summary>
+        /// True if this module is an ENC update.
+        /// </summary>
+        internal virtual bool IsEncDelta => false;
+
+        /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
         internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
@@ -374,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        internal virtual bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 
@@ -383,36 +389,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
+        public sealed override IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypeDefinitions(EmitContext context)
         {
             if (context.MetadataOnly)
             {
-                return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
+                return SpecializedCollections.EmptyEnumerable<Cci.INamespaceTypeDefinition>();
             }
 
-            return StaticCast<Cci.INamespaceTypeDefinition>.From(Compilation.AnonymousTypeManager.GetAllCreatedTemplates());
+            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
         }
 
-        /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {
-            get { return false; }
-        }
-
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
-        {
-            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
-            {
-                yield return type;
-            }
-
-            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
-            {
-                yield return type;
-            }
-
             var namespacesToProcess = new Stack<NamespaceSymbol>();
             namespacesToProcess.Push(SourceModule.GlobalNamespace);
 
@@ -421,28 +409,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var ns = namespacesToProcess.Pop();
                 foreach (var member in ns.GetMembers())
                 {
-                    var memberNamespace = member as NamespaceSymbol;
-                    if ((object)memberNamespace != null)
+                    if (member.Kind == SymbolKind.Namespace)
                     {
-                        namespacesToProcess.Push(memberNamespace);
+                        namespacesToProcess.Push((NamespaceSymbol)member);
                     }
                     else
                     {
-                        var type = (NamedTypeSymbol)member;
-                        yield return type;
+                        yield return (NamedTypeSymbol)member;
                     }
                 }
             }
-        }
-
-        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
-
-        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
@@ -1540,6 +1516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
+        }
+
+        internal bool ShouldEmitNullablePublicOnlyAttribute()
+        {
+            // No need to look at this.GetNeedsGeneratedAttributes() since those bits are
+            // only set for members generated by the rewriter which are not public.
+            return Compilation.GetUsesNullableAttributes() && Compilation.EmitNullablePublicOnly;
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)

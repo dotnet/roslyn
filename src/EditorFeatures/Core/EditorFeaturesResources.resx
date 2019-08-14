@@ -754,9 +754,9 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
-  <data name="An_inline_rename_session_is_active" xml:space="preserve">
-    <value>An inline rename session is active</value>
-    <comment>For screenreaders</comment>
+  <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
+    <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
+    <comment>For screenreaders. {0} is the identifier being renamed.</comment>
   </data>
   <data name="Inline_Rename_Conflict" xml:space="preserve">
     <value>Inline Rename Conflict</value>
@@ -895,6 +895,16 @@ Do you want to proceed?</value>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
   </data>
+  <data name="Rename_file" xml:space="preserve">
+    <value>Rename _file</value>
+  </data>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>Rename _file (not allowed on partial types)</value>
+    <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>Rename _file (type does not match file name)</value>
+  </data>
   <data name="Toggle_Block_Comment" xml:space="preserve">
     <value>Toggle Block Comment</value>
   </data>
@@ -906,5 +916,11 @@ Do you want to proceed?</value>
   </data>
   <data name="Toggling_line_comment" xml:space="preserve">
     <value>Toggling line comment...</value>
+  </data>
+  <data name="Expander_display_text" xml:space="preserve">
+    <value>items from unimported namespaces</value>
+  </data>
+  <data name="Expander_image_element" xml:space="preserve">
+    <value>Expander</value>
   </data>
 </root>

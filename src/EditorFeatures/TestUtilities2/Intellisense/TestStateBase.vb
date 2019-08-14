@@ -195,6 +195,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
 
+        Public MustOverride Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+
+        Public MustOverride Sub SetCompletionItemExpanderState(isSelected As Boolean)
+
         Public MustOverride Function HasSuggestedItem() As Boolean
 
         Public MustOverride Function IsSoftSelected() As Boolean
@@ -259,6 +263,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional projectionsView As ITextView = Nothing) As Task
 
         Public MustOverride Function WaitForUIRenderedAsync() As Task
+
+        Public Sub NavigateToDisplayText(targetText As String)
+            Dim currentText = GetSelectedItem().DisplayText
+
+            ' GetComputedItems provided by the Editor for tests does not guarantee that 
+            ' the order of items match the order of items actually displayed in the completion popup.
+            ' For example, they put starred items (intellicode) below non-starred ones.
+            ' And the order they display those items in the UI is opposite.
+            ' Therefore, we do the full traverse: down to the bottom and if not found up to the top.
+            Do While currentText <> targetText
+                SendDownKey()
+                Dim newText = GetSelectedItem().DisplayText
+                If currentText = newText Then
+                    ' Nothing found on going down. Try going up
+                    Do While currentText <> targetText
+                        SendUpKey()
+                        newText = GetSelectedItem().DisplayText
+                        Assert.True(newText <> currentText, "Reached the bottom, then the top and didn't find the match")
+                        currentText = newText
+                    Loop
+                End If
+
+                currentText = newText
+            Loop
+        End Sub
 
 #End Region
 

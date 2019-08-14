@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class VisualStudioProject
     {
+        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
+
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _outputRefFilePath;
         private string _defaultNamespace;
 
-        private readonly Dictionary<string, List<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, List<MetadataReferenceProperties>>();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
@@ -226,8 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        /// <remarks>This is internal for now, as it's only consumed by <see cref="EditAndContinue.VsENCRebuildableProjectImpl"/>
-        /// which directly takes a <see cref="VisualStudioProject"/>.</remarks>
         internal string IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
@@ -779,7 +779,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference has already been added to the project.");
                 }
 
-                _allMetadataReferences.MultiAdd(fullPath, properties);
+                _allMetadataReferences.MultiAdd(fullPath, properties, s_defaultMetadataReferenceProperties);
 
                 if (_activeBatchScopes > 0)
                 {
@@ -824,10 +824,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                _allMetadataReferences.TryGetValue(fullPath, out var list);
-
-                // Note: AsImmutableOrEmpty accepts null recievers and treats that as an empty array
-                return list.AsImmutableOrEmpty();
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
             }
         }
 
@@ -1322,7 +1319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                     {
                         if (_documentsAddedInBatch[i].Id == documentId)
                         {
@@ -1379,7 +1376,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                        for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                         {
                             if (_documentsAddedInBatch[i].Id == documentId)
                             {

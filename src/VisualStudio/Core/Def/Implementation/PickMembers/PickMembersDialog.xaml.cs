@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveUp();
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveDown();

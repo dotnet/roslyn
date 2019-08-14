@@ -266,9 +266,6 @@ class A
                 // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
-                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
                 // (6,33): error CS1003: Syntax error, ',' expected
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
@@ -277,7 +274,10 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
                 // (6,33): error CS1003: Syntax error, ']' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33),
+                // (6,33): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "").WithLocation(6, 33)
                 );
         }
 

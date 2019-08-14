@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     string filePath = null;
-                    int line = -1; // FxCop only supports line, not column.
+                    var line = -1; // FxCop only supports line, not column.
                     DiagnosticDataLocation location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&

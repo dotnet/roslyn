@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected CompletionProvider()
         {
-            this.Name = this.GetType().FullName;
+            Name = GetType().FullName;
         }
 
         /// <summary>
@@ -64,5 +64,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// True if the provider produces snippet items.
         /// </summary>
         internal virtual bool IsSnippetProvider => false;
+
+        /// <summary>
+        /// True if the provider produces items show be shown in expanded list only.
+        /// </summary>
+        internal virtual bool IsExpandItemProvider => false;
     }
 }

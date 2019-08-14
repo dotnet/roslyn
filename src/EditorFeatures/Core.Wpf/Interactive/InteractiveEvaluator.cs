@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
-            var name = "Submission#" + (_submissionCount++);
+            var name = "Submission#" + _submissionCount++;
 
             // Grab a local copy so we aren't closing over the field that might change. The
             // collection itself is an immutable collection.

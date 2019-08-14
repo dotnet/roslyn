@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
 
                 // Try to map those parameters to fields.
-                this.GetParameters(remainingArguments, remainingAttributeArguments,
+                GetParameters(remainingArguments, remainingAttributeArguments,
                     remainingParameterTypes, remainingParameterNames, fieldNamingRule, parameterNamingRule,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 

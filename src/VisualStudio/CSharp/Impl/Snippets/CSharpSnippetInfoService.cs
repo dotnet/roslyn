@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     {
         // #region and #endregion when appears in the completion list as snippets
         // we should format the snippet on commit. 
-        private ISet<string> _formatTriggeringSnippets = new HashSet<string>(new string[] { "#region", "#endregion" });
+        private readonly ISet<string> _formatTriggeringSnippets = new HashSet<string>(new string[] { "#region", "#endregion" });
 
         [ImportingConstructor]
         public CSharpSnippetInfoService(

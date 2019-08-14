@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,14 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -27,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
         {
-            private SyntaxToken _methodName;
+            private readonly SyntaxToken _methodName;
 
             public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
@@ -65,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected CSharpCodeGenerator(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult) :
-                base(insertionPoint, selectionResult, analyzerResult)
+                AnalyzerResult analyzerResult)
+                : base(insertionPoint, selectionResult, analyzerResult)
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 
@@ -316,8 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declarationStatement == null)
+                    if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
                     {
                         // if given statement is not decl statement.
                         yield return statement;
@@ -339,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         {
                             if (variableDeclaration.Initializer != null)
                             {
-                                SyntaxToken identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
+                                var identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
 
                                 // move comments with the variable here
                                 expressionStatements.Add(CreateAssignmentExpressionStatement(identifier, variableDeclaration.Initializer.Value));
@@ -491,31 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     identifierLeadingTrivia = identifierLeadingTrivia.AddRange(identifier.LeadingTrivia);
                     identifier = identifier.WithLeadingTrivia(identifierLeadingTrivia);
-                }
-
-                return identifier;
-            }
-
-            private static SyntaxToken GetIdentifierTokenAndTrivia(SyntaxToken identifier, TypeSyntax typeSyntax)
-            {
-                if (typeSyntax != null)
-                {
-                    var identifierLeadingTrivia = new SyntaxTriviaList();
-                    var identifierTrailingTrivia = new SyntaxTriviaList();
-                    if (typeSyntax.HasLeadingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetLeadingTrivia());
-                    }
-
-                    if (typeSyntax.HasTrailingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetTrailingTrivia());
-                    }
-
-                    identifierLeadingTrivia = identifierLeadingTrivia.AddRange(identifier.LeadingTrivia);
-                    identifierTrailingTrivia = identifierTrailingTrivia.AddRange(identifier.TrailingTrivia);
-                    identifier = identifier.WithLeadingTrivia(identifierLeadingTrivia)
-                                           .WithTrailingTrivia(identifierTrailingTrivia);
                 }
 
                 return identifier;

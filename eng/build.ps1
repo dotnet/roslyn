@@ -610,8 +610,16 @@ try {
     InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
-  if ($bootstrap) {
-    $bootstrapDir = Make-BootstrapBuild -force32:$test32
+  try
+  {
+    if ($bootstrap) {
+      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+    }
+  }
+  catch
+  {
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    throw $_
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
@@ -622,8 +630,16 @@ try {
     SetVisualStudioBootstrapperBuildArgs
   }
 
-  if ($testDesktop -or $testVsi -or $testIOperation) {
-    TestUsingOptimizedRunner
+  try
+  {
+    if ($testDesktop -or $testVsi -or $testIOperation) {
+      TestUsingOptimizedRunner
+    }
+  }
+  catch
+  {
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    throw $_
   }
 
   if ($launch) {

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
-            int retries = 0;
+            var retries = 0;
 
             while (true)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static TextAndVersion LoadTextSynchronously(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
-            int retries = 0;
+            var retries = 0;
 
             while (true)
             {
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis
 
         public virtual async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
-            TextAndVersion textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
     }

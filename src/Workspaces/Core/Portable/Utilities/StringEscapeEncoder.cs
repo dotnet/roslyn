@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
         {
             StringBuilder builder = null;
 
-            int startIndex = 0;
+            var startIndex = 0;
             while (startIndex < text.Length)
             {
                 var prefixIndex = text.IndexOf(escapePrefix, startIndex);
@@ -64,7 +64,7 @@ namespace Roslyn.Utilities
         public static string Unescape(this string text, char escapePrefix)
         {
             StringBuilder builder = null;
-            int startIndex = 0;
+            var startIndex = 0;
 
             while (startIndex < text.Length)
             {
@@ -106,7 +106,7 @@ namespace Roslyn.Utilities
 
         private static int ParseHex(string text, int start, int length)
         {
-            int value = 0;
+            var value = 0;
 
             for (int i = start, end = start + length; i < end; i++)
             {

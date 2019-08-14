@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
@@ -59,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
-                     createChangedDocument,
-                     CSharpFeaturesResources.use_var_instead_of_explicit_type)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
+                       createChangedDocument,
+                       CSharpFeaturesResources.use_var_instead_of_explicit_type)
             {
             }
         }

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private void VerifyTriggerCharactersWorker(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind sourceCodeKind)
         {
-            ISignatureHelpProvider signatureHelpProvider = CreateSignatureHelpProvider();
+            var signatureHelpProvider = CreateSignatureHelpProvider();
 
             foreach (var expectedTriggerCharacter in expectedTriggerCharacters)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         {
             Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
 
-            for (int i = 0; i < expectedTestItems.Count(); i++)
+            for (var i = 0; i < expectedTestItems.Count(); i++)
             {
                 CompareSigHelpItemsAndCurrentPosition(
                     actualSignatureHelpItems,
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             int cursorPosition,
             TextSpan applicableSpan)
         {
-            int currentParameterIndex = -1;
+            var currentParameterIndex = -1;
             if (expectedTestItem.CurrentParameterIndex != null)
             {
                 if (expectedTestItem.CurrentParameterIndex.Value >= 0 && expectedTestItem.CurrentParameterIndex.Value < actualSignatureHelpItem.Parameters.Length)
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             Assert.True(expectedOrderedItemsOrNull.Count(i => i.IsSelected) == 1, "Only one expected item can be marked with 'IsSelected'");
             Assert.True(selectedItemIndex != null, "Expected an item to be selected, but no item was actually selected");
 
-            int counter = 0;
+            var counter = 0;
             foreach (var item in expectedOrderedItemsOrNull)
             {
                 if (item.IsSelected)

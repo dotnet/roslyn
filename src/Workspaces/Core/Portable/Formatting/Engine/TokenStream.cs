@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _optionSet = optionSet;
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
-                int sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
+                var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
                 _tokens = new List<SyntaxToken>(sizeOfList);
                 _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // things should be already in sorted manner, but just to make sure
             // run sort
             var previousToken = _tokens[0];
-            for (int i = 1; i < _tokens.Count; i++)
+            for (var i = 1; i < _tokens.Count; i++)
             {
                 var currentToken = _tokens[i];
                 Debug.Assert(previousToken.FullSpan.End <= currentToken.FullSpan.Start);
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // regular trivia cases
-            for (int pairIndex = 0; pairIndex < this.TokenCount - 1; pairIndex++)
+            for (var pairIndex = 0; pairIndex < this.TokenCount - 1; pairIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

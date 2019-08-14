@@ -5568,27 +5568,13 @@ class C
 
             // if names are provided, you need one for each element
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
-            try
-            {
-                comp.CreateTupleTypeSymbol(vt2, new[] { "Item1" }.AsImmutable());
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, new[] { "Item1" }.AsImmutable()));
+            Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
 
             var tree = CSharpSyntaxTree.ParseText("class C { }");
             var loc1 = Location.Create(tree, new TextSpan(0, 1));
-            try
-            {
-                comp.CreateTupleTypeSymbol(vt2, elementLocations: new[] { loc1 }.AsImmutable());
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
-            }
+            e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, elementLocations: new[] { loc1 }.AsImmutable()));
+            Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
         }
 
         [Fact]
@@ -5955,15 +5941,8 @@ class C
             Assert.Equal(new[] { "return", "class" }, GetTupleElementNames(tuple3));
 
             // not tuple-compatible underlying type
-            try
-            {
-                comp.CreateTupleTypeSymbol(intType);
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(intType));
+            Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, e.Message);
         }
 
         [Fact]
@@ -5974,17 +5953,10 @@ class C
             NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
 
-            try
-            {
-                // illegal C# identifiers and blank
-                var tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
-                Assert.Contains("elementNames[1]", e.Message);
-            }
+            // illegal C# identifiers and blank
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", "")));
+            Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
+            Assert.Contains("elementNames[1]", e.Message);
         }
 
         [Fact]
@@ -6000,15 +5972,8 @@ End Class";
             INamedTypeSymbol vbType = (INamedTypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
 
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
-            try
-            {
-                comp.CreateTupleTypeSymbol(vbType, default(ImmutableArray<string>));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vbType, default(ImmutableArray<string>)));
+            Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
         }
 
         [Fact]
@@ -6024,15 +5989,8 @@ End Class";
             var vbType = (ITypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
 
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
-            try
-            {
-                comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1"));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1")));
+            Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
         }
 
         [Fact]
@@ -6321,6 +6279,226 @@ class C
             Assert.False(tuple1.Equals(tuple4));
             Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamicAndTupleNames));
         }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default(ImmutableArray<string>), default(ImmutableArray<Location>), default(ImmutableArray<CodeAnalysis.NullableAnnotation>));
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNames: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementLocations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default(ImmutableArray<string>), default(ImmutableArray<Location>), default(ImmutableArray<CodeAnalysis.NullableAnnotation>));
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNames: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementLocations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
+            Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
+        {
+            var source =
+@"class Program
+{
+    (object _1, object _2, object _3, object _4, object _5, object _6, object _7, object _8, object _9) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9));
+            Assert.False(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.Equal("(System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
+            Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
+        {
+            var source =
+@"class Program
+{
+    (object _1, object _2, object _3, object _4, object _5, object _6, object _7, object _8, object _9) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9));
+            Assert.False(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.Equal("(System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        private static ImmutableArray<CodeAnalysis.NullableAnnotation> CreateAnnotations(CodeAnalysis.NullableAnnotation annotation, int n) =>
+            ImmutableArray.CreateRange(Enumerable.Range(0, n).Select(_ => annotation));
+
+        private static bool TypeEquals(ITypeSymbol a, ITypeSymbol b, TypeCompareKind compareKind) =>
+            ((TypeSymbol)a).Equals((TypeSymbol)b, compareKind);
 
         [Fact]
         public void TupleMethodsOnNonTupleType()
@@ -7113,6 +7291,9 @@ class C
     static void Main()
     {
         // this works
+        Test(()=>(()=>(short)1, 1));
+
+        // this does not
         Test(()=>(()=>(byte)1, 1));
 
         // this does not
@@ -7123,8 +7304,11 @@ class C
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
+                //         Test(()=>(()=>(byte)1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9),
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(26, 9)
             );
         }
 
@@ -15966,6 +16150,44 @@ class C
             Assert.Null(model.GetTypeInfo(n5).Type);
             Assert.Equal("System.Func<System.Int32>", model.GetTypeInfo(n5).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.AnonymousFunction, model.GetConversion(n5).Kind);
+        }
+
+        [Fact]
+        [WorkItem(36185, "https://github.com/dotnet/roslyn/issues/36185")]
+        public void GetTypeInfo_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M((1, ""hello""));
+        M((2, null));
+    }
+    public static void M((short, string) x) { }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var n1 = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"(1, ""hello"")", n1.ToString());
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(n1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n1).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n1).Kind);
+
+            var n2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+
+            Assert.Equal(@"(2, null)", n2.ToString());
+            Assert.Null(model.GetTypeInfo(n2).Type);
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n2).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n2).Kind);
         }
 
         [Fact]

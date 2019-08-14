@@ -2,15 +2,21 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
+    /// Marker interface for <see cref="PerLanguageOption{T}"/>
+    /// </summary>
+    internal interface IPerLanguageOption : IOptionWithGroup
+    {
+    }
+
+    /// <summary>
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOptionWithGroup
+    public class PerLanguageOption<T> : IPerLanguageOption
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -56,18 +62,13 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentNullException(nameof(feature));
             }
 
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(nameof(name));
             }
 
             this.Feature = feature;
-            this.Group = group;
+            this.Group = group ?? throw new ArgumentNullException(nameof(group));
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.StorageLocations = storageLocations.ToImmutableArray();

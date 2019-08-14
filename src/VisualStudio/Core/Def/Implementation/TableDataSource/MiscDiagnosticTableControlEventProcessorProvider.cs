@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
-    [DataSource(MiscellaneousDiagnosticListTable.IdentifierString)]
+    [DataSource(MiscellaneousDiagnosticListTableWorkspaceEventListener.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
     internal sealed class MiscDiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticTableItem>

@@ -39,31 +39,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected async Task TestDiagnosticsAsync(
             string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+
+            var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
+
+            // Special case for single diagnostic reported with annotated span.
+            if (expected.Length == 1 && !expected[0].HasLocation)
             {
-                var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
-
-                // Special case for single diagnostic reported with annotated span.
-                if (expected.Length == 1 && !expected[0].HasLocation)
+                var hostDocumentsWithAnnotations = workspace.Documents.Where(d => d.SelectedSpans.Any());
+                if (hostDocumentsWithAnnotations.Count() == 1)
                 {
-                    var hostDocumentsWithAnnotations = workspace.Documents.Where(d => d.SelectedSpans.Any());
-                    if (hostDocumentsWithAnnotations.Count() == 1)
-                    {
-                        var expectedSpan = hostDocumentsWithAnnotations.Single().SelectedSpans.Single();
+                    var expectedSpan = hostDocumentsWithAnnotations.Single().SelectedSpans.Single();
 
-                        Assert.Equal(1, diagnostics.Count());
-                        var diagnostic = diagnostics.Single();
+                    Assert.Equal(1, diagnostics.Count());
+                    var diagnostic = diagnostics.Single();
 
-                        var actualSpan = diagnostic.Location.SourceSpan;
-                        Assert.Equal(expectedSpan, actualSpan);
+                    var actualSpan = diagnostic.Location.SourceSpan;
+                    Assert.Equal(expectedSpan, actualSpan);
 
-                        Assert.Equal(expected[0].Code, diagnostic.Id);
-                        return;
-                    }
+                    Assert.Equal(expected[0].Code, diagnostic.Id);
+                    return;
                 }
-
-                DiagnosticExtensions.Verify(diagnostics, expected);
             }
+
+            DiagnosticExtensions.Verify(diagnostics, expected);
         }
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
@@ -130,22 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return null;
             }
 
-            switch (annotation)
+            return annotation switch
             {
-                case "FixAllInDocument":
-                    return FixAllScope.Document;
-
-                case "FixAllInProject":
-                    return FixAllScope.Project;
-
-                case "FixAllInSolution":
-                    return FixAllScope.Solution;
-
-                case "FixAllInSelection":
-                    return FixAllScope.Custom;
-            }
-
-            throw new InvalidProgramException("Incorrect FixAll annotation in test");
+                "FixAllInDocument" => FixAllScope.Document,
+                "FixAllInProject" => FixAllScope.Project,
+                "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInSelection" => FixAllScope.Custom,
+                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
+            };
         }
 
         internal async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
@@ -162,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
             }
 
-            FixAllScope? scope = GetFixAllScope(annotation);
+            var scope = GetFixAllScope(annotation);
             return await GetDiagnosticAndFixesAsync(
                 diagnostics, fixer, testDriver, document, span, scope, index);
         }
@@ -195,10 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var actions = fixes.SelectAsArray(f => f.Action);
 
-            actions = actions.SelectMany(a => a is TopLevelSuppressionCodeAction
-                ? a.NestedCodeActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
-
             actions = MassageActions(actions);
 
             if (scope == null)
@@ -225,29 +212,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // caller know they should pull that entry out of the result.
                 return (intersectingDiagnostics, ImmutableArray.Create(fixAllFix), fixAllFix);
             }
-        }
-
-        private async Task<string> GetEquivalenceKeyAsync(
-            Document document, CodeFixProvider provider, ImmutableArray<Diagnostic> diagnostics)
-        {
-            if (diagnostics.Length == 0)
-            {
-                throw new InvalidOperationException("No diagnostics found intersecting with span.");
-            }
-
-            var fixes = new List<CodeFix>();
-            var context = new CodeFixContext(
-                document, diagnostics[0],
-                (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                CancellationToken.None);
-
-            await provider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
-            if (fixes.Count == 0)
-            {
-                throw new InvalidOperationException("No fixes produced for diagnostic.");
-            }
-
-            return fixes[0].Action.EquivalenceKey;
         }
 
         private static FixAllState GetFixAllState(
@@ -296,11 +260,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestParameters parameters,
             int count)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (_, actions, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
-                Assert.Equal(count, actions.Length);
-            }
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+
+            var (_, actions, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
+            Assert.Equal(count, actions.Length);
         }
 
         internal async Task TestSpansAsync(
@@ -312,22 +275,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                ISet<TextSpan> actualTextSpans;
-                if (diagnosticId == null)
-                {
-                    var (diagnostics, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
-                    actualTextSpans = diagnostics.Select(d => d.Location.SourceSpan).ToSet();
-                }
-                else
-                {
-                    var diagnostics = await GetDiagnosticsAsync(workspace, parameters);
-                    actualTextSpans = diagnostics.Where(d => d.Id == diagnosticId).Select(d => d.Location.SourceSpan).ToSet();
-                }
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
 
-                Assert.True(expectedTextSpans.SetEquals(actualTextSpans));
+            ISet<TextSpan> actualTextSpans;
+            if (diagnosticId == null)
+            {
+                var (diagnostics, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
+                actualTextSpans = diagnostics.Select(d => d.Location.SourceSpan).ToSet();
             }
+            else
+            {
+                var diagnostics = await GetDiagnosticsAsync(workspace, parameters);
+                actualTextSpans = diagnostics.Where(d => d.Id == diagnosticId).Select(d => d.Location.SourceSpan).ToSet();
+            }
+
+            Assert.True(expectedTextSpans.SetEquals(actualTextSpans));
         }
 
         internal async Task TestWithMockedGenerateTypeDialog(
@@ -341,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string projectName = null,
             bool isNewFile = false,
             string existingFilename = null,
-            ImmutableArray<string> newFileFolderContainers = default(ImmutableArray<string>),
+            ImmutableArray<string> newFileFolderContainers = default,
             string fullFilePath = null,
             string newFileName = null,
             string assertClassName = null,
@@ -355,130 +317,129 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<TypeKindOptions> assertTypeKindAbsent = null,
             bool isCancelled = false)
         {
-            using (var testState = GenerateTypeTestState.Create(initial, projectName, typeName, existingFilename, languageName))
+            using var testState = GenerateTypeTestState.Create(initial, projectName, typeName, existingFilename, languageName);
+
+            // Initialize the viewModel values
+            testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(
+                accessibility: accessibility,
+                typeKind: typeKind,
+                typeName: testState.TypeName,
+                project: testState.ProjectToBeModified,
+                isNewFile: isNewFile,
+                newFileName: newFileName,
+                folders: newFileFolderContainers,
+                fullFilePath: fullFilePath,
+                existingDocument: testState.ExistingDocument,
+                areFoldersValidIdentifiers: areFoldersValidIdentifiers,
+                isCancelled: isCancelled);
+
+            testState.TestProjectManagementService.SetDefaultNamespace(
+                defaultNamespace: defaultNamespace);
+
+            var testOptions = new TestParameters();
+            var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
+            var generateTypeDiagFixes = diagnostics.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Id));
+
+            if (isMissing)
             {
-                // Initialize the viewModel values
-                testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(
-                    accessibility: accessibility,
-                    typeKind: typeKind,
-                    typeName: testState.TypeName,
-                    project: testState.ProjectToBeModified,
-                    isNewFile: isNewFile,
-                    newFileName: newFileName,
-                    folders: newFileFolderContainers,
-                    fullFilePath: fullFilePath,
-                    existingDocument: testState.ExistingDocument,
-                    areFoldersValidIdentifiers: areFoldersValidIdentifiers,
-                    isCancelled: isCancelled);
+                Assert.Empty(actions);
+                return;
+            }
 
-                testState.TestProjectManagementService.SetDefaultNamespace(
-                    defaultNamespace: defaultNamespace);
+            var fixActions = MassageActions(actions);
+            Assert.NotNull(fixActions);
 
-                var testOptions = new TestParameters();
-                var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
-                var generateTypeDiagFixes = diagnostics.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Id));
+            // Since the dialog option is always fed as the last CodeAction
+            var index = fixActions.Count() - 1;
+            var action = fixActions.ElementAt(index);
 
-                if (isMissing)
+            Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
+            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
+
+            if (!isNewFile)
+            {
+                oldSolutionAndNewSolution = await TestOperationsAsync(
+                    testState.Workspace, expected, operations,
+                    conflictSpans: ImmutableArray<TextSpan>.Empty,
+                    renameSpans: ImmutableArray<TextSpan>.Empty,
+                    warningSpans: ImmutableArray<TextSpan>.Empty,
+                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    expectedChangedDocumentId: testState.ExistingDocument.Id);
+            }
+            else
+            {
+                oldSolutionAndNewSolution = await TestAddDocument(
+                    testState.Workspace,
+                    expected,
+                    operations,
+                    projectName != null,
+                    testState.ProjectToBeModified.Id,
+                    newFileFolderContainers,
+                    newFileName);
+            }
+
+            if (checkIfUsingsIncluded)
+            {
+                Assert.NotNull(expectedTextWithUsings);
+                await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
+                    conflictSpans: ImmutableArray<TextSpan>.Empty,
+                    renameSpans: ImmutableArray<TextSpan>.Empty,
+                    warningSpans: ImmutableArray<TextSpan>.Empty,
+                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    expectedChangedDocumentId: testState.InvocationDocument.Id);
+            }
+
+            if (checkIfUsingsNotIncluded)
+            {
+                var oldSolution = oldSolutionAndNewSolution.Item1;
+                var newSolution = oldSolutionAndNewSolution.Item2;
+                var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
+
+                Assert.False(changedDocumentIds.Contains(testState.InvocationDocument.Id));
+            }
+
+            // Added into a different project than the triggering project
+            if (projectName != null)
+            {
+                var appliedChanges = ApplyOperationsAndGetSolution(testState.Workspace, operations);
+                var newSolution = appliedChanges.Item2;
+                var triggeredProject = newSolution.GetProject(testState.TriggeredProject.Id);
+
+                // Make sure the Project reference is present
+                Assert.True(triggeredProject.ProjectReferences.Any(pr => pr.ProjectId == testState.ProjectToBeModified.Id));
+            }
+
+            // Assert Option Calculation
+            if (assertClassName != null)
+            {
+                Assert.True(assertClassName == testState.TestGenerateTypeOptionsService.ClassName);
+            }
+
+            if (assertGenerateTypeDialogOptions != null || assertTypeKindPresent != null || assertTypeKindAbsent != null)
+            {
+                var generateTypeDialogOptions = testState.TestGenerateTypeOptionsService.GenerateTypeDialogOptions;
+
+                if (assertGenerateTypeDialogOptions != null)
                 {
-                    Assert.Empty(actions);
-                    return;
+                    Assert.True(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility == generateTypeDialogOptions.IsPublicOnlyAccessibility);
+                    Assert.True(assertGenerateTypeDialogOptions.TypeKindOptions == generateTypeDialogOptions.TypeKindOptions);
+                    Assert.True(assertGenerateTypeDialogOptions.IsAttribute == generateTypeDialogOptions.IsAttribute);
                 }
 
-                var fixActions = MassageActions(actions);
-                Assert.NotNull(fixActions);
-
-                // Since the dialog option is always fed as the last CodeAction
-                var index = fixActions.Count() - 1;
-                var action = fixActions.ElementAt(index);
-
-                Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
-                var operations = await action.GetOperationsAsync(CancellationToken.None);
-                Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
-
-                if (!isNewFile)
+                if (assertTypeKindPresent != null)
                 {
-                    oldSolutionAndNewSolution = await TestOperationsAsync(
-                        testState.Workspace, expected, operations,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty,
-                        renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty,
-                        navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        expectedChangedDocumentId: testState.ExistingDocument.Id);
-                }
-                else
-                {
-                    oldSolutionAndNewSolution = await TestAddDocument(
-                        testState.Workspace,
-                        expected,
-                        operations,
-                        projectName != null,
-                        testState.ProjectToBeModified.Id,
-                        newFileFolderContainers,
-                        newFileName);
-                }
-
-                if (checkIfUsingsIncluded)
-                {
-                    Assert.NotNull(expectedTextWithUsings);
-                    await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty,
-                        renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty,
-                        navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        expectedChangedDocumentId: testState.InvocationDocument.Id);
-                }
-
-                if (checkIfUsingsNotIncluded)
-                {
-                    var oldSolution = oldSolutionAndNewSolution.Item1;
-                    var newSolution = oldSolutionAndNewSolution.Item2;
-                    var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
-
-                    Assert.False(changedDocumentIds.Contains(testState.InvocationDocument.Id));
-                }
-
-                // Added into a different project than the triggering project
-                if (projectName != null)
-                {
-                    var appliedChanges = ApplyOperationsAndGetSolution(testState.Workspace, operations);
-                    var newSolution = appliedChanges.Item2;
-                    var triggeredProject = newSolution.GetProject(testState.TriggeredProject.Id);
-
-                    // Make sure the Project reference is present
-                    Assert.True(triggeredProject.ProjectReferences.Any(pr => pr.ProjectId == testState.ProjectToBeModified.Id));
-                }
-
-                // Assert Option Calculation
-                if (assertClassName != null)
-                {
-                    Assert.True(assertClassName == testState.TestGenerateTypeOptionsService.ClassName);
-                }
-
-                if (assertGenerateTypeDialogOptions != null || assertTypeKindPresent != null || assertTypeKindAbsent != null)
-                {
-                    var generateTypeDialogOptions = testState.TestGenerateTypeOptionsService.GenerateTypeDialogOptions;
-
-                    if (assertGenerateTypeDialogOptions != null)
+                    foreach (var typeKindPresentEach in assertTypeKindPresent)
                     {
-                        Assert.True(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility == generateTypeDialogOptions.IsPublicOnlyAccessibility);
-                        Assert.True(assertGenerateTypeDialogOptions.TypeKindOptions == generateTypeDialogOptions.TypeKindOptions);
-                        Assert.True(assertGenerateTypeDialogOptions.IsAttribute == generateTypeDialogOptions.IsAttribute);
+                        Assert.True((typeKindPresentEach & generateTypeDialogOptions.TypeKindOptions) != 0);
                     }
+                }
 
-                    if (assertTypeKindPresent != null)
+                if (assertTypeKindAbsent != null)
+                {
+                    foreach (var typeKindPresentEach in assertTypeKindAbsent)
                     {
-                        foreach (var typeKindPresentEach in assertTypeKindPresent)
-                        {
-                            Assert.True((typeKindPresentEach & generateTypeDialogOptions.TypeKindOptions) != 0);
-                        }
-                    }
-
-                    if (assertTypeKindAbsent != null)
-                    {
-                        foreach (var typeKindPresentEach in assertTypeKindAbsent)
-                        {
-                            Assert.True((typeKindPresentEach & generateTypeDialogOptions.TypeKindOptions) == 0);
-                        }
+                        Assert.True((typeKindPresentEach & generateTypeDialogOptions.TypeKindOptions) == 0);
                     }
                 }
             }

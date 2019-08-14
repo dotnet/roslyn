@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
+        System_Collections_Generic_IEqualityComparer_T,
 
         NextAvailable,
 
@@ -602,7 +603,8 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
-            "System.Runtime.CompilerServices.SwitchExpressionException"
+            "System.Runtime.CompilerServices.SwitchExpressionException",
+            "System.Collections.Generic.IEqualityComparer`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

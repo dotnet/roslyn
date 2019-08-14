@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsVolatile { get; }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// Returns true if this field was declared as "fixed".
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
@@ -462,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            for (int i = 0; i < method.Parameters.Length; i++)
+            for (var i = 0; i < method.Parameters.Length; i++)
             {
                 if (!invoke.Parameters[i].Type.InheritsFromOrEquals(method.Parameters[i].Type))
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
-            for (int i = 0; i < method.TypeParameters.Length; i++)
+            for (var i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
             }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
-            for (int i = 0; i < typeParameters.Length; i++)
+            for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 

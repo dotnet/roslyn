@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
@@ -61,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
             {
             }
         }

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             UpdateLastActivityTime();
 
-            value = default(T);
+            value = default;
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
                 if (!_globalAssets.TryGetValue(checksum, out var entry) &&

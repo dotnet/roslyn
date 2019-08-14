@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         public override string ToString()
         {
-            return this.TextSpan != this.HintSpan
+            return TextSpan != HintSpan
                 ? $"{{Span={TextSpan}, HintSpan={HintSpan}, BannerText=\"{BannerText}\", AutoCollapse={AutoCollapse}, IsDefaultCollapsed={IsDefaultCollapsed}}}"
                 : $"{{Span={TextSpan}, BannerText=\"{BannerText}\", AutoCollapse={AutoCollapse}, IsDefaultCollapsed={IsDefaultCollapsed}}}";
         }
