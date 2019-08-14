@@ -8778,9 +8778,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             this.Visit(node.Value);
-            this.Visit(node.Operation);
-            this.Visit(node.Cast);
-            this.Visit(node.UnoptimizedForm);
             return null;
         }
         public override BoundNode? VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
@@ -9838,9 +9835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            BoundExpression? operation = (BoundExpression?)this.Visit(node.Operation);
-            BoundExpression? cast = (BoundExpression?)this.Visit(node.Cast);
-            BoundExpression? unoptimizedForm = (BoundExpression?)this.Visit(node.UnoptimizedForm);
+            BoundExpression? operation = node.Operation;
+            BoundExpression? cast = node.Cast;
+            BoundExpression? unoptimizedForm = node.UnoptimizedForm;
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, type);
         }
@@ -11597,9 +11594,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            BoundExpression? operation = (BoundExpression?)this.Visit(node.Operation);
-            BoundExpression? cast = (BoundExpression?)this.Visit(node.Cast);
-            BoundExpression? unoptimizedForm = (BoundExpression?)this.Visit(node.UnoptimizedForm);
+            BoundExpression? operation = node.Operation;
+            BoundExpression? cast = node.Cast;
+            BoundExpression? unoptimizedForm = node.UnoptimizedForm;
             BoundQueryClause updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))

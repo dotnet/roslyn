@@ -1846,14 +1846,14 @@
     <!-- The query variable introduced by this query clause, if any. -->
     <Field Name="DefinedSymbol" Type="RangeVariableSymbol?"/>
     <!-- The bound expression that invokes the operation of the query clause. -->
-    <Field Name="Operation" Type="BoundExpression?" />
+    <Field Name="Operation" Type="BoundExpression?" SkipInVisitor="true"/>
     <!-- The bound expression that is the invocation of a "Cast" method specified by the query translation. -->
-    <Field Name="Cast" Type="BoundExpression?" />
+    <Field Name="Cast" Type="BoundExpression?" SkipInVisitor="true"/>
     <!-- The enclosing binder in which the query clause was evaluated. -->
     <Field Name="Binder" Type="Binder" Null="disallow" />
     <!-- The bound expression that is the query expression in "unoptimized" form.  Specifically, a final ".Select"
          invocation that is omitted by the specification is included here. -->
-    <Field Name="UnoptimizedForm" Type="BoundExpression?" />
+    <Field Name="UnoptimizedForm" Type="BoundExpression?" SkipInVisitor="true"/>
   </Node>
 
   <!-- 
