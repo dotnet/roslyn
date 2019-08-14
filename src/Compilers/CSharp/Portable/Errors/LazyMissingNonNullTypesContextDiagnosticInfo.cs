@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A lazily calculated diagnostic for missing [NonNullTypes(true)].
+    /// A lazily calculated diagnostic for use of nullable annotations outside of a '#nullable' annotations context.
     /// </summary>
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
