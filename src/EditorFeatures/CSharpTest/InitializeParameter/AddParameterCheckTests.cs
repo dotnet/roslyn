@@ -1359,6 +1359,22 @@ class C
     }
 }");
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnIndexerParameters()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int this[[|object a|], object b, object c]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSpecialStringCheck1()

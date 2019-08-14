@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
-        protected abstract ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -42,13 +40,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var firstParameterNode = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
-            if (firstParameterNode == null)
+            var selectedParameter = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
+            if (selectedParameter == null)
             {
                 return;
             }
 
-            var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
             if (functionDeclaration is null)
             {
                 return;
@@ -57,75 +55,86 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
+            if (!context.Span.IsEmpty)
+            {
+                var parameterName = syntaxFacts.GetNameOfParameter(selectedParameter);
+                if (parameterName == null || parameterName.Value.Span != context.Span)
+                {
+                    return;
+                }
+            }
+
+            var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
+
+            // Don't offer inside the "=initializer" of a parameter
+            if (parameterDefault?.Span.Contains(position) == true)
+            {
+                return;
+            }
+
+            // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
+            // so first we have to get the parameter symbol and then its containing method symbol
+            if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
+            {
+                return;
+            }
+
+            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
+            if (methodSymbol.IsAbstract ||
+                methodSymbol.IsExtern ||
+                methodSymbol.PartialImplementationPart != null ||
+                methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                return;
+            }
+
+            if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+            {
+                // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
+                // actually determine if there are any viable refactorings here.
+
+                context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
+                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+            }
 
             // List with parameterNodes that pass all checks
             var listOfPotentiallyValidParametersNodes = ArrayBuilder<SyntaxNode>.GetInstance();
-            var counter = 0;
-
-            parameterNodes = GetParameters(functionDeclaration, generator);
-
             foreach (var parameterNode in parameterNodes)
             {
-                ++counter;
-
-                // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                if (!context.Span.IsEmpty)
-                {
-                    var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                    if (parameterName == null || parameterName.Value.Span != context.Span)
-                    {
-                        continue;
-                    }
-                }
-
-                var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
-                // Don't offer inside the "=initializer" of a parameter
-                if (parameterDefault?.Span.Contains(position) == true)
-                {
-                    continue;
-                }
-
-                // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
-                // so first we have to get the parameter symbol and then its containing method symbol
-                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                if (parameter == null || parameter.Name == "")
+                if (!TryGetParameterSymbol(parameterNode, semanticModel, out parameter, cancellationToken))
                 {
                     return;
                 }
 
-                var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
-                if (methodSymbol.IsAbstract ||
-                    methodSymbol.IsExtern ||
-                    methodSymbol.PartialImplementationPart != null ||
-                    methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
+                // Update the list of valid parameter nodes
+                listOfPotentiallyValidParametersNodes.Add(parameterNode);
+            }
+
+            if (listOfPotentiallyValidParametersNodes.Count > 1)
+            {
+                // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
+                // actually determine if there are any viable refactorings here.
+
+                context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                    document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), position, cancellationToken).ConfigureAwait(false));
+            }
+
+            bool TryGetParameterSymbol(
+                SyntaxNode parameterNode,
+                SemanticModel semanticModel,
+                out IParameterSymbol parameter,
+                CancellationToken cancellationToken)
+            {
+                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                if (parameter == null || parameter.Name == "")
                 {
-                    continue;
+                    return false;
                 }
 
-                if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
-                {
-                    // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
-                    // actually determine if there are any viable refactorings here.
-
-                    // Update the list of valid parameter nodes
-                    listOfPotentiallyValidParametersNodes.Add(parameterNode);
-
-                    // For single parameter - Only offers for the parameter cursor is on
-                    if (firstParameterNode == parameterNode)
-                    {
-                        context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
-                            document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
-                    }
-
-                    // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
-                    if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count)
-                    {
-                        context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                            document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), position, cancellationToken).ConfigureAwait(false));
-                    }
-                }
+                return true;
             }
         }
 
@@ -159,8 +168,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            //In order to get the block operation for the body of an anonymous function, we need to
-            //get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.GetBlockStatmentOpt does that.
+            // In order to get the block operation for the body of an anonymous function, we need to
+            // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
                 syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,

@@ -48,8 +48,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
-        Protected Overrides Function GetParameters(node As SyntaxNode, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
-            Return InitializeParameterHelpers.GetParameters(node, generator)
-        End Function
     End Class
 End Namespace

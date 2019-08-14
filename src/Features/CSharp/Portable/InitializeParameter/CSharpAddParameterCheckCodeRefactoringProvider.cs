@@ -54,10 +54,5 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             return true;
         }
-
-        protected override ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator)
-        {
-            return InitializeParameterHelpers.GetParameters(node, generator);
-        }
     }
 }

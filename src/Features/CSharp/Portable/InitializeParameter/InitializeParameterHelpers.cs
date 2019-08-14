@@ -33,16 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
         }
 
-        public static ImmutableArray<SyntaxNode> GetParameters(SyntaxNode node, SyntaxGenerator generator)
-        {
-            if (node is SimpleLambdaExpressionSyntax simpleLambda)
-            {
-                return ImmutableArray.Create(simpleLambda.Parameter as SyntaxNode);
-            }
-
-            return generator.GetParameters(node).ToImmutableArray();
-        }
-
         private static SyntaxToken? TryGetSemicolonToken(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)
