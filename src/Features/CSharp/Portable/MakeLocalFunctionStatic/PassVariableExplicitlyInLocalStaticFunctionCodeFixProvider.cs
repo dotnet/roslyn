@@ -41,24 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var service = document.GetLanguageService<MakeLocalFunctionStaticService>();
-
             context.RegisterCodeFix(
-                new MyCodeAction(c => service.CreateParameterSymbolAsync(context.Document, declaration, c)),
+                new MyCodeAction(c => MakeLocalFunctionStaticHelper.CreateParameterSymbolAsync(context.Document, declaration, c)),
                 diagnostic);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Pass_variable_explicitly_in_local_static_function, createChangedDocument, FeaturesResources.Pass_variable_explicitly_in_local_static_function)
+                : base(FeaturesResources.Pass_variable_explicitly, createChangedDocument, FeaturesResources.Pass_variable_explicitly)
             {
             }
         }
     }
-
 }
-
-
-
-

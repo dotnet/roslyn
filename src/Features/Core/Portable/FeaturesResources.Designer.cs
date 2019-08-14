@@ -2975,11 +2975,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pass in local variables explicitly in a static local function.
+        ///   Looks up a localized string similar to Pass in values explicitly.
         /// </summary>
-        internal static string Pass_variable_explicitly_in_local_static_function {
+        internal static string Pass_variable_explicitly {
             get {
-                return ResourceManager.GetString("Pass_variable_explicitly_in_local_static_function", resourceCulture);
+                return ResourceManager.GetString("Pass_variable_explicitly", resourceCulture);
             }
         }
         

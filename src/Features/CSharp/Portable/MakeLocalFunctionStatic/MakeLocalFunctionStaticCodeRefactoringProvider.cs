@@ -14,29 +14,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeRefactoringProvider)), Shared]
     internal sealed class MakeLocalFunctionStaticCodeRefactoringProvider : CodeRefactoringProvider
     {
-
-        [ImportingConstructor]
-        public MakeLocalFunctionStaticCodeRefactoringProvider()
-        {
-        }
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-
             var (document, textSpan, cancellationToken) = context;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
+
             if (localFunction == default)
             {
                 return;
             }
 
-            var service = document.GetLanguageService<MakeLocalFunctionStaticService>();
+            if (localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return;
+            }
 
-            context.RegisterRefactoring(new MyCodeAction(FeaturesResources.Make_local_function_static, c => service.CreateParameterSymbolAsync(document, localFunction, c)));
-
+            context.RegisterRefactoring(new MyCodeAction
+                    (FeaturesResources.Make_local_function_static, c => MakeLocalFunctionStaticHelper.CreateParameterSymbolAsync(document, localFunction, c)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
@@ -48,10 +45,3 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         }
     }
 }
-
-
-
-
-
-
-

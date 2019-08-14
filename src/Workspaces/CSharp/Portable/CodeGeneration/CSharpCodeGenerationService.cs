@@ -277,7 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxGenerator = CSharpSyntaxGenerator.Instance;
             var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
 
             if (currentParameterList == null)
@@ -297,10 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 isFirstParam = false;
                 seenOptional = seenOptional || parameterSyntax.Default != null;
                 newParams.Add(parameterSyntax);
-
             }
 
-            var finalMember = syntaxGenerator.AddParameters(destination, newParams.ToImmutableAndFree());
+            var finalMember = CSharpSyntaxGenerator.Instance.AddParameters(destination, newParams.ToImmutableAndFree());
 
             return Cast<TDeclarationNode>(finalMember);
         }

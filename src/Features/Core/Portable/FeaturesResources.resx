@@ -1693,7 +1693,7 @@ This version used in: {2}</value>
   <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
     <value>Warning: Semantics may change when converting statement.</value>
   </data>
-  <data name="Pass_variable_explicitly_in_local_static_function" xml:space="preserve">
-    <value>Pass in local variables explicitly in a static local function</value>
+  <data name="Pass_variable_explicitly" xml:space="preserve">
+    <value>Pass in values explicitly</value>
   </data>
 </root>
