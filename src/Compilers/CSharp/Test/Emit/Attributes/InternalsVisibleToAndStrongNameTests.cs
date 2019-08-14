@@ -2268,7 +2268,7 @@ public class C
             }
         }
 
-#if !NETCOREAPP2_1
+#if !NETCOREAPP2_1 && !NETCOREAPP3_0
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()

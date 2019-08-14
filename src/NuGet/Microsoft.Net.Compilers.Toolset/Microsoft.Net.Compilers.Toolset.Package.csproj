@@ -1,7 +1,7 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.0;net472</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset</NuspecPackageId>
@@ -18,7 +18,7 @@
     <NoWarn>$(NoWarn);NU5100</NoWarn>
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp2.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp3.0'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,18 +32,18 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == 'netcoreapp2.1'"
-                      SetTargetFramework="TargetFramework=netcoreapp2.1" />
+                      Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp3.0'"
+                      SetTargetFramework="TargetFramework=netcoreapp3.0" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp2.1"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp2.1"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp2.1/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp2.1/bincore/runtimes"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp3.0"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp3.0"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp3.0/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.0/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
      
@@ -52,5 +52,5 @@
   </Target>
 
   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp3.0'" />
 </Project>

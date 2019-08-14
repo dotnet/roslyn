@@ -131,7 +131,7 @@ namespace BuildBoss
             {
                 var folder = asset.IsDesktop
                     ? @"net472"
-                    : @"netcoreapp2.1";
+                    : @"netcoreapp3.0";
                 var fileRelativeName = Path.Combine(folder, asset.FileRelativeName);
                 list.Add(fileRelativeName);
             }
@@ -238,9 +238,9 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"csc\{Configuration}\netcoreapp2.1\publish",
-                $@"vbc\{Configuration}\netcoreapp2.1\publish",
-                $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
+                $@"csc\{Configuration}\netcoreapp3.0\publish",
+                $@"vbc\{Configuration}\netcoreapp3.0\publish",
+                $@"VBCSCompiler\{Configuration}\netcoreapp3.0\publish");
 
             // The native DLLs ship inside the runtime specific directories but build deploys it at the 
             // root as well. That copy is unnecessary.
@@ -256,7 +256,7 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp2.1\publish");
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp3.0\publish");
 
             packageAssets.AddRange(desktopAssets);
             packageAssets.AddRange(coreClrAssets);

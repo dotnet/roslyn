@@ -228,7 +228,7 @@ function InitializeBuildTool {
   # return values
   _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
   _InitializeBuildToolCommand="msbuild"
-  _InitializeBuildToolFramework="netcoreapp2.1"
+  _InitializeBuildToolFramework="netcoreapp3.0"
 }
 
 function GetNuGetPackageCachePath {

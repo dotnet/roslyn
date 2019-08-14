@@ -184,8 +184,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             {
                 await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that three projects have been loaded, one for each TFM.
-                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+                // Assert that four projects have been loaded, one for each TFM.
+                Assert.Equal(4, workspace.CurrentSolution.ProjectIds.Count);
 
                 var projectPaths = new HashSet<string>();
                 var outputFilePaths = new HashSet<string>();
@@ -196,11 +196,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     outputFilePaths.Add(project.OutputFilePath);
                 }
 
-                // Assert that the three projects share the same file path
+                // Assert that the four projects share the same file path
                 Assert.Single(projectPaths);
 
-                // Assert that the three projects have different output file paths
-                Assert.Equal(3, outputFilePaths.Count);
+                // Assert that the four projects have different output file paths
+                Assert.Equal(4, outputFilePaths.Count);
 
                 // Assert that none of the projects have any diagnostics in Program.cs
                 foreach (var project in workspace.CurrentSolution.Projects)
@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             {
                 await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that four projects have been loaded, one for each TFM.
-                Assert.Equal(4, workspace.CurrentSolution.ProjectIds.Count);
+                // Assert that five projects have been loaded, one for each TFM.
+                Assert.Equal(5, workspace.CurrentSolution.ProjectIds.Count);
 
                 var projectPaths = new HashSet<string>();
                 var outputFilePaths = new HashSet<string>();
@@ -261,17 +261,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     outputFilePaths.Add(project.OutputFilePath);
                 }
 
-                // Assert that there are two project file path among the four projects
+                // Assert that there are two project file path among the five projects
                 Assert.Equal(2, projectPaths.Count);
 
-                // Assert that the four projects each have different output file paths
-                Assert.Equal(4, outputFilePaths.Count);
+                // Assert that the five projects each have different output file paths
+                Assert.Equal(5, outputFilePaths.Count);
 
                 var expectedNames = new HashSet<string>()
                 {
                     "Library(netstandard2",
                     "Library(net461)",
                     "Project(netcoreapp2",
+                    "Project(netcoreapp3",
                     "Project(net461)"
                 };
 
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                     var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
 
-                    if (project.OutputFilePath.Contains("netcoreapp2"))
+                    if (project.OutputFilePath.Contains("netcoreapp2") || project.OutputFilePath.Contains("netcoreapp3"))
                     {
                         Assert.Contains("netstandard2", referencedProject.OutputFilePath);
                     }
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 var projects = solution.Projects.ToArray();
 
-                Assert.Equal(2, projects.Length);
+                Assert.Equal(3, projects.Length);
 
                 foreach (var project in projects)
                 {

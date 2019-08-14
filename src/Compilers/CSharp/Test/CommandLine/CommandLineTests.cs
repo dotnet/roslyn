@@ -5813,7 +5813,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(binaryPath);
         }
 
-#if !NETCOREAPP2_1
+#if !NETCOREAPP2_1 && !NETCOREAPP3_0
         [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
         [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]

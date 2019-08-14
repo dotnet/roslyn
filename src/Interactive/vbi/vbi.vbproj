@@ -20,11 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp3.0'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.1'">
+    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.1' And '$(TargetFramework)' != 'netcoreapp3.0'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

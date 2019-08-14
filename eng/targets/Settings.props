@@ -18,8 +18,8 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
-    <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1;netcoreapp3.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64;freebsd-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
@@ -66,7 +66,7 @@
       These may be overriden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1;netcoreapp3.0</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
