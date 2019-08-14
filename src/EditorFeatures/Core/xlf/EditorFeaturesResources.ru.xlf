@@ -67,11 +67,6 @@
         <target state="translated">Ключевое слово — управление</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Оператор — перегружен</target>
@@ -210,6 +205,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Строка — Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="new">Waiting for background work to finish...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">

@@ -3722,8 +3722,7 @@ $@"
         }
 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [WorkItem(30035, "https://github.com/dotnet/roslyn/issues/30035")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30035"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
