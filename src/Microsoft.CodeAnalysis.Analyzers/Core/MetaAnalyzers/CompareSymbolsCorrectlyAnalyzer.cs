@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             if (operation.Type is object)
             {
-                IsSymbolType(operation.Type, symbolType);
+                return IsSymbolType(operation.Type, symbolType);
             }
 
             if (operation is IConversionOperation conversion)
