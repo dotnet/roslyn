@@ -5185,7 +5185,10 @@ class X
 
             Assert.Equal(0, output.Length);
             Assert.Equal(0, pdbStream.Length);
-            Assert.Equal(0, xmlDocumentationStream.Length);
+
+            // NOTE: Compilation.Emit generates xml documentation even in presence of compiler errors.
+            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
+            Assert.True(xmlDocumentationStream.Length > 0);
 
             emitResult.Diagnostics.Verify(
                 // (4,9): error CS0169: The field 'X._f' is never used

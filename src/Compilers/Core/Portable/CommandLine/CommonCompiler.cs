@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
                         {
-                            return;
+                            success = false;
                         }
 
                         if (success)

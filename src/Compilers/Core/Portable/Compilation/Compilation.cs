@@ -2122,30 +2122,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Update resources and generate XML documentation comments.
+        /// NOTE: This API generates documentation even in presence of errors.
+        /// https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
         /// </summary>
         /// <returns>True if successful.</returns>
-        internal bool GenerateResourcesAndDocumentationComments(
-            CommonPEModuleBuilder moduleBeingBuilt,
-            Stream xmlDocumentationStream,
-            Stream win32ResourcesStream,
-            string outputNameOverride,
-            DiagnosticBag diagnostics,
-            CancellationToken cancellationToken)
-        {
-            if (diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
-            {
-                return false;
-            }
-
-            return GenerateResourcesAndDocumentationCommentsCore(moduleBeingBuilt,
-                xmlDocumentationStream, win32ResourcesStream, outputNameOverride, diagnostics, cancellationToken);
-        }
-
-        /// <summary>
-        /// Update resources and generate XML documentation comments.
-        /// </summary>
-        /// <returns>True if successful.</returns>
-        internal abstract bool GenerateResourcesAndDocumentationCommentsCore(
+        internal abstract bool GenerateResourcesAndDocumentationComments(
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream xmlDocumentationStream,
             Stream win32ResourcesStream,
