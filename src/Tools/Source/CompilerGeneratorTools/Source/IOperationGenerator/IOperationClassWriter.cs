@@ -128,6 +128,7 @@ namespace IOperationGenerator
 
                     if (@namespace == "Operations")
                     {
+                        Blank();
                         WriteClasses();
                         WriteVisitors();
                     }
@@ -288,13 +289,25 @@ namespace IOperationGenerator
                 {
                     foreach (var (entry, node) in kinds)
                     {
-                        writeEnumElement(entry.Name, i, node.Name, entry.ExtraDescription, entry.EditorBrowsable ?? true, node.Obsolete?.Message, node.Obsolete?.ErrorText);
+                        writeEnumElement(entry.Name,
+                                         value: i,
+                                         node.Name,
+                                         entry.ExtraDescription,
+                                         entry.EditorBrowsable ?? true,
+                                         node.Obsolete?.Message,
+                                         node.Obsolete?.ErrorText);
                     }
                 }
                 else
                 {
                     var currentEntry = elementsToKindEnumerator.Current;
-                    writeEnumElement(GetSubName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
+                    writeEnumElement(GetSubName(currentEntry.Name),
+                                     value: i,
+                                     currentEntry.Name,
+                                     currentEntry.OperationKind?.ExtraDescription,
+                                     editorBrowsable: true,
+                                     currentEntry.Obsolete?.Message,
+                                     currentEntry.Obsolete?.ErrorText);
                     Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
                 }
             }
@@ -352,7 +365,6 @@ namespace IOperationGenerator
                     }
 
                     writeStandardConstructorParameters(type.IsAbstract);
-                    WriteLine(")");
                     Indent();
                     Write(": base(");
 
@@ -369,7 +381,7 @@ namespace IOperationGenerator
                     {
                         { IsAbstract: true } => "kind",
                         { IsInternal: true } => "OperationKind.None",
-                        _ => $"OperationKind.{GetKind(type)}"
+                        _ => $"OperationKind.{getKind(type)}"
                     });
                     Outdent();
                     // The base class is responsible for initializing its own properties,
@@ -417,12 +429,28 @@ namespace IOperationGenerator
                     Write("OperationKind kind, ");
                 }
 
-                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit");
+                WriteLine("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)");
             }
 
             void writeStandardBaseArguments(string kind)
             {
                 Write($"{kind}, semanticModel, syntax, type, constantValue, isImplicit)");
+            }
+
+            string getKind(AbstractNode node)
+            {
+                while (node.OperationKind?.Include == false)
+                {
+                    node = _typeMap[node.Base] ??
+                        throw new InvalidOperationException($"{node.Name} is not being included in OperationKind, but has no base type!");
+                }
+
+                if (node.OperationKind?.Entries.Count > 0)
+                {
+                    return node.OperationKind.Entries.Where(e => e.EditorBrowsable != false).Single().Name;
+                }
+
+                return GetSubName(node.Name);
             }
         }
 
@@ -501,30 +529,15 @@ namespace IOperationGenerator
 
         private string GetSubName(string operationName) => operationName[1..^9];
 
-        private string GetKind(AbstractNode node)
-        {
-            while (node.OperationKind?.Include == false)
-            {
-                node = _typeMap[node.Base] ??
-                    throw new InvalidOperationException($"{node.Name} is not being included in OperationKind, but has no base type!");
-            }
-
-            if (node.OperationKind?.Entries.Count > 0)
-            {
-                return node.OperationKind.Entries.Where(e => e.EditorBrowsable != false).Single().Name;
-            }
-
-            return GetSubName(node.Name);
-        }
-
         private bool IsIOperationType(string typeName) => _typeMap.ContainsKey(typeName) ||
                                                           (IsImmutableArray(typeName, out var innerType) && IsIOperationType(innerType));
 
         private bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
         {
-            if (typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal))
+            const string ImmutableArrayPrefix = "ImmutableArray<";
+            if (typeName.StartsWith(ImmutableArrayPrefix, StringComparison.Ordinal))
             {
-                arrayType = typeName[15..^1];
+                arrayType = typeName[ImmutableArrayPrefix.Length..^1];
                 return true;
             }
 
@@ -535,6 +548,6 @@ namespace IOperationGenerator
 
     internal static class Extensions
     {
-        internal static string ToCamelCase(this string name) => name[0].ToString().ToLowerInvariant() + name.Substring(1);
+        internal static string ToCamelCase(this string name) => char.ToLowerInvariant(name[0]) + name.Substring(1);
     }
 }

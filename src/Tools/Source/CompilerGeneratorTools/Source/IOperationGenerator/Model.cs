@@ -58,7 +58,6 @@ namespace IOperationGenerator
         public bool SkipClassGeneration => SkipClassGenerationText == "true";
 
         public virtual bool IsAbstract => true;
-
     }
 
     public class Node : AbstractNode

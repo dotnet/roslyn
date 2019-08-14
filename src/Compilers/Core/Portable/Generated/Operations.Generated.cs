@@ -2757,6 +2757,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Value { get; }
     }
     #endregion
+
     #region Implementations
     internal sealed partial class BranchOperation : Operation, IBranchOperation
     {
