@@ -20,13 +20,8 @@ namespace Microsoft.CodeAnalysis.Host
     {
         /// <summary>
         /// Indicate that status has changed
-        /// 
-        /// event argument, true, means solution is fully loaded.
-        /// 
-        /// but right now, bool doesn't mean much but having it since platform API we decide to start with bool rather than
-        /// more richer information
         /// </summary>
-        event EventHandler<bool> StatusChanged;
+        event EventHandler StatusChanged;
 
         /// <summary>
         /// Wait until workspace is fully loaded

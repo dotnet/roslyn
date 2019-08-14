@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private bool _initialized = false;
 
-            public event EventHandler<bool> StatusChanged;
+            public event EventHandler StatusChanged;
 
             public Service(IAsyncServiceProvider2 serviceProvider, IAsynchronousOperationListener listener)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return;
                     }
 
-                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.InProgress);
+                    status.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
