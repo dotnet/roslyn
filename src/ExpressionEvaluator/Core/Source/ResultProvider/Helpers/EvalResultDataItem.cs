@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
         public readonly DkmInspectionContext InspectionContext;
+        public readonly bool CanFavorite;
+        public readonly bool IsFavorite;
 
         public string FullName
         {
@@ -154,7 +156,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string editableValue,
             DkmInspectionContext inspectionContext,
             string displayName = null,
-            string displayType = null)
+            string displayType = null,
+            bool canFavorite = false,
+            bool isFavorite = false)
         {
             Debug.Assert(name != null);
             Debug.Assert(formatSpecifiers != null);
@@ -173,11 +177,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.FormatSpecifiers = formatSpecifiers;
             this.Category = category;
             this.EditableValue = editableValue;
-            this.Flags = flags | GetFlags(value, inspectionContext) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
+            this.Flags = flags | GetFlags(value, inspectionContext, expansion, canFavorite, isFavorite);
             this.Expansion = expansion;
             this.InspectionContext = inspectionContext;
             this.DisplayName = displayName;
             this.DisplayType = displayType;
+            this.CanFavorite = canFavorite;
+            this.IsFavorite = isFavorite;
         }
 
         internal EvalResultDataItem ToDataItem()
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 FormatSpecifiers);
         }
 
-        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext)
+        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext, Expansion expansion, bool canFavorite, bool isFavorite)
         {
             if (value == null)
             {
@@ -221,6 +227,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (type.IsDynamicProperty())
             {
                 resultFlags |= DkmEvaluationResultFlags.ReadOnly;
+            }
+
+            if (expansion != null)
+            {
+                resultFlags |= DkmEvaluationResultFlags.Expandable;
+
+                if (expansion.ContainsFavorites)
+                {
+                    resultFlags |= DkmEvaluationResultFlags.HasObjectFavorites;
+                }
+            }
+
+            if (canFavorite)
+            {
+                resultFlags |= DkmEvaluationResultFlags.CanAddToObjectFavorites;
+            }
+
+            if (isFavorite)
+            {
+                resultFlags |= DkmEvaluationResultFlags.IsObjectFavorite;
             }
 
             return resultFlags;

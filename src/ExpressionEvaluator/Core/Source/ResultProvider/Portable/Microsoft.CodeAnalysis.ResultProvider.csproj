@@ -80,8 +80,12 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
+    <Reference Include="Microsoft.VisualStudio.Debugger.Engine">
+      <HintPath>..\..\..\..\..\..\..\concord\bin\OneCore.Debug\SDK\ref\netstandard1.3\Microsoft.VisualStudio.Debugger.Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Debugger.Metadata">
+      <HintPath>..\..\..\..\..\..\..\concord\bin\OneCore.Debug\SDK\ref\netstandard1.3\Microsoft.VisualStudio.Debugger.Metadata.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
 </Project>

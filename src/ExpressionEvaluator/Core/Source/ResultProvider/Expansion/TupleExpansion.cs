@@ -169,7 +169,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: formatSpecifiers,
                 category: DkmEvaluationResultCategory.Other,
                 flags: flags,
-                evalFlags: DkmEvaluationFlags.None);
+                evalFlags: DkmEvaluationFlags.None,
+                canFavorite: false,
+                isFavorite: false);
         }
 
         private static DkmClrValue GetValueAndFullName(

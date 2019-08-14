@@ -59,13 +59,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly bool HideNonPublic;
         public readonly bool IncludeTypeInMemberName;
         public readonly bool RequiresExplicitCast;
+        public readonly bool CanFavorite;
+        public readonly bool IsFavorite;
 
         /// <summary>
         /// Exists to correctly order fields with the same name from different types in the inheritance hierarchy.
         /// </summary>
         private readonly int _inheritanceLevel;
 
-        public MemberAndDeclarationInfo(MemberInfo member, DkmClrDebuggerBrowsableAttributeState? browsableState, DeclarationInfo info, int inheritanceLevel)
+        public MemberAndDeclarationInfo(MemberInfo member, DkmClrDebuggerBrowsableAttributeState? browsableState, DeclarationInfo info, int inheritanceLevel, bool canFavorite, bool isFavorite)
         {
             Debug.Assert(member != null);
 
@@ -74,6 +76,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.HideNonPublic = info.IsSet(DeclarationInfo.HideNonPublic);
             this.IncludeTypeInMemberName = info.IsSet(DeclarationInfo.IncludeTypeInMemberName);
             this.RequiresExplicitCast = info.IsSet(DeclarationInfo.RequiresExplicitCast);
+            this.CanFavorite = canFavorite;
+            this.IsFavorite = isFavorite;
 
             _inheritanceLevel = inheritanceLevel;
         }
