@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         var document = documentGroup.Key;
                         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        AddSymbols(document, semanticModel, documentGroup, result, cancellationToken);
+                        AddSymbols(document, semanticModel, documentGroup, result);
                     }
 
                     GC.KeepAlive(compilation);
@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
-            Dictionary<ISymbol, List<Location>> result,
-            CancellationToken cancellationToken)
+            Dictionary<ISymbol, List<Location>> result)
         {
             foreach (var reference in references)
             {

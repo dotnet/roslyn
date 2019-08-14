@@ -2476,33 +2476,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithState(rightOperand);
+
             Join(ref this.State, ref whenNotNull);
-            TypeSymbol resultType;
+
+            if (rightOperand.ConstantValue?.IsBoolean ?? false)
+            {
+                Split();
+                if (rightOperand.ConstantValue.BooleanValue)
+                {
+                    StateWhenFalse = whenNotNull;
+                }
+                else
+                {
+                    StateWhenTrue = whenNotNull;
+                }
+            }
+
             var leftResultType = leftResult.Type;
             var rightResultType = rightResult.Type;
-            switch (node.OperatorResultKind)
+
+            var resultType = node.OperatorResultKind switch
             {
-                case BoundNullCoalescingOperatorResultKind.NoCommonType:
-                    resultType = node.Type;
-                    break;
-                case BoundNullCoalescingOperatorResultKind.LeftType:
-                    resultType = getLeftResultType(leftResultType, rightResultType);
-                    break;
-                case BoundNullCoalescingOperatorResultKind.LeftUnwrappedType:
-                    resultType = getLeftResultType(leftResultType.StrippedType(), rightResultType);
-                    break;
-                case BoundNullCoalescingOperatorResultKind.RightType:
-                    resultType = getRightResultType(leftResultType, rightResultType);
-                    break;
-                case BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType:
-                    resultType = getRightResultType(leftResultType.StrippedType(), rightResultType);
-                    break;
-                case BoundNullCoalescingOperatorResultKind.RightDynamicType:
-                    resultType = rightResultType;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
-            }
+                BoundNullCoalescingOperatorResultKind.NoCommonType => node.Type,
+                BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType, rightResultType),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType.StrippedType(), rightResultType),
+                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResultType, rightResultType),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResultType.StrippedType(), rightResultType),
+                BoundNullCoalescingOperatorResultKind.RightDynamicType => rightResultType,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
+            };
 
             SetResultType(node, GetNullCoalescingResultType(rightResult, resultType));
             return null;

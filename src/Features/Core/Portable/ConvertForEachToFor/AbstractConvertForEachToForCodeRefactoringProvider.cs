@@ -140,8 +140,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFact, OptionSet options, SemanticModel model,
             TForEachStatement foreachStatement, CancellationToken cancellationToken)
         {
-            var operation = model.GetOperation(foreachStatement, cancellationToken) as IForEachLoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(model.GetOperation(foreachStatement, cancellationToken) is IForEachLoopOperation operation) || operation.Locals.Length != 1)
             {
                 return null;
             }
@@ -295,10 +294,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 {
                     continue;
                 }
-
-                var countImpl = collectionType.FindImplementationForInterfaceMember(countSymbol) as IMethodSymbol;
-                var indexerImpl = collectionType.FindImplementationForInterfaceMember(indexerSymbol) as IMethodSymbol;
-                if (countImpl == null || indexerImpl == null)
+                if (!(collectionType.FindImplementationForInterfaceMember(countSymbol) is IMethodSymbol countImpl) || !(collectionType.FindImplementationForInterfaceMember(indexerSymbol) is IMethodSymbol indexerImpl))
                 {
                     continue;
                 }

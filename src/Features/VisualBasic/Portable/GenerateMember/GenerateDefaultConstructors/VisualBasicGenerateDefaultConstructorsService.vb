@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
             Dim syntaxFacts = semanticDocument.Document.GetLanguageService(Of ISyntaxFactsService)()
             If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, Nothing) Then
                 classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken)
+                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start)
                 Return classType IsNot Nothing AndAlso classType.TypeKind = TypeKind.Class
             End If
 

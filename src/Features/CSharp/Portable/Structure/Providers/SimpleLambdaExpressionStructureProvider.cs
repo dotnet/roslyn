@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            var lambdaBlock = lambdaExpression.Body as BlockSyntax;
-            if (lambdaBlock == null ||
+            if (!(lambdaExpression.Body is BlockSyntax lambdaBlock) ||
                 lambdaBlock.OpenBraceToken.IsMissing ||
                 lambdaBlock.CloseBraceToken.IsMissing)
             {

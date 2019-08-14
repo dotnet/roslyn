@@ -143,18 +143,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one))
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one);
+                var statement = resettableStatement.Statement;
+
+                // SQLite's binding indices are 1-based. 
+                statement.BindStringParameter(parameterIndex: 1, value: value);
+
+                var stepResult = statement.Step();
+                if (stepResult == Result.ROW)
                 {
-                    var statement = resettableStatement.Statement;
-
-                    // SQLite's binding indices are 1-based. 
-                    statement.BindStringParameter(parameterIndex: 1, value: value);
-
-                    var stepResult = statement.Step();
-                    if (stepResult == Result.ROW)
-                    {
-                        return statement.GetInt32At(columnIndex: 0);
-                    }
+                    return statement.GetInt32At(columnIndex: 0);
                 }
             }
             catch (Exception ex)

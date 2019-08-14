@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 return;
             }
 
-            if (!(IsValidAutoProperty(property, propertySymbol)))
+            if (!(IsValidAutoProperty(propertySymbol)))
             {
                 return;
             }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 property.Span);
         }
 
-        internal bool IsValidAutoProperty(SyntaxNode property, IPropertySymbol propertySymbol)
+        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));

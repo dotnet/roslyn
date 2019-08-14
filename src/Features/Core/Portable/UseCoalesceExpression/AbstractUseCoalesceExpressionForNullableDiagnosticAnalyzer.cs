@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionNode = syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode);
             }
 
-            var conditionMemberAccess = conditionNode as TMemberAccessExpression;
-            if (conditionMemberAccess == null)
+            if (!(conditionNode is TMemberAccessExpression conditionMemberAccess))
             {
                 return;
             }
@@ -86,8 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
-            var whenPartMemberAccess = whenPartToCheck as TMemberAccessExpression;
-            if (whenPartMemberAccess == null)
+            if (!(whenPartToCheck is TMemberAccessExpression whenPartMemberAccess))
             {
                 return;
             }
