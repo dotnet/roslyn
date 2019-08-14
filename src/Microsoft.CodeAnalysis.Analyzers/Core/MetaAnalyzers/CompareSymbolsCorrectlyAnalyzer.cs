@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
+        private const string s_symbolEqualsName = nameof(ISymbol.Equals);
 
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -43,11 +46,23 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                context.RegisterOperationAction(context => HandleBinaryOperator(in context, symbolType), OperationKind.BinaryOperator);
+                context.RegisterOperationAction(context => HandleOperation(in context, symbolType), OperationKind.BinaryOperator, OperationKind.MethodReference);
             });
         }
 
-        private void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        private void HandleOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        {
+            if (context.Operation is IBinaryOperation)
+            {
+                HandleBinaryOperator(context, symbolType);
+            }
+            if (context.Operation is IMethodReferenceOperation)
+            {
+                HandleMethodReferenceOperation(context, symbolType);
+            }
+        }
+
+        private static void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
         {
             var binary = (IBinaryOperation)context.Operation;
             if (binary.OperatorKind != BinaryOperatorKind.Equals && binary.OperatorKind != BinaryOperatorKind.NotEquals)
@@ -90,24 +105,52 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(Rule));
         }
 
+        private static void HandleMethodReferenceOperation(OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        {
+            var methodReference = (IMethodReferenceOperation)context.Operation;
+
+            if (methodReference.Instance != null && !IsSymbolType(methodReference.Instance, symbolType))
+            {
+                return;
+            }
+
+            var parameters = methodReference.Method.Parameters;
+            if (methodReference.Method.Name == s_symbolEqualsName && parameters.All(p => IsSymbolType(p.Type, symbolType)))
+            {
+                context.ReportDiagnostic(methodReference.Syntax.GetLocation().CreateDiagnostic(Rule));
+            }
+        }
+
         private static bool IsSymbolType(IOperation operation, INamedTypeSymbol symbolType)
         {
             if (operation.Type is object)
             {
-                if (operation.Type.Equals(symbolType))
-                {
-                    return true;
-                }
-
-                if (operation.Type.AllInterfaces.Contains(symbolType))
-                {
-                    return true;
-                }
+                IsSymbolType(operation.Type, symbolType);
             }
 
             if (operation is IConversionOperation conversion)
             {
                 return IsSymbolType(conversion.Operand, symbolType);
+            }
+
+            return false;
+        }
+
+        private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol symbolType)
+        {
+            if (typeSymbol == null)
+            {
+                return false;
+            }
+
+            if (typeSymbol.Equals(symbolType))
+            {
+                return true;
+            }
+
+            if (typeSymbol.AllInterfaces.Contains(symbolType))
+            {
+                return true;
             }
 
             return false;
