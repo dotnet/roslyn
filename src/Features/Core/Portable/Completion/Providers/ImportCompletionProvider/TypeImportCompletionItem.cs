@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return null;
+            return CompletionDescription.Empty;
         }
 
         private static string GetAritySuffix(int arity)
