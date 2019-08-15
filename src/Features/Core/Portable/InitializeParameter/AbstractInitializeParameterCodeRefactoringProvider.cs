@@ -29,6 +29,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+            Document document,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
+            IBlockOperation blockStatementOpt,
+            ImmutableArray<SyntaxNode> listOfParameterNodes,
+            int position,
+            CancellationToken cancellationToken);
+
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+            Document document,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol methodSymbol,
+            IBlockOperation blockStatementOpt,
+            CancellationToken cancellationToken);
+
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
@@ -95,7 +112,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-
                 context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
                     document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
             }
@@ -117,43 +133,20 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-
                 context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), position, cancellationToken).ConfigureAwait(false));
             }
 
-            bool TryGetParameterSymbol(
+            static bool TryGetParameterSymbol(
                 SyntaxNode parameterNode,
                 SemanticModel semanticModel,
                 out IParameterSymbol parameter,
                 CancellationToken cancellationToken)
             {
                 parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                if (parameter == null || parameter.Name == "")
-                {
-                    return false;
-                }
-
-                return true;
+                return parameter.Name != "";
             }
         }
-
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
-            Document document,
-            SyntaxNode functionDeclaration,
-            IMethodSymbol method,
-            IBlockOperation blockStatementOpt,
-            ImmutableArray<SyntaxNode> listOfParameterNodes,
-            int position,
-            CancellationToken cancellationToken);
-
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document,
-            IParameterSymbol parameter,
-            SyntaxNode functionDeclaration,
-            IMethodSymbol methodSymbol,
-            IBlockOperation blockStatementOpt,
-            CancellationToken cancellationToken);
 
         protected bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
@@ -214,8 +207,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
-               parameter.Equals(parameterReference.Parameter);
+        => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
+           parameter.Equals(parameterReference.Parameter);
 
         protected static IOperation UnwrapImplicitConversion(IOperation operation)
             => operation is IConversionOperation conversion && conversion.IsImplicit
