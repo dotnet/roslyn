@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -640,6 +641,78 @@ public class X
   IL_000f:  call       ""ref readonly TSrc System.ReadOnlySpan<TSrc>.this[int].get""
   IL_0014:  ldobj      ""TSrc""
   IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_Verifiable()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> StaticData => new byte[] { 10, 20 };
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilationOptions = TestOptions.ReleaseExe;
+            var parseOptions = CSharpParseOptions.Default.WithPEVerifyCompatFeature();
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, compilationOptions, parseOptions);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "10;20;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       22 (0x16)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  stelem.i1
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  stelem.i1
+  IL_0010:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> StaticData => new byte[] { 10, 20 };
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "10;20;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.51348660BBFF19B8EA7F67E2D4B3787FB4842AD7""
+  IL_0005:  ldc.i4.2
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
 }");
         }
     }

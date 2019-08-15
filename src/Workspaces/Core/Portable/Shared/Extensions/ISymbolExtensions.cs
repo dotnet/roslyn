@@ -469,8 +469,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IMethodSymbol m: return m.TypeArguments;
-                case INamedTypeSymbol nt: return nt.TypeArguments;
+                case IMethodSymbol m: return m.TypeArguments.ZipAsArray(m.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
+                case INamedTypeSymbol nt: return nt.TypeArguments.ZipAsArray(nt.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
                 default: return ImmutableArray.Create<ITypeSymbol>();
             }
         }

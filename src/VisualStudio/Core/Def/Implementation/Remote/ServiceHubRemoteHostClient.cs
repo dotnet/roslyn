@@ -111,7 +111,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 return client;
             }
+            catch (ConnectionLostException ex)
+            {
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
+
+                Shutdown(client, ex, cancellationToken);
+
+                // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
+                // but never physically crash VS.
+                throw new SoftCrashException("Connection Lost", ex, cancellationToken);
+            }
             catch (Exception ex)
+            {
+                Shutdown(client, ex, cancellationToken);
+                throw;
+            }
+
+            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
             {
                 // make sure we shutdown client if initializing client has failed.
                 client?.Shutdown();
@@ -119,9 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // translate to our own cancellation if it is raised.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // otherwise, report watson and throw original exception
+                // otherwise, report watson
                 ex.ReportServiceHubNFW("ServiceHub creation failed");
-                throw;
             }
         }
 

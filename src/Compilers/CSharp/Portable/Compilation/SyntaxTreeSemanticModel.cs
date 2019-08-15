@@ -1769,6 +1769,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binder?.LookupDeclaredField(declarationSyntax);
         }
 
+        internal override LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position) =>
+            GetMemberModel(position)?.GetAdjustedLocalSymbol(originalSymbol, position) ?? originalSymbol;
+
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>

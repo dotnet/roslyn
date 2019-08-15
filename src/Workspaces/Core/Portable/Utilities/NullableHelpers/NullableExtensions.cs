@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static T WithoutNullability<T>(this T typeSymbol) where T : ITypeSymbol
+        public static T WithoutNullability<T>(this T typeSymbol) where T : INamespaceOrTypeSymbol
         {
             if (typeSymbol is TypeSymbolWithNullableAnnotation typeSymbolWithNullability)
             {
@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis
         public static INamedTypeSymbol ConstructWithNullability(this INamedTypeSymbol typeSymbol, params ITypeSymbol[] typeArguments)
         {
             return typeSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
+        }
+
+        public static IMethodSymbol ConstructWithNullability(this IMethodSymbol methodSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return methodSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
         }
     }
 }

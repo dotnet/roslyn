@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable 
+
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -72,10 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 
         public override Solution UpgradeProject(Project project, string newVersion)
         {
-            var parseOptions = (CSharpParseOptions)project.ParseOptions;
-            if (IsUpgrade(parseOptions, newVersion))
+            if (IsUpgrade(project, newVersion))
             {
                 Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
+                var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+
                 return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
             else
@@ -85,16 +88,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
         }
 
-        public override bool IsUpgrade(ParseOptions projectOptions, string newVersion)
+        public override bool IsUpgrade(Project project, string newVersion)
         {
-            var parseOptions = (CSharpParseOptions)projectOptions;
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
             var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
+
+            var workspace = project.Solution.Workspace;
 
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return mappedVersion >= parseOptions.LanguageVersion &&
-                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
+                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion &&
+                workspace.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion), project);
         }
     }
 }

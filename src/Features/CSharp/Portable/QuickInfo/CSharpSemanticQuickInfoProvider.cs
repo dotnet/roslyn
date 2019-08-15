@@ -3,10 +3,10 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -56,6 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
+            // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
+            // warnings. If the user has annotations off then things that are oblivious might become non-null (which is a lie) and if the user has warnings off then
+            // that probably implies they're not actually trying to know if their code is correct. We can revisit this if we have specific user scenarios.
+            if (semanticModel.GetNullableContext(token.SpanStart) != NullableContext.Enabled)
+            {
+                return default;
+            }
+
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
             var bindableParent = syntaxFacts.GetBindableParent(token);
             var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
@@ -68,17 +76,34 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // Although GetTypeInfo can return nullability for uses of all sorts of things, it's not always useful for quick info.
             // For example, if you have a call to a method with a nullable return, the fact it can be null is already captured
             // in the return type shown -- there's no flow analysis information there.
-            if (symbolInfo.Symbol.Kind != SymbolKind.Event &&
-                symbolInfo.Symbol.Kind != SymbolKind.Field &&
-                symbolInfo.Symbol.Kind != SymbolKind.Local &&
-                symbolInfo.Symbol.Kind != SymbolKind.Parameter &&
-                symbolInfo.Symbol.Kind != SymbolKind.Property &&
-                symbolInfo.Symbol.Kind != SymbolKind.RangeVariable)
+            switch (symbolInfo.Symbol)
             {
-                return default;
+                // Ignore constant values for nullability flow state
+                case IFieldSymbol { HasConstantValue: true }: return default;
+                case ILocalSymbol { HasConstantValue: true }: return default;
+
+                // Symbols with useful quick info
+                case IFieldSymbol _:
+                case ILocalSymbol _:
+                case IParameterSymbol _:
+                case IPropertySymbol _:
+                case IRangeVariableSymbol _:
+                    break;
+
+                default:
+                    return default;
             }
 
             var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+
+            // Nullability is a reference type only feature, value types can use
+            // something like "int?"  to be nullable but that ends up encasing as
+            // Nullable<int>, which isn't exactly the same. To avoid confusion and
+            // extra noise, we won't show nullable flow state for value types
+            if (typeInfo.Type?.IsValueType == true)
+            {
+                return default;
+            }
 
             string messageTemplate = null;
 

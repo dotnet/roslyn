@@ -2049,5 +2049,173 @@ class C
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
             }
         }
+
+        [Fact]
+        public void GetDeclaredSymbol_Foreach_Inferred()
+        {
+            var source = @"
+#pragma warning disable CS8600
+using System.Collections.Generic;
+class C
+{
+    List<T> GetList<T>(T t) => throw null!;
+    void M(object o1, object? o2)
+    {
+        foreach (var o in GetList(o1)) {}
+        foreach (var o in GetList(o2)) {}
+        o1 = null;
+        foreach (var o in GetList(o1)) {}
+        _  = o2 ?? throw null!;
+        foreach (var o in GetList(o2)) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbol = model.GetDeclaredSymbol(variable);
+                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_Foreach_NoInference()
+        {
+            var source = @"
+#pragma warning disable CS8600
+using System.Collections.Generic;
+class C
+{
+    List<T> GetList<T>(T t) => throw null!;
+    void M(object o1, object? o2)
+    {
+        foreach (object? o in GetList(o1)) {}
+        foreach (object o in GetList(o2)) {}
+        o1 = null;
+        foreach (object o in GetList(o1)) {}
+        _  = o2 ?? throw null!;
+        foreach (object? o in GetList(o2)) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,25): warning CS8606: Possible null reference assignment to iteration variable
+                //         foreach (object o in GetList(o2)) {}
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(10, 25),
+                // (12,25): warning CS8606: Possible null reference assignment to iteration variable
+                //         foreach (object o in GetList(o1)) {}
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(12, 25));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
+
+            void assertAnnotation(ForEachStatementSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbol = model.GetDeclaredSymbol(variable);
+                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_Foreach_Tuples_MixedInference()
+        {
+            var source = @"
+#pragma warning disable CS8600
+using System.Collections.Generic;
+class C
+{
+    List<(T, T)> GetList<T>(T t) => throw null!;
+    void M(object o1, object? o2)
+    {
+        foreach ((var o3, object? o4) in GetList(o1)) {}
+        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); }
+        o1 = null;
+        foreach ((var o3, object o4) in GetList(o1)) {}
+        _  = o2 ?? throw null!;
+        foreach ((var o3, object? o4) in GetList(o2)) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
+
+            // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[6], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[7], PublicNullableAnnotation.Annotated);
+
+            void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
+                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+            }
+        }
+
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
+        public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
+        {
+            var source = @"
+public class C
+{
+    public void M(string s)
+    {
+        s. // no completion
+        var o = new object;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis", flagState));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var sRef = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "s").Single();
+
+            var info = model.GetSpeculativeSymbolInfo(sRef.Position, sRef, SpeculativeBindingOption.BindAsExpression);
+
+            IParameterSymbol symbol = (IParameterSymbol)info.Symbol;
+            Assert.True(info.CandidateSymbols.IsEmpty);
+            Assert.NotNull(symbol);
+            Assert.Equal("s", symbol.Name);
+            Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
+        }
     }
 }
