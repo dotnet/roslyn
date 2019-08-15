@@ -6036,6 +6036,56 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementationOfIndexerWithInaccessibleAttributes()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+internal class ShouldBeRemovedAttribute : Attribute { }
+public interface I
+{
+    string this[[ShouldBeRemovedAttribute] int i] { get; set; }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class C : [|I|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+using System;
+
+class C : I
+{
+    public string this[int i]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+        ";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
 #if false
         [WorkItem(13677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]

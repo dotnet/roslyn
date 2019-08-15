@@ -37,16 +37,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.IsIndexer);
         }
 
-        public static IPropertySymbol RemoveAttributeFromParameters(
-            this IPropertySymbol property, INamedTypeSymbol?[]? attributesToRemove)
+        public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
+            this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            if (attributesToRemove == null)
-            {
-                return property;
-            }
-
             bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr?.Equals(a.AttributeClass) ?? false);
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
