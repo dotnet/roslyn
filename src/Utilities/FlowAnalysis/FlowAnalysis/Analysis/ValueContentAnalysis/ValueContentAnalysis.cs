@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
-            bool performCopyAnalysisIfNotUserConfigured = true,
+            bool performCopyAnalysisIfNotUserConfigured = false,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, wellKnownTypeProvider.Compilation, cancellationToken));
