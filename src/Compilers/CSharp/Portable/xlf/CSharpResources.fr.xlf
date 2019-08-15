@@ -8902,8 +8902,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La longueur de la constante de chaîne dépasse la limite de mémoire actuelle. Essayez de fractionner la chaîne en plusieurs constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">La longueur de la constante de chaîne dépasse la limite de mémoire actuelle. Essayez de fractionner la chaîne en plusieurs constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

@@ -428,8 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 current = binOp.Left;
             }
 
-            int compoundStringLength = 0;
-
             BoundExpression result = BindExpression(current, diagnostics);
 
             if (node.IsKind(SyntaxKind.SubtractExpression)
@@ -458,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
-                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
+                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right);
                 result = boundOp;
             }
 
@@ -467,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics,
-            BoundExpression left, BoundExpression right, ref int compoundStringLength)
+            BoundExpression left, BoundExpression right)
         {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -573,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                 resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
-                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
+                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics);
             }
             else
             {
@@ -1511,20 +1509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType resultType,
             DiagnosticBag diagnostics)
         {
-            int compoundStringLength = 0;
-            return FoldBinaryOperator(syntax, kind, left, right, resultType, diagnostics, ref compoundStringLength);
-        }
-
-        // Returns null if the operator can't be evaluated at compile time.
-        private ConstantValue FoldBinaryOperator(
-            CSharpSyntaxNode syntax,
-            BinaryOperatorKind kind,
-            BoundExpression left,
-            BoundExpression right,
-            SpecialType resultType,
-            DiagnosticBag diagnostics,
-            ref int compoundStringLength)
-        {
             Debug.Assert(left != null);
             Debug.Assert(right != null);
 
@@ -1578,12 +1562,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.Create(newValue, resultType);
             }
 
-            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight, ref compoundStringLength);
+            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight);
             if (concatResult != null)
             {
                 if (concatResult.IsBad)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, syntax);
+                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, right.Syntax);
                 }
 
                 return concatResult;
@@ -1886,49 +1870,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
-        /// The <paramref name="compoundStringLength"/> parameter contains value corresponding to the
-        /// left node, or zero, which will trigger inference. Upon return, it will
-        /// be adjusted to correspond future result node.
+        /// Returns ConstantValue.Bad if, and only if, the resulting string length exceeds <see cref="int.MaxValue"/>.
         /// </summary>
-        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight, ref int compoundStringLength)
+        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
             Debug.Assert(valueLeft != null);
             Debug.Assert(valueRight != null);
 
             if (kind == BinaryOperatorKind.StringConcatenation)
             {
-                string leftValue = valueLeft.StringValue ?? string.Empty;
-                string rightValue = valueRight.StringValue ?? string.Empty;
+                Rope leftValue = valueLeft.RopeValue ?? Rope.Empty;
+                Rope rightValue = valueRight.RopeValue ?? Rope.Empty;
 
-                if (compoundStringLength == 0)
-                {
-                    // Infer. Keep it simple for now.
-                    compoundStringLength = leftValue.Length;
-                }
-
-                Debug.Assert(compoundStringLength >= leftValue.Length);
-
-                long newCompoundLength = (long)compoundStringLength + (long)leftValue.Length + (long)rightValue.Length;
-
-                if (newCompoundLength > int.MaxValue)
-                {
-                    return ConstantValue.Bad;
-                }
-
-                ConstantValue result;
-
-                try
-                {
-                    result = ConstantValue.Create(String.Concat(leftValue, rightValue));
-                    compoundStringLength = (int)newCompoundLength;
-                }
-                catch (System.OutOfMemoryException)
-                {
-                    return ConstantValue.Bad;
-                }
-
-                return result;
+                long newLength = (long)leftValue.Length + (long)rightValue.Length;
+                return (newLength > int.MaxValue) ? ConstantValue.Bad : ConstantValue.CreateFromRope(Rope.Concat(leftValue, rightValue));
             }
 
             return null;

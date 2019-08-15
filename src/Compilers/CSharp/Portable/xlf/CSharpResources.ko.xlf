@@ -8901,8 +8901,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">문자열 상수의 길이가 현재 메모리 제한을 초과합니다. 문자열을 여러 상수로 분할해 보세요.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">문자열 상수의 길이가 현재 메모리 제한을 초과합니다. 문자열을 여러 상수로 분할해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

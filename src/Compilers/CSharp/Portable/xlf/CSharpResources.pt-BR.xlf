@@ -8901,8 +8901,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
