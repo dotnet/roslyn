@@ -67,11 +67,6 @@
         <target state="translated">Parola chiave - Controllo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="translated">L'operazione non è ancora pronta per "{0}". Per maggiori dettagli, vedere l'angolo in basso a sinistra.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operatore - Overload</target>
@@ -210,6 +205,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Stringa - Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="new">Waiting for background work to finish...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">

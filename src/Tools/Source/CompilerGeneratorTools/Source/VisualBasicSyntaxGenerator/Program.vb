@@ -1,8 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports System.Collections.Generic
 Imports System.Console
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Text
@@ -32,6 +31,9 @@ Friend Module Program
                 ElseIf c = "/?" Then
                     PrintUsage()
                     Return exitWithErrors
+                ElseIf c = "/grammar" Then
+                    WriteLine("Grammar generation for VB not currently implemented")
+                    Return exitWithoutErrors
                 Else
                     paths.Add(arg)
                 End If

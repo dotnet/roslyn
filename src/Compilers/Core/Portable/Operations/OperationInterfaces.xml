@@ -22,7 +22,7 @@
     <Entry Value="0x64"/>
   </UnusedOperationKinds>
 
-  <Node Name="IInvalidOperation" Base="IOperation">
+  <Node Name="IInvalidOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an invalid operation with one or more child operations.
@@ -831,7 +831,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUnaryOperation" Base="IOperation">
+  <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator">
     <OperationKind>
       <Entry Name="Unary" Value="0x1f" />
       <Entry Name="UnaryOperator" Value="0x1f" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Unary&quot;/&gt; instead." />
@@ -879,7 +879,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IBinaryOperation" Base="IOperation">
+  <Node Name="IBinaryOperation" Base="IOperation" VisitorName="VisitBinaryOperator">
     <OperationKind>
       <Entry Name="Binary" Value="0x20" />
       <Entry Name="BinaryOperator" Value="0x20" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Binary&quot;/&gt; instead." />
@@ -1489,7 +1489,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicObjectCreationOperation" Base="IOperation">
+  <Node Name="IDynamicObjectCreationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an object creation with a dynamically bound constructor.
@@ -1545,7 +1545,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicInvocationOperation" Base="IOperation">
+  <Node Name="IDynamicInvocationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents a invocation that is dynamically bound.
@@ -1574,7 +1574,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation">
+  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an indexer access that is dynamically bound.
@@ -2247,7 +2247,7 @@
       </Comments>
     </Property>
   </Node>
-  <AbstractNode Name="IInterpolatedStringContentOperation" Base="IOperation">
+  <AbstractNode Name="IInterpolatedStringContentOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents a constituent part of an interpolated string.
@@ -2367,7 +2367,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleBinaryOperation" Base="IOperation">
+  <Node Name="ITupleBinaryOperation" Base="IOperation" VisitorName="VisitTupleBinaryOperator">
     <OperationKind>
       <Entry Name="TupleBinary" Value="0x57" />
       <Entry Name="TupleBinaryOperator" Value="0x57" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;TupleBinary&quot;/&gt; instead." />
@@ -2418,7 +2418,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="IMethodBodyOperation" Base="IMethodBodyBaseOperation">
+  <Node Name="IMethodBodyOperation" Base="IMethodBodyBaseOperation" VisitorName="VisitMethodBodyOperation">
     <OperationKind>
       <Entry Name="MethodBody" Value="0x58" />
       <Entry Name="MethodBodyOperation" Value="0x58" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;MethodBody&quot;/&gt; instead." />
@@ -2433,7 +2433,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IConstructorBodyOperation" Base="IMethodBodyBaseOperation">
+  <Node Name="IConstructorBodyOperation" Base="IMethodBodyBaseOperation" VisitorName="VisitConstructorBodyOperation">
     <OperationKind>
       <Entry Name="ConstructorBody" Value="0x59" />
       <Entry Name="ConstructorBodyOperation" Value="0x59" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;ConstructorBody&quot;/&gt; instead." />
@@ -2458,7 +2458,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDiscardOperation" Base="IOperation">
+  <Node Name="IDiscardOperation" Base="IOperation" VisitorName="VisitDiscardOperation">
     <Comments>
       <summary>
         Represents a discard operation.
@@ -2544,7 +2544,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFlowAnonymousFunctionOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="IFlowAnonymousFunctionOperation" Base="IOperation" Namespace="FlowAnalysis" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
@@ -2577,7 +2577,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IRangeOperation" Base="IOperation">
+  <Node Name="IRangeOperation" Base="IOperation" VisitorName="VisitRangeOperation">
     <Comments>
       <summary>
         Represents a range operation.
@@ -2776,7 +2776,7 @@
     <Property Name="Group" Type="IOperation" />
     <Property Name="Aggregation" Type="IOperation" />
   </Node>
-  <Node Name="IFixedOperation" Base="IOperation" Internal="true">
+  <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor="true">
     <Comments>
       <summary>Represents a C# fixed statement.</summary>
     </Comments>

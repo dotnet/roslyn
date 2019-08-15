@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,11 +23,14 @@ namespace IOperationGenerator
         private TextWriter _writer = null!;
         private readonly string _location;
         private readonly Tree _tree;
+        private readonly Dictionary<string, AbstractNode?> _typeMap;
 
         private IOperationClassWriter(Tree tree, string location)
         {
             _tree = tree;
             _location = location;
+            _typeMap = _tree.Types.OfType<AbstractNode>().ToDictionary(t => t.Name, t => (AbstractNode?)t);
+            _typeMap.Add("IOperation", null);
         }
 
         public static void Write(Tree tree, string location)
@@ -34,6 +38,7 @@ namespace IOperationGenerator
             new IOperationClassWriter(tree, location).WriteFiles();
         }
 
+        #region Writing helpers
         private int _indent;
         private bool _needsIndent = true;
 
@@ -81,6 +86,7 @@ namespace IOperationGenerator
         {
             --_indent;
         }
+        #endregion
 
         private void WriteFiles()
         {
@@ -92,19 +98,39 @@ namespace IOperationGenerator
                 {
                     writeHeader();
                     WriteUsing("System");
+
+                    if (@namespace == "Operations")
+                    {
+                        WriteUsing("System.Collections.Generic");
+                    }
+
                     WriteUsing("System.Collections.Immutable");
 
-                    if (grouping.Key is object)
+                    if (@namespace != "Operations")
                     {
                         WriteUsing("Microsoft.CodeAnalysis.Operations");
+                    }
+                    else
+                    {
+                        WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
                     }
 
                     Blank();
                     WriteStartNamespace(@namespace);
 
+                    WriteLine("#region Interfaces");
                     foreach (var node in grouping)
                     {
                         WriteInterface(node);
+                    }
+
+                    WriteLine("#endregion");
+
+                    if (@namespace == "Operations")
+                    {
+                        Blank();
+                        WriteClasses();
+                        WriteVisitors();
                     }
 
                     WriteEndNamespace();
@@ -154,11 +180,7 @@ namespace IOperationGenerator
         {
             WriteComments(node.Comments, writeReservedRemark: true);
 
-            if (node.Obsolete is { } obsolete)
-            {
-                WriteLine($"[Obsolete({obsolete.Message}, error: {obsolete.ErrorText})]");
-            }
-
+            WriteObsoleteIfNecessary(node.Obsolete);
             WriteLine($"{(node.IsInternal ? "internal" : "public")} interface {node.Name} : {node.Base}");
             Brace();
 
@@ -267,13 +289,25 @@ namespace IOperationGenerator
                 {
                     foreach (var (entry, node) in kinds)
                     {
-                        writeEnumElement(entry.Name, i, node.Name, entry.ExtraDescription, entry.EditorBrowsable ?? true, node.Obsolete?.Message, node.Obsolete?.ErrorText);
+                        writeEnumElement(entry.Name,
+                                         value: i,
+                                         node.Name,
+                                         entry.ExtraDescription,
+                                         entry.EditorBrowsable ?? true,
+                                         node.Obsolete?.Message,
+                                         node.Obsolete?.ErrorText);
                     }
                 }
                 else
                 {
                     var currentEntry = elementsToKindEnumerator.Current;
-                    writeEnumElement(GetKindName(currentEntry.Name), i, currentEntry.Name, currentEntry.OperationKind?.ExtraDescription, editorBrowsable: true, currentEntry.Obsolete?.Message, currentEntry.Obsolete?.ErrorText);
+                    writeEnumElement(GetSubName(currentEntry.Name),
+                                     value: i,
+                                     currentEntry.Name,
+                                     currentEntry.OperationKind?.ExtraDescription,
+                                     editorBrowsable: true,
+                                     currentEntry.Obsolete?.Message,
+                                     currentEntry.Obsolete?.ErrorText);
                     Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
                 }
             }
@@ -298,11 +332,222 @@ namespace IOperationGenerator
             }
         }
 
-        private string GetKindName(string operationName) => operationName[1..^9];
-
-        private bool IsImmutableArray(string typeName)
+        private void WriteClasses()
         {
-            return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
+            WriteLine("#region Implementations");
+            foreach (var type in _tree.Types.OfType<AbstractNode>())
+            {
+                if (type.SkipClassGeneration) continue;
+
+                var allProps = GetAllProperties(type);
+                var ioperationTypes = allProps.Where(p => IsIOperationType(p.Type)).ToList();
+                if (ioperationTypes.Count == 0)
+                {
+                    // No children, no need for lazy generation
+                    var @class = (type.IsAbstract ? "Base" : "") + type.Name.Substring(1);
+                    var extensibility = type.IsAbstract ? "abstract" : "sealed";
+                    var baseType = type.Base.Substring(1);
+                    if (baseType != "Operation")
+                    {
+                        baseType = $"Base{baseType}";
+                    }
+
+                    WriteLine($"internal {extensibility} partial class {@class} : {baseType}, {type.Name}");
+                    Brace();
+
+                    var accessibility = type.IsAbstract ? "protected" : "internal";
+                    Write($"{accessibility} {@class}(");
+
+                    foreach (var prop in allProps)
+                    {
+                        Debug.Assert(!IsIOperationType(prop.Type));
+                        Write($"{prop.Type} {prop.Name.ToCamelCase()}, ");
+                    }
+
+                    writeStandardConstructorParameters(type.IsAbstract);
+                    Indent();
+                    Write(": base(");
+
+                    var @base = _typeMap[type.Base];
+                    if (@base is object)
+                    {
+                        foreach (var prop in GetAllProperties(@base).Where(p => !IsIOperationType(p.Type)))
+                        {
+                            Write($"{prop.Name.ToCamelCase()}, ");
+                        }
+                    }
+
+                    writeStandardBaseArguments(type switch
+                    {
+                        { IsAbstract: true } => "kind",
+                        { IsInternal: true } => "OperationKind.None",
+                        _ => $"OperationKind.{getKind(type)}"
+                    });
+                    Outdent();
+                    // The base class is responsible for initializing its own properties,
+                    // so we only initialize our own properties here.
+                    if (type.Properties.Count == 0)
+                    {
+                        // Note: our formatting style is a space here
+                        WriteLine(" { }");
+                    }
+                    else
+                    {
+                        Blank();
+                        Brace();
+                        foreach (var prop in type.Properties)
+                        {
+                            WriteLine($"{prop.Name} = {prop.Name.ToCamelCase()};");
+                        }
+                        Unbrace();
+                    }
+
+                    foreach (var prop in type.Properties)
+                    {
+                        WriteLine($"public {prop.Type} {prop.Name} {{ get; }}");
+                    }
+
+                    if (type is Node node)
+                    {
+
+                        var visitorName = GetVisitorName(node);
+                        WriteLine($@"public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.{visitorName}(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.{visitorName}(this, argument);");
+                    }
+
+                    Unbrace();
+                }
+            }
+
+            WriteLine("#endregion");
+
+            void writeStandardConstructorParameters(bool isAbstract)
+            {
+                if (isAbstract)
+                {
+                    Write("OperationKind kind, ");
+                }
+
+                WriteLine("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)");
+            }
+
+            void writeStandardBaseArguments(string kind)
+            {
+                Write($"{kind}, semanticModel, syntax, type, constantValue, isImplicit)");
+            }
+
+            string getKind(AbstractNode node)
+            {
+                while (node.OperationKind?.Include == false)
+                {
+                    node = _typeMap[node.Base] ??
+                        throw new InvalidOperationException($"{node.Name} is not being included in OperationKind, but has no base type!");
+                }
+
+                if (node.OperationKind?.Entries.Count > 0)
+                {
+                    return node.OperationKind.Entries.Where(e => e.EditorBrowsable != false).Single().Name;
+                }
+
+                return GetSubName(node.Name);
+            }
         }
+
+        private void WriteVisitors()
+        {
+            WriteLine("#region Visitors");
+            WriteLine(@"public abstract partial class OperationVisitor
+    {
+        public virtual void Visit(IOperation operation) => operation?.Accept(this);
+        public virtual void DefaultVisit(IOperation operation) { /* no-op */ }
+        internal virtual void VisitNoneOperation(IOperation operation) { /* no-op */ }");
+            Indent();
+
+            var types = _tree.Types.OfType<Node>();
+            foreach (var type in types)
+            {
+                if (type.SkipInVisitor) continue;
+
+                WriteObsoleteIfNecessary(type.Obsolete);
+                var accessibility = type.IsInternal ? "internal" : "public";
+                var baseName = GetSubName(type.Name);
+                WriteLine($"{accessibility} virtual void {GetVisitorName(type)}({type.Name} operation) => DefaultVisit(operation);");
+            }
+
+            Unbrace();
+
+            WriteLine(@"public abstract partial class OperationVisitor<TArgument, TResult>
+    {
+        public virtual TResult Visit(IOperation operation, TArgument argument) => operation is null ? default(TResult) : operation.Accept(this, argument);
+        public virtual TResult DefaultVisit(IOperation operation, TArgument argument) => default(TResult);
+        internal virtual TResult VisitNoneOperation(IOperation operation, TArgument argument) => default(TResult);");
+            Indent();
+
+            foreach (var type in types)
+            {
+                if (type.SkipInVisitor) continue;
+
+                WriteObsoleteIfNecessary(type.Obsolete);
+                var accessibility = type.IsInternal ? "internal" : "public";
+                WriteLine($"{accessibility} virtual TResult {GetVisitorName(type)}({type.Name} operation, TArgument argument) => DefaultVisit(operation, argument);");
+            }
+
+            Unbrace();
+            WriteLine("#endregion");
+        }
+
+        private void WriteObsoleteIfNecessary(ObsoleteTag? tag)
+        {
+            if (tag is object)
+            {
+                WriteLine($"[Obsolete({tag.Message}, error: {tag.ErrorText})]");
+            }
+        }
+
+        private string GetVisitorName(Node type)
+        {
+            Debug.Assert(!type.SkipInVisitor, $"{type.Name} is marked as skipped in visitor, cannot generate classes.");
+            return type.VisitorName ?? $"Visit{GetSubName(type.Name)}";
+        }
+
+        private List<Property> GetAllProperties(AbstractNode node)
+        {
+            var properties = node.Properties.ToList();
+
+            AbstractNode? @base = node;
+            while (true)
+            {
+                string baseName = @base.Base;
+                @base = _typeMap[baseName];
+                if (@base is null) break;
+                properties.AddRange(@base.Properties);
+            }
+
+            return properties;
+        }
+
+        private static string GetSubName(string operationName) => operationName[1..^9];
+
+        private bool IsIOperationType(string typeName) => _typeMap.ContainsKey(typeName) ||
+                                                          (IsImmutableArray(typeName, out var innerType) && IsIOperationType(innerType));
+
+        private static bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
+        {
+            const string ImmutableArrayPrefix = "ImmutableArray<";
+            if (typeName.StartsWith(ImmutableArrayPrefix, StringComparison.Ordinal))
+            {
+                arrayType = typeName[ImmutableArrayPrefix.Length..^1];
+                return true;
+            }
+
+            arrayType = null;
+            return false;
+        }
+    }
+
+    internal static class Extensions
+    {
+        internal static string ToCamelCase(this string name) => char.ToLowerInvariant(name[0]) + name.Substring(1);
     }
 }

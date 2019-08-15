@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         private static ImmutableArray<char> GetCommitCharacters()
         {
-            var builder = ArrayBuilder<char>.GetInstance();
+            using var builderDisposer = ArrayBuilder<char>.GetInstance(out var builder);
 
             builder.Add('"');
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 builder.Add(',');
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)

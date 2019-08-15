@@ -6654,11 +6654,16 @@ oneMoreTime:
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPatternOperation(
-                inputType: operation.InputType, matchedType: operation.MatchedType, operation.DeclaredSymbol, operation.MatchesNull, semanticModel: null,
-                operation.Syntax, IsImplicit(operation));
+                inputType: operation.InputType,
+                matchedType: operation.MatchedType,
+                operation.DeclaredSymbol,
+                operation.MatchesNull,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
         }
 
-        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
+        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(
                 inputType: operation.InputType,
@@ -6672,7 +6677,7 @@ oneMoreTime:
                 IsImplicit(operation));
         }
 
-        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
+        public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
         {
             return new PropertySubpatternOperation(
                 semanticModel: null,

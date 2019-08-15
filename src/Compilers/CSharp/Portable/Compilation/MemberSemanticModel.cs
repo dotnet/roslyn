@@ -192,9 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             crefSymbols = default;
             position = CheckAndAdjustPosition(position);
             expression = SyntaxFactory.GetStandaloneExpression(expression);
-            var bindableNewExpression = GetBindableSyntaxNode(expression);
             binder = GetEnclosingBinder(position);
-            var boundRoot = Bind(binder, bindableNewExpression, _ignoredDiagnostics);
+            var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
             return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), takeNewSnapshots: false, newSnapshots: out _);
         }
 

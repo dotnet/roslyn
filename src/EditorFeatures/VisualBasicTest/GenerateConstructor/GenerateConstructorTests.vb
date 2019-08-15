@@ -1919,5 +1919,26 @@ End Class",
     End Sub
 End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(23807, "https://github.com/dotnet/roslyn/issues/23807")>
+        Public Async Function TestAsNewClause() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Test
+    Private field As New Test([|1|])
+End Class
+",
+"
+Class Test
+    Private field As New Test(1)
+    Private v As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
+        End Function
     End Class
 End Namespace

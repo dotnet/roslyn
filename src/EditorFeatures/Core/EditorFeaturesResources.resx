@@ -886,8 +886,8 @@ Do you want to proceed?</value>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
-  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
-    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
+    <value>Waiting for background work to finish...</value>
   </data>
   <data name="The_symbol_has_no_base" xml:space="preserve">
     <value>The symbol has no base.</value>

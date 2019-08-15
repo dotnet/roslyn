@@ -456,16 +456,28 @@ DoneWithErrorReporting:
             ' Validate that implementing property implements all accessors of the implemented property
             If implementedSym.Kind = SymbolKind.Property Then
                 Dim implementedProperty As PropertySymbol = TryCast(implementedSym, PropertySymbol)
+
+                Dim implementedPropertyGetMethod As MethodSymbol = implementedProperty.GetMethod
+                If Not implementedPropertyGetMethod?.RequiresImplementation() Then
+                    implementedPropertyGetMethod = Nothing
+                End If
+
+                Dim implementedPropertySetMethod As MethodSymbol = implementedProperty.SetMethod
+                If Not implementedPropertySetMethod?.RequiresImplementation() Then
+                    implementedPropertySetMethod = Nothing
+                End If
+
                 Dim implementingProperty As PropertySymbol = TryCast(implementingSym, PropertySymbol)
-                If (implementedProperty.GetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
-                    (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
+
+                If (implementedPropertyGetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
+                    (implementedPropertySetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
                     ' "'{0}' cannot be implemented by a {1} property."
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
                                             implementingProperty.GetPropertyKindText())
                     errorReported = True
 
-                ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
+                ElseIf ((implementedPropertyGetMethod Is Nothing) Xor (implementedPropertySetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
                     errorReported = errorReported Or
