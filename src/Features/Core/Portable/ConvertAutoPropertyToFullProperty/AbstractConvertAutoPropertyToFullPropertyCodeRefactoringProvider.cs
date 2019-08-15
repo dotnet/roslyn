@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             context.RegisterRefactoring(
                 new ConvertAutoPropertyToFullPropertyCodeAction(
                     FeaturesResources.Convert_to_full_property,
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)),
+                property.Span);
         }
 
         internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)

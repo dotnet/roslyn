@@ -23,27 +23,28 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var statement = await context.TryGetRelevantNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
-            if (statement == null)
+            var declaration = await context.TryGetRelevantNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
+            if (declaration == null)
             {
                 return;
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(statement);
+            var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(declaration);
             if (variables.Count != 1)
             {
                 return;
             }
 
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false))
+            if (!await service.CanMoveDeclarationNearReferenceAsync(document, declaration, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, statement, c)));
+                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, declaration, c)),
+                declaration.Span);
         }
 
         private async Task<Document> MoveDeclarationNearReferenceAsync(

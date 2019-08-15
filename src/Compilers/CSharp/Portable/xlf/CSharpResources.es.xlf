@@ -8903,8 +8903,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La longitud de la constante de cadena supera el límite de memoria actual. Pruebe dividiendo la cadena en varias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">La longitud de la constante de cadena supera el límite de memoria actual. Pruebe dividiendo la cadena en varias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

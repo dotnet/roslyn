@@ -8759,8 +8759,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">文字列定数の長さが現在のメモリの制限を超えています。文字列を複数の定数に分割してください。</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">文字列定数の長さが現在のメモリの制限を超えています。文字列を複数の定数に分割してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">

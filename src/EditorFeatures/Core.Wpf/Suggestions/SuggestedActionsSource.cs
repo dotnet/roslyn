@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Now that we have the entire set of action sets, inline, sort and filter
                     // them appropriately against each other.
                     var allActionSets = InlineActionSetsIfDesirable(result);
-                    var orderedActionSets = OrderActionSets(allActionSets);
+                    var orderedActionSets = OrderActionSets(allActionSets, selectionOpt);
                     var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
                     return filteredSets;
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // First, order refactorings based on the order the providers actually gave for their actions.
                 // This way, a low pri refactoring always shows after a medium pri refactoring, no matter what
                 // we do below.
-                refactorings = OrderActionSets(refactorings);
+                refactorings = OrderActionSets(refactorings, selectionOpt);
 
                 // If there's a selection, it's likely the user is trying to perform some operation
                 // directly on that operation (like 'extract method').  Prioritize refactorings over
@@ -241,11 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private ImmutableArray<SuggestedActionSet> OrderActionSets(
-                ImmutableArray<SuggestedActionSet> actionSets)
+                ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
             {
-                var caretPoint = _textView.GetCaretPoint(_subjectBuffer);
                 return actionSets.OrderByDescending(s => s.Priority)
-                                 .ThenBy(s => s, new SuggestedActionSetComparer(caretPoint))
+                                 .ThenBy(s => s, new SuggestedActionSetComparer(selectionOpt))
                                  .ToImmutableArray();
             }
 
@@ -406,10 +405,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
-                var actions = refactoring.Actions.WhereAsArray(a => IsApplicable(a, workspace));
+                var actions = refactoring.CodeActions.WhereAsArray(a => IsApplicable(a.action, workspace));
                 return actions.Length == 0
                     ? null
-                    : actions.Length == refactoring.Actions.Length
+                    : actions.Length == refactoring.CodeActions.Length
                         ? refactoring
                         : new CodeRefactoring(refactoring.Provider, actions);
             }
@@ -755,7 +754,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
                     return filteredRefactorings.SelectAsArray(
-                        r => OrganizeRefactorings(workspace, r, selection.ToSpan()));
+                        r => OrganizeRefactorings(workspace, r));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -770,44 +769,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
             private SuggestedActionSet OrganizeRefactorings(
-                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
+                Workspace workspace, CodeRefactoring refactoring)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
-                foreach (var action in refactoring.Actions)
+                foreach (var codeAction in refactoring.CodeActions)
                 {
-                    if (action.NestedCodeActions.Length > 0)
+                    if (codeAction.action.NestedCodeActions.Length > 0)
                     {
-                        var nestedActions = action.NestedCodeActions.SelectAsArray(
+                        var nestedActions = codeAction.action.NestedCodeActions.SelectAsArray(
                             na => new CodeRefactoringSuggestedAction(
                                 ThreadingContext,
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: GetSuggestedActionSetPriority(action.Priority), applicableToSpan: applicableSpan);
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(codeAction.action.Priority), applicableToSpan: codeAction.applicableToSpan?.ToSpan());
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
                             _owner, workspace, _subjectBuffer,
-                            refactoring.Provider, action, set));
+                            refactoring.Provider, codeAction.action, set));
                     }
                     else
                     {
                         refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
                             ThreadingContext,
-                            _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                            _owner, workspace, _subjectBuffer, refactoring.Provider, codeAction.action));
                     }
                 }
 
                 var actions = refactoringSuggestedActions.ToImmutableAndFree();
 
-                // An action set gets the the same priority as the highest priority 
-                // action within in.
+                // An action set:
+                // - gets the the same priority as the highest priority action within in.
+                // - gets `applicableToSpan` of the first action:
+                //   - E.g. the `applicableToSpan` closest to current selection might be a more correct 
+                //     choice. All actions creted by one Refactoring have usually the same `applicableSpan`
+                //     and therefore the complexity of determining the closest one isn't worth the benefit
+                //     of slightly more correct orderings in certain edge cases.
                 return new SuggestedActionSet(
                     PredefinedSuggestedActionCategoryNames.Refactoring,
                     actions: actions,
                     priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
-                    applicableToSpan: applicableSpan);
+                    applicableToSpan: refactoring.CodeActions.FirstOrDefault().applicableToSpan?.ToSpan());
             }
 
             public Task<bool> HasSuggestedActionsAsync(

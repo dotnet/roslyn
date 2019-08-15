@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
                         FeaturesResources.Convert_to_interpolated_string,
-                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)));
+                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)),
+                    invocation.Span);
             }
         }
 

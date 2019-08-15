@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             context.RegisterRefactoring(
                 new ForEachToForCodeAction(
                     Title,
-                    c => ConvertForeachToForAsync(document, foreachInfo, c)));
+                    c => ConvertForeachToForAsync(document, foreachInfo, c)),
+                foreachStatement.Span);
         }
 
         protected SyntaxToken CreateUniqueName(

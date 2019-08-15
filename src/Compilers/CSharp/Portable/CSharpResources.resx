@@ -4856,7 +4856,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>

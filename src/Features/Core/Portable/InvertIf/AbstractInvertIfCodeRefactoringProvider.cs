@@ -51,8 +51,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, ifNode, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => InvertIfAsync(root, document, ifNode, c)),
+                ifNode.Span);
         }
 
         private InvertIfStyle GetInvertIfStyle(
