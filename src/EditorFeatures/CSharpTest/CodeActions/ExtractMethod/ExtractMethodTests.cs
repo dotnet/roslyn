@@ -2143,7 +2143,7 @@ class C
     {
         string? a = null;
         string? b = null;
-        [|string? x = (a + b)?.ToString();|]
+        [|string? x = a?.Contains(b).ToString();|]
 
         return x;
     }
@@ -2163,7 +2163,7 @@ class C
 
     private static string? NewMethod(string? a, string? b)
     {
-        return (a + b)?.ToString();
+        return a?.Contains(b).ToString();
     }
 }");
 
@@ -2248,7 +2248,7 @@ class C
     {
         string? a = null;
         string? b = null;
-        return [|(a + b)?.ToString()|];
+        return [|a?.Contains(b).ToString()|];
     }
 }",
 @"#nullable enable
@@ -2264,7 +2264,7 @@ class C
 
     private static string? NewMethod(string? a, string? b)
     {
-        return (a + b)?.ToString();
+        return a?.Contains(b).ToString();
     }
 }");
 
@@ -2611,6 +2611,53 @@ class C
         string? x = null;
         x?.ToString();
         x = string.Empty;
+        return x;
+    }
+}");
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullable_Lambda()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        Action modifyXToNonNull = () =>
+        {
+            x += x;
+        };
+
+        modifyXToNonNull();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        Action modifyXToNonNull = () =>
+        {
+            x += x;
+        };
+
+        modifyXToNonNull();
         return x;
     }
 }");
