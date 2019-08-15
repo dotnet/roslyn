@@ -148,31 +148,9 @@ Friend Class GrammarGenerator
         Dim x = child.ChildKind()
         Dim y = child.ChildKind("")
 
-        Dim nodeKind = TryCast(childKind, ParseNodeKind)
-        Dim nodeKindList = TryCast(childKind, List(Of ParseNodeKind))
-
-        If structureNode.NodeKinds IsNot Nothing Then
-            If structureNode.NodeKinds.Count = 1 Then
-                If child.KindForNodeKind IsNot Nothing Then
-                    Dim kind As ParseNodeKind = Nothing
-                    If child.KindForNodeKind.TryGetValue(structureNode.NodeKinds(0).Name, kind) Then
-                        nodeKind = kind
-                    End If
-                End If
-            ElseIf structureNode.NodeKinds.Count > 1 Then
-                Dim tempList = New List(Of ParseNodeKind)()
-                For Each structureNodeKind In structureNode.NodeKinds
-                    Dim kind As ParseNodeKind = Nothing
-                    If child.KindForNodeKind.TryGetValue(structureNodeKind.Name, kind) Then
-                        tempList.Add(kind)
-                    End If
-                Next
-
-                If tempList.Count > 0 Then
-                    nodeKindList = tempList
-                End If
-            End If
-        End If
+        Dim mappedKinds = GetMappedKinds(structureNode, child)
+        Dim nodeKind = If(mappedKinds.nodeKind, TryCast(childKind, ParseNodeKind))
+        Dim nodeKindList = If(mappedKinds.nodeKinds, TryCast(childKind, List(Of ParseNodeKind)))
 
         If nodeKind IsNot Nothing Then
             Return HandleNodeKind(nodeKind)
@@ -191,6 +169,34 @@ Friend Class GrammarGenerator
         End If
 
         Throw New NotImplementedException()
+    End Function
+
+    Private Function GetMappedKinds(structureNode As ParseNodeStructure,
+                                    child As ParseNodeChild) As (nodeKind As ParseNodeKind, nodeKinds As List(Of ParseNodeKind))
+        If structureNode.NodeKinds IsNot Nothing Then
+            If structureNode.NodeKinds.Count = 1 Then
+                If child.KindForNodeKind IsNot Nothing Then
+                    Dim kind As ParseNodeKind = Nothing
+                    If child.KindForNodeKind.TryGetValue(structureNode.NodeKinds(0).Name, kind) Then
+                        Return (kind, Nothing)
+                    End If
+                End If
+            ElseIf structureNode.NodeKinds.Count > 1 Then
+                Dim kindList = New List(Of ParseNodeKind)()
+                For Each structureNodeKind In structureNode.NodeKinds
+                    Dim kind As ParseNodeKind = Nothing
+                    If child.KindForNodeKind.TryGetValue(structureNodeKind.Name, kind) Then
+                        kindList.Add(kind)
+                    End If
+                Next
+
+                If kindList.Count > 0 Then
+                    Return (Nothing, kindList)
+                End If
+            End If
+        End If
+
+        Return Nothing
     End Function
 
     Private Function GetNonRootParent(n As ParseNodeKind) As ParseNodeStructure
