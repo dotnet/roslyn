@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         InFieldContext = true;
                         return true;
                     }
-                    else if (IsInAttributeContext(cancellationToken))
+                    else if (IsInAttributeContext())
                     {
                         InAttributeContext = true;
                         return true;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             // Only supported on classes/structs.
             var containingType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                semanticModel, root, textSpan.Start, cancellationToken);
+                semanticModel, root, textSpan.Start);
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)

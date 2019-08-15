@@ -437,9 +437,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         var projectReferencesCreated = new List<ProjectReference>();
                         var metadataReferencesCreated = new List<MetadataReference>();
 
-                        foreach (var metadataReferenceAddedInBatch in _metadataReferencesAddedInBatch)
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
                         {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
 
                             if (projectReference != null)
                             {
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
                                 metadataReferencesCreated.Add(metadataReference);
                             }
                         }
@@ -461,9 +461,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     // Metadata reference removing...
-                    foreach (var metadataReferenceRemovedInBatch in _metadataReferencesRemovedInBatch)
+                    foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, metadataReferenceRemovedInBatch.path, metadataReferenceRemovedInBatch.properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -475,7 +475,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == metadataReferenceRemovedInBatch.path && m.Properties == metadataReferenceRemovedInBatch.properties);
+                                                                                    .Single(m => m.FilePath == path && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 
