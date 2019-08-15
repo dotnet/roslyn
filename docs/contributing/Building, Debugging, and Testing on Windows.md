@@ -24,14 +24,6 @@ The minimal required version of .NET Framework is 4.7.2.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
-If you already installed Visual Studio and need to add the necessary work loads or move to Preview 4:
-do the following:
-
-- Run the Visual Studio Installer from your start menu. You can just search for "Visual Studio Installer". If you can't find it, it's typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-- The Visual Studio installation will be listed under the Installed section
-- Click on the menu icon (three horizontal lines), click Modify
-- Choose the workloads listed above and click Modify
-
 ## Running Tests
 
 There are a number of options for running the core Roslyn unit tests:
