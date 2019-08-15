@@ -2988,6 +2988,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var arguments = node.Arguments;
+            if (arguments.Length != method.ParameterCount)
+            {
+                return;
+            }
+
             // In general a call to CompareExchange of the form:
             //
             // Interlocked.CompareExchange(ref location, value, comparand);
@@ -2999,7 +3005,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var arguments = node.Arguments;
             var locationSlot = MakeSlot(arguments[0]);
             if (locationSlot != -1)
             {
