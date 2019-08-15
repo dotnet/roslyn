@@ -34,7 +34,7 @@ The Test.cmd script will run our unit test on already built binaries.  It can be
 
 1. Run the "Developer Command Prompt for VS2019" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
+3. Run `Test.cmd` in the command prompt.
 
 You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .NET Framework, whilst passing in the `-testCoreClr` switch will run the tests on .NET Core.
 
