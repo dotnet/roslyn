@@ -59,9 +59,11 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
-                GetTitle(GetKind(parent.RawKind)),
-                c => InvertLogicalAsync(document, position, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    GetTitle(GetKind(parent.RawKind)),
+                    c => InvertLogicalAsync(document, position, c)),
+                parent.Span);
         }
 
         private async Task<Document> InvertLogicalAsync(

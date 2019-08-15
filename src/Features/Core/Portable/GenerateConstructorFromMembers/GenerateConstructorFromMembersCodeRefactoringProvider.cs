@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutableAndFree()));
+                    pickMemberOptions.ToImmutableAndFree()),
+                textSpan);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(

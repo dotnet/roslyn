@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 return;
             }
 
-            context.RegisterRefactoring(new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers));
+            context.RegisterRefactoring(
+                new GenerateOverridesWithDialogCodeAction(
+                    this, document, textSpan, containingType, overridableMembers),
+                textSpan);
         }
     }
 }

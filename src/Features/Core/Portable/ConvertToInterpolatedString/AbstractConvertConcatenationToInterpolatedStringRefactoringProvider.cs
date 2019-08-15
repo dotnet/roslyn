@@ -89,8 +89,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
-            context.RegisterRefactoring(new MyCodeAction(
-                _ => UpdateDocumentAsync(document, root, top, interpolatedString)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
+                top.Span);
         }
 
         private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
