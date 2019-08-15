@@ -77,12 +77,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             var invocation = possibleInvocations.FirstOrDefault(invocation => IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken));
 
+            // User selected the whole invocation of format.
             if (invocation != null)
             {
                 return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
             }
 
-            // User might have selected single argument of the expression instead of the whole invocation.
+            // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
             var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
             invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
             if (invocation != null && IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken))
@@ -90,8 +91,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
             }
 
-
-            // user might have selected the whole argument list: string format with placeholders plus all expressions
+            // User selected the whole argument list: string format with placeholders plus all expressions
             var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             invocation = argumentList?.Parent as TInvocationExpressionSyntax;
             if (invocation != null && IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken))
