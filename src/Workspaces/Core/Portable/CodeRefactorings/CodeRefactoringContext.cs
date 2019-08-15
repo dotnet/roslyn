@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public struct CodeRefactoringContext
+    public struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
     {
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        private readonly bool _isBlocking;
+        bool ITypeScriptCodeRefactoringContext.IsBlocking => _isBlocking;
+
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
         /// <summary>
@@ -37,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), cancellationToken)
-        { }
+            : this(document, span, (action, textSpan) => registerRefactoring(action), isBlocking: false, cancellationToken)
+        {
+        }
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
@@ -47,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`
@@ -54,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+            _isBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
 
@@ -90,5 +96,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             span = Span;
             cancellationToken = CancellationToken;
         }
+    }
+
+    internal interface ITypeScriptCodeRefactoringContext
+    {
+        bool IsBlocking { get; }
     }
 }

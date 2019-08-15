@@ -38,6 +38,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public static implicit operator Arg(string value) => new Arg(value);
             public static implicit operator Arg(int value) => new Arg(value);
+            public static implicit operator Arg(ProjectId value) => new Arg(value.Id.GetHashCode());
+            public static implicit operator Arg(ProjectAnalysisSummary value) => new Arg(ToString(value));
+
+            private static string ToString(ProjectAnalysisSummary summary)
+            {
+                switch (summary)
+                {
+                    case ProjectAnalysisSummary.CompilationErrors: return nameof(ProjectAnalysisSummary.CompilationErrors);
+                    case ProjectAnalysisSummary.NoChanges: return nameof(ProjectAnalysisSummary.NoChanges);
+                    case ProjectAnalysisSummary.RudeEdits: return nameof(ProjectAnalysisSummary.RudeEdits);
+                    case ProjectAnalysisSummary.ValidChanges: return nameof(ProjectAnalysisSummary.ValidChanges);
+                    case ProjectAnalysisSummary.ValidInsignificantChanges: return nameof(ProjectAnalysisSummary.ValidInsignificantChanges);
+                    default: return null;
+                }
+            }
         }
 
         internal readonly struct Entry

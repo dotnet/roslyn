@@ -3,8 +3,8 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -23,16 +23,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 {
     internal abstract class AbstractExtractMethodCommandHandler : VSCommanding.ICommandHandler<ExtractMethodCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IInlineRenameService _renameService;
 
         public AbstractExtractMethodCommandHandler(
+            IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IInlineRenameService renameService)
         {
+            Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(undoManager);
             Contract.ThrowIfNull(renameService);
 
+            _threadingContext = threadingContext;
             _undoManager = undoManager;
             _renameService = renameService;
         }
@@ -89,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var document = textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(waitContext).WaitAndGetResult(cancellationToken);
+            var document = textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                waitContext, _threadingContext);
             if (document == null)
             {
                 return false;
