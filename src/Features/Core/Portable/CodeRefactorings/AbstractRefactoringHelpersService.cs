@@ -312,15 +312,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            // `var a = b;`
-            if (syntaxFacts.IsLocalDeclarationStatement(node))
+            // `var a = b;` | `var a = b`;
+            if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
                 // is wanted.
                 // `var a = 1, `c = 2, d = 3`;
                 // -> `var a = 1`, c = 2, d = 3;
-                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
                 if (variables.Count == 1)
                 {
                     var declaredVariable = variables.First();
@@ -342,17 +344,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // var `a = b`;
-            // -> `var a = b`;
-            if (syntaxFacts.IsLocalDeclarationStatement(node?.Parent))
+            if (syntaxFacts.IsVariableDeclarator(node))
             {
-                // Check if there's only one variable being declared, otherwise following transformation
-                // would go through which isn't reasonable. If there's specifically selected just one, 
-                // we don't want to return LocalDeclarationStatement that contains multiple.
-                // var a = 1, `c = 2`, d = 3;
-                // -> `var a = 1, c = 2, d = 3`;
-                if (syntaxFacts.GetVariablesOfLocalDeclarationStatement(node.Parent).Count == 1)
+                // -> `b`
+                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
+                if (initializer != default)
                 {
-                    yield return node.Parent;
+                    var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                    if (value != default)
+                    {
+                        yield return value;
+                    }
                 }
             }
 
