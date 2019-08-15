@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             out PointsToAnalysisResult pointsToAnalysisResultOpt,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
-            bool performCopyAnalysis = true,
+            bool performCopyAnalysis = false,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             copyAnalysisResultOpt = null;
