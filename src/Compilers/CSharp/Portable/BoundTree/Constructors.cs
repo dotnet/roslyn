@@ -710,34 +710,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
-
-    internal partial class BoundCollectionElementInitializer
-    {
-        public BoundCollectionElementInitializer(
-            SyntaxNode syntax,
-            MethodSymbol addMethod,
-            ImmutableArray<BoundExpression> arguments,
-            BoundExpression? implicitReceiverOpt,
-            bool expanded,
-            ImmutableArray<int> argsToParamsOpt,
-            bool invokedAsExtensionMethod,
-            LookupResultKind resultKind,
-            Binder? binderOpt,
-            TypeSymbol type,
-            bool hasErrors = false) :
-            this(syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, originalMethodsOpt: default, type, hasErrors)
-        { }
-
-        public BoundCollectionElementInitializer Update(MethodSymbol addMethod,
-                                                        ImmutableArray<BoundExpression> arguments,
-                                                        BoundExpression? implicitReceiverOpt,
-                                                        bool expanded,
-                                                        ImmutableArray<int> argsToParamsOpt,
-                                                        bool invokedAsExtensionMethod,
-                                                        LookupResultKind resultKind,
-                                                        Binder? binderOpt,
-                                                        TypeSymbol type)
-            => Update(addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, this.OriginalMethodsOpt, type);
-    }
 #nullable restore
 }

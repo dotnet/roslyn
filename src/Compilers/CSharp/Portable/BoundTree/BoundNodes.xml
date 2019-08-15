@@ -269,10 +269,10 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
@@ -432,10 +432,10 @@
     <Field Name="Right" Type="BoundExpression"/>
     <Field Name="LeftConversion" Type="Conversion"/>
     <Field Name="FinalConversion" Type="Conversion"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
   
@@ -1642,7 +1642,6 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="BinderOpt" Type="Binder?" />
-    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
