@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Where(attr => attr != null).Any(attr => attr!.Equals(a.AttributeClass));
+                attributesToRemove.Any(attr => attr?.Equals(a.AttributeClass) ?? false);
 
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));

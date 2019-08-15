@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
-        public static ITypeSymbol? RemoveNullableIfPresent([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
         {
             if (symbol.IsNullable())
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
-        private static ISymbol FindImplementations<TSymbol>(
+        private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
             TSymbol constructedInterfaceMember,
             Workspace workspace) where TSymbol : class, ISymbol
@@ -436,6 +436,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -444,6 +445,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         private static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -452,6 +454,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? RemoveAnonymousTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -459,6 +462,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new AnonymousTypeRemover(compilation));
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? ReplaceTypeParametersBasedOnTypeConstraints(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -469,6 +473,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? RemoveUnnamedErrorTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -492,6 +497,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result;
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,
@@ -502,6 +508,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.SubstituteTypes(mapping, new CompilationTypeGenerator(compilation));
         }
 
+        [return: NotNullIfNotNull(parameterName: "type")]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,

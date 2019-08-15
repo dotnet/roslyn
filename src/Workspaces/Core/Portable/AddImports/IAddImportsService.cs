@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis.AddImports
         /// <paramref name="import"/> in scope at <paramref name="contextLocation"/>.  This includes
         /// global imports for VB.
         /// </summary>
-        bool HasExistingImport(Compilation compilation, SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
+        bool HasExistingImport(Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import);
 
         /// <summary>
         /// Given a context location in a provided syntax tree, returns the appropriate container
         /// that <paramref name="import"/> should be added to.
         /// </summary>
-        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
+        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import);
 
         SyntaxNode AddImports(
-            Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
+            Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst);
     }
 
