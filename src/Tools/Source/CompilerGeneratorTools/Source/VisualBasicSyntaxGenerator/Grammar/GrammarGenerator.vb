@@ -145,9 +145,13 @@ Friend Class GrammarGenerator
             Return RuleReference("Modifier")
         End If
 
-        Dim x = child.ChildKind()
-        Dim y = child.ChildKind("")
-
+        ' VB syntax model is interesting, it will have base types that support certain kinds of
+        ' child tokens/nodes.  Then, it will have derived types that then support a subset of those
+        ' kinds.  For example, CastExpressionSyntax says that its keyword can be
+        ' CType/DirectCast/TryCast.  However, there is information in Syntax.xml that says that if
+        ' you have a DirectCastExpressionSyntax that the keyword is DirectCast only.  So when we're
+        ' emitting the code for direct_cast_expression we don't want to say that it starts with
+        ' 'DirectCast' and not either of the other keywords.
         Dim mappedKinds = GetMappedKinds(structureNode, child)
         Dim nodeKind = If(mappedKinds.nodeKind, TryCast(childKind, ParseNodeKind))
         Dim nodeKindList = If(mappedKinds.nodeKinds, TryCast(childKind, List(Of ParseNodeKind)))
@@ -173,6 +177,10 @@ Friend Class GrammarGenerator
 
     Private Function GetMappedKinds(structureNode As ParseNodeStructure,
                                     child As ParseNodeChild) As (nodeKind As ParseNodeKind, nodeKinds As List(Of ParseNodeKind))
+        ' Ensure certain deferred collections have been computed.
+        Dim unused1 = child.ChildKind()
+        Dim unused2 = child.ChildKind("")
+
         If structureNode.NodeKinds IsNot Nothing Then
             If structureNode.NodeKinds.Count = 1 Then
                 If child.KindForNodeKind IsNot Nothing Then
