@@ -2111,11 +2111,13 @@ class C
 @"
 #nullable enable
 
+using System.Linq;
+
 class C
 {
     private IEnumerable<string?> names;
 
-    public void SetNames(IEnumerable<string> names)
+    public void SetNames(IEnumerable<string?> names)
     {
         this.names = names;
     }
