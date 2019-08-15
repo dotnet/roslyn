@@ -543,23 +543,32 @@ public class C
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestMissingWithSelectionOnEntireToBeInterpolatedString()
+        public async Task TestWithSelectionOnEntireToBeInterpolatedString()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
     {
         var v = [|""string"" + 1|];
     }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""string{1}"";
+    }
 }");
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedString()
+        public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringPrefix()
         {
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
             await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
@@ -571,15 +580,54 @@ public class C
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestMissingWithSelectionExceedingToBeInterpolatedString()
+        public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
         {
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
             await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
     {
+        var v = ""string"" + [|1 + ""string""|];
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
+        {
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = ""a"" + [|1 + ""string""|] + ""b"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithSelectionExceedingToBeInterpolatedString()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
         [|var v = ""string"" + 1|];
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""string{1}"";
     }
 }");
         }

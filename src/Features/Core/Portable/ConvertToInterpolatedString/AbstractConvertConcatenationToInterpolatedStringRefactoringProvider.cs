@@ -19,41 +19,42 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     /// into:
     ///     $"{a + b} str {d}{e}".
     /// </summary>
-    internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
+        where TExpressionSyntax : SyntaxNode
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-
-            // Currently only supported if there is no selection, to prevent possible confusion when
-            // selecting part of what would become an interpolated string
-            if (textSpan.Length > 0)
-            {
-                return;
-            }
-
-            var position = textSpan.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
+            var possibleExpressions = await context.GetRelevantNodesAsync<TExpressionSyntax>().ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // The selected token has to at least be contained in a concatenation of some form.
-            // i.e.  "goo" + a      or    3 + 1 + "goo".  However, those concats could be in larger
-            // concats as well.  Walk to the top of that entire chain.
-            var selectedExpression = token.Parent;
-            var top = selectedExpression;
-            while (IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
-            {
-                top = top.Parent;
-            }
+            // let's take the largest (last) StringConcat we can given current textSpan
+            var top = possibleExpressions
+                .Where(expr => IsStringConcat(syntaxFacts, expr, semanticModel, cancellationToken))
+                .LastOrDefault();
 
-            if (top == selectedExpression && !IsStringConcat(syntaxFacts, top, semanticModel, cancellationToken))
+            if (top == null)
             {
-                // We weren't in a concatenation at all.
                 return;
             }
+
+            // Currently we can concat only full subtrees. Therefore we can't support arbitrary selection. We could
+            // theoretically support selecting the selections that correspond to full sub-trees (e.g. prefixes of 
+            // correct lenght butfrom UX point of view that it would feel arbitrary). 
+            // Thus, we only support selection that takes the whole topmost expression. It breaks some leniency around underselection
+            // but it's the best solution so far.
+            if (!textSpan.IsEmpty &&
+                (top.Span.Contains(textSpan) && top.Span.Length > textSpan.Length) ||
+                IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
+            {
+                return;
+            }
+
+            //var position = textSpan.Start;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            //var token = root.FindToken(position);
 
             // Now walk down the concatenation collecting all the pieces that we are
             // concatenating.
