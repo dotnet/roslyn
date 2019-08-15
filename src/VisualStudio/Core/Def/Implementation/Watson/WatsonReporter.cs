@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <summary>
         /// Collection of all asynchronous reporting tasks that are started.
         /// </summary>
-        private static JoinableTaskCollection s_asyncTasks = new JoinableTaskCollection(ThreadHelper.JoinableTaskContext);
+        private static JoinableTaskCollection s_asyncTasks;
+        private static JoinableTaskFactory s_asyncTasksFactory;
 
         /// <summary>
         /// Wait for started reporting tasks to finish. 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         public static void WaitForPendingReporting()
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-            => ThreadHelper.JoinableTaskFactory.Run(async () => await s_asyncTasks.JoinTillEmptyAsync().ConfigureAwait(false));
+            => ThreadHelper.JoinableTaskFactory.Run(s_asyncTasks.JoinTillEmptyAsync);
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously
 
         /// <summary>
@@ -43,6 +44,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
         private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+
+        static WatsonReporter()
+        {
+            s_asyncTasks = new JoinableTaskCollection(ThreadHelper.JoinableTaskContext);
+            s_asyncTasksFactory = ThreadHelper.JoinableTaskContext.CreateFactory(s_asyncTasks);
+        }
 
         /// <summary>
         /// Report Non-Fatal Watson
@@ -112,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // watson and telemetry. 
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
-            s_asyncTasks.Add(ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            s_asyncTasks.Add(s_asyncTasksFactory.RunAsync(async () =>
             {
                 // Make sure we do not block UI thread on filing Watson reports.
                 await TaskScheduler.Default;
