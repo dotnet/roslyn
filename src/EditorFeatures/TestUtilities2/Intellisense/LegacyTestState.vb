@@ -158,6 +158,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
 
+        Public Overrides Sub AssertCompletionItemsDoNotContainAny(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
+
+        Public Overrides Sub AssertCompletionItemsContainAll(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
+
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Sub
