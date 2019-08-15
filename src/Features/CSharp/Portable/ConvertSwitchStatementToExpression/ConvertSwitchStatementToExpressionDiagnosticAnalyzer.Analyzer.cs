@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 // Fail if the switch statement is empty or any of sections have more than one "case" label.
                 // Once we have "or" patterns, we can relax this to accept multi-case sections.
                 var sections = switchStatement.Sections;
-                if (sections.Count == 0 || sections.Any(s => s.Labels.Count != 1 || !s.Labels.Any(x => x.IsKind(SyntaxKind.DefaultSwitchLabel))))
+                if (sections.Count == 0 || !sections.All(s => s.Labels.Count == 1 || s.Labels.Any(x => x.IsKind(SyntaxKind.DefaultSwitchLabel))))
                 {
                     return default;
                 }
