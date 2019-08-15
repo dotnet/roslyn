@@ -179,7 +179,6 @@ namespace A
                     Async Function()
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
-                        Await state.WaitForAsynchronousOperationsAsync()
                         Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
@@ -203,7 +202,6 @@ using System.Reflection;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 If hasItems Then
                     Await state.AssertCompletionSession()
                     state.AssertCompletionItemsContainAll({"ClassLibrary1"})

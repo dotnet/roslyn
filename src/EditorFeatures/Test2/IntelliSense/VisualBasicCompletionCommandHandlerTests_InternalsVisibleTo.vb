@@ -198,7 +198,6 @@ Imports System.Reflection
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 If hasItems Then
                     Await state.AssertCompletionSession()
                     state.AssertCompletionItemsContainAll({"ClassLibrary1"})

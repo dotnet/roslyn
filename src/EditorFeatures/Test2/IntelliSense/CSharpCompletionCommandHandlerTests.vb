@@ -37,10 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                               </Document>)
 
                 state.SendTypeChars("using System.Ne")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Net", isHardSelected:=True)
                 state.SendTypeChars("x")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Net", isSoftSelected:=True)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -138,7 +136,6 @@ class C
                               </Document>)
 
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -401,7 +398,6 @@ class TestException : Exception { }
 class MyException : $$]]></Document>)
 
                 state.SendTypeChars("Test")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(description:="class TestException" & vbCrLf & "TestDocComment")
             End Using
         End Function
@@ -422,19 +418,15 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
                 state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
                 state.SendTypeChars("Li")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
                 state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="<>", isHardSelected:=True)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
                 state.SendTab()
                 Assert.Contains("new List<int>", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -1594,7 +1586,6 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("case Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -1616,7 +1607,6 @@ partial class C
 }]]></Document>)
 
                 state.SendTypeChars("C")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -1661,7 +1651,6 @@ class @return
                 state.SendTypeChars("@")
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("r")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="@return", isHardSelected:=True)
                 state.SendTab()
                 Assert.Contains("@return", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -1720,7 +1709,6 @@ class Program
                               </Document>)
 
                 state.SendTypeChars("using Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars("(")
                 Await state.AssertNoCompletionSession()
@@ -1737,7 +1725,6 @@ class Program
                               </Document>)
 
                 state.SendTypeChars("using Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -1771,7 +1758,6 @@ class Program
                             </Document>)
 
                 state.SendTypeChars("using Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
@@ -1794,7 +1780,6 @@ class C
                               </Document>)
 
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
                 Assert.True(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
             End Using
@@ -1871,7 +1856,6 @@ class Goo
                               </Document>)
 
                 state.SendTypeChars(", ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 Assert.Equal(1, state.GetCompletionItems().Where(Function(c) c.DisplayText = "Numeros").Count())
             End Using
@@ -1895,7 +1879,6 @@ class Goo
                               </Document>)
 
                 state.SendTypeChars(", ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 Assert.Equal(1, state.GetCompletionItems().Where(Function(c) c.DisplayText = "Numeros").Count())
             End Using
@@ -1960,10 +1943,8 @@ class Goo
                 </Document>)
 
                 state.SendTypeChars("Nu")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSessionIsNothingOrNoCompletionItemLike("Numberos")
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1988,10 +1969,8 @@ class Program
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
                 state.SendTypeChars("n")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
                 state.SendTypeChars("t")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
             End Using
         End Function
@@ -2293,7 +2272,6 @@ class C
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem("P", isSoftSelected:=True)
                 state.SendDownKey()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("P", isHardSelected:=True)
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -2338,7 +2316,6 @@ class Program
 
                 ' ensure we still select the named param even though 'string' is in the MRU.
                 state.SendTypeChars("Goo(s")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("s", displayTextSuffix:=":")
             End Using
         End Function
@@ -2447,13 +2424,11 @@ class C
 }
             ]]></Document>)
                 state.SendTypeChars("Met")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Method")
                 state.SendLeftKey()
                 state.SendLeftKey()
                 state.SendLeftKey()
                 state.SendTypeChars("new")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Method", isSoftSelected:=True)
             End Using
         End Function
@@ -2524,7 +2499,6 @@ class C
 }
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("string")
                 state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
@@ -2545,7 +2519,6 @@ class C
 }
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("AccessViolationException")
                 state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
@@ -2566,7 +2539,6 @@ class C
 }
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("string")
                 state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
@@ -2574,7 +2546,7 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TabAfterQuestionMark(completionImplementation As CompletionImplementation) As Task
+        Public Sub TabAfterQuestionMark(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 using System;
@@ -2587,10 +2559,9 @@ class C
 }
             ]]></Document>)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetLineTextFromCaretPosition(), "        ?" + vbTab)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(657658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657658")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -2736,7 +2707,6 @@ class C
                 state.SendReturn()
                 state.SendTypeChars("str = @th")
 
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("@this")
             End Using
         End Function
@@ -2750,7 +2720,6 @@ class C
 [$$]
 class AtAttribute : System.Attribute { }]]></Document>)
                 state.SendTypeChars("At")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("At")
                 Assert.Equal("At", state.GetSelectedItem().FilterText)
             End Using
@@ -2770,7 +2739,6 @@ class C
     }
 }]]></Document>)
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Exception")
             End Using
         End Function
@@ -2839,7 +2807,6 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendTypeChars("M")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("M")
                 Assert.False(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
             End Using
@@ -2856,7 +2823,6 @@ class C
     $$
 }]]></Document>)
                 state.SendTypeChars("voi")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("void")
                 state.SendSave()
                 Await state.AssertNoCompletionSession()
@@ -2905,7 +2871,6 @@ class C
     $$
 }]]></Document>)
                 state.SendTypeChars("#reg")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("region")
                 state.SendReturn()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -2924,7 +2889,6 @@ class C
     $$
 }]]></Document>)
                 state.SendTypeChars("#reg")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("region")
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -2944,7 +2908,6 @@ class C
     $$
 }]]></Document>)
                 state.SendTypeChars("#endreg")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("endregion")
                 state.SendReturn()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3207,7 +3170,6 @@ class C
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("is")
-                    Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertSelectedCompletionItem("IsInterned")
                 End Using
             End Using
@@ -3227,7 +3189,6 @@ class C
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("ı")
-                    Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertSelectedCompletionItem()
                 End Using
             End Using
@@ -3248,7 +3209,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3267,7 +3227,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("args", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3291,7 +3250,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3315,7 +3273,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3337,7 +3294,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3358,7 +3314,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3380,7 +3335,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("f", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3401,7 +3355,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3423,7 +3376,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3469,7 +3421,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
@@ -3490,7 +3441,6 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(description:=
 $"({ CSharpFeaturesResources.extension }) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
 
@@ -3692,7 +3642,6 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Conso")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Console", isHardSelected:=True)
                 For Each ch In "Conso"
                     state.SendLeftKey()
@@ -3718,7 +3667,6 @@ class C
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
 
@@ -3738,7 +3686,6 @@ class C
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="System")
                 state.SendTypeChars(".")
                 Assert.Contains("System.", state.GetLineTextFromCaretPosition())
@@ -3823,7 +3770,6 @@ class C
                     Await Task.WhenAll(task1, task2)
                 End If
 
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("System", state.GetLineTextFromCaretPosition())
             End Using
@@ -3868,7 +3814,6 @@ class C
 
                     tcs.SetResult(True)
 
-                    Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertCompletionSession()
                     Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
                 Else
@@ -3915,7 +3860,6 @@ class C
                     Assert.NotNull(task2)
                     Await Task.WhenAll(task1, task2)
 
-                    Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertNoCompletionSession()
                     ' Here is a difference between the old and the new completions:
                     ' The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
@@ -3944,7 +3888,6 @@ class C
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
                 state.SendTypeChars("Sys.")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
                 Assert.Contains("System.", state.GetLineTextFromCaretPosition())
 
@@ -3966,7 +3909,6 @@ class C
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
                 tcs.SetResult(True)
@@ -3995,7 +3937,6 @@ class C
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
                 state.SendTypeChars("Sys.")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
                 Assert.Contains("System.", state.GetLineTextFromCaretPosition())
             End Using
@@ -4268,7 +4209,6 @@ class C
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 state.AssertCompletionItemsContainAll(displayText:={"Red", "Green", "Blue"})
                 state.AssertCompletionItemsDoNotContainAny({"Equals"})
@@ -4279,7 +4219,6 @@ class C
 
                 args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
 
@@ -4820,14 +4759,12 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
 
                 state.ToggleSuggestionMode()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
                 Assert.False(state.HasSuggestedItem())
                 ' We want to soft select if we were already in soft select mode.
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
 
                 state.ToggleSuggestionMode()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
@@ -5572,7 +5509,6 @@ class C<T>
                 </Document>)
 
                 state.SendTypeChars("T")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
@@ -5593,7 +5529,6 @@ class C
                 </Document>)
 
                 state.SendTypeChars("T")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
