@@ -158,17 +158,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
 
-        Public Overrides Sub AssertCompletionItemsDoNotContainAny(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
+        Public Overrides Async Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
+            Await AssertCompletionSession()
             Dim items = GetCompletionItems()
             Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
-        End Sub
+        End Function
 
-        Public Overrides Sub AssertCompletionItemsContainAll(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
+        Public Overrides Async Function AssertCompletionItemsContainAll(displayText As String()) As Task
+            Await AssertCompletionSession()
             Dim items = GetCompletionItems()
             Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
-        End Sub
+        End Function
 
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
             Assert.Null(Me.CurrentCompletionPresenterSession)
@@ -177,6 +177,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
             ' The legacy completion implementation was not updated to treat # as an IntelliSense trigger
             Await AssertNoCompletionSession()
+        End Function
+
+        ' Void for the modern compleiton.
+        ' Remove with all its calls after removing the legacy compleiton.
+        Public Overrides Async Function WaitForAsynchronousOperationsAsyncLegacyCompletion() As Task
+            Await WaitForAsynchronousOperationsAsync()
         End Function
 
         Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
@@ -205,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
-            Await WaitForAsynchronousOperationsAsync()
+            Await AssertCompletionSession()
             If isSoftSelected.HasValue Then
                 Assert.True(isSoftSelected.Value = Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not soft-selected.")
             End If
@@ -239,12 +245,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Function
 
-        Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+        Public Overrides Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             If Not CurrentCompletionPresenterSession Is Nothing Then
-                AssertCompletionItemsDoNotContainAny({text})
+                Await AssertCompletionItemsDoNotContainAny({text})
             End If
-
-            Return Task.CompletedTask
         End Function
 
         Public Overrides Async Function WaitForUIRenderedAsync() As Task

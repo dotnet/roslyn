@@ -167,7 +167,6 @@ End Class
                 state.SendLeftKey()
                 Await state.AssertSelectedCompletionItem(isSoftSelected:=True)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("If (tru", state.GetLineTextFromCaretPosition().Trim())
                 Assert.Equal("t", state.GetCaretPoint().BufferPosition.GetChar())
             End Using
@@ -189,7 +188,6 @@ End Class
 
                 state.SendTypeChars("Fog(")
                 Await state.AssertCompletionSession()
-
                 Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -234,7 +232,6 @@ End Class
                 Dim caretPos = state.GetCaretPoint().BufferPosition.Position
                 state.SendReturn()
                 state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().TextBuffer.CurrentSnapshot, caretPos))
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains("Program." + vbCrLf, state.GetLineFromCurrentCaretPosition().GetTextIncludingLineBreak(), StringComparison.Ordinal)
             End Using
         End Function
@@ -255,7 +252,6 @@ End Class
                 state.SendTypeChars("Fog")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-
                 Assert.Contains("    FogBar", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -380,10 +376,10 @@ Class Program
 End Class
                               </document>)
                 state.SendTypeChars(".A")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 Assert.Equal(4, state.GetCompletionItems().Count)
                 state.SendTypeChars("A")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 Assert.Equal(2, state.GetCompletionItems().Count)
             End Using
         End Function
@@ -563,7 +559,6 @@ End Class
                 Await state.AssertCompletionSession()
                 Assert.Contains(".Main(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendUndo()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains(".Ma(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -593,7 +588,6 @@ End Class
                 state.SendDownKey()
                 Await state.AssertSelectedCompletionItem(displayText:="B", isHardSelected:=True)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -620,7 +614,7 @@ End Class
                 state.SendTypeChars(".A")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
                 state.SendSelectCompletionItemThroughPresenterSession(state.GetCompletionItems().First(
                                                            Function(i) i.DisplayText = "B"))
                 state.SendTab()
@@ -640,9 +634,8 @@ Class c
     End Sub
 End Class</document>)
                 state.SendTypeChars("Sy")
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System"})
-                state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
+                Await state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System"})
+                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
 
@@ -656,8 +649,7 @@ Class c
     Inherits$$
 End Class</document>)
                 state.SendTypeChars(" ")
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception"})
+                Await state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception"})
             End Using
         End Function
 
@@ -699,17 +691,16 @@ End Module]]></Document>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
+                Await state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
                 state.SendTypeChars("Li")
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
-                state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
+                Await state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
+                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="(Of " & ChrW(&H2026) & ")", isHardSelected:=True)
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains("New List(Of Integer)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -857,8 +848,7 @@ end class
                               </Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ToString"})
+                Await state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -941,7 +931,6 @@ end class
                               </Document>)
 
                 state.SendTypeChars("Imports Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -1070,7 +1059,7 @@ End Class
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
                 state.SendTypeChars("t")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
             End Using
         End Function
@@ -1188,8 +1177,7 @@ End Class
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertSignatureHelpItemsContainAll({"Object.Finalize()"})
+                Await state.AssertSignatureHelpItemsContainAll({"Object.Finalize()"})
             End Using
         End Function
 
@@ -1211,7 +1199,6 @@ End Module
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem("args", isHardSelected:=True)
                 state.SendDownKey()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("args", displayTextSuffix:=":=", isHardSelected:=True)
             End Using
         End Function
@@ -1307,7 +1294,6 @@ End Module|}          </Document>)
                 state.SendTypeCharsToSpecificViewAndBuffer("(", view, subjectBuffer)
                 Await state.AssertCompletionSession(view)
                 state.SendTypeCharsToSpecificViewAndBuffer("a", view, subjectBuffer)
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="arg", projectionsView:=view)
 
                 Dim text = view.TextSnapshot.GetText()
@@ -1354,8 +1340,6 @@ End Module|}          </Document>)
                 ' verify we can commit even when unmapped
                 projection.ReplaceSpans(0, projection.CurrentSnapshot.GetSourceSpans.Count, {projection.CurrentSnapshot.GetText()}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
                 state.SendCommitUniqueCompletionListItem()
-                Await state.WaitForAsynchronousOperationsAsync()
-
                 Assert.Contains(<text>
 Imports System
 Module Program
@@ -1558,9 +1542,8 @@ Class G
 End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1577,7 +1560,7 @@ End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("String")
-                state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1612,7 +1595,7 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem("String")
-                state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1715,7 +1698,7 @@ End Class
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TabAfterQuestionMarkInEmptyLine(completionImplementation As CompletionImplementation) As Task
+        Public Sub TabAfterQuestionMarkInEmptyLine(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Imports System
@@ -1726,14 +1709,13 @@ Class G
 End Class
             ]]></Document>)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetLineTextFromCaretPosition(), "        ?" + vbTab)
             End Using
-        End Function
+        End Sub
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TabAfterTextFollowedByQuestionMark(completionImplementation As CompletionImplementation) As Task
+        Public Sub TabAfterTextFollowedByQuestionMark(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Imports System
@@ -1744,10 +1726,9 @@ Class G
 End Class
             ]]></Document>)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetLineTextFromCaretPosition(), "        a")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(669942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669942")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -1768,7 +1749,7 @@ End Class
 
             ]]></Document>)
                 state.SendTypeChars("selec")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 Assert.Equal(state.GetCompletionItems().Count, 2)
             End Using
         End Function
@@ -1776,7 +1757,7 @@ End Class
         <WorkItem(670149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670149")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory(), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TabAfterNullableFollowedByQuestionMark(completionImplementation As CompletionImplementation) As Task
+        Public Sub TabAfterNullableFollowedByQuestionMark(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Imports System
@@ -1785,10 +1766,9 @@ Class G
 End Class
             ]]></Document>)
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetLineTextFromCaretPosition(), "    Dim a As Integer?" + vbTab)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(672474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -1905,7 +1885,7 @@ End Module</Document>)
         <WorkItem(792569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792569")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitOnEnter(completionImplementation As CompletionImplementation) As Task
+        Public Sub CommitOnEnter(completionImplementation As CompletionImplementation)
             Dim expected = <Document>Module M
     Sub Main()
         Main
@@ -1922,14 +1902,13 @@ End Module</Document>)
 
                 state.SendInvokeCompletionList()
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(expected, state.GetDocumentText())
             End Using
-        End Function
+        End Sub
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_NotFullyTyped(completionImplementation As CompletionImplementation) As Task
+        Public Sub TestEnterIsConsumedWithAfterFullyTypedWordOption_NotFullyTyped(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document>
 Class Class1
@@ -1943,7 +1922,6 @@ End Class
                     CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(<text>
 Class Class1
     Sub Main(args As String())
@@ -1952,11 +1930,11 @@ Class Class1
 End Class
 </text>.NormalizedValue, state.GetDocumentText())
             End Using
-        End Function
+        End Sub
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_FullyTyped(completionImplementation As CompletionImplementation) As Task
+        Public Sub TestEnterIsConsumedWithAfterFullyTypedWordOption_FullyTyped(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document>
 Class Class1
@@ -1971,7 +1949,6 @@ End Class
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(<text>
 Class Class1
     Sub Main(args As String())
@@ -1981,7 +1958,7 @@ Class Class1
 End Class
 </text>.NormalizedValue, state.GetDocumentText())
             End Using
-        End Function
+        End Sub
 
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -2088,15 +2065,9 @@ End Class
 
                               </Document>)
                 state.SendTypeChars("Task")
-                Await state.WaitForAsynchronousOperationsAsync()
-                ' WaitForAsynchronousOperationsAsync actually does not wait for async completion to complete
-                ' TODO need to re-design WaitForAsynchronousOperationsAsync to handle async completion as well.
-                ' https://github.com/dotnet/roslyn/issues/33379 to fix this.
-                ' As a workaround to wait for async completion to complete, we need to get items.
-                state.GetCompletionItems()
+                Await state.WaitForUIRenderedAsync()
                 state.SendDownKey()
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("        Dim a as Task(Of ", state.GetLineTextFromCaretPosition())
             End Using
         End Function
@@ -2104,7 +2075,7 @@ End Class
         <WorkItem(883295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function DoNotInsertOfOnTab(completionImplementation As CompletionImplementation) As Task
+        Public Sub DoNotInsertOfOnTab(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
 Imports System.Threading.Tasks
@@ -2117,10 +2088,9 @@ End Class
                               </Document>)
                 state.SendTypeChars("Task")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetLineTextFromCaretPosition(), "        Dim a as Task")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(899414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899414")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -2182,7 +2152,6 @@ End Class
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendTypeChars("Thi")
                 Await state.AssertSelectedCompletionItem("Thing1")
@@ -2312,7 +2281,7 @@ Class G
 End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 ' Should only have one item called 'Double' and it should have a keyword glyph
                 Dim doubleItem = state.GetCompletionItems().Single(Function(c) c.DisplayText = "Double")
                 Assert.True(doubleItem.Tags.Contains(WellKnownTags.Keyword))
@@ -2333,7 +2302,7 @@ Class [Double]
 End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 ' We should have gotten the item corresponding to [Double] and the item for the Double keyword
                 Dim doubleItems = state.GetCompletionItems().Where(Function(c) c.DisplayText = "Double")
                 Assert.Equal(2, doubleItems.Count())
@@ -2356,16 +2325,15 @@ Class [Interface]
 End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 state.SendTypeChars("Interf]")
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(4, "Dim x As [Interface]")
             End Using
         End Function
 
         <WorkItem(1075298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075298")>
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitOnQuestionMarkForConditionalAccess(completionImplementation As CompletionImplementation) As Task
+        Public Sub CommitOnQuestionMarkForConditionalAccess(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Imports System
@@ -2376,10 +2344,9 @@ Class G
 End Class
             ]]></Document>)
                 state.SendTypeChars("emp?")
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(4, "Dim x = String.Empty?")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -2844,8 +2811,7 @@ End Class
                                                                                     SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertCompletionItemsContainAll({"x", "Shortcut"})
+                Await state.AssertCompletionItemsContainAll({"x", "Shortcut"})
             End Using
         End Function
 
@@ -2979,7 +2945,7 @@ End Class
 
         <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitGenericDoesNotInsertEllipsis(completionImplementation As CompletionImplementation) As Task
+        Public Sub CommitGenericDoesNotInsertEllipsis(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                             <Document><![CDATA[
 Interface Goo(Of T)
@@ -2992,16 +2958,15 @@ End Class]]></Document>)
                 Dim unicodeEllipsis = ChrW(&H2026).ToString()
                 state.SendTypeChars("Goo")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("Implements Goo(Of", state.GetLineTextFromCaretPosition().Trim())
                 Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
             End Using
-        End Function
+        End Sub
 
         <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitGenericDoesNotInsertEllipsisCommitOnParen(completionImplementation As CompletionImplementation) As Task
+        Public Sub CommitGenericDoesNotInsertEllipsisCommitOnParen(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                             <Document><![CDATA[
 Interface Goo(Of T)
@@ -3013,15 +2978,14 @@ End Class]]></Document>)
 
                 Dim unicodeEllipsis = ChrW(&H2026).ToString()
                 state.SendTypeChars("Goo(")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("Implements Goo(", state.GetLineTextFromCaretPosition().Trim())
                 Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
             End Using
-        End Function
+        End Sub
 
         <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitGenericItemDoesNotInsertEllipsisCommitOnTab(completionImplementation As CompletionImplementation) As Task
+        Public Sub CommitGenericItemDoesNotInsertEllipsisCommitOnTab(completionImplementation As CompletionImplementation)
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                             <Document><![CDATA[
 Interface Goo(Of T)
@@ -3034,11 +2998,10 @@ End Class]]></Document>)
                 Dim unicodeEllipsis = ChrW(&H2026).ToString()
                 state.SendTypeChars("Goo")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("Dim x as Goo(Of", state.GetLineTextFromCaretPosition().Trim())
                 Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
             End Using
-        End Function
+        End Sub
 
         <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -3056,7 +3019,7 @@ End Module
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 Dim psi = state.GetCompletionItems().Where(Function(i) i.DisplayText.Contains("ProcessStartInfo")).ToArray()
                 Assert.Equal(1, psi.Length)
             End Using
@@ -3079,7 +3042,7 @@ End Class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
                 state.SendTab()
                 Assert.Contains("IComparable(Of TestClass)", state.GetLineTextFromCaretPosition())
             End Using
@@ -3102,7 +3065,6 @@ End Class
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem("x", isSoftSelected:=True)
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains("x.Add", state.GetLineTextFromCaretPosition())
             End Using
         End Function
@@ -3165,8 +3127,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"WriteLine"})
+                Await state.AssertCompletionItemsContainAll({"WriteLine"})
             End Using
         End Function
 

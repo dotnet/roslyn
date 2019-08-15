@@ -211,11 +211,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function AssertCompletionSessionAfterTypingHash() As Task
 
+        ' Remove this method with removing the lagacy completion.
+        ' Must be void for the modern completion.
+        Public MustOverride Function WaitForAsynchronousOperationsAsyncLegacyCompletion() As Task
+
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
-        Public MustOverride Sub AssertCompletionItemsContainAll(displayText As String())
+        Public MustOverride Function AssertCompletionItemsContainAll(displayText As String()) As Task
 
-        Public MustOverride Sub AssertCompletionItemsDoNotContainAny(displayText As String())
+        Public MustOverride Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 
@@ -302,11 +306,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Sub AssertSignatureHelpItemsContainAll(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
+        Public Async Function AssertSignatureHelpItemsContainAll(displayText As String()) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
                                             Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
-        End Sub
+        End Function
 
         Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
