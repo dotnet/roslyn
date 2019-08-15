@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -17,9 +18,62 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
             }
 
-            public static SyntaxKind Analyze(SwitchStatementSyntax node, out bool shouldRemoveNextStatement)
+            public static (SyntaxKind nodeToGenerate, VariableDeclaratorSyntax declaratorToRemoveOpt) Analyze(
+                SwitchStatementSyntax node,
+                SemanticModel semanticModel,
+                out bool shouldRemoveNextStatement)
             {
-                return new Analyzer().AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
+                var analyzer = new Analyzer();
+                var nodeToGenerate = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
+
+                if (nodeToGenerate == SyntaxKind.SimpleAssignmentExpression &&
+                    analyzer.TryGetVariableDeclaratorAndSymbol(semanticModel) is var (declarator, symbol))
+                {
+                    if (shouldRemoveNextStatement &&
+                        semanticModel.AnalyzeDataFlow(node.GetNextStatement()).DataFlowsIn.Contains(symbol))
+                    {
+                        // Bail out if data flows into the next statement that we want to move
+                        // For example:
+                        //
+                        //      string name = "";
+                        //      switch (index)
+                        //      {
+                        //          case 0: name = "0"; break;
+                        //          case 1: name = "1"; break;
+                        //      }
+                        //      throw new Exception(name);
+                        //
+                        return default;
+                    }
+
+                    var declaration = declarator.GetAncestor<StatementSyntax>();
+                    if (declaration.Parent == node.Parent && declarator.Initializer is null)
+                    {
+                        var beforeSwitch = node.GetPreviousStatement() is {} previousStatement
+                            ? semanticModel.AnalyzeDataFlow(declaration, previousStatement)
+                            : semanticModel.AnalyzeDataFlow(declaration);
+                        if (!beforeSwitch.WrittenInside.Contains(symbol))
+                        {
+                            // Move declarator only if it has no initializer and it's not used before switch
+                            return (nodeToGenerate, declaratorToRemoveOpt: declarator);
+                        }
+                    }
+                }
+
+                return (nodeToGenerate, declaratorToRemoveOpt: null);
+            }
+
+            private (VariableDeclaratorSyntax, ISymbol)? TryGetVariableDeclaratorAndSymbol(SemanticModel semanticModel)
+            {
+                if (_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName) &&
+                    semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol is
+                        { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs } symbol &&
+                    syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator)
+                {
+                    return (declarator, symbol);
+                }
+
+                return null;
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
@@ -62,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 // Fail if the switch statement is empty or any of sections have more than one "case" label.
                 // Once we have "or" patterns, we can relax this to accept multi-case sections.
                 var sections = switchStatement.Sections;
-                if (sections.Count == 0 || sections.Any(section => section.Labels.Count != 1))
+                if (sections.Count == 0 || sections.Any(s => s.Labels.Count != 1 || !s.Labels.Any(x => x.IsKind(SyntaxKind.DefaultSwitchLabel))))
                 {
                     return default;
                 }
@@ -79,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private SyntaxKind AnalyzeNextStatement(SwitchStatementSyntax switchStatement, ref bool shouldRemoveNextStatement)
             {
-                if (switchStatement.Sections.Any(section => IsDefaultSwitchLabel(section.Labels[0])))
+                if (switchStatement.Sections.Any(section => section.Labels.Count > 1 || IsDefaultSwitchLabel(section.Labels[0])))
                 {
                     // Throw can be overridden by other section bodies, therefore it has no effect on the result.
                     return SyntaxKind.ThrowStatement;
