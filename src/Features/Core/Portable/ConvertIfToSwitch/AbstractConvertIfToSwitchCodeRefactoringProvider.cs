@@ -93,8 +93,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
-                context.RegisterRefactoring(new MyCodeAction(Title, c =>
-                    UpdateDocumentAsync(root, document, ifStatement, switchSections)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(Title,
+                        c => UpdateDocumentAsync(root, document, ifStatement, switchSections)),
+                    ifStatement.Span);
             }
 
             private IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>> patterns, TStatementSyntax statement)> GetSections(

@@ -1415,6 +1415,16 @@
         <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
@@ -8892,8 +8902,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

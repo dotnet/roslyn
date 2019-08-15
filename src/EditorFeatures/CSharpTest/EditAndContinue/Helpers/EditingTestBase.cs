@@ -107,25 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string bodySource,
             MethodKind kind = MethodKind.Regular)
         {
-            string source;
-            switch (kind)
+            var source = kind switch
             {
-                case MethodKind.Iterator:
-                    source = "class C { IEnumerable<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.Async:
-                    source = "class C { async Task<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.ConstructorWithParameters:
-                    source = "class C { C" + bodySource + " }";
-                    break;
-
-                default:
-                    source = "class C { void F() { " + bodySource + " } }";
-                    break;
-            }
+                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
+                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
+                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
+                _ => "class C { void F() { " + bodySource + " } }",
+            };
 
             var tree = ParseSource(source);
             var root = tree.GetRoot();

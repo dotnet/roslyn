@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
-                methodName));
+                methodName),
+                methodDeclaration.Span);
 
             // If this method starts with 'Get' see if there's an associated 'Set' method we could 
             // replace as well.
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
-                        methodName + "-get/set"));
+                        methodName + "-get/set"),
+                        methodDeclaration.Span);
                 }
             }
         }

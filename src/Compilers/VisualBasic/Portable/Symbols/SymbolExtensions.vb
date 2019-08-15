@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' (for example TLBIMP VtblGap members), even though you can't define those in source.
                     Return sym.ContainingType.IsInterfaceType() AndAlso
                            Not sym.IsShared AndAlso
-                           sym.IsMustOverride
+                           (sym.IsMustOverride OrElse sym.IsOverridable)
                 Case Else
                     Return False
             End Select

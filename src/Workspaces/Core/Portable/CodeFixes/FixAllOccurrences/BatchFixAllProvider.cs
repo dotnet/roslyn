@@ -256,11 +256,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For each changed document, also keep track of the associated code action that
             // produced it.
             var getChangedDocumentsTasks = new List<Task>();
-            foreach (var diagnosticAndCodeAction in diagnosticsAndCodeActions)
+            foreach (var (diagnostic, action) in diagnosticsAndCodeActions)
             {
                 getChangedDocumentsTasks.Add(GetChangedDocumentsAsync(
                     oldSolution, documentIdToChangedDocuments,
-                    diagnosticAndCodeAction.action, cancellationToken));
+                    action, cancellationToken));
             }
 
             await Task.WhenAll(getChangedDocumentsTasks).ConfigureAwait(false);

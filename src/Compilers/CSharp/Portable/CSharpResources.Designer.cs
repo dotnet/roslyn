@@ -3202,7 +3202,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        ///   Looks up a localized string similar to Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants..
         /// </summary>
         internal static string ERR_ConstantStringTooLong {
             get {
@@ -14901,6 +14901,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_MissingNonNullTypesContextForAnnotation_Title {
             get {
                 return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context. Auto-generated code requires an explicit &apos;#nullable&apos; directive in source..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context. Auto-generated code requires an explicit &apos;#nullable&apos; directive in source..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title", resourceCulture);
             }
         }
         

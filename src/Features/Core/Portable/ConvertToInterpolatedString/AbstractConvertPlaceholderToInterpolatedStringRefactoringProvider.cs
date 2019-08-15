@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
                         FeaturesResources.Convert_to_interpolated_string,
-                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)));
+                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)),
+                    invocation.Span);
             }
         }
 
@@ -106,9 +107,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var arguments = nullableArguments.Value;
-            var firstExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             if (arguments.Count >= 2 &&
-                firstExpression != null &&
+                syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstExpression &&
                 syntaxFactsService.IsStringLiteral(firstExpression.GetFirstToken()))
             {
                 // We do not want to substitute the expression if it is being passed to params array argument

@@ -1766,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
-        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
             LogPatternProperties(operation);
@@ -1780,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true);
         }
 
-        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        public override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
             LogString(nameof(IPropertySubpatternOperation));
             LogCommonProperties(operation);

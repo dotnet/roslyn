@@ -2096,5 +2096,86 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractReadOnlyMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct S1
+{
+    readonly int M1() => 42;
+    void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"struct S1
+{
+    readonly int M1() => 42;
+    void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private readonly void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
+        {
+            await TestInRegularAndScriptAsync(
+@"readonly struct S1
+{
+    int M1() => 42;
+    void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"readonly struct S1
+{
+    int M1() => 42;
+    void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct S1
+{
+    int M1() => 42;
+    readonly void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"struct S1
+{
+    int M1() => 42;
+    readonly void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
+        }
     }
 }

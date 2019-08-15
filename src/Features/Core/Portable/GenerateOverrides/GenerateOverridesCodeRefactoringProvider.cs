@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             // Only supported on classes/structs.
             var containingType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                semanticModel, root, textSpan.Start, cancellationToken);
+                semanticModel, root, textSpan.Start);
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)
@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 return;
             }
 
-            context.RegisterRefactoring(new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers));
+            context.RegisterRefactoring(
+                new GenerateOverridesWithDialogCodeAction(
+                    this, document, textSpan, containingType, overridableMembers),
+                textSpan);
         }
     }
 }

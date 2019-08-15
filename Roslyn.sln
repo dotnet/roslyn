@@ -424,6 +424,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeBenchmarks", "src\Tools\IdeBenchmarks\IdeBenchmarks.csproj", "{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilersIOperationGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\IOperationGenerator\CompilersIOperationGenerator.csproj", "{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -1129,6 +1131,10 @@ Global
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1328,6 +1334,7 @@ Global
 		{453C8E28-81D4-431E-BFB0-F3D413346E51} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{CE7F7553-DB2D-4839-92E3-F042E4261B4E} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

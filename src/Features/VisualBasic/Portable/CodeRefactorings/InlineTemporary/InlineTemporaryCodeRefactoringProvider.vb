@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)))
+                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
         Private Async Function GetReferencesAsync(
