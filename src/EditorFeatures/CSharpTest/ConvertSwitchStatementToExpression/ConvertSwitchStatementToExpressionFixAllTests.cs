@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         {
             await TestInCSharp8(
 @"class Program
-{    
+{
     int M(int i, int j)
     {
         int r;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     }
 }",
 @"class Program
-{    
+{
     int M(int i, int j)
     {
         var r = i switch
@@ -126,35 +126,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 y = 1;
                 break;
         }
-        switch (i)
+        return i switch
         {
-            default:
-                throw null;
-            case 1:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    _ => 0,
-                };
-            case 2:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    var _ => 0,
-                };
-            case 3:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    var v => 0,
-                };
-        }
+            1 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                _ => 0,
+            },
+            2 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                var _ => 0,
+            },
+            3 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                var v => 0,
+            },
+            _ => throw null,
+        };
     }
 }");
         }

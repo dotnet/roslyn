@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 switch (section.Statements.Count)
                 {
                     case 1:
-                    case 2 when section.Statements[1].IsKind(SyntaxKind.BreakStatement):
+                    case 2 when section.Statements[1].IsKind(SyntaxKind.BreakStatement) || section.Statements[0].IsKind(SyntaxKind.SwitchStatement):
                         return Visit(section.Statements[0]);
                     default:
                         return default;
