@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -21,6 +24,20 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
     internal static class WatsonReporter
     {
+        /// <summary>
+        /// Collection of all asynchronous reporting tasks that are started.
+        /// </summary>
+        private static JoinableTaskCollection s_asyncTasks = new JoinableTaskCollection(ThreadHelper.JoinableTaskContext);
+
+        /// <summary>
+        /// Wait for started reporting tasks to finish. 
+        /// This should be called during shutdown to avoid dropping NFW.
+        /// </summary>
+        public static void WaitForPendingReporting()
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
+            => ThreadHelper.JoinableTaskFactory.Run(async () => await s_asyncTasks.JoinTillEmptyAsync().ConfigureAwait(false));
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
+
         /// <summary>
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
@@ -95,7 +112,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // watson and telemetry. 
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
-            TelemetryService.DefaultSession.PostEvent(faultEvent);
+            s_asyncTasks.Add(ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                // Make sure we do not block UI thread on filing Watson reports.
+                await TaskScheduler.Default;
+                TelemetryService.DefaultSession.PostEvent(faultEvent);
+            }));
 
             if (exception is OutOfMemoryException || critical)
             {

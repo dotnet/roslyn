@@ -189,6 +189,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor = null;
             }
 
+            // Make sure we finished sending all NFW reports before exiting.
+            WatsonReporter.WaitForPendingReporting();
+
             base.Dispose(disposing);
         }
 
