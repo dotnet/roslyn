@@ -2,7 +2,7 @@
 grammar vb;
 
 compilation_unit
-  : option_statement* imports_statement* attributes_statement* statement* punctuation
+  : option_statement* imports_statement* attributes_statement* statement*
   ;
 
 option_statement
@@ -62,7 +62,7 @@ argument
   ;
 
 omitted_argument
-  : punctuation
+  : empty_token
   ;
 
 range_argument
@@ -530,7 +530,7 @@ else_statement
   ;
 
 empty_statement
-  : punctuation
+  : empty_token
   ;
 
 executable_statement
@@ -1412,7 +1412,7 @@ punctuation
   : /* see lexical specification */
   ;
 
-bad_token
+empty_token
   : /* see lexical specification */
   ;
 
@@ -1449,6 +1449,10 @@ keyword
   ;
 
 string_literal_token
+  : /* see lexical specification */
+  ;
+
+syntax_trivia
   : /* see lexical specification */
   ;
 
