@@ -2884,7 +2884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // easy out
             var parameterCount = method.ParameterCount;
+            var arguments = node.Arguments;
             if ((parameterCount != 1 && parameterCount != 2)
+                || parameterCount != arguments.Length
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
@@ -2893,7 +2895,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var arguments = node.Arguments;
 
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
