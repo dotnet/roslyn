@@ -284,11 +284,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (peMetadataReference?.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(peMetadataReference.FilePath, peMetadataReference.GetMetadataId(), project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
             else
             {
-                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                var containingAssembly = topLevelNamedType.ContainingAssembly;
+                return new UniqueDocumentKey(containingAssembly.Identity, containingAssembly.GetMetadata()?.Id, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
         }
 
@@ -435,25 +436,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             /// Assembly identity. Only non-null if <see cref="_filePath"/> is null, where it's an in-memory assembly.
             /// </summary>
             private readonly AssemblyIdentity? _assemblyIdentity;
+
+            private readonly MetadataId? _metadataId;
             private readonly string _language;
             private readonly SymbolKey _symbolId;
             private readonly bool _allowDecompilation;
 
-            public UniqueDocumentKey(string filePath, string language, SymbolKey symbolId, bool allowDecompilation)
+            public UniqueDocumentKey(string filePath, MetadataId? metadataId, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(filePath);
 
                 _filePath = filePath;
+                _metadataId = metadataId;
                 _language = language;
                 _symbolId = symbolId;
                 _allowDecompilation = allowDecompilation;
             }
 
-            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, string language, SymbolKey symbolId, bool allowDecompilation)
+            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, MetadataId? metadataId, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(assemblyIdentity);
 
                 _assemblyIdentity = assemblyIdentity;
+                _metadataId = metadataId;
                 _language = language;
                 _symbolId = symbolId;
                 _allowDecompilation = allowDecompilation;
@@ -468,6 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
                 return StringComparer.OrdinalIgnoreCase.Equals(_filePath, other._filePath) &&
                     object.Equals(_assemblyIdentity, other._assemblyIdentity) &&
+                    object.Equals(_metadataId, other._metadataId) &&
                     _language == other._language &&
                     s_symbolIdComparer.Equals(_symbolId, other._symbolId) &&
                     _allowDecompilation == other._allowDecompilation;
@@ -482,10 +488,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 return
                     Hash.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(_filePath ?? string.Empty),
-                        Hash.Combine(_assemblyIdentity != null ? _assemblyIdentity.GetHashCode() : 0,
-                            Hash.Combine(_language.GetHashCode(),
-                                Hash.Combine(s_symbolIdComparer.GetHashCode(_symbolId),
-                                    _allowDecompilation.GetHashCode()))));
+                        Hash.Combine(_assemblyIdentity?.GetHashCode() ?? 0,
+                            Hash.Combine(_metadataId?.GetHashCode() ?? 0,
+                                Hash.Combine(_language.GetHashCode(),
+                                    Hash.Combine(s_symbolIdComparer.GetHashCode(_symbolId),
+                                        _allowDecompilation.GetHashCode())))));
             }
         }
     }
