@@ -170,6 +170,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
+        Public Overrides Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionSession()
+            Dim items = GetCompletionItems()
+            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+        End Function
+
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Sub

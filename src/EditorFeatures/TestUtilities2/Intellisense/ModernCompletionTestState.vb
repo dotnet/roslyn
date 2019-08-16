@@ -203,6 +203,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return Task.CompletedTask
         End Function
 
+        Public Overrides Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Dim items = GetCompletionItems()
+            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+            Return Task.CompletedTask
+        End Function
+
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
             ' starting with the modern completion implementation, # is treated as an IntelliSense trigger
             Await AssertCompletionSession()

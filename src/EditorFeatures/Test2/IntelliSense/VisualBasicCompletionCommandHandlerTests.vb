@@ -1057,10 +1057,10 @@ End Class
 
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
+                Await state.AssertCompletionItemsContain("string", ":=")
                 state.SendTypeChars("t")
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
+                Await state.AssertCompletionItemsContain("string", ":=")
             End Using
         End Function
 
@@ -1090,7 +1090,7 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.GetCompletionItems().Count)
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str" AndAlso i.DisplayTextSuffix = ":="))
+                Await state.AssertCompletionItemsContain("str", ":=")
             End Using
         End Function
 
@@ -1124,9 +1124,9 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(3, state.GetCompletionItems().Count)
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "b" AndAlso i.DisplayTextSuffix = ":="))
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":="))
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str" AndAlso i.DisplayTextSuffix = ":="))
+                Await state.AssertCompletionItemsContain("b", ":=")
+                Await state.AssertCompletionItemsContain("num", ":=")
+                Await state.AssertCompletionItemsContain("str", ":=")
                 Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "dbl" AndAlso i.DisplayTextSuffix = ":="))
             End Using
         End Function
@@ -1690,10 +1690,10 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(c) c.DisplayText = "AccessViolationException"))
+                Await state.AssertCompletionItemsContainAll({"AccessViolationException"})
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(c) c.DisplayText = "AccessViolationException"))
+                Await state.AssertCompletionItemsContainAll({"AccessViolationException"})
             End Using
         End Function
 

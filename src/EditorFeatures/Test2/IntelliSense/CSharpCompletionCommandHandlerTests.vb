@@ -1767,7 +1767,7 @@ class C
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
-                Assert.True(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+                Await state.AssertCompletionItemsContainAll({"int"})
             End Using
         End Function
 
@@ -1793,7 +1793,7 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionItemsDoNotContainAny({"System", "int"})
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
+                Await state.AssertCompletionItemsContain("num", ":")
             End Using
         End Function
 
@@ -1818,7 +1818,7 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionItemsContainAll({"System", "int"})
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
+                Await state.AssertCompletionItemsContain("num", ":")
             End Using
         End Function
 
@@ -1950,11 +1950,11 @@ class Program
 
                 state.SendTypeChars("i")
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
+                Await state.AssertCompletionItemsContain("@int", ":")
                 state.SendTypeChars("n")
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
+                Await state.AssertCompletionItemsContain("@int", ":")
                 state.SendTypeChars("t")
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "@int" AndAlso i.DisplayTextSuffix = ":"))
+                Await state.AssertCompletionItemsContain("@int", ":")
             End Using
         End Function
 

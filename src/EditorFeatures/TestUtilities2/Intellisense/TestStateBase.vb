@@ -219,6 +219,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function AssertCompletionItemsContainAll(displayText As String()) As Task
 
+        Public MustOverride Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+
         Public MustOverride Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
