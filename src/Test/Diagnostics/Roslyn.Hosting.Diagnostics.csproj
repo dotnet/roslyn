@@ -25,7 +25,6 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="PerfMargin\StatusIndicator.xaml.cs">
