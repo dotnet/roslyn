@@ -255,38 +255,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TextSpan> GetContiguousSpans(
             this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, SyntaxToken>? getLastToken = null)
         {
-            SyntaxNode? lastNode = null;
-            TextSpan? textSpan = null;
+            (SyntaxNode node, TextSpan textSpan)? previous = null;
 
             // Sort the nodes in source location order.
             foreach (var node in nodes.OrderBy(n => n.SpanStart))
             {
-                if (lastNode == null)
+                TextSpan textSpan;
+                if (previous == null)
                 {
                     textSpan = node.Span;
                 }
                 else
                 {
-                    var lastToken = getLastToken?.Invoke(lastNode) ?? lastNode.GetLastToken();
+                    var lastToken = getLastToken?.Invoke(previous.Value.node) ?? previous.Value.node.GetLastToken();
                     if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
                     {
                         // Expand the span
-                        textSpan = TextSpan.FromBounds(textSpan!.Value.Start, node.Span.End);
+                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.Span.End);
                     }
                     else
                     {
                         // Return the last span, and start a new one
-                        yield return textSpan!.Value;
+                        yield return previous.Value.textSpan;
                         textSpan = node.Span;
                     }
                 }
 
-                lastNode = node;
+                previous = (node, textSpan);
             }
 
-            if (textSpan.HasValue)
+            if (previous.HasValue)
             {
-                yield return textSpan.Value;
+                yield return previous.Value.textSpan;
             }
         }
 
