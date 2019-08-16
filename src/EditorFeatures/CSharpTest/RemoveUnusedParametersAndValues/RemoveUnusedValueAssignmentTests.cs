@@ -7042,5 +7042,49 @@ class C : IDisposable
 }", options: PreferDiscard,
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task RefParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(ref bool p)
+    {
+        if (p)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task OutParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(out bool p, bool x)
+    {
+        if (x)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+        else
+        {
+            p = true;
+        }
+    }
+}");
+        }
     }
 }
