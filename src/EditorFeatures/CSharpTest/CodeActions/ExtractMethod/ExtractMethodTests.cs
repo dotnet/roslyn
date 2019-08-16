@@ -2649,7 +2649,7 @@ class C
         return x;
     }
 
-    private static string NewMethod()
+    private static string? NewMethod()
     {
         string? x = null;
         Action modifyXToNonNull = () =>
