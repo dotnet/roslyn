@@ -87,11 +87,6 @@
         <target state="new">Locating bases...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="translated">作業未做好 "{0}" 的準備。如需詳細資料，請查看左下角。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">運算子 - 多載</target>
