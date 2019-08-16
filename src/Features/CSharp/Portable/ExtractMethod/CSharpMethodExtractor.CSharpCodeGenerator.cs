@@ -673,22 +673,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
 
-                var aggregatedFlowState = NullableFlowState.NotNull;
-
                 foreach (var returnOperation in returnOperations)
                 {
                     var syntax = returnOperation.ReturnedValue?.Syntax ?? returnOperation.Syntax;
                     var returnTypeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
                     if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
                     {
-                        aggregatedFlowState = NullableFlowState.MaybeNull;
+                        // Flow state shows that return is correctly nullable
+                        return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
                     }
-                }
-
-                if (aggregatedFlowState == NullableFlowState.MaybeNull)
-                {
-                    // Flow state shows that return is correctly nullable
-                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Return type can be updated to not be null

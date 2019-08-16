@@ -148,11 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             .Where(IsSymbolReferencedByOperation);
 
                         var flowState = GetFlowStateFromLocations(references);
-                        if (flowState != NullableFlowState.None)
-                        {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullability(flowState);
-                        }
-                        return base.GetSymbolType(semanticModel, symbol);
+                        return base.GetSymbolType(semanticModel, symbol).WithNullability(flowState);
 
                     default:
                         return base.GetSymbolType(semanticModel, symbol);
