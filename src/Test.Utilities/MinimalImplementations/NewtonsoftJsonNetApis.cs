@@ -21,12 +21,6 @@ namespace Newtonsoft.Json
 	    Auto = 0x4
     }
 
-    public interface ISerializationBinder
-    {
-	    Type BindToType(string assemblyName, string typeName);
-        void BindToName(Type serializedType, out string assemblyName, out string typeName);
-    }
-
     public class JsonSerializerSettings
     {
         public TypeNameHandling TypeNameHandling { get; set; }
@@ -163,6 +157,31 @@ namespace Newtonsoft.Json
     }
 }
 
+namespace Newtonsoft.Json.Serialization
+{
+    using System;
+
+    public interface ISerializationBinder
+    {
+	    Type BindToType(string assemblyName, string typeName);
+        void BindToName(Type serializedType, out string assemblyName, out string typeName);
+    }
+
+    public class DefaultSerializationBinder : ISerializationBinder
+    {
+	    public Type BindToType(string assemblyName, string typeName)
+        {
+            return null;
+        }
+
+        public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+        {
+            assemblyName = null;
+            typeName = null;
+        }
+    }
+}
+
 public class MyISerializationBinder : Newtonsoft.Json.ISerializationBinder
 {
     public Type BindToType(string assemblyName, string typeName)
@@ -188,6 +207,58 @@ public class MyBinder : System.Runtime.Serialization.SerializationBinder
         throw new NotImplementedException();
     }
 }
+";
+
+        public const string VisualBasic = @"
+Imports System
+Imports System.IO
+Imports System.Runtime.Serialization
+
+Namespace Newtonsoft.Json
+    <Flags>
+    Public Enum TypeNameHandling
+        None = 0
+        Objects = 1
+        Arrays = 2
+        All = 3
+        Auto = 4
+    End Enum
+
+    Public Class JsonSerializerSettings
+        Public Property TypeNameHandling As TypeNameHandling
+        Public Property Binder As SerializationBinder
+        Public Property SerializationBinder As ISerializationBinder
+    End Class
+
+    Public Class JsonConvert
+        Public Shared Function DeserializeObject(Of T)(ByVal value As String, ByVal settings As JsonSerializerSettings) As T
+            Throw New NotImplementedException()
+        End Function
+    End Class
+
+    Public Class JsonSerializer
+    End Class
+End Namespace
+
+Namespace Newtonsoft.Json.Serialization
+    Public Interface ISerializationBinder
+        Function BindToType(assemblyName As String, typeName As String) As Type
+        Sub BindToName(serializedType as Type, <Out()> ByRef assemblyName As String, <Out()> ByRef typeName As String)
+    End Interface
+
+    Public Class DefaultSerializationBinder
+        Implements ISerializationBinder
+        
+        Public Function BindToType(assemblyName As String, typeName As String) As Type
+            Return Nothing
+        End Function
+
+        Sub BindToName(serializedType as Type, <Out()> ByRef assemblyName As String, <Out()> ByRef typeName As String)
+            assemblyName = Nothing
+            typeName = Nothing
+        End Sub
+    End Class
+End Namespace
 ";
     }
 }
