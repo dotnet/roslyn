@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(model);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addImportsService = document.GetLanguageService<IAddImportsService>();
+            var addImportsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
 
             // Create a simple interval tree for simplification spans.
