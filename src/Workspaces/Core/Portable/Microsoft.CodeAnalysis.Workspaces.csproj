@@ -104,9 +104,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IComparableHelper.cs">
-      <Link>InternalUtilities\IComparableHelper.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
     </Compile>
