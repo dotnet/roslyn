@@ -4,8 +4,6 @@ parameters:
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
-  variables:
-    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
   steps:
   - checkout: self
     clean: true

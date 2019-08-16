@@ -16,6 +16,7 @@ variables:
   BuildConfiguration: Release
   BuildPlatform: Any CPU
   # codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
 
 jobs:
 - template: azure-pipelines/build.yml

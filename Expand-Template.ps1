@@ -74,8 +74,9 @@ if (-not $sn) {
 Push-Location $PSScriptRoot
 try {
     if ($Squash) {
+        $originalCommitId = git rev-parse HEAD
         git reset --soft $(git rev-list --max-parents=0 HEAD)
-        git commit --amend -qm "Initial template from https://github.com/AArnott/Library.Template"
+        git commit --amend -qm "Initial template from https://github.com/AArnott/Library.Template" -m "Original commit from template $originalCommitId"
     }
 
     # Rename project directories and solution
