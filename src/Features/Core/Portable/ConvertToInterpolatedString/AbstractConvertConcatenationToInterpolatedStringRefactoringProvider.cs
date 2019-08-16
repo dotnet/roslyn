@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             // correct lenght butfrom UX point of view that it would feel arbitrary). 
             // Thus, we only support selection that takes the whole topmost expression. It breaks some leniency around underselection
             // but it's the best solution so far.
-            if (!textSpan.IsEmpty &&
-                (top.Span.Contains(textSpan) && top.Span.Length > textSpan.Length) ||
+            if (CodeRefactoringHelpers.IsNodeUnderselected(top, textSpan) ||
                 IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
                 return;
@@ -95,6 +94,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
                 top.Span);
         }
+
+
 
         private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
