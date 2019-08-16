@@ -81,6 +81,7 @@ stages:
                 /p:PublishToSymbolServer=true
                 /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
                 /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                /p:DotNetPublishUsingPipelines=true
       displayName: Build
       condition: succeeded()
 
@@ -230,4 +231,3 @@ stages:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
-      enableSourceLinkValidation: false
