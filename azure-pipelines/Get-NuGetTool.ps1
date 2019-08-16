@@ -16,7 +16,7 @@ $nugetPath = Join-Path $binaryToolsPath nuget.exe
 
 if (!(Test-Path $nugetPath)) {
     Write-Host "Downloading nuget.exe $NuGetVersion..." -ForegroundColor Yellow
-    Invoke-WebRequest -Uri "https://dist.nuget.org/win-x86-commandline/v$NuGetVersion/NuGet.exe" -OutFile $nugetPath | Out-Null
+    (New-Object System.Net.WebClient).DownloadFile("https://dist.nuget.org/win-x86-commandline/v$NuGetVersion/NuGet.exe", $nugetPath)
 }
 
 return (Resolve-Path $nugetPath).Path
