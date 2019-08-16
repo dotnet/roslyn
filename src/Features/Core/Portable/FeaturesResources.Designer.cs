@@ -233,15 +233,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add null checks for all parameters.
-        /// </summary>
-        internal static string Add_null_checks_for_all_parameters {
-            get {
-                return ResourceManager.GetString("Add_null_checks_for_all_parameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add optional parameter to constructor.
         /// </summary>
         internal static string Add_optional_parameter_to_constructor {

@@ -7,11 +7,6 @@
         <target state="translated">Aggiungi nome del membro</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_null_checks_for_all_parameters">
-        <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="new">Add optional parameter to constructor</target>
