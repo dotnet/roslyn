@@ -1426,10 +1426,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 case IUnaryOperation unaryOperation:
                     // Predicate analysis for unary not operator.
-                    Debug.Assert(unaryOperation.OperatorKind == UnaryOperatorKind.Not);
-                    FlowBranchConditionKind = FlowBranchConditionKind.Negate();
-                    PerformPredicateAnalysisCore(unaryOperation.Operand, targetAnalysisData);
-                    FlowBranchConditionKind = FlowBranchConditionKind.Negate();
+                    if (unaryOperation.OperatorKind == UnaryOperatorKind.Not)
+                    {
+                        FlowBranchConditionKind = FlowBranchConditionKind.Negate();
+                        PerformPredicateAnalysisCore(unaryOperation.Operand, targetAnalysisData);
+                        FlowBranchConditionKind = FlowBranchConditionKind.Negate();
+                    }
+
                     break;
 
                 case IArgumentOperation argument:
@@ -1459,7 +1462,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 case IInvocationOperation invocation:
                     // Predicate analysis for different equality comparison methods and argument null check methods.
-                    Debug.Assert(invocation.Type.SpecialType == SpecialType.System_Boolean);
+                    if (invocation.Type.SpecialType != SpecialType.System_Boolean)
+                    {
+                        return;
+                    }
 
                     if (invocation.TargetMethod.IsArgumentNullCheckMethod())
                     {

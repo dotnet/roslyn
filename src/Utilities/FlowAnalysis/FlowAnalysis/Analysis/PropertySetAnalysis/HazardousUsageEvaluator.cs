@@ -61,10 +61,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="evaluator">Evaluation callback.</param>
         public HazardousUsageEvaluator(HazardousUsageEvaluatorKind kind, EvaluationCallback evaluator)
         {
-            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization)
+            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization && kind != HazardousUsageEvaluatorKind.Argument)
             {
                 throw new ArgumentException(
-                    "kind must be Return or Initialization.  Use other constructors for Invocation.",
+                    "kind must be Return or Initialization or Argument.  Use other constructors for Invocation.",
                     nameof(kind));
             }
 
