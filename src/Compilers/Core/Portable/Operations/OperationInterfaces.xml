@@ -1069,6 +1069,15 @@
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
     </Property>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+      <Comments>
+        <summary>Arguments of the object creation, excluding the instance argument. Arguments are in evaluation order.</summary>
+        <remarks>
+          If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
+          Default values are supplied for optional arguments missing in source.
+        </remarks>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation">
     <Comments>
@@ -2012,7 +2021,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IArgumentOperation" Base="IOperation" ChildrenOrder="Target,Value">
+  <Node Name="IArgumentOperation" Base="IOperation">
     <Comments>
       <summary>
         Represents an argument to a method invocation.

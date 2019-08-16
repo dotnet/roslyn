@@ -47,11 +47,25 @@ namespace IOperationGenerator
                 }
 
                 if (!(abstractNode is Node node)) continue;
+                if (node.SkipChildrenGeneration || node.SkipClassGeneration) continue;
 
                 var properties = GetAllGeneratedIOperationProperties(node).Where(p => !p.IsInternal).Select(p => p.Name).ToList();
 
-                if (properties.Count < 2) continue;
-                if (node.SkipChildrenGeneration || node.SkipClassGeneration) continue;
+                if (properties.Count < 2)
+                {
+                    if (node.ChildrenOrder is string order)
+                    {
+                        var splitOrder = order.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+
+                        if (splitOrder.Count != properties.Count || (properties.Count == 1 && properties[0] != splitOrder[0]))
+                        {
+                            Console.WriteLine($"{node.Name} has inconsistent ChildrenOrder and properties");
+                            error = true;
+                        }
+                    }
+                    continue;
+                }
+
 
                 if (node.ChildrenOrder is null)
                 {
