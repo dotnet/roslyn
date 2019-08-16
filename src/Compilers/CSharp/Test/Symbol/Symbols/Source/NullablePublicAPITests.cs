@@ -2219,7 +2219,7 @@ public class C
         }
 
         [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
-        public void MissingSymbols_ReinferedParent()
+        public void MissingSymbols_ReinferredParent()
         {
             var source = @"
 class C
@@ -2249,7 +2249,7 @@ class C
         }
 
         [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
-        public void MultipleSymbols_ReinferedParent()
+        public void MultipleSymbols_ReinferredParent()
         {
             var source = @"
 using System;
