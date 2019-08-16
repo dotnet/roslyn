@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             EvalStackFrame frame = PushStackFrame();
             PushOperand(Visit(operation.Target));
             IOperation value = Visit(operation.Value);
-            return PopStackFrame(frame, new SimpleAssignmentOperation(PopOperand(), operation.IsRef, value, null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+            return PopStackFrame(frame, new SimpleAssignmentOperation(operation.IsRef, PopOperand(), value, null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
         }
 
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, int? captureIdForResult)
@@ -1979,9 +1979,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             PushOperand(Visit(compoundAssignment.Target));
             IOperation value = Visit(compoundAssignment.Value);
 
-            return PopStackFrame(frame, new CompoundAssignmentOperation(PopOperand(), value, compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible,
-                                                                        operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, semanticModel: null,
-                                                                        operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+            return PopStackFrame(frame, new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted,
+                operation.IsChecked, operation.OperatorMethod, PopOperand(), value, semanticModel: null,
+                syntax: operation.Syntax, type: operation.Type, constantValue: operation.ConstantValue, isImplicit: IsImplicit(operation)));
         }
 
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
@@ -2774,7 +2774,7 @@ oneMoreTime:
                     }
                     else
                     {
-                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceOperation)operation).ConvertibleValueConversion,
+                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceOperation)operation).ValueConversionConvertible,
                                                                           isTryCast: false, isChecked: false, semanticModel: null, valueSyntax, operation.Type,
                                                                           constantValue: default, isImplicit: true);
                     }
@@ -2972,12 +2972,12 @@ oneMoreTime:
 
                 AddStatement(
                     new SimpleAssignmentOperation(
-                        OperationCloner.CloneOperation(locationCapture),
                         isRef: false,
-                        CreateConversion(whenNullValue, operation.Target.Type),
+                        target: OperationCloner.CloneOperation(locationCapture),
+                        value: CreateConversion(whenNullValue, operation.Target.Type),
                         semanticModel: null,
-                        operation.Syntax,
-                        operation.Target.Type,
+                        syntax: operation.Syntax,
+                        type: operation.Target.Type,
                         constantValue: operation.ConstantValue,
                         isImplicit: true));
 
@@ -3009,8 +3009,8 @@ oneMoreTime:
                 EvalStackFrame whenNullFrame = PushStackFrame();
 
                 IOperation whenNullValue = Visit(operation.Value);
-                IOperation whenNullAssignment = new SimpleAssignmentOperation(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
-                                                                               operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
+                IOperation whenNullAssignment = new SimpleAssignmentOperation(isRef: false, OperationCloner.CloneOperation(locationCapture), whenNullValue, semanticModel: null,
+                    operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
 
                 if (isStatement)
                 {
@@ -3504,14 +3504,14 @@ oneMoreTime:
                 if (exceptionTarget != null)
                 {
                     AddStatement(new SimpleAssignmentOperation(
-                                         exceptionTarget,
                                          isRef: false,
-                                         new CaughtExceptionOperation(syntax, exceptionType),
-                                         semanticModel: null,
-                                         syntax,
-                                         type: null,
-                                         constantValue: default,
-                                         isImplicit: true));
+                        target: exceptionTarget,
+                        value: new CaughtExceptionOperation(syntax, exceptionType),
+                        semanticModel: null,
+                        syntax: syntax,
+                        type: null,
+                        constantValue: default,
+                        isImplicit: true));
                 }
             }
         }
@@ -3529,7 +3529,7 @@ oneMoreTime:
             switch (operation.Kind)
             {
                 case OperationKind.YieldReturn:
-                    AddStatement(new ReturnOperation(OperationKind.YieldReturn, returnedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
                     break;
 
                 case OperationKind.YieldBreak:
@@ -4183,10 +4183,11 @@ oneMoreTime:
                 if (info?.CurrentProperty != null)
                 {
                     return new PropertyReferenceOperation(info.CurrentProperty,
-                                                           info.CurrentProperty.IsStatic ? null : enumeratorRef,
-                                                           makeArguments(info.CurrentArguments), semanticModel: null,
-                                                           operation.LoopControlVariable.Syntax,
-                                                           info.CurrentProperty.Type, constantValue: default, isImplicit: true);
+                                                          makeArguments(info.CurrentArguments),
+                                                          info.CurrentProperty.IsStatic ? null : enumeratorRef,
+                                                          semanticModel: null,
+                                                          operation.LoopControlVariable.Syntax,
+                                                          info.CurrentProperty.Type, constantValue: default, isImplicit: true);
                 }
                 else
                 {
@@ -4204,25 +4205,34 @@ oneMoreTime:
                         ILocalSymbol local = declarator.Symbol;
                         current = applyConversion(info?.ElementConversion, current, local.Type);
 
-                        return new SimpleAssignmentOperation(new LocalReferenceOperation(local, isDeclaration: true, semanticModel: null,
-                                                                                           declarator.Syntax, local.Type, constantValue: default, isImplicit: true),
-                                                              isRef: local.RefKind != RefKind.None, current, semanticModel: null, declarator.Syntax, type: null,
-                                                              constantValue: default, isImplicit: true);
+                        return new SimpleAssignmentOperation(isRef: local.RefKind != RefKind.None,
+                                                             new LocalReferenceOperation(local,
+                                                                                         isDeclaration: true,
+                                                                                         semanticModel: null,
+                                                                                         declarator.Syntax,
+                                                                                         local.Type,
+                                                                                         constantValue: default,
+                                                                                         isImplicit: true),
+                                                             current,
+                                                             semanticModel: null,
+                                                             declarator.Syntax,
+                                                             type: null,
+                            constantValue: default, isImplicit: true);
 
                     case OperationKind.Tuple:
                     case OperationKind.DeclarationExpression:
                         Debug.Assert(info?.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
                         return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(operation.LoopControlVariable),
-                                                                      current, semanticModel: null,
-                                                                      operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
-                                                                      constantValue: default, isImplicit: true);
+                                                                     current, semanticModel: null,
+                                                                     operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
+                                                                     constantValue: default, isImplicit: true);
                     default:
-                        return new SimpleAssignmentOperation(Visit(operation.LoopControlVariable),
-                                                              isRef: false, // In C# this is an error case and VB doesn't support ref locals
-                                                              current, semanticModel: null, operation.LoopControlVariable.Syntax,
-                                                              operation.LoopControlVariable.Type,
-                                                              constantValue: default, isImplicit: true);
+                        return new SimpleAssignmentOperation(isRef: false,
+                            Visit(operation.LoopControlVariable), // In C# this is an error case and VB doesn't support ref locals
+                            current, semanticModel: null, operation.LoopControlVariable.Syntax,
+                            operation.LoopControlVariable.Type,
+                            constantValue: default, isImplicit: true);
                 }
             }
 
@@ -4503,11 +4513,11 @@ oneMoreTime:
                     }
 
                     IOperation initialValue = PopOperand();
-                    AddStatement(new SimpleAssignmentOperation(PopOperand(), // Loop control variable
-                                                                isRef: false,
-                                                                initialValue,
-                                                                semanticModel: null, operation.InitialValue.Syntax, type: null,
-                                                                constantValue: default, isImplicit: true));
+                    AddStatement(new SimpleAssignmentOperation(isRef: false, // Loop control variable
+                        PopOperand(),
+                        initialValue,
+                        semanticModel: null, operation.InitialValue.Syntax, type: null,
+                        constantValue: default, isImplicit: true));
 
                 }
 
@@ -4821,14 +4831,14 @@ oneMoreTime:
                     _forToLoopBinaryOperatorRightOperand = null;
 
                     controlVariableReferenceForAssignment = PopOperand();
-                    AddStatement(new SimpleAssignmentOperation(controlVariableReferenceForAssignment,
-                                                                isRef: false,
-                                                                increment,
-                                                                semanticModel: null,
-                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                type: null,
-                                                                constantValue: default,
-                                                                isImplicit: true));
+                    AddStatement(new SimpleAssignmentOperation(isRef: false,
+                        controlVariableReferenceForAssignment,
+                        increment,
+                        semanticModel: null,
+                        controlVariableReferenceForAssignment.Syntax,
+                        type: null,
+                        constantValue: default,
+                        isImplicit: true));
 
                     PopStackFrameAndLeaveRegion(frame);
                 }
@@ -4872,18 +4882,18 @@ oneMoreTime:
                         controlVariableReferenceForAssignment = OperationCloner.CloneOperation(PeekOperand());
                         Debug.Assert(controlVariableReferenceForAssignment.Kind == OperationKind.FlowCaptureReference);
 
-                        AddStatement(new SimpleAssignmentOperation(controlVariableReferenceForAssignment,
-                                                                    isRef: false,
-                                                                    new DefaultValueOperation(semanticModel: null,
-                                                                                               controlVariableReferenceForAssignment.Syntax,
-                                                                                               controlVariableReferenceForAssignment.Type,
-                                                                                               constantValue: default,
-                                                                                               isImplicit: true),
-                                                                    semanticModel: null,
-                                                                    controlVariableReferenceForAssignment.Syntax,
-                                                                    type: null,
-                                                                    constantValue: default,
-                                                                    isImplicit: true));
+                        AddStatement(new SimpleAssignmentOperation(isRef: false,
+                            controlVariableReferenceForAssignment,
+                            new DefaultValueOperation(semanticModel: null,
+                                controlVariableReferenceForAssignment.Syntax,
+                                controlVariableReferenceForAssignment.Type,
+                                constantValue: default,
+                                isImplicit: true),
+                            semanticModel: null,
+                            controlVariableReferenceForAssignment.Syntax,
+                            type: null,
+                            constantValue: default,
+                            isImplicit: true));
 
                         UnconditionalBranch(afterIncrement);
 
@@ -4921,14 +4931,14 @@ oneMoreTime:
                         increment = MakeNullable(increment, controlVariableReferenceForAssignment.Type);
                     }
 
-                    AddStatement(new SimpleAssignmentOperation(controlVariableReferenceForAssignment,
-                                                                isRef: false,
-                                                                increment,
-                                                                semanticModel: null,
-                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                type: null,
-                                                                constantValue: default,
-                                                                isImplicit: true));
+                    AddStatement(new SimpleAssignmentOperation(isRef: false,
+                        controlVariableReferenceForAssignment,
+                        increment,
+                        semanticModel: null,
+                        controlVariableReferenceForAssignment.Syntax,
+                        type: null,
+                        constantValue: default,
+                        isImplicit: true));
 
                     PopStackFrame(frame, mergeNestedRegions: !isNullable); // We have a branch out in between when nullable is involved
                     LeaveRegionIfAny(frame);
@@ -5387,7 +5397,7 @@ oneMoreTime:
             // We can't use the IdentifierToken as the syntax for the local reference, so we use the
             // entire declarator as the node
             var localRef = new LocalReferenceOperation(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-            var assignment = new SimpleAssignmentOperation(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
+            var assignment = new SimpleAssignmentOperation(isRef: localSymbol.IsRef, localRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
             AddStatement(assignment);
 
             PopStackFrameAndLeaveRegion(frame);
@@ -5584,8 +5594,8 @@ oneMoreTime:
                     IOperation right = Visit(assignmentOperation.Value);
                     IOperation left = popTarget(assignmentOperation.Target);
 
-                    result = new SimpleAssignmentOperation(left, assignmentOperation.IsRef, right, semanticModel: null, assignmentOperation.Syntax,
-                                                            assignmentOperation.Type, assignmentOperation.ConstantValue, IsImplicit(assignmentOperation));
+                    result = new SimpleAssignmentOperation(assignmentOperation.IsRef, left, right, semanticModel: null, assignmentOperation.Syntax,
+                        assignmentOperation.Type, assignmentOperation.ConstantValue, IsImplicit(assignmentOperation));
                 }
 
                 AddStatement(result);
@@ -5717,7 +5727,7 @@ oneMoreTime:
                         var propertyReference = (IPropertyReferenceOperation)originalTarget;
                         instance = (!propertyReference.Member.IsStatic && propertyReference.Instance != null) ? PopOperand() : null;
                         ImmutableArray<IArgumentOperation> propertyArguments = PopArray(propertyReference.Arguments, RewriteArgumentFromArray);
-                        return new PropertyReferenceOperation(propertyReference.Property, instance, propertyArguments, semanticModel: null, propertyReference.Syntax,
+                        return new PropertyReferenceOperation(propertyReference.Property, propertyArguments, instance, semanticModel: null, propertyReference.Syntax,
                                                                propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         var arrayElementReference = (IArrayElementReferenceOperation)originalTarget;
@@ -5786,10 +5796,10 @@ oneMoreTime:
 
                 var visitedPropertyInstance = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
                     propertyReference.Instance.Syntax, propertyReference.Instance.Type, propertyReference.Instance.ConstantValue, IsImplicit(propertyReference.Instance));
-                IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, visitedPropertyInstance, ImmutableArray<IArgumentOperation>.Empty,
+                IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
                     semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                 IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
-                var visitedAssignment = new SimpleAssignmentOperation(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
+                var visitedAssignment = new SimpleAssignmentOperation(isRef: simpleAssignment.IsRef, visitedTarget, visitedValue,
                     semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
                 initializerBuilder.Add(visitedAssignment);
             }
@@ -6056,7 +6066,7 @@ oneMoreTime:
                     elementBuilder.Add(PopTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
                 }
                 elementBuilder.ReverseContents();
-                return new TupleOperation(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, IsImplicit(tuple));
+                return new TupleOperation(elementBuilder.ToImmutableAndFree(), tuple.NaturalType, semanticModel: null, tuple.Syntax, tuple.Type, tuple.ConstantValue, IsImplicit(tuple));
             }
             else
             {
@@ -6255,7 +6265,7 @@ oneMoreTime:
             IOperation instance = operation.Property.IsStatic ? null : operation.Instance;
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             PopStackFrame(frame);
-            return new PropertyReferenceOperation(operation.Property, visitedInstance, visitedArguments, semanticModel: null,
+            return new PropertyReferenceOperation(operation.Property, visitedArguments, visitedInstance, semanticModel: null,
                                                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -6356,7 +6366,7 @@ oneMoreTime:
                     arguments = ImmutableArray<IArgumentOperation>.Empty;
                 }
 
-                IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, instance, arguments,
+                IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, arguments, instance,
                     semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
@@ -6369,8 +6379,8 @@ oneMoreTime:
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: initializer.Locals));
 
             EvalStackFrame frame = PushStackFrame();
-            var assignment = new SimpleAssignmentOperation(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
-                    initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);
+            var assignment = new SimpleAssignmentOperation(isRef: false, rewrittenTarget, Visit(initializer.Value), semanticModel: null,
+                initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);
             AddStatement(assignment);
             PopStackFrameAndLeaveRegion(frame);
 
@@ -6463,9 +6473,8 @@ oneMoreTime:
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
-            bool isDecrement = operation.Kind == OperationKind.Decrement;
-            return new IncrementOrDecrementOperation(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod,
-                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod,
+                                                     operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
@@ -6519,7 +6528,7 @@ oneMoreTime:
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
-            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionOperation)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
