@@ -397,7 +397,7 @@ namespace IOperationGenerator
                                 else
                                 {
                                     Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
-                                    var childrenOrdered = node.ChildrenOrder.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                                    var childrenOrdered = node.ChildrenOrder!.Split(",", StringSplitOptions.RemoveEmptyEntries);
 
                                     foreach (var childName in childrenOrdered)
                                     {
