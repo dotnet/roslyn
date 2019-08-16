@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal sealed class DataFlowAnalysisResultBuilder<TAnalysisData> : IDisposable
         where TAnalysisData : AbstractAnalysisData
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly PooledDictionary<BasicBlock, TAnalysisData> _info;
+#pragma warning restore
 
         public DataFlowAnalysisResultBuilder()
         {

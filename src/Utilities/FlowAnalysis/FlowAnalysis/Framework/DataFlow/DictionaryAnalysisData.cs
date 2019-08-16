@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private PooledDictionary<TKey, TValue> _coreAnalysisData;
+#pragma warning restore
 
         public DictionaryAnalysisData()
         {
