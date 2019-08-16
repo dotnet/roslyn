@@ -2122,8 +2122,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Update resources and generate XML documentation comments.
-        /// NOTE: This API generates documentation even in presence of errors.
-        /// https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
         /// </summary>
         /// <returns>True if successful.</returns>
         internal abstract bool GenerateResourcesAndDocumentationComments(
@@ -2491,6 +2489,8 @@ namespace Microsoft.CodeAnalysis
 
                     if (!options.EmitMetadataOnly)
                     {
+                        // NOTE: We generate documentation even in presence of compile errors.
+                        // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
                         if (!GenerateResourcesAndDocumentationComments(
                             moduleBeingBuilt,
                             xmlDocumentationStream,
@@ -2517,6 +2517,11 @@ namespace Microsoft.CodeAnalysis
                 if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
+                }
+
+                if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
+                {
+                    success = false;
                 }
 
                 if (success)
@@ -2700,11 +2705,6 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (!metadataOnly && diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
-            {
-                return false;
-            }
 
             Cci.PdbWriter nativePdbWriter = null;
             DiagnosticBag metadataDiagnostics = null;

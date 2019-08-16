@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -5166,28 +5165,41 @@ public class DerivingClass<T> : BaseClass<T>
 
         [Fact]
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
-        public void WarnAsErrorDoesNotEmit()
+        public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        private void TestWarnAsErrorDoesNotEmitCore(CSharpCompilationOptions options)
         {
             string source = @"
 class X
 {
     int _f;
 }";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
             var compilation = CreateCompilation(source, options: options);
 
             using var output = new MemoryStream();
             using var pdbStream = new MemoryStream();
             using var xmlDocumentationStream = new MemoryStream();
+            using var win32ResourcesStream = compilation.CreateDefaultWin32Resources(versionResource: true, noManifest: false, manifestContents: null, iconInIcoFormat: null);
 
-            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream, win32Resources: null);
+            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream, win32ResourcesStream);
             Assert.False(emitResult.Success);
 
             Assert.Equal(0, output.Length);
             Assert.Equal(0, pdbStream.Length);
 
-            // NOTE: Compilation.Emit generates xml documentation even in presence of compiler errors.
-            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
+            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting the below behavior.
             Assert.True(xmlDocumentationStream.Length > 0);
 
             emitResult.Diagnostics.Verify(
@@ -5198,7 +5210,21 @@ class X
 
         [Fact]
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
-        public void WarnAsErrorWithMetadataOnlyImageDoesEmit()
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        private void TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(CSharpCompilationOptions options)
         {
             string source = @"
 public class X
@@ -5211,7 +5237,6 @@ public class X
 [System.Obsolete]
 public class Y { }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
             var compilation = CreateCompilation(source, options: options);
 
             using var output = new MemoryStream();

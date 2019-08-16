@@ -11317,6 +11317,102 @@ class C
         [InlineData(true)]
         [InlineData(false)]
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void AnalyzerConfigSeverityEscalationToErrorDoesNotEmit(bool analyzerConfigSetToError)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    int _f;     // CS0169: unused field
+}");
+
+            var docName = "temp.xml";
+            var pdbName = "temp.pdb";
+            var additionalArgs = new[] { $"/doc:{docName}", $"/pdb:{pdbName}", "/debug" };
+
+            if (analyzerConfigSetToError)
+            {
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = error");
+
+                additionalArgs = additionalArgs.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray();
+            }
+
+            var expectedErrorCount = analyzerConfigSetToError ? 1 : 0;
+            var expectedWarningCount = !analyzerConfigSetToError ? 1 : 0;
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                      additionalArgs,
+                                      expectedErrorCount: expectedErrorCount,
+                                      expectedWarningCount: expectedWarningCount);
+
+            var expectedOutput = analyzerConfigSetToError ? "error CS0169" : "warning CS0169";
+            Assert.Contains(expectedOutput, output);
+
+            string binaryPath = Path.Combine(dir.Path, "temp.dll");
+            Assert.True(File.Exists(binaryPath) == !analyzerConfigSetToError);
+
+            string pdbPath = Path.Combine(dir.Path, pdbName);
+            Assert.True(File.Exists(pdbPath) == !analyzerConfigSetToError);
+
+            string xmlDocFilePath = Path.Combine(dir.Path, docName);
+            Assert.True(File.Exists(xmlDocFilePath) == !analyzerConfigSetToError);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void RulesetSeverityEscalationToErrorDoesNotEmit(bool rulesetSetToError)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    int _f;     // CS0169: unused field
+}");
+
+            var docName = "temp.xml";
+            var pdbName = "temp.pdb";
+            var additionalArgs = new[] { $"/doc:{docName}", $"/pdb:{pdbName}", "/debug" };
+
+            if (rulesetSetToError)
+            {
+                string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.CodeAnalysis"" RuleNamespace=""Microsoft.CodeAnalysis"">
+    <Rule Id=""CS0169"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+                var rulesetFile = CreateRuleSetFile(source);
+                additionalArgs = additionalArgs.Append("/ruleset:" + rulesetFile.Path).ToArray();
+            }
+
+            var expectedErrorCount = rulesetSetToError ? 1 : 0;
+            var expectedWarningCount = !rulesetSetToError ? 1 : 0;
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                      additionalArgs,
+                                      expectedErrorCount: expectedErrorCount,
+                                      expectedWarningCount: expectedWarningCount);
+
+            var expectedOutput = rulesetSetToError ? "error CS0169" : "warning CS0169";
+            Assert.Contains(expectedOutput, output);
+
+            string binaryPath = Path.Combine(dir.Path, "temp.dll");
+            Assert.True(File.Exists(binaryPath) == !rulesetSetToError);
+
+            string pdbPath = Path.Combine(dir.Path, pdbName);
+            Assert.True(File.Exists(pdbPath) == !rulesetSetToError);
+
+            string xmlDocFilePath = Path.Combine(dir.Path, docName);
+            Assert.True(File.Exists(xmlDocFilePath) == !rulesetSetToError);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void AnalyzerWarnAsErrorDoesNotEmit(bool warnAsError)
         {
             var dir = Temp.CreateDirectory();

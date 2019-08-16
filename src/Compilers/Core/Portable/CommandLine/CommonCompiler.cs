@@ -578,6 +578,23 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
+        /// or warnings promoted to error via /warnaserror which are not suppressed.
+        /// </summary>
+        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        {
+            foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
+            {
+                if (diagnostic.IsUnsuppressedError)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
@@ -973,7 +990,7 @@ namespace Microsoft.CodeAnalysis
                             analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                         }
 
-                        if (diagnostics.HasAnyUnsuppressedErrorsOrWarnAsErrors())
+                        if (HasUnsuppressedErrors(diagnostics))
                         {
                             success = false;
                         }
@@ -1062,6 +1079,11 @@ namespace Microsoft.CodeAnalysis
                     finally
                     {
                         moduleBeingBuilt.CompilationFinished();
+                    }
+
+                    if (HasUnsuppressedErrors(diagnostics))
+                    {
+                        success = false;
                     }
 
                     if (success)
