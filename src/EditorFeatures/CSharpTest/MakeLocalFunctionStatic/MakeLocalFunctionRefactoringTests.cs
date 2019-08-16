@@ -5,16 +5,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 {
-    public partial class PassVariableExplicitlyInLocalStaticFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class MakeLocalFunctionStaticTests : AbstractCSharpCodeActionTest
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new PassVariableExplicitlyInLocalStaticFunctionCodeFixProvider());
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new MakeLocalFunctionStaticCodeRefactoringProvider();
 
         private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -35,9 +36,9 @@ class C
 
         var y = AddLocal();
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
-                return [|x|] += 1;
+                return x += 1;
             }
         }  
 }",
@@ -78,10 +79,10 @@ class C
     int N(int x){
         x = AddLocal();
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
                 int x = 1;
-                return [|x|] += 1;
+                return x += 1;
             }
         }
     }
@@ -89,7 +90,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMultipleVariables1()
+        public async Task TestMultipleVariables()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -104,9 +105,9 @@ class C
 
         var z = AddLocal();
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
-                return [|x|] += y;
+                return x += y;
             }
         }
 }",
@@ -131,52 +132,6 @@ class C
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMultipleVariables2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-    }
-
-    int N(int x, int y){
-
-        x = AddLocal();
-
-        return x + y;
-
-        static int AddLocal()
-            {
-                return x += y[||];
-            }
-        }  
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-    }
-
-    int N(int x, int y){   
-
-        x = AddLocal(x,y);
-
-        return x + y;
-
-        static int AddLocal(int x, int y)
-            {
-                return x += y;
-            }
-        }  
-    }
-}", parseOptions: CSharp8ParseOptions);
-        }
 
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
@@ -198,9 +153,9 @@ class C
 
         return x + x2;
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
-                return x[||] += 1;
+                return x += 1;
             }
         }  
 }",
@@ -242,7 +197,7 @@ class C
 
                 x = AddLocal(x);
 
-                static int AddLocal(int x)
+                int[||] AddLocal(int x)
                 {
                     return x += 1;
                 }
@@ -270,10 +225,10 @@ class C
 
         return x + y;
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
                 int y = 5;
-                return x[||] += y;
+                return x += y;
             }
         }  
 }",
@@ -302,7 +257,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestOneVariableAlreadyInParametersOfDeclarationAndCall1()
+        public async Task TestOneVariableAlreadyInParametersOfDeclarationAndCall()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -319,9 +274,9 @@ class C
 
         return x + y;
 
-        static int AddLocal(int x)
+        int[||] AddLocal(int x)
             {
-                return x += y[||];
+                return x += y;
             }
         }  
 }",
@@ -346,33 +301,6 @@ class C
         }  
     }
 }", parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestOneVariableAlreadyInParametersOfDeclarationAndCall2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-    }
-
-    int N(int x, int y){
-
-        x = AddLocal(int x);
-
-        return x;
-
-        static int AddLocal(int x)
-            {
-                return x[||] += y;
-            }
-        }  
-}", new TestParameters(
-    parseOptions: CSharp8ParseOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
@@ -392,9 +320,9 @@ class C
         x = AddLocal();
         return x;
 
-        static int AddLocal()
+        int[||] AddLocal()
             {
-                x[||] = AddLocal();
+                x = AddLocal();
                 return x += 1;
             }
         }  
