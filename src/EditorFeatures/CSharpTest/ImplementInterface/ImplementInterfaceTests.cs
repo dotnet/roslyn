@@ -8046,7 +8046,7 @@ public class Test : ITest
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableDisabled()
         {
             await TestInRegularAndScriptAsync(
