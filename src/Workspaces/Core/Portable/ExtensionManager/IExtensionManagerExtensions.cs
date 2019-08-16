@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task PerformActionAsync(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task> function)
+            Func<Task?> function)
         {
             try
             {
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task<T> PerformFunctionAsync<T>(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task<T>> function,
+            Func<Task<T>?> function,
             T defaultValue)
         {
             try

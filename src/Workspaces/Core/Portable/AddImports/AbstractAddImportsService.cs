@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             aliasContainer = contextSpine.FirstOrDefault(HasAliases) ?? fallbackNode;
         }
 
-        private static SyntaxNode GetFirstApplicableContainer(SyntaxNode contextNode)
+        private static SyntaxNode? GetFirstApplicableContainer(SyntaxNode contextNode)
         {
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
             if (usingDirective != null)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             }
 
             return contextNode.GetAncestor<TNamespaceDeclarationSyntax>() ??
-                   (SyntaxNode)contextNode.GetAncestorOrThis<TCompilationUnitSyntax>();
+                   (SyntaxNode?)contextNode.GetAncestorOrThis<TCompilationUnitSyntax>();
         }
     }
 }
