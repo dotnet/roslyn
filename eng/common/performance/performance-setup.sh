@@ -3,7 +3,7 @@
 source_directory=$BUILD_SOURCESDIRECTORY
 core_root_directory=
 architecture=x64
-framework=netcoreapp3.0
+framework=netcoreapp5.0
 compilation_mode=tiered
 repository=$BUILD_REPOSITORY_NAME
 branch=$BUILD_SOURCEBRANCH
@@ -155,6 +155,11 @@ if [[ "$use_core_run" = true ]]; then
     new_core_root=$payload_directory/Core_Root
     mv $core_root_directory $new_core_root
 fi
+
+ci=true
+
+_script_dir=$(pwd)/eng/common
+. "$_script_dir/pipeline-logging-functions.sh"
 
 # Make sure all of our variables are available for future steps
 Write-PipelineSetVariable -name "UseCoreRun" -value "$use_core_run" -is_multi_job_variable false
