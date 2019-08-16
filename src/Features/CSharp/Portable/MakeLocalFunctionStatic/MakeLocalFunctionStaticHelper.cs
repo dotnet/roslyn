@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var rootOne = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(rootOne, CSharpSyntaxGenerator.Instance);
 
+            editor.TrackNode(localFunction);
+
+            var referencesBuilder = Analyzer.Utilities.PooledObjects.ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
             foreach (var referenceSymbol in arrayNode)
             {
                 foreach (var location in referenceSymbol.Locations)
@@ -54,31 +57,37 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         continue;
                     }
 
-                    var newArguments = parameters.Select
-                        (p => CSharpSyntaxGenerator.Instance.Argument(name: null, p.RefKind, p.Name.ToIdentifierName()) as ArgumentSyntax);
-                    var newArgList = invocation.ArgumentList.WithArguments(invocation.ArgumentList.Arguments.AddRange(newArguments));
-                    var newInvocation = invocation.WithArgumentList(newArgList);
-
-                    foreach (var newArgument in newArguments)
-                    {
-                        editor.InsertAfter(invocation.ArgumentList, newArgument);
-                    }
+                    editor.TrackNode(invocation);
+                    referencesBuilder.Add(invocation);
                 }
             }
 
+            foreach (var invocation in referencesBuilder.OrderByDescending(n => n.Span.Start))
+            {
+                var newArguments = parameters.Select
+                    (p => CSharpSyntaxGenerator.Instance.Argument(name: null, p.RefKind, p.Name.ToIdentifierName()) as ArgumentSyntax);
+                var newArgList = invocation.ArgumentList.WithArguments(invocation.ArgumentList.Arguments.AddRange(newArguments));
+                var newInvocation = invocation.WithArgumentList(newArgList);
+                editor.GetChangedRoot();
+                editor.ReplaceNode(invocation, newInvocation);
+            }
+
+            var rootWithFixedReferences = editor.GetChangedRoot();
+            var localFunctionWithFixedReferences = rootWithFixedReferences.GetCurrentNode(localFunction);
+            var documentWithFixedReferences = document.WithSyntaxRoot(rootWithFixedReferences);
+
             // Updates the declaration with the variables passed in
-            var updatedLocalFunction = CodeGenerator.AddParameterDeclarations(localFunction, parameters, document.Project.Solution.Workspace);
+            var localFunctionWithFixedDeclaration = CodeGenerator.AddParameterDeclarations(
+                localFunctionWithFixedReferences,
+                parameters,
+                documentWithFixedReferences.Project.Solution.Workspace);
 
             // Adds the modifier static
             var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
-            var localFunctionWithStatic = (LocalFunctionStatementSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(updatedLocalFunction, modifiers);
+            var localFunctionWithStatic = (LocalFunctionStatementSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(localFunctionWithFixedDeclaration, modifiers);
 
-            editor.ReplaceNode(localFunction.ParameterList, localFunctionWithStatic.ParameterList);
-
-            var newRoot = editor.GetChangedRoot();
-            var newDocument = document.WithSyntaxRoot(newRoot);
-
-            return newDocument;
+            var finalRoot = rootWithFixedReferences.ReplaceNode(localFunctionWithFixedReferences, localFunctionWithStatic);
+            return documentWithFixedReferences.WithSyntaxRoot(finalRoot);
         }
 
         // Creates a new parameter symbol for all variables captured in the local function

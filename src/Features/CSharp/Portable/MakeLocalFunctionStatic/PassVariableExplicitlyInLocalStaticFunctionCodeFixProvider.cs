@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var declaration = root.FindNode(diagnosticSpan).AncestorsAndSelf().OfType<LocalFunctionStatementSyntax>().First();
+
+            if (declaration == null)
+            {
+                return;
+            }
+
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
