@@ -54164,5 +54164,242 @@ public interface I2 : I1
                 );
         }
 
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ImplicitImplementationOfNonPublicMethod_01()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method assembly hidebysig newslot strict virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""I1.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method I1::M
+
+  .method public hidebysig instance string 
+          Test() cil managed
+  {
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  callvirt   instance string I1::M()
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method I1::Test
+
+} // end of class I1
+
+.class public auto ansi beforefieldinit C0
+       extends System.Object
+       implements I1
+{
+  .method public hidebysig newslot virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""C0.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method C0::M
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C0::.ctor
+
+} // end of class C0
+";
+
+            var source1 =
+@"
+class Test
+{
+    static void Main()
+    {
+        I1 x = new C0();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: "C0.M");
+
+            var c0 = compilation1.GetTypeByMetadataName("C0");
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+
+            Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ImplicitImplementationOfNonPublicMethod_02()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method assembly hidebysig newslot strict virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""I1.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method I1::M
+
+  .method public hidebysig instance string 
+          Test() cil managed
+  {
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  callvirt   instance string I1::M()
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method I1::Test
+
+} // end of class I1
+
+.class public auto ansi beforefieldinit C0
+       extends System.Object
+       implements I1
+{
+  .method public hidebysig newslot virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""C0.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method C0::M
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C0::.ctor
+
+} // end of class C0
+";
+
+            var source1 =
+@"
+class Test : C0, I1
+{
+    static void Main()
+    {
+        I1 x = new Test();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: "C0.M");
+
+            var test = compilation1.GetTypeByMetadataName("Test");
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+
+            Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ImplicitImplementationOfNonPublicMethod_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal string M()
+    {
+        return ""I1.M"";
+    }
+
+    public sealed string Test()
+    {
+        return M();
+    }
+}
+
+public class C0 : I1
+{
+    public virtual string M()
+    {
+        return ""C0.M"";
+    }
+}
+
+class Test : C0, I1
+{
+    static void Main()
+    {
+        I1 x = new Test();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+            var c0 = compilation1.GetTypeByMetadataName("C0");
+            var test = compilation1.GetTypeByMetadataName("Test");
+
+            Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+            Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+
+            compilation1.VerifyDiagnostics(
+                // (15,19): error CS8704: 'C0' does not implement interface member 'I1.M()'. 'C0.M()' cannot implicitly implement a non-public member.
+                // public class C0 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.M()", "C0.M()").WithLocation(15, 19)
+                );
+        }
+
     }
 }
