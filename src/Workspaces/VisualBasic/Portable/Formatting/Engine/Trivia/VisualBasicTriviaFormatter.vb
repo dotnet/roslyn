@@ -69,7 +69,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
-                Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+                If trivia1.Kind = SyntaxKind.None Then
+                    Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+                ElseIf trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
+                    Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=0)
+                ElseIf trivia1.Kind = SyntaxKind.commenttrivia Then
+                    Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=-1)
+                Else
+                    Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
+                End If
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
@@ -105,7 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If insertNewLine Then
                     Return LineColumnRule.PreserveLinesWithDefaultIndentation(lines:=0)
                 End If
-
+                If trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
+                    Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
+                End If
                 Return LineColumnRule.PreserveLinesWithGivenIndentation(lines:=0)
             End If
 
