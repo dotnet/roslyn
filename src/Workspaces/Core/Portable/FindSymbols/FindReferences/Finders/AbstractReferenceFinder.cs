@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -720,13 +721,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        public async override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ISymbol symbol, Project project, IImmutableSet<Document> documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return symbol is TSymbol && CanFind((TSymbol)symbol)
-                ? DetermineDocumentsToSearchAsync((TSymbol)symbol, project, documents, options, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<Document>();
+            if (symbol is TSymbol targetSymbol && CanFind(targetSymbol))
+            {
+                var documentsToSearch = await DetermineDocumentsToSearchAsync(targetSymbol, project, documents, options, cancellationToken).ConfigureAwait(false);
+
+                if (options.IgnoreUnchangeableDocuments)
+                {
+                    documentsToSearch = documentsToSearch.WhereAsArray(d => d.CanApplyChange());
+                }
+
+                return documentsToSearch;
+            }
+
+            return ImmutableArray<Document>.Empty;
         }
 
         public override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

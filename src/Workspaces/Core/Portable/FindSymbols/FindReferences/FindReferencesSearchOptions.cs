@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -26,16 +24,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool AssociatePropertyReferencesWithSpecificAccessor { get; }
 
+        /// <summary>
+        /// Exclude references in unchangeable documents from search results.
+        /// i.e. when a document's corresponding <see cref="IDocumentOperationService.CanApplyChange()"/> returns <c>false</c>.
+        /// </summary>
+        public bool IgnoreUnchangeableDocuments { get; }
+
         public FindReferencesSearchOptions(
-            bool associatePropertyReferencesWithSpecificAccessor)
+            bool associatePropertyReferencesWithSpecificAccessor,
+            bool ignoreUnchangeableDocuments = false)
         {
             AssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor;
+            IgnoreUnchangeableDocuments = ignoreUnchangeableDocuments;
         }
 
         public FindReferencesSearchOptions WithAssociatePropertyReferencesWithSpecificAccessor(
             bool associatePropertyReferencesWithSpecificAccessor)
         {
-            return new FindReferencesSearchOptions(associatePropertyReferencesWithSpecificAccessor);
+            return new FindReferencesSearchOptions(associatePropertyReferencesWithSpecificAccessor, this.IgnoreUnchangeableDocuments);
+        }
+
+        public FindReferencesSearchOptions WithIgnoreUnchangeableDocuments(
+            bool ignoreUnchangeableDocuments)
+        {
+            return new FindReferencesSearchOptions(this.AssociatePropertyReferencesWithSpecificAccessor, ignoreUnchangeableDocuments);
         }
 
         /// <summary>
