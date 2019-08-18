@@ -33,5 +33,34 @@ class C
     public override string ToString() => ""Foo"";
 }");
         }
+
+        [Fact]
+        public async Task NotOfferedOnUnrelatedClassMembers()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    [||]public int Foo { get; }
+
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task OfferedOnOverriddenToString()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public override string [||]ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{ToString(),nq}"")]
+class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
     }
 }

@@ -12,20 +12,29 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 {
-    internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<TTypeDeclarationSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<TTypeDeclarationSyntax, TMethodDeclarationSyntax> : CodeRefactoringProvider
         where TTypeDeclarationSyntax : SyntaxNode
+        where TMethodDeclarationSyntax : SyntaxNode
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
-            if (type is null)
+
+            var generator = SyntaxGenerator.GetGenerator(context.Document);
+
+            if (type != null)
             {
-                return;
+                if (!DeclaresToStringOverride(generator, type)) return;
+            }
+            else
+            {
+                var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
+                if (!IsToStringOverride(method)) return;
+
+                type = (TTypeDeclarationSyntax)method.Parent;
             }
 
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(context.Document);
-
-            if (syntaxGenerator.GetAttributes(type).Any(IsDebuggerDisplayAttribute) || !DeclaresToStringOverride(type))
+            if (generator.GetAttributes(type).Any(IsDebuggerDisplayAttribute))
             {
                 return;
             }
@@ -59,7 +68,12 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         protected abstract bool IsDebuggerDisplayAttribute(SyntaxNode attribute);
 
-        protected abstract bool DeclaresToStringOverride(TTypeDeclarationSyntax typeDeclaration);
+        protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
+
+        protected virtual bool DeclaresToStringOverride(SyntaxGenerator generator, TTypeDeclarationSyntax typeDeclaration)
+        {
+            return generator.GetMembers(typeDeclaration).OfType<TMethodDeclarationSyntax>().Any(IsToStringOverride);
+        }
 
         protected bool IsDebuggerDisplayAttributeIdentifier(SyntaxToken name)
         {

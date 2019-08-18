@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
 
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddDebuggerDisplayCodeRefactoringProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicAddDebuggerDisplayCodeRefactoringProvider
-        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax)
+        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax, MethodBlockSyntax)
 
         Protected Overrides Function IsDebuggerDisplayAttribute(attribute As SyntaxNode) As Boolean
             ' Purposely bails for efficiency if anything called "DebuggerDisplay" is already applied, regardless of
@@ -28,21 +28,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
             Return identifier IsNot Nothing AndAlso IsDebuggerDisplayAttributeIdentifier(identifier.Identifier)
         End Function
 
-        Protected Overrides Function DeclaresToStringOverride(typeDeclaration As TypeBlockSyntax) As Boolean
-            Return typeDeclaration.Members.Any(AddressOf IsToStringOverride)
-        End Function
-
-        Private Shared Function IsToStringOverride(memberDeclaration As StatementSyntax) As Boolean
+        Protected Overrides Function IsToStringOverride(methodDeclaration As MethodBlockSyntax) As Boolean
             ' Purposely bails for efficiency if no "ToString" override is in the same syntax tree, regardless of whether
             ' it's declared in another partial class file. Since the DebuggerDisplay attribute will refer to it, it's
             ' nicer to have them both in the same file anyway.
 
-            Dim method = TryCast(memberDeclaration, MethodBlockSyntax)
-
-            If method Is Nothing Then Return False
-            If method.SubOrFunctionStatement.GetArity <> 0 Then Return False
-            If method.SubOrFunctionStatement.ParameterList?.Parameters.Any Then Return False
-            If Not method.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.OverridesKeyword) Then Return False
+            If methodDeclaration Is Nothing Then Return False
+            If methodDeclaration.SubOrFunctionStatement.GetArity <> 0 Then Return False
+            If methodDeclaration.SubOrFunctionStatement.ParameterList?.Parameters.Any Then Return False
+            If Not methodDeclaration.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.OverridesKeyword) Then Return False
 
             Return True
         End Function
