@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
-        <target state="translated">&lt;typeOuMembre&gt;</target>
+        <target state="translated">&lt;typeOrMember&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_of_member_to_return_the_name_of">

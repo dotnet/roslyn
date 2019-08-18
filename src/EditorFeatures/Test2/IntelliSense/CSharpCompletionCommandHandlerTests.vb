@@ -3771,7 +3771,7 @@ class C
 
                 state.SendTypeChars("Sys")
 
-                If completionImplementation = CompletionImplementation.Legacy Then
+                If completionImplementation = completionImplementation.Legacy Then
                     state.SendCommitUniqueCompletionListItem()
                     Await Task.Delay(250)
 
@@ -3857,7 +3857,7 @@ class C
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                If completionImplementation = CompletionImplementation.Legacy Then
+                If completionImplementation = completionImplementation.Legacy Then
                     state.SendCommitUniqueCompletionListItem()
                     Await Task.Delay(250)
                     state.AssertNoCompletionSessionWithNoBlock()
@@ -5079,6 +5079,29 @@ class C
         ' Implementation for the Modern completion only
         <InlineData(CompletionImplementation.Modern)>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAutomationTextPassedToEditor(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Len$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendInvokeCompletionList()
+                state.SendSelectCompletionItem("★ Length")
+                Await state.AssertSelectedCompletionItem(displayText:="★ Length", automationText:=provider.AutomationTextString)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueWithIntelliCodeAndDuplicateItemsFromIntelliCode(completionImplementation As CompletionImplementation) As Task
             Dim provider = New IntelliCodeMockWeirdProvider()
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -5611,12 +5634,16 @@ class C
         Private Class IntelliCodeMockProvider
             Inherits CompletionProvider
 
+            Public AutomationTextString As String = "Hello from IntelliCode: Length"
+
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
-                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize", displayTextSuffix:="()"))
+                Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length")
+                intelliCodeItem.AutomationText = AutomationTextString
+
+                context.AddItem(intelliCodeItem)
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
-                context.AddItem(CompletionItem.Create(displayText:="ToString", filterText:="ToString", displayTextSuffix:="()"))
-                context.AddItem(CompletionItem.Create(displayText:="First", filterText:="First", displayTextSuffix:="()"))
+                context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
+                context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
                 Return Task.CompletedTask
             End Function
 
