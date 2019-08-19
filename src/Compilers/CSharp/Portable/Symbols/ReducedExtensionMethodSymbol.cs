@@ -26,12 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
+#nullable enable
         /// <summary>
         /// Return the extension method in reduced form if the extension method
         /// is applicable, and satisfies type parameter constraints, based on the
         /// "this" argument type. Otherwise, returns null.
         /// </summary>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType)
+        /// <param name="compilation">Compilation used to check constraints.  Language version 7.3 is assumed if this is null.</param>
+        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation? compilation)
+#nullable disable
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            method = InferExtensionMethodTypeArguments(method, receiverType, ref useSiteDiagnostics);
+            method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteDiagnostics);
             if ((object)method == null)
             {
                 return null;
@@ -98,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
+#nullable enable
         /// <summary>
         /// If the extension method is applicable based on the "this" argument type, return
         /// the method constructed with the inferred type arguments. If the method is not an
@@ -105,7 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// applicable, or if constraints when inferring type parameters from the "this" type
         /// are not satisfied, the return value is null.
         /// </summary>
-        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        /// <param name="compilation">Compilation used to check constraints.  Language version 7.3 is assumed if this is null.</param>
+        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation? compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+#nullable disable
         {
             Debug.Assert(method.IsExtensionMethod);
             Debug.Assert((object)thisType != null);
@@ -152,6 +158,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 useSiteDiagnostics: ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)
+            {
+                return null;
+            }
+
+            // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
+            // This prevents constraint checking from failing for corresponding type parameters.
+            int firstNullInTypeArgs = -1;
+            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            var typeParams = method.TypeParameters;
+            var typeArgsForConstraintsCheck = typeArgs;
+            for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
+            {
+                if (!typeArgsForConstraintsCheck[i].HasType)
+                {
+                    firstNullInTypeArgs = i;
+                    var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
+
+                    for (; i < typeArgsForConstraintsCheck.Length; i++)
+                    {
+                        var typeArg = typeArgsForConstraintsCheck[i];
+                        if (!typeArg.HasType)
+                        {
+                            notInferredTypeParameters.Add(typeParams[i]);
+                            builder.Add(TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
+                        }
+                        else
+                        {
+                            builder.Add(typeArg);
+                        }
+                    }
+
+                    typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
+                    break;
+                }
+            }
+
+            // Check constraints.
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            var success = method.CheckConstraints(conversions, includeNullability: false, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
+                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
+            diagnosticsBuilder.Free();
+            notInferredTypeParameters.Free();
+
+            if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
+            {
+                if (useSiteDiagnostics == null)
+                {
+                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
+                }
+
+                foreach (var diag in useSiteDiagnosticsBuilder)
+                {
+                    useSiteDiagnostics.Add(diag.DiagnosticInfo);
+                }
+            }
+
+            if (!success)
             {
                 return null;
             }

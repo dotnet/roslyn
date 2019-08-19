@@ -676,7 +676,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
         /// </summary>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType)
+        /// <param name="compilation">The compilation in which constraints should be checked.
+        /// Should not be null, but if it is null we consider the unmanaged constraint not to be satisfied.</param>
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
         {
             if ((object)receiverType == null)
             {
@@ -688,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
         }
 
         /// <summary>
@@ -1127,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
         {
-            return this.ReduceExtensionMethod(receiverType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(receiverType)));
+            return this.ReduceExtensionMethod(receiverType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(receiverType)), compilation: null!);
         }
 
         ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations

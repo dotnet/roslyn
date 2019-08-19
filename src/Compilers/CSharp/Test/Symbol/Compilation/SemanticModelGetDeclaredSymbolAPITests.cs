@@ -1938,7 +1938,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
 
             // Same tests as above but with position outside of
             // static class defining extension methods.
@@ -1978,7 +1978,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]

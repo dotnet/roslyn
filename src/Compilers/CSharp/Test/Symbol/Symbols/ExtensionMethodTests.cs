@@ -2683,10 +2683,10 @@ S");
                 var genericExtension = type.GetMember<MethodSymbol>("Generic");
 
                 Assert.True(nonGenericExtension.IsExtensionMethod);
-                Assert.Throws<ArgumentNullException>(() => nonGenericExtension.ReduceExtensionMethod(receiverType: null));
+                Assert.Throws<ArgumentNullException>(() => nonGenericExtension.ReduceExtensionMethod(receiverType: null, compilation: null!));
 
                 Assert.True(genericExtension.IsExtensionMethod);
-                Assert.Throws<ArgumentNullException>(() => genericExtension.ReduceExtensionMethod(receiverType: null));
+                Assert.Throws<ArgumentNullException>(() => genericExtension.ReduceExtensionMethod(receiverType: null, compilation: null!));
             });
         }
 
@@ -2791,11 +2791,83 @@ class Program
 
             var int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
 
-            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type);
+            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type, null!);
             Assert.True(reduced.IsExtensionMethod);
             Assert.Equal(reduced, reducedWithReceiver);
 
-            Assert.Null(reducedWithReceiver.ReduceExtensionMethod(int32Type));
+            Assert.Null(reducedWithReceiver.ReduceExtensionMethod(int32Type, null!));
+        }
+
+        [WorkItem(37780, "https://github.com/dotnet/roslyn/issues/37780")]
+        [Fact]
+        public void ReducedExtensionMethodVsUnmanagedConstraint()
+        {
+            var source1 =
+@"public static class C
+{
+    public static void M<T>(this T self) where T : unmanaged
+    {
+    }
+}";
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"public class D
+{
+    static void M(MyStruct<int> s)
+    {
+        s.M();
+    }
+}
+public struct MyStruct<T>
+{
+    public T field;
+}
+";
+
+            var compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular8);
+            compilation2.VerifyDiagnostics();
+
+            var extensionMethod = compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var myStruct = (NamedTypeSymbol)compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("MyStruct");
+            var int32Type = compilation2.GetSpecialType(SpecialType.System_Int32);
+            var msi = myStruct.Construct(int32Type);
+
+            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = (MethodSymbol)(extensionMethod as IMethodSymbol).ReduceExtensionMethod(msi);
+            Assert.NotNull(reducedWithReceiver);
+
+
+            compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
+            compilation2.VerifyDiagnostics(
+                // (5,9): error CS8107: Feature 'unmanaged constructed types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         s.M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s.M").WithArguments("unmanaged constructed types", "8.0").WithLocation(5, 9)
+                );
+
+            extensionMethod = compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            myStruct = (NamedTypeSymbol)compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("MyStruct");
+            int32Type = compilation2.GetSpecialType(SpecialType.System_Int32);
+            msi = myStruct.Construct(int32Type);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
+            Assert.Null(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = (MethodSymbol)(extensionMethod as IMethodSymbol).ReduceExtensionMethod(msi);
+            Assert.NotNull(reducedWithReceiver);
         }
 
         /// <summary>
@@ -3831,9 +3903,8 @@ public class BaseClass<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
-            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
 
         [Fact]
@@ -3927,9 +3998,8 @@ public class BaseClass<TMember> : I1<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
-            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
 
         [Fact]
