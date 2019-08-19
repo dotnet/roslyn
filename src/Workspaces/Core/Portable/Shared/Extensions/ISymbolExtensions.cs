@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return visibility;
         }
 
-        public static ISymbol OverriddenMember(this ISymbol symbol)
+        public static ISymbol? OverriddenMember(this ISymbol symbol)
         {
             switch (symbol.Kind)
             {
@@ -119,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
         }
 
-        public static bool IsOverridable(this ISymbol symbol)
+        public static bool IsOverridable([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
             // sealed.
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                    !symbol.IsSealed;
         }
 
-        public static bool IsImplementableMember(this ISymbol symbol)
+        public static bool IsImplementableMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             if (symbol != null &&
                 symbol.ContainingType != null &&
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static INamedTypeSymbol GetContainingTypeOrThis(this ISymbol symbol)
+        public static INamedTypeSymbol? GetContainingTypeOrThis(this ISymbol symbol)
         {
             if (symbol is INamedTypeSymbol namedType)
             {
@@ -169,73 +172,73 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ContainingType;
         }
 
-        public static bool IsPointerType(this ISymbol symbol)
+        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol is IPointerTypeSymbol;
         }
 
-        public static bool IsErrorType(this ISymbol symbol)
+        public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
-        public static bool IsModuleType(this ISymbol symbol)
+        public static bool IsModuleType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as ITypeSymbol)?.IsModuleType() == true;
         }
 
-        public static bool IsInterfaceType(this ISymbol symbol)
+        public static bool IsInterfaceType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as ITypeSymbol)?.IsInterfaceType() == true;
         }
 
-        public static bool IsArrayType(this ISymbol symbol)
+        public static bool IsArrayType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol?.Kind == SymbolKind.ArrayType;
         }
 
-        public static bool IsTupleType(this ISymbol symbol)
+        public static bool IsTupleType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as ITypeSymbol)?.IsTupleType ?? false;
         }
 
-        public static bool IsAnonymousFunction(this ISymbol symbol)
+        public static bool IsAnonymousFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction;
         }
 
-        public static bool IsKind(this ISymbol symbol, SymbolKind kind)
+        public static bool IsKind([NotNullWhen(returnValue: true)] this ISymbol? symbol, SymbolKind kind)
         {
             return symbol.MatchesKind(kind);
         }
 
-        public static bool MatchesKind(this ISymbol symbol, SymbolKind kind)
+        public static bool MatchesKind([NotNullWhen(returnValue: true)] this ISymbol? symbol, SymbolKind kind)
         {
             return symbol?.Kind == kind;
         }
 
-        public static bool MatchesKind(this ISymbol symbol, SymbolKind kind1, SymbolKind kind2)
+        public static bool MatchesKind([NotNullWhen(returnValue: true)] this ISymbol? symbol, SymbolKind kind1, SymbolKind kind2)
         {
             return symbol != null
                 && (symbol.Kind == kind1 || symbol.Kind == kind2);
         }
 
-        public static bool MatchesKind(this ISymbol symbol, SymbolKind kind1, SymbolKind kind2, SymbolKind kind3)
+        public static bool MatchesKind([NotNullWhen(returnValue: true)] this ISymbol? symbol, SymbolKind kind1, SymbolKind kind2, SymbolKind kind3)
         {
             return symbol != null
                 && (symbol.Kind == kind1 || symbol.Kind == kind2 || symbol.Kind == kind3);
         }
 
-        public static bool MatchesKind(this ISymbol symbol, params SymbolKind[] kinds)
+        public static bool MatchesKind([NotNullWhen(returnValue: true)] this ISymbol? symbol, params SymbolKind[] kinds)
         {
             return symbol != null
                 && kinds.Contains(symbol.Kind);
         }
 
-        public static bool IsReducedExtension(this ISymbol symbol)
+        public static bool IsReducedExtension([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension;
         }
 
-        public static bool IsEnumMember(this ISymbol symbol)
+        public static bool IsEnumMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
         }
@@ -245,47 +248,47 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsExtensionMethod;
         }
 
-        public static bool IsLocalFunction(this ISymbol symbol)
+        public static bool IsLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol != null && symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
         }
 
-        public static bool IsModuleMember(this ISymbol symbol)
+        public static bool IsModuleMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol != null && symbol.ContainingSymbol is INamedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Module;
         }
 
-        public static bool IsConstructor(this ISymbol symbol)
+        public static bool IsConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
         }
 
-        public static bool IsStaticConstructor(this ISymbol symbol)
+        public static bool IsStaticConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.StaticConstructor;
         }
 
-        public static bool IsDestructor(this ISymbol symbol)
+        public static bool IsDestructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Destructor;
         }
 
-        public static bool IsUserDefinedOperator(this ISymbol symbol)
+        public static bool IsUserDefinedOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
         }
 
-        public static bool IsConversion(this ISymbol symbol)
+        public static bool IsConversion([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Conversion;
         }
 
-        public static bool IsOrdinaryMethod(this ISymbol symbol)
+        public static bool IsOrdinaryMethod([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
         }
 
-        public static bool IsOrdinaryMethodOrLocalFunction(this ISymbol symbol)
+        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             if (!(symbol is IMethodSymbol method))
             {
@@ -296,38 +299,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 || method.MethodKind == MethodKind.LocalFunction;
         }
 
-        public static bool IsDelegateType(this ISymbol symbol)
+        public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
         }
 
-        public static bool IsAnonymousType(this ISymbol symbol)
+        public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
         }
 
-        public static bool IsNormalAnonymousType(this ISymbol symbol)
+        public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol.IsAnonymousType() && !symbol.IsDelegateType();
         }
 
-        public static bool IsAnonymousDelegateType(this ISymbol symbol)
+        public static bool IsAnonymousDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol.IsAnonymousType() && symbol.IsDelegateType();
         }
 
-        public static bool IsAnonymousTypeProperty(this ISymbol symbol)
+        public static bool IsAnonymousTypeProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
 
-        public static bool IsTupleField(this ISymbol symbol)
+        public static bool IsTupleField([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IFieldSymbol && symbol.ContainingType.IsTupleType;
 
-        public static bool IsIndexer(this ISymbol symbol)
+        public static bool IsIndexer([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IPropertySymbol)?.IsIndexer == true;
         }
 
-        public static bool IsWriteableFieldOrProperty(this ISymbol symbol)
+        public static bool IsWriteableFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -340,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static ITypeSymbol GetMemberType(this ISymbol symbol)
+        public static ITypeSymbol? GetMemberType(this ISymbol symbol)
         {
             switch (symbol)
             {
@@ -370,7 +373,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ISymbol GetOriginalUnreducedDefinition(this ISymbol symbol)
+        [return: NotNullIfNotNull(parameterName: "symbol")]
+        public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
         {
             if (symbol.IsReducedExtension())
             {
@@ -408,15 +412,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.OriginalDefinition;
         }
 
-        public static bool IsFunctionValue(this ISymbol symbol)
+        public static bool IsFunctionValue([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol is ILocalSymbol && ((ILocalSymbol)symbol).IsFunctionValue;
         }
 
-        public static bool IsThisParameter(this ISymbol symbol)
+        public static bool IsThisParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
 
-        public static ISymbol ConvertThisParameterToType(this ISymbol symbol)
+        [return: NotNullIfNotNull(parameterName: "symbol")]
+        public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
         {
             if (symbol.IsThisParameter())
             {
@@ -426,13 +431,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        public static bool IsParams(this ISymbol symbol)
+        public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             var parameters = symbol.GetParameters();
             return parameters.Length > 0 && parameters[parameters.Length - 1].IsParams;
         }
 
-        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
+        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -442,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
+        public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -452,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol symbol)
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol? symbol)
         {
             var results = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
 
@@ -465,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return results.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
+        public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -490,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return results.ToImmutableAndFree();
         }
 
-        public static bool IsAttribute(this ISymbol symbol)
+        public static bool IsAttribute([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as ITypeSymbol)?.IsAttribute() == true;
         }
@@ -499,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Returns true if this symbol contains anything unsafe within it.  for example
         /// List&lt;int*[]&gt; is unsafe, as it "int* Goo { get; }"
         /// </summary>
-        public static bool IsUnsafe(this ISymbol member)
+        public static bool IsUnsafe([NotNullWhen(returnValue: true)] this ISymbol? member)
         {
             // TODO(cyrusn): Defer to compiler code to handle this once it can.
             return member?.Accept(new IsUnsafeVisitor()) == true;
@@ -547,18 +552,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return compilation.ObjectType;
         }
 
-        public static bool IsStaticType(this ISymbol symbol)
+        public static bool IsStaticType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol != null && symbol.Kind == SymbolKind.NamedType && symbol.IsStatic;
         }
 
-        public static bool IsNamespace(this ISymbol symbol)
+        public static bool IsNamespace([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol?.Kind == SymbolKind.Namespace;
         }
 
         public static bool IsOrContainsAccessibleAttribute(
-            this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
+            [NotNullWhen(returnValue: true)] this ISymbol? symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
         {
             var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
             if (namespaceOrType == null)
@@ -584,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return ((INamedTypeSymbol)symbol).GetMembers().OfType<IPropertySymbol>().Where(p => p.CanBeReferencedByName);
         }
 
-        public static Accessibility ComputeResultantAccessibility(this ISymbol symbol, ITypeSymbol finalDestination)
+        public static Accessibility ComputeResultantAccessibility(this ISymbol? symbol, ITypeSymbol finalDestination)
         {
             if (symbol == null)
             {
@@ -642,11 +647,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ISymbol symbol,
             bool hideAdvancedMembers,
             Compilation compilation,
-            IMethodSymbol editorBrowsableAttributeConstructor = null,
-            List<IMethodSymbol> typeLibTypeAttributeConstructors = null,
-            List<IMethodSymbol> typeLibFuncAttributeConstructors = null,
-            List<IMethodSymbol> typeLibVarAttributeConstructors = null,
-            INamedTypeSymbol hideModuleNameAttribute = null)
+            IMethodSymbol? editorBrowsableAttributeConstructor = null,
+            List<IMethodSymbol>? typeLibTypeAttributeConstructors = null,
+            List<IMethodSymbol>? typeLibFuncAttributeConstructors = null,
+            List<IMethodSymbol>? typeLibVarAttributeConstructors = null,
+            INamedTypeSymbol? hideModuleNameAttribute = null)
         {
             // Namespaces can't have attributes, so just return true here.  This also saves us a 
             // costly check if this namespace has any locations in source (since a merged namespace
@@ -688,11 +693,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol,
             bool hideAdvancedMembers,
             Compilation compilation,
-            IMethodSymbol editorBrowsableAttributeConstructor,
-            List<IMethodSymbol> typeLibTypeAttributeConstructors,
-            List<IMethodSymbol> typeLibFuncAttributeConstructors,
-            List<IMethodSymbol> typeLibVarAttributeConstructors,
-            INamedTypeSymbol hideModuleNameAttribute)
+            IMethodSymbol? editorBrowsableAttributeConstructor,
+            List<IMethodSymbol>? typeLibTypeAttributeConstructors,
+            List<IMethodSymbol>? typeLibFuncAttributeConstructors,
+            List<IMethodSymbol>? typeLibVarAttributeConstructors,
+            INamedTypeSymbol? hideModuleNameAttribute)
         {
             var attributes = symbol.GetAttributes();
             if (attributes.Length == 0)
@@ -708,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByHideModuleNameAttribute(
-            ISymbol symbol, Compilation compilation, INamedTypeSymbol hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default)
+            ISymbol symbol, Compilation compilation, INamedTypeSymbol? hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default)
         {
             if (!symbol.IsModuleType())
             {
@@ -729,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol constructor)
+            ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
         {
             constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
@@ -757,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByTypeLibTypeAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol> constructors)
+            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 symbol,
@@ -767,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByTypeLibFuncAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol> constructors)
+            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 symbol,
@@ -777,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByTypeLibVarAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol> constructors)
+            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 symbol,
@@ -831,17 +836,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsAccessor(this ISymbol symbol)
+        public static bool IsAccessor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol.IsPropertyAccessor() || symbol.IsEventAccessor();
         }
 
-        public static bool IsPropertyAccessor(this ISymbol symbol)
+        public static bool IsPropertyAccessor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind.IsPropertyAccessor() == true;
         }
 
-        public static bool IsEventAccessor(this ISymbol symbol)
+        public static bool IsEventAccessor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             var method = symbol as IMethodSymbol;
             return method != null &&
@@ -867,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 isSealed: symbol.IsSealed);
         }
 
-        public static ITypeSymbol GetSymbolType(this ISymbol symbol)
+        public static ITypeSymbol? GetSymbolType(this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -886,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol as ITypeSymbol;
         }
 
-        public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
+        public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
         {
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
@@ -994,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.ToArray();
         }
 
-        private static XNode[] RewriteInheritdocElement(ISymbol memberSymbol, Compilation compilation, XElement element, CancellationToken cancellationToken)
+        private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, Compilation compilation, XElement element, CancellationToken cancellationToken)
         {
             var crefAttribute = element.Attribute(XName.Get(DocumentationCommentXmlNames.CrefAttributeName));
             var pathAttribute = element.Attribute(XName.Get(DocumentationCommentXmlNames.PathAttributeName));
@@ -1013,6 +1018,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol;
             if (crefAttribute is null)
             {
+                Contract.ThrowIfNull(candidate);
                 symbol = candidate;
             }
             else
@@ -1041,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    xpathValue = pathAttribute?.Value;
+                    xpathValue = pathAttribute!.Value;
                     if (xpathValue.StartsWith("/"))
                     {
                         // Account for the root <doc> or <member> element
@@ -1078,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Local functions
-            static ISymbol GetCandidateSymbol(ISymbol memberSymbol)
+            static ISymbol? GetCandidateSymbol(ISymbol memberSymbol)
             {
                 if (memberSymbol.ExplicitInterfaceImplementations().Any())
                 {
@@ -1228,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static XNode[] TrySelectNodes(XNode node, string xpath)
+        private static XNode[]? TrySelectNodes(XNode node, string xpath)
         {
             try
             {
@@ -1257,10 +1263,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// If the <paramref name="symbol"/> is a type symbol, returns <see langword="true"/> if that type is "awaitable".
         /// An "awaitable" is any type that exposes a GetAwaiter method which returns a valid "awaiter". This GetAwaiter method may be an instance method or an extension method.
         /// </summary>
-        public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
+        public static bool IsAwaitableNonDynamic([NotNullWhen(returnValue: true)] this ISymbol? symbol, SemanticModel semanticModel, int position)
         {
             var methodSymbol = symbol as IMethodSymbol;
-            ITypeSymbol typeSymbol = null;
+            ITypeSymbol? typeSymbol = null;
 
             if (methodSymbol == null)
             {
@@ -1280,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // otherwise: needs valid GetAwaiter
             var potentialGetAwaiters = semanticModel.LookupSymbols(position,
-                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition,
+                                                                   container: typeSymbol ?? methodSymbol!.ReturnType.OriginalDefinition,
                                                                    name: WellKnownMemberNames.GetAwaiter,
                                                                    includeReducedExtensionMethods: true);
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
@@ -1367,9 +1373,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var symbol in symbols)
             {
-                if (symbol.OverriddenMember() != null && !overriddenSymbols.Contains(symbol.OverriddenMember()))
+                var overriddenMember = symbol.OverriddenMember();
+                if (overriddenMember != null && !overriddenSymbols.Contains(overriddenMember))
                 {
-                    overriddenSymbols.Add(symbol.OverriddenMember());
+                    overriddenSymbols.Add(overriddenMember);
                 }
             }
 

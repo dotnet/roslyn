@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
-                var parameterType = parameter.Type;
+                var parameterType = parameter.GetTypeWithAnnotatedNullability();
                 var parameterName = parameter.Name;
 
                 if (refKind != RefKind.Out)

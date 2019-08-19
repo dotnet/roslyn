@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var badAnalyzerInfo in pooledObject.Object)
                     {
                         var newAnalyzer = _reported.Add(badAnalyzerInfo.AnalyzerId);
-                        var internalUser = WatsonReporter.IsUserMicrosoftInternal;
+                        var internalUser = RoslynServices.IsUserMicrosoftInternal;
 
                         // we only report same analyzer once unless it is internal user
                         if (internalUser || newAnalyzer)
