@@ -26,19 +26,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal struct ProgressData
     {
         public ProgressStatus Status { get; }
-        public string FilePathOpt { get; }
 
-        public ProgressData(ProgressStatus type, string filePathOpt)
+        /// <summary>
+        /// number of pending work item in the queue. 
+        /// null means N/A for the associated <see cref="Status"/>
+        /// </summary>
+        public int? PendingItemCount { get; }
+
+        public ProgressData(ProgressStatus type, int? pendingItemCount)
         {
             Status = type;
-            FilePathOpt = filePathOpt;
+            PendingItemCount = pendingItemCount;
         }
     }
 
     internal enum ProgressStatus
     {
         Started,
-        Updated,
+        Paused,
+        PendingItemCountUpdated,
+        Evaluating,
         Stoped
     }
 }

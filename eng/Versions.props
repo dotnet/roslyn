@@ -7,7 +7,7 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>3</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
     <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
@@ -224,7 +224,6 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
-
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
