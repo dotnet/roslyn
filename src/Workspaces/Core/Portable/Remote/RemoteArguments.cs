@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
-        public ImmutableArray<CustomColumnInfo> CustomColumns{ get; set; }
-        public CustomColumnInfo ContainingMemberInfo { get; set; }
+        public ImmutableArray<AdditionalProperty> AdditionalProperties{ get; set; }
+        public AdditionalProperty ContainingMemberInfo { get; set; }
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                CustomColumns = referenceLocation.CustomColumns,
+                AdditionalProperties = referenceLocation.AdditionalProperties,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -181,14 +181,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var document = solution.GetDocument(this.Document);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
-            var customColumns = this.CustomColumns;
+            var additionalProperties = this.AdditionalProperties;
             return new ReferenceLocation(
                 document,
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
-                customColumns: customColumns,
+                additionalProperties: additionalProperties,
                 candidateReason: CandidateReason);
         }
 

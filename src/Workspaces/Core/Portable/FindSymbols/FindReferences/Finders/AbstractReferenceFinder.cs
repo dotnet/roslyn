@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
+        public const string s_containingTypeInfo = "ContainingTypeInfo";
+        public const string s_containingMemberInfo = "ContainingMemberInfo";
+
         public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -242,14 +245,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var location = token.GetLocation();
                         var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                        var customColumns = new ArrayBuilder<CustomColumnInfo>();
-                        customColumns.Add(GetContainingTypeInfo(token.Parent, syntaxFacts));
-                        customColumns.Add(GetContainingMemberInfo(token.Parent, syntaxFacts));
+                        var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+                        additionalProperties.Add(GetContainingTypeInfo(token.Parent, syntaxFacts));
+                        additionalProperties.Add(GetContainingMemberInfo(token.Parent, syntaxFacts));
 
                         var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
-                            symbolUsageInfo, customColumns.ToImmutableAndFree(), candidateReason: match.reason)));
+                            symbolUsageInfo, additionalProperties.ToImmutableAndFree(), candidateReason: match.reason)));
                     }
                 }
             }
@@ -478,11 +481,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
-                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
-                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
+                    var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+                    additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), candidateReason: CandidateReason.None)));
+                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, additionalProperties.ToImmutableAndFree(), candidateReason: CandidateReason.None)));
                 }
             }
         }
@@ -513,11 +516,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
-                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
-                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
+                    var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+                    additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, additionalProperties.ToImmutableAndFree(), CandidateReason.None)));
                 }
             }
         }
@@ -543,11 +546,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                    var customColumns = new ArrayBuilder<CustomColumnInfo>();
-                    customColumns.Add(GetContainingTypeInfo(node, syntaxFacts));
-                    customColumns.Add(GetContainingMemberInfo(node, syntaxFacts));
+                    var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+                    additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
+                    additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, customColumns.ToImmutableAndFree(), CandidateReason.None)));
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, additionalProperties.ToImmutableAndFree(), CandidateReason.None)));
                 }
             }
         }
@@ -714,15 +717,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        protected static CustomColumnInfo GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-        {
-            return new CustomColumnInfo("ContainingTypeInfo", syntaxFacts.GetNameOfContainingType(node));
-        }
+        protected static AdditionalProperty GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts) 
+            => new AdditionalProperty(s_containingTypeInfo, syntaxFacts.GetNameOfContainingType(node));
 
-        protected static CustomColumnInfo GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-        {
-            return new CustomColumnInfo("ContainingMemberInfo", syntaxFacts.GetNameOfContainingMember(node));
-        }
+        protected static AdditionalProperty GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts) 
+            => new AdditionalProperty(s_containingMemberInfo, syntaxFacts.GetNameOfContainingMember(node));
     }
 
     internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractReferenceFinder

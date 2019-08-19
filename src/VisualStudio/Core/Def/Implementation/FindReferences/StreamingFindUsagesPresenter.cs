@@ -2,21 +2,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition.Hosting;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
-using EnvDTE;
-using Microsoft.VisualStudio.LanguageServices.CustomColumn;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -41,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new HashSet<AbstractTableDataSourceFindUsagesContext>();
-        private readonly ImmutableArray<AbstractCustomColumnDefinition> _customColumns;
+        private readonly ImmutableArray<AbstractAdditionalPropertyDefinition> _additionalPropertyDefinitions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -98,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
-            _customColumns = columns.OfType<AbstractCustomColumnDefinition>().ToImmutableArray();
+            _additionalPropertyDefinitions = columns.OfType<AbstractAdditionalPropertyDefinition>().ToImmutableArray();
         }
 
         public void ClearAll()
@@ -161,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns);
+            return new WithReferencesFindUsagesContext(this, window, _additionalPropertyDefinitions);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(IFindAllReferencesWindow window)
@@ -170,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns);
+            return new WithoutReferencesFindUsagesContext(this, window, _additionalPropertyDefinitions);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)

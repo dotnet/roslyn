@@ -5,9 +5,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.CustomColumn;
+using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
+                ImmutableArray<AbstractAdditionalPropertyDefinition> customColumns)
                 : base(presenter, findReferencesWindow, customColumns)
             {
             }
@@ -60,8 +61,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // to navigate to.
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
+                        var additionalProperties = new ArrayBuilder<CodeAnalysis.AdditionalProperty>();
+                        additionalProperties.Add(new CodeAnalysis.AdditionalProperty(AbstractReferenceFinder.s_containingTypeInfo, "Test"));
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, referenceUsageInfo: null, customColumns: ImmutableArray<CustomColumnInfo>.Empty).ConfigureAwait(false);
+                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, referenceUsageInfo: null, additionalProperties: ImmutableArray<CodeAnalysis.AdditionalProperty>.Empty).ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }

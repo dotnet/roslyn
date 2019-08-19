@@ -1,27 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
+namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
 {
     /// <summary>
-    /// Implementation of a custom, dynamic column for the Find All References window.
+    /// Column definition for additional properties to be displayed in the Find All References window.
     /// </summary>
-    internal abstract class AbstractCustomColumnDefinition : TableColumnDefinitionBase
+    internal abstract class AbstractAdditionalPropertyDefinition : TableColumnDefinitionBase
     {
-        protected AbstractCustomColumnDefinition()
+        protected AbstractAdditionalPropertyDefinition()
         {
             DefaultColumnState = new ColumnState2(Name, isVisible: false, DefaultWidth);
         }
 
         public ColumnState2 DefaultColumnState { get; }
 
-        public abstract string GetDisplayStringForColumnValues(ImmutableArray<string> values);
+        public abstract string GetDisplayStringForAdditionalProperty(ImmutableArray<string> values);
 
         protected static string JoinValues(ImmutableArray<string> values) => string.Join(", ", values);
+
         protected static ImmutableArray<string> SplitAndTrimValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim()).ToImmutableArray();
     }
 }

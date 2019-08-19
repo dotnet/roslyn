@@ -1,30 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
+namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
 {
     /// <summary>
     /// Custom column to display the containing member for the All References window.
     /// </summary>
     [Export(typeof(ITableColumnDefinition))]
     [Name(ColumnName)]
-    class ContainingMemberColumnDefinition : AbstractCustomColumnDefinition
+    internal class ContainingMemberColumnDefinition : AbstractAdditionalPropertyDefinition
     {
-        public const string ColumnName = "ContainingMemberInfo";
+        public const string ColumnName = AbstractReferenceFinder.s_containingMemberInfo;
 
         [ImportingConstructor]
         public ContainingMemberColumnDefinition()
@@ -35,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CustomColumn
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_member;
 
-        public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
-        {
-            return values[0];
-        }
+        public override string GetDisplayStringForAdditionalProperty(ImmutableArray<string> values)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -663,14 +663,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string GetNameOfContainingType(SyntaxNode node)
         {
-            var containingType = node.Ancestors().FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
-            if (containingType is BaseTypeDeclarationSyntax)
+            if (node == null)
             {
-                return ((BaseTypeDeclarationSyntax)containingType).GetNameToken().ValueText;
+                throw new ArgumentNullException(nameof(node));
             }
-            else if (containingType is DelegateDeclarationSyntax)
+
+            var containingType = node.Ancestors().FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
+            if (containingType is BaseTypeDeclarationSyntax baseTypeDeclaration)
             {
-                return ((DelegateDeclarationSyntax)containingType).GetNameToken().ValueText;
+                return baseTypeDeclaration.GetNameToken().ValueText;
+            }
+            else if (containingType is DelegateDeclarationSyntax delegateDeclaration)
+            {
+                return delegateDeclaration.GetNameToken().ValueText;
             }
             else
             {
@@ -680,8 +685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string GetNameOfContainingMember(SyntaxNode node)
         {
-            var containingMember = node.Ancestors().FirstOrDefault(n => n is MemberDeclarationSyntax);
-            return ((MemberDeclarationSyntax)containingMember).GetNameToken().ValueText;
+            var containingMember = node.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
+            return containingMember == null ? "" : containingMember.GetNameToken().ValueText;
         }
 
         public SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node)

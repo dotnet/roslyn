@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -36,8 +34,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         public bool IsWrittenTo { get; }
 
-        public ImmutableArray<CustomColumnInfo> CustomColumns { get; }
-
         /// <summary>
         /// Additional information about the reference.
         /// Each entry represents a key-values pair of data. For example, consider the below entry:
@@ -46,6 +42,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
         public ReferenceUsageInfoMap ReferenceUsageInfo { get; }
+
+        /// <summary>
+        /// Additional properties for the reference, similar to ReferenceUsageInfo.
+        /// These property values are a single string, so do not need to allocate an array of strings.
+        /// </summary>
+        public ImmutableArray<AdditionalProperty> AdditionalProperties { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -63,17 +65,22 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferenceUsageInfo = referenceInfo ?? ReferenceUsageInfoMap.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<CustomColumnInfo> customColumns)
+        // Being used by TypeScript
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
             : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            CustomColumns = customColumns;
         }
 
-        private static ReferenceUsageInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<AdditionalProperty> additionalProperties)
+            : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
-            return s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
+            IsWrittenTo = symbolUsageInfo.IsWrittenTo();
+            AdditionalProperties = additionalProperties;
         }
+
+        private static ReferenceUsageInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo) 
+            => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
 
         private static ReferenceUsageInfoMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
         {
