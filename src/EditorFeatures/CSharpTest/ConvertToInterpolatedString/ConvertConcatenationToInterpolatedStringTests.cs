@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = ""string"" + '.' [||]""string"";
+        var v = ""string"" + '.' + [||]""string"";
     }
 }");
         }
