@@ -66,20 +66,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 var (document, textSpan, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = root.FindNode(textSpan).FirstAncestorOrSelf<TIfStatementSyntax>();
-                if (ifStatement == null)
-                {
-                    return;
-                }
-
-                if (ifStatement.ContainsDiagnostics)
-                {
-                    return;
-                }
-
-                // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
-                var token = ifStatement.GetFirstToken();
-                if (!token.Span.Contains(textSpan))
+                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
+                if (ifStatement == null || ifStatement.ContainsDiagnostics)
                 {
                     return;
                 }

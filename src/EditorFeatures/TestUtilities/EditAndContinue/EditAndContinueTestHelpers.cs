@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new List<RudeEditDiagnostic>();
             var editMap = Analyzer.BuildEditMap(editScript);
 
-            var triviaEdits = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(expectedLineEdits, actualLineEdits, itemSeparator: ",\r\n");
 
-            var actualNodeUpdates = triviaEdits.Select(e => e.Value.ToString().ToLines().First());
+            var actualNodeUpdates = triviaEdits.Select(e => e.NewNode.ToString().ToLines().First());
             AssertEx.Equal(expectedNodeUpdates, actualNodeUpdates, itemSeparator: ",\r\n");
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
             var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
-            var triviaEdits = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
             var diagnostics = new List<RudeEditDiagnostic>();

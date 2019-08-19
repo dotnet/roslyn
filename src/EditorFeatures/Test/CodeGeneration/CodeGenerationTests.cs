@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     return default;
                 }
 
-                var list = ArrayBuilder<SyntaxNode>.GetInstance();
+                using var listDisposer = ArrayBuilder<SyntaxNode>.GetInstance(out var list);
                 var delimiter = IsVisualBasic ? "\r\n" : ";";
                 var parts = statements.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var p in parts)
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     }
                 }
 
-                return list.ToImmutableAndFree();
+                return list.ToImmutable();
             }
 
             public void Dispose()

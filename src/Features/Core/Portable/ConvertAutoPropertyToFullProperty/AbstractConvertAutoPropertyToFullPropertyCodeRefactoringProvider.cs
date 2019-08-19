@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
-            var containingProperty = await context.TryGetSelectedNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
             {
                 return null;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default, Accessibility.Private,
                 DeclarationModifiers.From(propertySymbol),
-                propertySymbol.Type, fieldName,
+                propertySymbol.GetTypeWithAnnotatedNullability(), fieldName,
                 initializer: GetInitializerValue(property));
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;

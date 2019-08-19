@@ -1083,20 +1083,20 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var src1 = @"
 foreach (var (a1, a2) in e) { }
 foreach ((var b1, var b2) in e) { }
-foreach (var a in e1) { yield return 7; }
+foreach (var a in e1) { }
 ";
 
             var src2 = @"
 foreach (var (a1, a3) in e) { }
 foreach ((var b3, int b2) in e) { }
-foreach (_ in e1) { yield return 7; }
+foreach (_ in e1) { }
 ";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [foreach ((var b1, var b2) in e) { }]@37 -> [foreach ((var b3, int b2) in e) { }]@37",
-                "Update [foreach (var a in e1) { yield return 7; }]@74 -> [foreach (_ in e1) { yield return 7; }]@74",
+                "Update [foreach (var a in e1) { }]@74 -> [foreach (_ in e1) { }]@74",
                 "Update [a2]@22 -> [a3]@22",
                 "Update [b1]@51 -> [b3]@51");
         }
@@ -1105,20 +1105,20 @@ foreach (_ in e1) { yield return 7; }
         public void ForeachVariable_Update2()
         {
             var src1 = @"
-foreach (_ in e2) { yield return 5; }
+foreach (_ in e2) { }
 foreach (_ in e3) {  A(); }
 ";
 
             var src2 = @"
-foreach (var b in e2) { yield return 5; }
+foreach (var b in e2) { }
 foreach (_ in e4) { A(); }
 ";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [foreach (_ in e2) { yield return 5; }]@4 -> [foreach (var b in e2) { yield return 5; }]@4",
-                "Update [foreach (_ in e3) {  A(); }]@43 -> [foreach (_ in e4) { A(); }]@47");
+                "Update [foreach (_ in e2) { }]@4 -> [foreach (var b in e2) { }]@4",
+                "Update [foreach (_ in e3) {  A(); }]@27 -> [foreach (_ in e4) { A(); }]@31");
         }
 
         [Fact]
@@ -1203,7 +1203,6 @@ foreach (var (a, b) in e1) { }
             edits.VerifyEdits(
                 "Move [foreach ((var x, var y) in e2) { }]@39 -> @4");
         }
-
 
         #endregion
 
@@ -2760,6 +2759,42 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Signature_Nullable()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G1(Func<string, string> f) {}
+    void G2(Func<string?, string?> f) {}
+
+    void F()
+    {
+        G1(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<string, string> f) {}
+    void G2(Func<string?, string?> f) {}
+
+    void F()
+    {
+        G2(a => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6872,22 +6907,19 @@ interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_AddAsync()
         {
-            var src1 = @"class Test { void M() { int local() { throw null; } } }";
-            var src2 = @"class Test { void M() { async int local() { throw null; } } }";
+            var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
+            var src2 = @"class Test { void M() { async Task<int> local() => throw null; } }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { async int local() { throw null; } }]@13");
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "async int local() ", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_RemoveAsync()
         {
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";
@@ -6895,11 +6927,8 @@ interface I
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { async int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
-
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "int local() ", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
         }
 
         #endregion
@@ -7418,10 +7447,10 @@ class C
             var src1 = "F(from a in await b from x in y select c);";
             var src2 = "F(from a in await c from x in y select c);";
 
-            var edits = GetMethodEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2, MethodKind.Async);
 
             edits.VerifyEdits(
-                "Update [await b]@14 -> [await c]@14");
+                "Update [await b]@34 -> [await c]@34");
         }
 
         [Fact]
@@ -8215,8 +8244,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "yield break;", CSharpFeaturesResources.yield_statement),
-                Diagnostic(RudeEditKind.Update, "yield return 4;", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield break;", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.yield_break_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 4;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8265,7 +8294,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8317,8 +8346,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_statement),
-                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_return_statement),
+                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -8402,10 +8431,10 @@ class C
         #region Await
 
         /// <summary>
-        /// Tests logic provided in ReportStateMachineSuspensionPointRudeEdits
+        /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Fact]
-        public void Await_Update_OK()
+        public void AwaitSpilling_OK()
         {
             var src1 = @"
 class C
@@ -8462,10 +8491,10 @@ class C
         }
 
         /// <summary>
-        /// Tests logic provided in ReportStateMachineSuspensionPointRudeEdits
+        /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Fact]
-        public void Await_Update_Errors()
+        public void AwaitSpilling_Errors()
         {
             var src1 = @"
 class C
@@ -8614,7 +8643,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "=> await F(1)", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -8629,35 +8658,202 @@ class C
             var src2 = @"
 class C
 {
-    static Task<int> F() => F(1);
+    static async Task<int> F() => F(1);
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static Task<int> F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
-        public void Await_Delete6()
+        public void AwaitForEach_Delete1()
         {
             var src1 = @"
 class C
 {
-    static async void F() => F();
+    static async Task<int> F() 
+    {
+        await foreach (var x in G()) { } 
+    }
 }
 ";
             var src2 = @"
 class C
 {
-    static void F() => F();
+    static async Task<int> F()
+    {
+        foreach (var x in G()) { } 
+    }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var x in G())", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitForEach_Delete2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await foreach (var (x, y) in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        foreach (var (x, y) in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var (x, y) in G())", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitForEach_Delete3()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_foreach_statement));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete1()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D x = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete3()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Delete4()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        using D x = new D(), y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration),
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration));
         }
 
         [Fact]
@@ -8786,6 +8982,163 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitForEach_Insert_Ok()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // ok to add awaits if there were none before and no active statements
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitForEach_Insert()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await Task.FromResult(1);
+
+        foreach (var x in G()) { } 
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await Task.FromResult(1);
+
+        await foreach (var x in G()) { } 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
+        }
+
+        [Fact]
+        public void AwaitUsing_Insert1()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await using D x = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await using D x = new D(), y = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void AwaitUsing_Insert2()
+        {
+            var src1 = @"
+class C
+{
+    static async Task<int> F() 
+    {
+        await G();
+        using D x = new D();
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        await G();
+        await using D x = new D();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
+        }
+
+        [Fact]
+        public void Await_Update()
+        {
+            var src1 = @"
+class C
+{
+    static async IAsyncEnumerable<int> F() 
+    {
+        await foreach (var x in G()) { }
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        yield return 1;
+        yield break;
+        yield break;
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        await foreach (var (x,y) in G()) { }
+        await foreach (var x in G()) { }
+        await using D x = new D(), y = new D();
+        await Task.FromResult(1);
+        await Task.FromResult(1);
+        yield return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_foreach_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 1;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -9058,65 +9411,32 @@ if (o3 is (string k, int l2, int m)) return;
         [Fact]
         public void PositionalPattern_Update1()
         {
-            var src1 = @"var r = (x, y, z) switch {
-(0, var b, int c) when c > 1 => 2,
-_ => 4
-};
-";
-
-            var src2 = @"var r = ((x, y, z)) switch {
-(_, int b1, double c1) when c1 > 2 => c1,
-_ => 4
-};
-";
+            var src1 = @"var r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 };";
+            var src2 = @"var r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 };";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
-(0, var b, int c) when c > 1 => 2,
-_ => 4
-}]@6 -> [r = ((x, y, z)) switch {
-(_, int b1, double c1) when c1 > 2 => c1,
-_ => 4
-}]@6",
-                "Reorder [c]@45 -> @40",
-                "Update [c]@45 -> [b1]@40",
-                "Update [b]@38 -> [c1]@51",
-                "Update [when c > 1]@48 -> [when c1 > 2]@55");
+                "Update [r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@6",
+                "Reorder [c]@44 -> @39",
+                "Update [c]@44 -> [b1]@39",
+                "Update [b]@37 -> [c1]@50",
+                "Update [when c > 1]@47 -> [when c1 > 2]@54");
         }
 
         [Fact]
         public void PositionalPattern_Update2()
         {
-            var src1 = @"var r = (x, y, z) switch {
-(var a, 3, 4) => a,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-};
-";
+            var src1 = @"var r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 };";
 
-            var src2 = @"var r = ((x, y, z)) switch {
-(var a1, 3, 4) => a1 * 2,
-(1, 1, Point { Y: 0 } p1) => 3,
-_ => 4
-};
-";
+            var src2 = @"var r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
-(var a, 3, 4) => a,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-}]@6 -> [r = ((x, y, z)) switch {
-(var a1, 3, 4) => a1 * 2,
-(1, 1, Point { Y: 0 } p1) => 3,
-_ => 4
-}]@6",
-                "Update [a]@35 -> [a1]@37",
-                "Update [p]@73 -> [p1]@81");
+                "Update [r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@6",
+                "Update [a]@34 -> [a1]@36",
+                "Update [p]@71 -> [p1]@79");
         }
 
         [Fact]

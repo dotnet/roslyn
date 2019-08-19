@@ -5332,6 +5332,11 @@ class C
                 throw new NotImplementedException();
             }
 
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
+                throw new NotImplementedException();
+            }
+
             public bool IsComImport => throw new NotImplementedException();
 
             public bool IsSerializable => throw new NotImplementedException();

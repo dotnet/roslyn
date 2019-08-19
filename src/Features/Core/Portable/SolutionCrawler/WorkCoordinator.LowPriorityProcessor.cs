@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
+                    public int WorkItemCount => _workItemQueue.WorkItemCount;
+
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {
                         return _workItemQueue.WaitAsync(cancellationToken);

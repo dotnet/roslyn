@@ -5,5 +5,14 @@ namespace Microsoft.CodeAnalysis.Symbols
     internal interface ISymbolInternal : ISymbol
     {
         Compilation DeclaringCompilation { get; }
+
+        /// <summary>
+        /// Allows a symbol to support comparisons that involve child type symbols
+        /// </summary>
+        /// <remarks>
+        /// Because TypeSymbol equality can differ based on e.g. nullability, any symbols that contain TypeSymbols can also differ in the same way
+        /// This call allows the symbol to accept a comparison kind that should be used when comparing its contained types
+        /// </remarks>
+        bool Equals(ISymbol other, TypeCompareKind compareKind);
     }
 }

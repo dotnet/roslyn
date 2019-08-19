@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
             {
-                return WrappedSymbol.Construct(typeArguments, typeArgumentNullableAnnotations);
+                return WrappedSymbol.Construct(typeArguments, typeArgumentNullableAnnotations).WithNullability(Nullability);
             }
 
             public INamedTypeSymbol ConstructUnboundGenericType()

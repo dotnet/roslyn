@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInitializeMemberFromParameterCodeRefactoringProvider();
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializeFieldWithSameName()
@@ -948,8 +951,569 @@ struct S
 }", index: 1, parameters: Always_Warning);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoParameterNamingStyle_CreateAndInitField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string s)
+    {
+        _s = s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonParameterNamingStyle_CreateAndInitField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string t_s)
+    {
+        _s = t_s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string p_s_End)
+    {
+        _s = p_s_End;
+    }
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string t_p_s_End)
+    {
+        _s = t_p_s_End;
+    }
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_t_s)
+    {
+    }
+}",
+        @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string p_t_s)
+    {
+        _s = p_t_s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoParameterNamingStyle_CreateAndInitProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+    @"
+class C
+{
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonParameterNamingStyle_CreateAndInitProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    public C(string t_s)
+    {
+        S = t_s;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    public C(string p_s_End)
+    {
+        S = p_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    public C(string t_p_s_End)
+    {
+        S = t_p_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_t_s_End)
+    {
+    }
+}",
+        @"
+class C
+{
+    public C([||]string p_t_s_End)
+    {
+        S = p_t_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoParameterNamingStyle_InitializeField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string s)
+    {
+        _s = s;
+    }
+}", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonParameterNamingStyle_InitializeField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string t_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string t_s)
+    {
+        _s = t_s;
+    }
+}", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecifiedParameterNamingStyle_InitializeField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string p_s_End)
+    {
+        _s = p_s_End;
+    }
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string t_p_s_End)
+    {
+    }
+}",
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C(string t_p_s_End)
+    {
+        _s = t_p_s_End;
+    }
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string p_t_s_End)
+    {
+    }
+}",
+        @"
+class C
+{
+    private readonly string _s;
+
+    public C([||]string p_t_s_End)
+    {
+        _s = p_t_s_End;
+    }
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoParameterNamingStyle_InitializeProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string s)
+    {
+    }
+
+    public string S { get; }
+}",
+    @"
+class C
+{
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonParameterNamingStyle_InitializeProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_s)
+    {
+    }
+
+    public string S { get; }
+}",
+    @"
+class C
+{
+    public C(string t_s)
+    {
+        S = t_s;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecifiedParameterNamingStyle_InitializeProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_s_End)
+    {
+    }
+
+    public string S { get; }
+}",
+    @"
+class C
+{
+    public C(string p_s_End)
+    {
+        S = p_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_p_s_End)
+    {
+    }
+
+    public string S { get; }
+}",
+    @"
+class C
+{
+    public C(string t_p_s_End)
+    {
+        S = t_p_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_t_s_End)
+    {
+    }
+
+    public string S { get; }
+}",
+        @"
+class C
+{
+    public C([||]string p_t_s_End)
+    {
+        S = p_t_s_End;
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestBaseNameEmpty()
+        {
+            await TestMissingAsync(
+    @"
+class C
+{
+    public C([||]string p__End)
+    {
+    }
+
+    public string S { get; }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSomeBaseNamesEmpty()
+        {
+            // Currently, this case does not offer a refactoring because selecting multiple parameters 
+            // is not supported. If multiple parameters are supported in the future, this case should 
+            // be updated to verify that only the parameter name that does not have an empty base is offered.
+            await TestMissingAsync(
+    @"
+class C
+{
+    public C([|string p__End, string p_test_t|])
+    {
+    }
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+        }
+
         private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
         private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
         private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreateFieldWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    private readonly string? _s;
+
+    public C(string? s)
+    {
+        _s = s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreatePropertyWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    public C(string? s)
+    {
+        S = s;
+    }
+
+    public string? S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
     }
 }

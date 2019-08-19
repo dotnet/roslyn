@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
-        Inherits AbstractRefactoringHelpersService
+        Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax)
 
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
@@ -20,6 +20,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             ' identifiers to represent parent node -> need to extract.
             If IsIdentifierOfParameter(node) Then
                 Yield node.Parent
+            End If
+
+            ' In VB Statement both for/foreach are split into Statement (header) and the rest
+            ' selecting the header should still count for the whole blockSyntax
+            If TypeOf node Is ForEachStatementSyntax And TypeOf node.Parent Is ForEachBlockSyntax Then
+                Dim foreachStatement = CType(node, ForEachStatementSyntax)
+                Yield foreachStatement.Parent
+            End If
+
+            If TypeOf node Is ForStatementSyntax And TypeOf node.Parent Is ForBlockSyntax Then
+                Dim forStatement = CType(node, ForStatementSyntax)
+                Yield forStatement.Parent
             End If
         End Function
 

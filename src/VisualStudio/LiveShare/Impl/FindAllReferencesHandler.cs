@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -20,12 +20,10 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler : ILspRequestHandler<LSP.ReferenceParams, object[], Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
         public FindAllReferencesHandler(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -50,12 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             // This is not great for us and ideally we should ask for a Roslyn API where we can make this call without blocking the UI.
             if (VsTaskLibraryHelper.ServiceInstance != null)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
-            if (requestContext?.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+            if (requestContext?.ClientCapabilities?.ToObject<VSClientCapabilities>()?.HasVisualStudioLspCapability() == true)
             {
                 return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
             }

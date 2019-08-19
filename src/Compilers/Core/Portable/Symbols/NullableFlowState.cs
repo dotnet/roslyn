@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Syntax is not an expression, or was not analyzed.
         /// </summary>
-        NotApplicable = 0,
+        None = 0,
         /// <summary>
         /// Expression is not null.
         /// </summary>

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
-            var symbol = SymbolKey.Resolve(
+            var symbol = SymbolKey.ResolveString(
                 SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
 
             if (symbol == null)

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var compilation = project.GetCompilationAsync(CancellationToken.None)
                                          .WaitAndGetResult(CancellationToken.None);
 
-                var symbol = SymbolKey.Resolve(symbolKey, compilation).Symbol;
+                var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;
                 return (project, symbol);
             }
         }

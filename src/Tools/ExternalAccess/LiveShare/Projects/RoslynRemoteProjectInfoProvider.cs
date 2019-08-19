@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using CustomProtocol = Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,11 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly CSharpLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         [ImportingConstructor]
-        public RoslynRemoteProjectInfoProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public RoslynRemoteProjectInfoProvider(CSharpLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(RemoteLanguageServiceWorkspace));
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
             CustomProtocol.Project[] projects;
             try
             {
-                var request = new LSP.LspRequest<object, CustomProtocol.Project[]>(CustomProtocol.RoslynMethods.ProjectsName);
+                var request = new LspRequest<object, CustomProtocol.Project[]>(CustomProtocol.RoslynMethods.ProjectsName);
                 projects = await lspClient.RequestAsync(request, new object(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)

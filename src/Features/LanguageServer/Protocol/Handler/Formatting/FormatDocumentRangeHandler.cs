@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
     internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
     {
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
+            CancellationToken cancellationToken, bool keepThreadContext = false)
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, cancellationToken, range: request.Range).ConfigureAwait(false);
+            return await GetTextEdits(solution, request.TextDocument.Uri, keepThreadContext, cancellationToken, range: request.Range).ConfigureAwait(keepThreadContext);
         }
     }
 }

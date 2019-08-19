@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
@@ -25,7 +26,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public virtual Task<ResponseType> HandleAsync(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken);
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Certain implementations require that the processing be done on the UI thread.
+        /// So allow the handler to specifiy that the thread context should be preserved.
+        /// </summary>
+        protected Task<ResponseType> HandleAsyncPreserveThreadContext(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        {
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken, keepThreadContext: true);
         }
 
         protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)

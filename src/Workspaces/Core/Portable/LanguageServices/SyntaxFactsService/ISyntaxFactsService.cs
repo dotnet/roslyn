@@ -420,6 +420,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method);
         bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
         bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
+        bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
+        bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct

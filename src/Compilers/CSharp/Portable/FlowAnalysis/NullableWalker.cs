@@ -300,8 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 #endif
-                _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.NullableAnnotation.ToPublicAnnotation(),
-                                                                        result.RValueType.State.ToPublicFlowState()),
+                _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.ToPublicAnnotation(), result.RValueType.State.ToPublicFlowState()),
                                                     // https://github.com/dotnet/roslyn/issues/35046 We're dropping the result if the type doesn't match up completely
                                                     // with the existing type
                                                     expr.Type?.Equals(result.RValueType.Type, TypeCompareKind.AllIgnoreOptions) == true ? result.RValueType.Type : expr.Type);
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ParameterSymbol methodThisParameter = MethodThisParameter;
                 EnterParameters(); // assign parameters
-                if (!(methodThisParameter is null))
+                if (methodThisParameter is object)
                 {
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
@@ -462,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool createSnapshots,
             out SnapshotManager snapshotManager)
         {
-            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
-            var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
+            var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>(EqualityComparer<BoundCall>.Default, SymbolEqualityComparer.ConsiderEverything);
             var methodSymbol = symbol as MethodSymbol;
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
             // Until we have a workaround for this, disable snapshots for null symbols.
@@ -506,11 +505,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool takeNewSnapshots,
             out SnapshotManager newSnapshots)
         {
-            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
-            Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            try
+            {
+                Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            }
+            finally
+            {
+                walker.Free();
+            }
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
@@ -610,7 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     updatedMethodSymbolMapOpt,
                                                     snapshotBuilderOpt);
 
-            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            try
+            {
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            }
+            finally
+            {
+                walker.Free();
+            }
         }
 
         private static void Analyze(
@@ -633,10 +646,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
-            }
-            finally
-            {
-                walker.Free();
             }
         }
 
@@ -1410,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (method.IsGenericTaskReturningAsync(compilation))
+            if (returnType.Type.IsGenericTaskType(compilation))
             {
                 type = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
                 return true;
@@ -1860,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
 
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
-                    if (!(currentDeclaration is null))
+                    if (currentDeclaration is object)
                     {
                         TakeIncrementalSnapshot(currentDeclaration);
                         SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
@@ -2500,7 +2509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
-                Debug.Assert(!(rightType is null));
+                Debug.Assert(rightType is object);
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
@@ -2875,7 +2884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // easy out
             var parameterCount = method.ParameterCount;
+            var arguments = node.Arguments;
             if ((parameterCount != 1 && parameterCount != 2)
+                || parameterCount != arguments.Length
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
@@ -2884,7 +2895,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var arguments = node.Arguments;
 
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
@@ -2971,9 +2981,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
         {
-            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange))
-                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T));
+            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
+                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
             if (!isCompareExchangeMethod)
+            {
+                return;
+            }
+
+            var arguments = node.Arguments;
+            if (arguments.Length != method.ParameterCount)
             {
                 return;
             }
@@ -2989,7 +3005,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var arguments = node.Arguments;
             var locationSlot = MakeSlot(arguments[0]);
             if (locationSlot != -1)
             {
@@ -4179,7 +4194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
         {
-            if (symbol.ContainingType.Equals(tupleType))
+            if (symbol.ContainingType.Equals(tupleType, SymbolEqualityComparer.ConsiderEverything.CompareKind))
             {
                 return symbol;
             }
@@ -6362,7 +6377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 #pragma warning restore IDE0055 // Fix formatting
 
-            if (!(node.DeconstructionOpt is null))
+            if (node.DeconstructionOpt is object)
             {
                 var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
@@ -6418,6 +6433,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
                         SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
                         state = result.State;
+
+                        // If we inferred the type of this variable, then record the inferred type of the variable for later use by the SemanticModel.
+                        if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
+                        {
+                            _variableTypes[iterationVariable] = result.ToTypeWithAnnotations();
+                        }
                     }
 
                     int slot = GetOrCreateSlot(iterationVariable);
@@ -7377,6 +7398,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(_state[i] ? '?' : '!');
 
                 return pooledBuilder.ToStringAndFree();
+            }
+        }
+
+        private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol type)>
+        {
+            public static readonly NullabilityInfoTypeComparer Instance = new NullabilityInfoTypeComparer();
+
+            public bool Equals((NullabilityInfo info, TypeSymbol type) x, (NullabilityInfo info, TypeSymbol type) y)
+            {
+                return x.info.Equals(y.info) &&
+                       SymbolEqualityComparer.ConsiderEverything.Equals(x.type, y.type);
+            }
+
+            public int GetHashCode((NullabilityInfo info, TypeSymbol type) obj)
+            {
+                return obj.GetHashCode();
             }
         }
     }
