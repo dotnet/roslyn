@@ -2842,7 +2842,7 @@ public struct MyStruct<T>
             reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
             Assert.NotNull(reducedWithReceiver);
 
-            reducedWithReceiver = (MethodSymbol)(extensionMethod as IMethodSymbol).ReduceExtensionMethod(msi);
+            reducedWithReceiver = (MethodSymbol)((IMethodSymbol)extensionMethod).ReduceExtensionMethod(msi);
             Assert.NotNull(reducedWithReceiver);
 
 
@@ -2866,7 +2866,7 @@ public struct MyStruct<T>
             reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
             Assert.NotNull(reducedWithReceiver);
 
-            reducedWithReceiver = (MethodSymbol)(extensionMethod as IMethodSymbol).ReduceExtensionMethod(msi);
+            reducedWithReceiver = (MethodSymbol)((IMethodSymbol)extensionMethod).ReduceExtensionMethod(msi);
             Assert.NotNull(reducedWithReceiver);
         }
 

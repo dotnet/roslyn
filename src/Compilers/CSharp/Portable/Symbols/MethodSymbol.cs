@@ -677,7 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
         /// </summary>
         /// <param name="compilation">The compilation in which constraints should be checked.
-        /// Should not be null, but if it is null we consider the unmanaged constraint not to be satisfied.</param>
+        /// Should not be null, but if it is null we treat constraints as we would in the latest
+        /// language version.</param>
         public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
         {
             if ((object)receiverType == null)
