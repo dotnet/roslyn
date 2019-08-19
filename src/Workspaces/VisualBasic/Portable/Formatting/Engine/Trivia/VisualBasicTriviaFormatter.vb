@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
                 ElseIf trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
                     Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=0)
-                ElseIf trivia1.Kind = SyntaxKind.commenttrivia Then
+                ElseIf trivia1.Kind = SyntaxKind.CommentTrivia Then
                     Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=-1)
                 Else
                     Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
