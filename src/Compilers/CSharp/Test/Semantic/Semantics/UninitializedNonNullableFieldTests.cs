@@ -884,6 +884,99 @@ class C<T>
         }
 
         [Fact]
+        public void GenericType_NullableClassConstraint_01()
+        {
+            var source =
+@"class C<T> where T : class?
+{
+#pragma warning disable 0169
+    private readonly T F1;
+    private T P1 { get; }
+    internal T P2 { get; set; }
+    private C()
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericType_NullableClassConstraint_02()
+        {
+            var source =
+@"class A
+{
+    public string field = """";
+}
+
+class C<T> where T : A?
+{
+#pragma warning disable 0169
+    private readonly T F1;
+    private T P1 { get; }
+    internal T P2 { get; set; }
+    private C()
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericType_NullableClassConstraint_03()
+        {
+            var source =
+@"class A
+{
+    public string field = """";
+}
+
+class C<T, U> where U : T where T : A?
+{
+#pragma warning disable 0169
+    private readonly T F1;
+    private readonly U F2;
+    private T P1 { get; }
+    internal T P2 { get; set; }
+    private U P3 { get; }
+    internal U P4 { get; set; }
+    private C()
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericType_NullableClassConstraint_04()
+        {
+            var source =
+@"class A
+{
+    public string field = """";
+}
+
+class C<T, U> where U : T where T : class?
+{
+#pragma warning disable 0169
+    private readonly T F1;
+    private readonly U F2;
+    private T P1 { get; }
+    internal T P2 { get; set; }
+    private U P3 { get; }
+    internal U P4 { get; set; }
+    private C()
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void GenericType_StructConstraint()
         {
             var source =

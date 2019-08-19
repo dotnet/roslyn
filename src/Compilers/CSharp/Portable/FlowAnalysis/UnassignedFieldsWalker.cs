@@ -162,10 +162,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
+
                 if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
                 }
+
+                if (fieldType.IsDefinitelyNullableReferenceType())
+                {
+                    continue;
+                }
+
                 if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.Type.IsTypeParameterDisallowingAnnotation())
                 {
                     continue;

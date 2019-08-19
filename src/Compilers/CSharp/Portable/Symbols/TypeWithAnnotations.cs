@@ -123,6 +123,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  Type?.IsNullableTypeOrTypeParameter() == true);
         }
 
+        internal bool IsDefinitelyNullableReferenceType()
+        {
+            if (NullableAnnotation.IsAnnotated())
+            {
+                return true;
+            }
+            else if (Type is TypeParameterSymbol typeParameter)
+            {
+                if (typeParameter.ReferenceTypeConstraintIsNullable == true)
+                {
+                    return true;
+                }
+                else
+                {
+                    foreach (var constraint in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                    {
+                        if (constraint.IsDefinitelyNullableReferenceType())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
         internal NullableAnnotation GetValueNullableAnnotation()
         {
             if (IsPossiblyNullableTypeTypeParameter())
