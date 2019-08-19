@@ -70,12 +70,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
                 If trivia1.Kind = SyntaxKind.None Then
+                    ' File or line or trivia starting with _ requires a leading space
                     Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
                 ElseIf trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
+                    ' _ line followed by another _ and the _ should align
                     Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=0)
                 ElseIf trivia1.Kind = SyntaxKind.CommentTrivia Then
+                    ' _ ' Comment aligns with the ' instead of the _ causing each line to move right
+                    ' 2 space
                     Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=-1)
                 Else
+                    ' Anything else
                     Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
                 End If
             End If
@@ -114,6 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return LineColumnRule.PreserveLinesWithDefaultIndentation(lines:=0)
                 End If
                 If trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
+                    ' token following a line with only a line continuation (with an optional comment) 
                     Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
                 End If
                 Return LineColumnRule.PreserveLinesWithGivenIndentation(lines:=0)
