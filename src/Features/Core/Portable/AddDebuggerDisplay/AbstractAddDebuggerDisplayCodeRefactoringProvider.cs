@@ -48,38 +48,55 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
         {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var newAttribute = generator
                 .Attribute("System.Diagnostics.DebuggerDisplayAttribute", generator.LiteralExpression("{ToString(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Insert attribute
             syntaxRoot = syntaxRoot.ReplaceNode(type, generator.AddAttributes(type, newAttribute).WithAdditionalAnnotations(s_trackingAnnotation));
 
-            // Append namespace import
-            var importsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
-            var newImport = generator.NamespaceImportDeclaration("System.Diagnostics");
-            var contextLocation = syntaxRoot.GetAnnotatedNodes(s_trackingAnnotation).Single();
-
-            if (!importsService.HasExistingImport(compilation, syntaxRoot, contextLocation, newImport))
-            {
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-
-                return document.WithSyntaxRoot(importsService.AddImport(
-                    compilation,
-                    syntaxRoot,
-                    contextLocation,
-                    newImport,
-                    placeSystemNamespaceFirst,
-                    cancellationToken));
-            }
+            syntaxRoot = await EnsureNamespaceImportAsync(
+                document,
+                generator,
+                syntaxRoot,
+                contextLocation: syntaxRoot.GetAnnotatedNodes(s_trackingAnnotation).Single(),
+                "System.Diagnostics",
+                cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(syntaxRoot);
+        }
+
+        private static async Task<SyntaxNode> EnsureNamespaceImportAsync(
+            Document document,
+            SyntaxGenerator generator,
+            SyntaxNode syntaxRoot,
+            SyntaxNode contextLocation,
+            string namespaceName,
+            CancellationToken cancellationToken)
+        {
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            var importsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+            var newImport = generator.NamespaceImportDeclaration(namespaceName);
+
+            if (importsService.HasExistingImport(compilation, syntaxRoot, contextLocation, newImport))
+            {
+                return syntaxRoot;
+            }
+
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+
+            return importsService.AddImport(
+                compilation,
+                syntaxRoot,
+                contextLocation,
+                newImport,
+                placeSystemNamespaceFirst,
+                cancellationToken);
         }
 
         protected abstract bool IsDebuggerDisplayAttribute(SyntaxNode attribute);
