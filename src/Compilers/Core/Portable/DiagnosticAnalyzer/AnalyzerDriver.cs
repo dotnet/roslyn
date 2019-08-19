@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
-            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>() : null;
+            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
         }
 
         /// <summary>
@@ -669,7 +669,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
                         Debug.Assert(!diagnostic.IsSuppressed);
-                        builder.Add(diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo));
+                        var suppressedDiagnostic = diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo);
+                        Debug.Assert(suppressedDiagnostic.IsSuppressed);
+                        builder.Add(suppressedDiagnostic);
                     }
                     else
                     {
