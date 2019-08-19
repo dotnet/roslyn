@@ -1242,5 +1242,30 @@ End Class
                 result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(941271, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/941271")>
+        Public Sub AsNewClauseSpeculationResolvesConflicts()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+                                Public Class Main
+                                    Private T As {|class0:$$Test|} = Nothing
+                                End Class
+
+                                Public Class {|class1:Test|}
+                                    Private Rnd As New {|classConflict:Random|}
+                                End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Random")
+
+                result.AssertLabeledSpansAre("class0", "Random", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("class1", "Random", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("classConflict", "System.Random", type:=RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
