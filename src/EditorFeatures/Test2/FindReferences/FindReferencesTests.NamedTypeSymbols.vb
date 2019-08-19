@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -2187,5 +2188,52 @@ public class D { }
 
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
+        Public Async Function TestNamedType_WithUnchangeableDocument_IgnoreUnchangeableDocument(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:$$C|}
+        {
+        }
+        </Document>
+        <Document CanApplyChange="false">
+        class D
+        {
+            private C c;
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            ' testKind.StreamingFeature doesn't support providing FindReferencesSearchOptions
+            Await TestAPI(input, host, options:=FindReferencesSearchOptions.Default.WithIgnoreUnchangeableDocuments(True))
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
+        Public Async Function TestNamedType_WithUnchangeableDocument_NotIgnoreUnchangeableDocument(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:$$C|}
+        {
+        }
+        </Document>
+        <Document CanApplyChange="false">
+        class D
+        {
+            private [|C|] c;
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            ' testKind.StreamingFeature doesn't support providing FindReferencesSearchOptions
+            Await TestAPI(input, host, options:=FindReferencesSearchOptions.Default.WithIgnoreUnchangeableDocuments(False))
+        End Function
     End Class
 End Namespace
