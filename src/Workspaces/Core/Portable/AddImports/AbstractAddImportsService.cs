@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.AddImports
         private bool HasExistingImport(
             SyntaxNode import, ImmutableArray<SyntaxNode> containers, ImmutableArray<SyntaxNode> globalImports)
         {
-            SemanticModel semanticModel = null;
             foreach (var node in containers)
             {
                 if (GetUsingsAndAliases(node).Any(u => IsEquivalentImport(u, import)))
