@@ -130,6 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     var loaderName = GetWinFormsLoaderName(vsHierarchy);
+                    if (loaderName is null)
+                    {
+                        goto case "Code";
+                    }
 
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
@@ -173,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        private string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
         {
             const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
             const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
@@ -193,6 +197,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (frameworkName.Identifier == ".NETCoreApp" &&
                     frameworkName.Version?.Major >= 3)
                 {
+                    if (!(_oleServiceProvider.QueryService<SVsShell>() is IVsShell shell))
+                    {
+                        return null;
+                    }
+
+                    var newWinFormsDesignerPackage = new Guid("c78ca057-cc29-421f-ad6d-3b0943debdfc");
+                    if (!ErrorHandler.Succeeded(shell.IsPackageInstalled(newWinFormsDesignerPackage, out var installed))
+                        || installed == 0)
+                    {
+                        return null;
+                    }
+
                     return NewLoaderName;
                 }
             }
