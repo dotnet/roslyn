@@ -562,9 +562,6 @@ namespace Microsoft.CodeAnalysis
         /// are guaranteed to break the build.
         /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
         /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
-        /// Note: does NOT do filtering, so it may return false if a
-        /// non-error diagnostic were later elevated to an error through filtering (e.g., through
-        /// warn-as-error).
         /// </summary>
         internal static bool HasUnsuppressableErrors(DiagnosticBag diagnostics)
         {
@@ -1069,11 +1066,13 @@ namespace Microsoft.CodeAnalysis
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-
-                            // Apply diagnostic suppressions for analyzer compiler diagnostics from diagnostic suppressors.
-                            hostDiagnostics = analyzerDriver.ApplyProgrammaticSuppressions(hostDiagnostics, compilation);
-
                             diagnostics.AddRange(hostDiagnostics);
+
+                            if (!diagnostics.IsEmptyWithoutResolution)
+                            {
+                                // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                            }
                         }
                     }
                     finally
