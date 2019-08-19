@@ -35,6 +35,47 @@ class C
         }
 
         [Fact]
+        public async Task NotOfferedWhenToStringIsNotOverriddenInSameClass()
+        {
+            await TestMissingAsync(@"
+class A
+{
+    public override string ToString() => ""Foo"";
+}
+
+[||]class B : A
+{
+}");
+        }
+
+        [Fact]
+        public async Task OfferedOnStructWithOverriddenToString()
+        {
+            await TestInRegularAndScriptAsync(@"
+[||]struct Foo
+{
+    public override string ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{ToString(),nq}"")]
+struct Foo
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedWhenToStringIsNotOverriddenInStruct()
+        {
+            await TestMissingAsync(@"
+[||]struct Foo
+{
+    public int Bar { get; }
+}");
+        }
+
+        [Fact]
         public async Task NotOfferedOnUnrelatedClassMembers()
         {
             await TestMissingInRegularAndScriptAsync(@"
