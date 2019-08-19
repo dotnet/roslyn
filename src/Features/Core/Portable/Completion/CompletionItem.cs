@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -90,15 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal string AutomationText { get; set; }
 
-        /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
-        ///
-        /// TODO: Revisit the approach we used for caching VS items.
-        ///       https://github.com/dotnet/roslyn/issues/35160
-        /// </summary>
-        internal bool IsCached { get; set; }
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -259,7 +251,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 inlineDescription: newInlineDescription)
             {
                 AutomationText = AutomationText,
-                ProviderName = ProviderName
+                ProviderName = ProviderName,
+                Flags = Flags,
             };
         }
 

@@ -8,6 +8,7 @@
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
   </ItemGroup>

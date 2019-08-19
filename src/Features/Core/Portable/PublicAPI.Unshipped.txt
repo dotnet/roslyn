@@ -12,6 +12,7 @@ const Microsoft.CodeAnalysis.TextTags.EnumMember = "EnumMember" -> string
 const Microsoft.CodeAnalysis.TextTags.ExtensionMethod = "ExtensionMethod" -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextPrefix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextSuffix.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionItem.InlineDescription.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextPrefix(string displayTextPrefix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextSuffix(string displayTextSuffix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem

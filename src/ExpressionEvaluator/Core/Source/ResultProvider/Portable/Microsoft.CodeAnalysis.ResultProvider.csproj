@@ -7,7 +7,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
     <TargetFramework>netstandard1.3</TargetFramework>
-    <EnableNgenOptimization>true</EnableNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
