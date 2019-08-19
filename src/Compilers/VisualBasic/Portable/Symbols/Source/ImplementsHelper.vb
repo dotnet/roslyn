@@ -363,6 +363,7 @@ DoneWithErrorReporting:
                             resultKind = LookupResult.WorseResultKind(resultKind, lookup.Kind)
                             If Not binder.IsAccessible(foundMember, useSiteDiagnostics) Then
                                 resultKind = LookupResult.WorseResultKind(resultKind, LookupResultKind.Inaccessible) ' we specified IgnoreAccessibility above.
+                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(foundMember))
                             End If
                         End If
                     End If

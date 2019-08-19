@@ -4052,46 +4052,42 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.G", @"
-{
-  // Code size       58 (0x3a)
-  .maxstack  1
-  .locals init (int V_0, //a
-                string V_1, //b
-                [int] V_2,
-                [int] V_3,
-                [object] V_4,
-                int V_5,
-                int V_6,
-                object V_7)
- -IL_0000:  nop
- -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_0023
-  IL_0009:  ldarg.0
-  IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.0
-  IL_0010:  ldarg.1
-  IL_0011:  isinst     ""string""
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.1
-  IL_0018:  brtrue.s   IL_001c
-  IL_001a:  br.s       IL_0023
-  IL_001c:  br.s       IL_001e
-  IL_001e:  ldloc.0
-  IL_001f:  stloc.s    V_5
-  IL_0021:  br.s       IL_0028
-  IL_0023:  ldc.i4.0
-  IL_0024:  stloc.s    V_5
-  IL_0026:  br.s       IL_0028
-  IL_0028:  ldloc.s    V_5
-  IL_002a:  stloc.s    V_6
-  IL_002c:  ldloc.s    V_6
-  IL_002e:  box        ""int""
-  IL_0033:  stloc.s    V_7
-  IL_0035:  br.s       IL_0037
- -IL_0037:  ldloc.s    V_7
-  IL_0039:  ret
-}
+    {
+      // Code size       54 (0x36)
+      .maxstack  1
+      .locals init (int V_0, //a
+                    string V_1, //b
+                    [int] V_2,
+                    [object] V_3,
+                    int V_4,
+                    object V_5)
+     -IL_0000:  nop
+     -IL_0001:  ldarg.0
+      IL_0002:  isinst     ""int""
+      IL_0007:  brfalse.s  IL_0023
+      IL_0009:  ldarg.0
+      IL_000a:  unbox.any  ""int""
+      IL_000f:  stloc.0
+      IL_0010:  ldarg.1
+      IL_0011:  isinst     ""string""
+      IL_0016:  stloc.1
+      IL_0017:  ldloc.1
+      IL_0018:  brtrue.s   IL_001c
+      IL_001a:  br.s       IL_0023
+      IL_001c:  br.s       IL_001e
+      IL_001e:  ldloc.0
+      IL_001f:  stloc.s    V_4
+      IL_0021:  br.s       IL_0028
+      IL_0023:  ldc.i4.0
+      IL_0024:  stloc.s    V_4
+      IL_0026:  br.s       IL_0028
+      IL_0028:  ldloc.s    V_4
+      IL_002a:  box        ""int""
+      IL_002f:  stloc.s    V_5
+      IL_0031:  br.s       IL_0033
+     -IL_0033:  ldloc.s    V_5
+      IL_0035:  ret
+    }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -4130,55 +4126,47 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.G", @"
-{
-  // Code size       68 (0x44)
-  .maxstack  1
-  .locals init (int V_0, //i
-                [int] V_1,
-                [int] V_2,
-                [int] V_3,
-                [int] V_4,
-                [object] V_5,
-                int V_6,
-                int V_7,
-                int V_8,
-                int V_9,
-                object V_10)
- -IL_0000:  nop
- -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_002d
-  IL_0009:  ldarg.0
-  IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0012
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ldloc.0
-  IL_0015:  brfalse.s  IL_0019
-  IL_0017:  br.s       IL_001e
-  IL_0019:  ldc.i4.1
-  IL_001a:  stloc.s    V_8
-  IL_001c:  br.s       IL_0023
-  IL_001e:  ldc.i4.2
-  IL_001f:  stloc.s    V_8
-  IL_0021:  br.s       IL_0023
-  IL_0023:  ldloc.s    V_8
-  IL_0025:  stloc.s    V_9
-  IL_0027:  ldloc.s    V_9
-  IL_0029:  stloc.s    V_6
-  IL_002b:  br.s       IL_0032
-  IL_002d:  ldc.i4.3
-  IL_002e:  stloc.s    V_6
-  IL_0030:  br.s       IL_0032
-  IL_0032:  ldloc.s    V_6
-  IL_0034:  stloc.s    V_7
-  IL_0036:  ldloc.s    V_7
-  IL_0038:  box        ""int""
-  IL_003d:  stloc.s    V_10
-  IL_003f:  br.s       IL_0041
- -IL_0041:  ldloc.s    V_10
-  IL_0043:  ret
-}
+    {
+      // Code size       60 (0x3c)
+      .maxstack  1
+      .locals init (int V_0, //i
+                    [int] V_1,
+                    [int] V_2,
+                    [object] V_3,
+                    int V_4,
+                    int V_5,
+                    object V_6)
+     -IL_0000:  nop
+     -IL_0001:  ldarg.0
+      IL_0002:  isinst     ""int""
+      IL_0007:  brfalse.s  IL_0029
+      IL_0009:  ldarg.0
+      IL_000a:  unbox.any  ""int""
+      IL_000f:  stloc.0
+      IL_0010:  br.s       IL_0012
+      IL_0012:  br.s       IL_0014
+      IL_0014:  ldloc.0
+      IL_0015:  brfalse.s  IL_0019
+      IL_0017:  br.s       IL_001e
+      IL_0019:  ldc.i4.1
+      IL_001a:  stloc.s    V_5
+      IL_001c:  br.s       IL_0023
+      IL_001e:  ldc.i4.2
+      IL_001f:  stloc.s    V_5
+      IL_0021:  br.s       IL_0023
+      IL_0023:  ldloc.s    V_5
+      IL_0025:  stloc.s    V_4
+      IL_0027:  br.s       IL_002e
+      IL_0029:  ldc.i4.3
+      IL_002a:  stloc.s    V_4
+      IL_002c:  br.s       IL_002e
+      IL_002e:  ldloc.s    V_4
+      IL_0030:  box        ""int""
+      IL_0035:  stloc.s    V_6
+      IL_0037:  br.s       IL_0039
+     -IL_0039:  ldloc.s    V_6
+      IL_003b:  ret
+    }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -4345,56 +4333,48 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.G", @"
-{
-  // Code size       65 (0x41)
-  .maxstack  2
-  .locals init (int V_0, //x
-                [int] V_1,
-                [object] V_2,
-                [int] V_3,
-                [int] V_4,
-                [int] V_5,
-                [object] V_6,
-                int V_7,
-                object V_8,
-                int V_9,
-                int V_10,
-                int V_11,
-                object V_12)
- -IL_0000:  nop
- -IL_0001:  ldloca.s   V_0
-  IL_0003:  call       ""object C.N(out int)""
-  IL_0008:  stloc.s    V_8
-  IL_000a:  ldloc.s    V_8
-  IL_000c:  brfalse.s  IL_0010
-  IL_000e:  br.s       IL_002a
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.1
-  IL_0012:  beq.s      IL_0016
-  IL_0014:  br.s       IL_001b
-  IL_0016:  ldc.i4.1
-  IL_0017:  stloc.s    V_10
-  IL_0019:  br.s       IL_0020
-  IL_001b:  ldc.i4.2
-  IL_001c:  stloc.s    V_10
-  IL_001e:  br.s       IL_0020
-  IL_0020:  ldloc.s    V_10
-  IL_0022:  stloc.s    V_11
-  IL_0024:  ldloc.s    V_11
-  IL_0026:  stloc.s    V_7
-  IL_0028:  br.s       IL_002f
-  IL_002a:  ldc.i4.1
-  IL_002b:  stloc.s    V_7
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ldloc.s    V_7
-  IL_0031:  stloc.s    V_9
-  IL_0033:  ldloc.s    V_9
-  IL_0035:  box        ""int""
-  IL_003a:  stloc.s    V_12
-  IL_003c:  br.s       IL_003e
- -IL_003e:  ldloc.s    V_12
-  IL_0040:  ret
-}
+    {
+      // Code size       57 (0x39)
+      .maxstack  2
+      .locals init (int V_0, //x
+                    [int] V_1,
+                    [object] V_2,
+                    [int] V_3,
+                    [object] V_4,
+                    int V_5,
+                    object V_6,
+                    int V_7,
+                    object V_8)
+     -IL_0000:  nop
+     -IL_0001:  ldloca.s   V_0
+      IL_0003:  call       ""object C.N(out int)""
+      IL_0008:  stloc.s    V_6
+      IL_000a:  ldloc.s    V_6
+      IL_000c:  brfalse.s  IL_0010
+      IL_000e:  br.s       IL_0026
+      IL_0010:  ldloc.0
+      IL_0011:  ldc.i4.1
+      IL_0012:  beq.s      IL_0016
+      IL_0014:  br.s       IL_001b
+      IL_0016:  ldc.i4.1
+      IL_0017:  stloc.s    V_7
+      IL_0019:  br.s       IL_0020
+      IL_001b:  ldc.i4.2
+      IL_001c:  stloc.s    V_7
+      IL_001e:  br.s       IL_0020
+      IL_0020:  ldloc.s    V_7
+      IL_0022:  stloc.s    V_5
+      IL_0024:  br.s       IL_002b
+      IL_0026:  ldc.i4.1
+      IL_0027:  stloc.s    V_5
+      IL_0029:  br.s       IL_002b
+      IL_002b:  ldloc.s    V_5
+      IL_002d:  box        ""int""
+      IL_0032:  stloc.s    V_8
+      IL_0034:  br.s       IL_0036
+     -IL_0036:  ldloc.s    V_8
+      IL_0038:  ret
+    }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
