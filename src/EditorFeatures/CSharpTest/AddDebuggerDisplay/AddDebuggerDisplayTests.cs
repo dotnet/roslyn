@@ -142,5 +142,80 @@ class C
     public override string ToString() => ""Foo"";
 }");
         }
+
+        [Fact]
+        public async Task NotOfferedWhenAlreadySpecified()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[System.Diagnostics.DebuggerDisplay(""Foo"")]
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedWhenAlreadySpecifiedWithSuffix()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[System.Diagnostics.DebuggerDisplayAttribute(""Foo"")]
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedWhenAnyAttributeWithTheSameNameIsSpecified()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[BrokenCode.DebuggerDisplay(""Foo"")]
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedWhenAnyAttributeWithTheSameNameIsSpecifiedWithSuffix()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[BrokenCode.DebuggerDisplay(""Foo"")]
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task OfferedWhenBaseClassHasDebuggerDisplay()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Diagnostics;
+
+[DebuggerDisplay(""Foo"")]
+class A
+{
+    public override string ToString() => ""Foo"";
+}
+
+[||]class B : A
+{
+    public override string ToString() => base.ToString();
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""Foo"")]
+class A
+{
+    public override string ToString() => ""Foo"";
+}
+
+[DebuggerDisplay(""{ToString(),nq}"")]
+class B : A
+{
+    public override string ToString() => base.ToString();
+}");
+        }
     }
 }

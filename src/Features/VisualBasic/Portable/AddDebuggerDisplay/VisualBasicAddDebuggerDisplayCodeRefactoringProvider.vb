@@ -11,11 +11,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
     Friend NotInheritable Class VisualBasicAddDebuggerDisplayCodeRefactoringProvider
         Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax, MethodBlockSyntax)
 
-        Protected Overrides Function IsDebuggerDisplayAttribute(attribute As SyntaxNode) As Boolean
+        Protected Overrides Function HasDebuggerDisplayAttribute(typeDeclaration As TypeBlockSyntax) As Boolean
+            Return (
+                From list In typeDeclaration.BlockStatement.AttributeLists
+                From attribute In list.Attributes
+                Where IsDebuggerDisplayAttribute(attribute)).Any()
+        End Function
+
+        Private Function IsDebuggerDisplayAttribute(attribute As AttributeSyntax) As Boolean
             ' Purposely bails for efficiency if anything called "DebuggerDisplay" is already applied, regardless of
             ' whether it's the "real" one.
 
-            Dim name = DirectCast(attribute, AttributeSyntax).Name
+            Dim name = attribute.Name
 
             While True
                 Dim qualified = TryCast(name, QualifiedNameSyntax)

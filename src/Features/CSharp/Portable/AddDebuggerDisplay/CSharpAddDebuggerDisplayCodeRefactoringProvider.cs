@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.AddDebuggerDisplay;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,12 +11,19 @@ namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddDebuggerDisplayCodeRefactoringProvider)), Shared]
     internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider : AbstractAddDebuggerDisplayCodeRefactoringProvider<TypeDeclarationSyntax, MethodDeclarationSyntax>
     {
-        protected override bool IsDebuggerDisplayAttribute(SyntaxNode attribute)
+        protected override bool HasDebuggerDisplayAttribute(TypeDeclarationSyntax typeDeclaration)
+        {
+            return typeDeclaration.AttributeLists
+                .SelectMany(list => list.Attributes)
+                .Any(IsDebuggerDisplayAttribute);
+        }
+
+        private bool IsDebuggerDisplayAttribute(AttributeSyntax attribute)
         {
             // Purposely bails for efficiency if anything called "DebuggerDisplay" is already applied, regardless of
             // whether it's the "real" one.
 
-            var name = ((AttributeSyntax)attribute).Name;
+            var name = attribute.Name;
 
             while (name is QualifiedNameSyntax { Right: var rightSide })
             {

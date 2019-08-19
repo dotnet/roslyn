@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 type = (TTypeDeclarationSyntax)method.Parent;
             }
 
-            if (generator.GetAttributes(type).Any(IsDebuggerDisplayAttribute))
-            {
-                return;
-            }
+            if (HasDebuggerDisplayAttribute(type)) return;
 
             context.RegisterRefactoring(new MyCodeAction(
                 FeaturesResources.Add_DebuggerDisplay,
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 cancellationToken);
         }
 
-        protected abstract bool IsDebuggerDisplayAttribute(SyntaxNode attribute);
+        protected abstract bool HasDebuggerDisplayAttribute(TTypeDeclarationSyntax typeDeclaration);
 
         protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
 
