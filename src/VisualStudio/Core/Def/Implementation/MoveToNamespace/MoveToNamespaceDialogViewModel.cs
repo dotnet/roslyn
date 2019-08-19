@@ -123,10 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         public string this[string columnName] =>
             columnName switch
-        {
-            nameof(NamespaceName) => CanSubmit ? string.Empty : Message,
-            _ => string.Empty
-        };
+            {
+                nameof(NamespaceName) => CanSubmit ? string.Empty : Message,
+                _ => string.Empty
+            };
 
     }
 }

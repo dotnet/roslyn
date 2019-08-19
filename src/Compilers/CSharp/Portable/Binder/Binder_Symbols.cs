@@ -2315,6 +2315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-            => feature.CheckFeatureAvailability(diagnostics, location);
+        {
+            if (feature.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)tree.Options) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
+                return false;
+            }
+            return true;
+        }
     }
 }

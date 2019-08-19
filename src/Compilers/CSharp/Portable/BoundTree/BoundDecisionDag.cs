@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_reachableLabels == null)
                 {
-                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>();
+                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>(SymbolEqualityComparer.ConsiderEverything);
                     foreach (var node in this.TopologicallySortedNodes)
                     {
                         if (node is BoundLeafDecisionDagNode leaf)

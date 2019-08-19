@@ -45,6 +45,10 @@ warn_as_error=${warn_as_error:-true}
 # installed on the machine instead of downloading one.
 use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
 
+# Enable repos to use a particular version of the on-line dotnet-install scripts.
+#    default URL: https://dot.net/v1/dotnet-install.sh
+dotnetInstallScriptVersion=${dotnetInstallScriptVersion:-'v1'}
+
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
 if [[ "$ci" == true ]]; then
   use_global_nuget_cache=${use_global_nuget_cache:-false}
@@ -77,7 +81,7 @@ function ReadGlobalVersion {
   local pattern="\"$key\" *: *\"(.*)\""
 
   if [[ ! $line =~ $pattern ]]; then
-    Write-PipelineTelemetryError -category 'InitializeTools' "Error: Cannot find \"$key\" in $global_json_file"
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Error: Cannot find \"$key\" in $global_json_file"
     ExitWithExitCode 1
   fi
 
@@ -146,14 +150,10 @@ function InitializeDotNetCli {
 
   # Add dotnet to PATH. This prevents any bare invocation of dotnet in custom
   # build steps from using anything other than what we've downloaded.
-  export PATH="$dotnet_root:$PATH"
+  Write-PipelinePrependPath -path "$dotnet_root"
 
-  if [[ $ci == true ]]; then
-    # Make Sure that our bootstrapped dotnet cli is available in future steps of the Azure Pipelines build
-    echo "##vso[task.prependpath]$dotnet_root"
-    echo "##vso[task.setvariable variable=DOTNET_MULTILEVEL_LOOKUP]0"
-    echo "##vso[task.setvariable variable=DOTNET_SKIP_FIRST_TIME_EXPERIENCE]1"
-  fi
+  Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
+  Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
   # return value
   _InitializeDotNetCli="$dotnet_root"
@@ -199,7 +199,7 @@ function InstallDotNet {
 function GetDotNetInstallScript {
   local root=$1
   local install_script="$root/dotnet-install.sh"
-  local install_script_url="https://dot.net/v1/dotnet-install.sh"
+  local install_script_url="https://dot.net/$dotnetInstallScriptVersion/dotnet-install.sh"
 
   if [[ ! -a "$install_script" ]]; then
     mkdir -p "$root"
@@ -249,7 +249,7 @@ function InitializeNativeTools() {
   then
     local nativeArgs=""
     if [[ "$ci" == true ]]; then
-      nativeArgs="-InstallDirectory $tools_dir"
+      nativeArgs="--installDirectory $tools_dir"
     fi
     "$_script_dir/init-tools-native.sh" $nativeArgs
   fi
@@ -387,7 +387,8 @@ mkdir -p "$toolset_dir"
 mkdir -p "$temp_dir"
 mkdir -p "$log_dir"
 
-if [[ $ci == true ]]; then
-  export TEMP="$temp_dir"
-  export TMP="$temp_dir"
-fi
+Write-PipelineSetVariable -name "Artifacts" -value "$artifacts_dir"
+Write-PipelineSetVariable -name "Artifacts.Toolset" -value "$toolset_dir"
+Write-PipelineSetVariable -name "Artifacts.Log" -value "$log_dir"
+Write-PipelineSetVariable -name "Temp" -value "$temp_dir"
+Write-PipelineSetVariable -name "TMP" -value "$temp_dir"

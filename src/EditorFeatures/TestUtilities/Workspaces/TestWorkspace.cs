@@ -680,5 +680,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
+
+        public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
+            => true;
     }
 }

@@ -263,6 +263,25 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, N(0, [||]{|result:|}, 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
         #endregion
 
         #region Selections
@@ -496,6 +515,64 @@ class C
 
         #region Attributes
         [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [][||]
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        public async Task TestEmptyParameter()
+        {
+            var testText = @"
+using System;
+public class TestAttribute : Attribute { }
+public class Class1
+{
+    static void foo({|result:[Test][||]
+|}    {
+
+    }
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [||]// Comment 
+    []
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestEmptyAttributeList()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:[]
+    [||]void a() {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeBeforeAttribute()
         {
@@ -693,7 +770,6 @@ class C
 }";
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
-
         #endregion
 
         #region Extractions general
@@ -725,6 +801,34 @@ class C
     [Test] public [|int|] a { get; set; }
 }";
             await TestMissingAsync<PropertyDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMultipleExtractions()
+        {
+            var localDeclaration = "{|result:string name = \"\", b[||]b = null;|}";
+            var localDeclarator = "string name = \"\", {|result:bb[||] = null|};";
+
+            await TestAsync<LocalDeclarationStatementSyntax>(GetTestText(localDeclaration));
+            await TestAsync<VariableDeclaratorSyntax>(GetTestText(localDeclarator));
+
+            static string GetTestText(string data)
+            {
+                return @"
+class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+
+            }
         }
         #endregion
 
@@ -808,19 +912,194 @@ class C
 
         #endregion
 
+        #region Headers & holes
+        [Theory]
+        [InlineData("var aa = nul[||]l;")]
+        [InlineData("var aa = n[||]ull;")]
+        [InlineData("string aa = null, bb = n[||]ull;")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingInHeaderHole(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Theory]
+        [InlineData("{|result:[||]var aa = null;|}")]
+        [InlineData("{|result:var aa = [||]null;|}")]
+        [InlineData("{|result:var aa = null[||];|}")]
+        [InlineData("{|result:string aa = null, b[||]b = null;|}")]
+        [InlineData("{|result:string aa = null, bb = [||]null;|}")]
+        [InlineData("{|result:string aa = null, bb = null[||];|}")]
+        [InlineData("{|result:string aa = null, bb = null;[||]|}")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+        #endregion
+
+        #region TestHidden
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden2()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+#line hidden
+        var a = b;
+#line default
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        C LocalFunction(C c)
+#line default
+        {
+            return null;
+        }[||]
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+        #endregion
+
+        #region Test predicate
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N([||]2+3);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgument()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:[||]2+3|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var a = ({|result:[||]2 + 3|}, 2 + 3);
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+        #endregion
+
         #region Test arguments
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingArgumentsExtractionsInInitializer()
+        public async Task TestArgumentsExtractionsInInitializer()
         {
             var testText = @"
 using System;
 class C
 {
     class TestAttribute : Attribute { }
-    public C([Test]int a = [||]42, int b = 41) {}
+    public C({|result:[Test]int a = [||]42|}, int b = 41) {}
 }";
-            await TestMissingAsync<ParameterSyntax>(testText);
+            await TestAsync<ParameterSyntax>(testText);
         }
 
         [Fact]
@@ -1050,6 +1329,203 @@ class CC
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
+        #endregion
+
+        #region TestLocalDeclaration
+        [Theory]
+        [InlineData("{|result:v[||]ar name = \"\";|}")]
+        [InlineData("{|result:string name = \"\", b[||]b = null;|}")]
+        [InlineData("{|result:var[||] name = \"\";|}")]
+        [InlineData("{|result:var [||]name = \"\";|}")]
+        [InlineData("{|result:var na[||]me = \"\";|}")]
+        [InlineData("{|result:var name[||] = \"\";|}")]
+        [InlineData("{|result:var name [||]= \"\";|}")]
+        [InlineData("{|result:var name =[||] \"\";|}")]
+        [InlineData("{|result:var name = [||]\"\";|}")]
+        [InlineData("{|result:[|var name = \"\";|]|}")]
+        [InlineData("{|result:var name = \"\"[||];|}")]
+        [InlineData("{|result:var name = \"\";[||]|}")]
+        [InlineData("{|result:var name = \"\"[||]|}")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestLocalDeclarationInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Theory]
+        [InlineData("var name = \"[||]\";")]
+        [InlineData("var name=[|\"\"|];")]
+        [InlineData("string name = \"\", bb = n[||]ull;")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingLocalDeclarationCaretInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+        #endregion
+
+        #region Test Ifs
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMultiline_IfElseIfElseSelection1()
+        {
+            await TestAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        {|result:[|if (a)
+        {
+            a();
+        }|]
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|}
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMultiline_IfElseIfElseSelection2()
+        {
+            await TestAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        {|result:[|if (a)
+        {
+            a();
+        }
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]|}
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact]
+        public async Task TestMissingMultiline_IfElseIfElseSelection()
+        {
+            await TestMissingAsync<IfStatementSyntax>(
+@"class A
+{
+    void Goo()
+    {
+        if (a)
+        {
+            a();
+        }
+        [|else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]
+    }
+}");
+        }
+
+        #endregion
+
+        #region Test Deep in expression
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestDeepIn()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:2+[||]3+4|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingDeepInSecondRow()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(2
+            +[||]3+4);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestDeepInExpression()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var b = ({|result:N(2[||])|}, 0);
+    }
+
+    int N(int a)
+    {
+        return a;
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax);
+        }
         #endregion
     }
 }

@@ -5,36 +5,44 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare;
+using Newtonsoft.Json.Linq;
+using Task = System.Threading.Tasks.Task;
+using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
-    [Export]
-    [ExportCollaborationService(typeof(RoslynLSPClientLifeTimeService),
-                                Scope = SessionScope.Guest,
-                                Role = ServiceRole.LocalService,
-                                Features = "LspServices",
-                                CreationPriority = (int)ServiceRole.LocalService + 2000)]
-    internal class RoslynLspClientServiceFactory : ICollaborationServiceFactory
+    internal abstract class AbstractLspClientServiceFactory : ICollaborationServiceFactory
     {
-        private const string RoslynProviderName = "Roslyn";
-        private const string AnyProviderName = "any";
+        protected abstract string LanguageSpecificProviderName { get; }
 
-        public ILanguageServerClient ActiveLanguageServerClient { get; private set; }
+        protected abstract RoslynLSPClientLifeTimeService LspClientLifeTimeService { get; }
+
+        public LS.ILanguageServerClient ActiveLanguageServerClient { get; private set; }
+
+        public ServerCapabilities ServerCapabilities { get; private set; }
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
-            var languageServerGuestService = (ILanguageServerGuestService)collaborationSession.GetService(typeof(ILanguageServerGuestService));
+            var languageServerGuestService = (LS.ILanguageServerGuestService)collaborationSession.GetService(typeof(LS.ILanguageServerGuestService));
 
             collaborationSession.RemoteServicesChanged += (sender, e) =>
             {
-                // VS will expose a roslyn LSP server and VSCode will expose a "any" LSP provider and both support roslyn languages.
-                var roslynLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(RoslynProviderName);
-                var anyLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(AnyProviderName);
+                // VS will expose a roslyn LSP server.
+                var roslynLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(StringConstants.RoslynProviderName);
+                // Newer versions of VS will expose language specific LSP servers for Roslyn.
+                var languageSpecificLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(LanguageSpecificProviderName);
+                // VSCode will expose a "any" LSP provider and both support roslyn languages.
+                var anyLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(StringConstants.AnyProviderName);
 
-                if (collaborationSession.RemoteServiceNames.Contains(roslynLspServerProviderName))
+                // For VS, Preferentially use the language specific server when it's available, otherwise fall back to the generic roslyn server.
+                if (collaborationSession.RemoteServiceNames.Contains(languageSpecificLspServerProviderName))
+                {
+                    ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(languageSpecificLspServerProviderName);
+                }
+                else if (collaborationSession.RemoteServiceNames.Contains(roslynLspServerProviderName))
                 {
                     ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(roslynLspServerProviderName);
                 }
@@ -47,9 +55,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             // Register Roslyn supported capabilities
             languageServerGuestService.RegisterClientMetadata(
                 new string[] { StringConstants.TypeScriptLanguageName },
-                new LanguageServerClientMetadata(
+                new LS.LanguageServerClientMetadata(
                     true,
-                    new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentSymbolProvider = true,
@@ -71,13 +79,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         CompletionProvider = null,
                         HoverProvider = false,
                         TextDocumentSync = null,
-                    }));
+                    })));
 
             languageServerGuestService.RegisterClientMetadata(
                 new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
-                new LanguageServerClientMetadata(
+                new LS.LanguageServerClientMetadata(
                     true,
-                    new ServerCapabilities
+                    JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
                         DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
@@ -100,9 +108,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         WorkspaceSymbolProvider = false,
                         HoverProvider = false,
                         TextDocumentSync = null,
-                    }));
+                    })));
 
-            var lifeTimeService = new RoslynLSPClientLifeTimeService();
+            var lifeTimeService = LspClientLifeTimeService;
             lifeTimeService.Disposed += (s, e) =>
             {
                 ActiveLanguageServerClient?.Dispose();
@@ -112,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             return Task.FromResult<ICollaborationService>(lifeTimeService);
         }
 
-        private class RoslynLSPClientLifeTimeService : ICollaborationService, IDisposable
+        protected abstract class RoslynLSPClientLifeTimeService : ICollaborationService, IDisposable
         {
             public event EventHandler Disposed;
 
@@ -120,6 +128,87 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             {
                 Disposed?.Invoke(this, null);
             }
+        }
+
+        /// <summary>
+        /// Ensures the client has been fully initialized by making an initialize request
+        /// and retrieving the server capabilities.
+        /// TODO - This should be called in <see cref="CreateServiceAsync(CollaborationSession, CancellationToken)"/>
+        /// and made private once LiveShare fixes the race in client creation.
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
+        /// </summary>
+        public async Task EnsureInitialized(CancellationToken cancellationToken)
+        {
+            if (ActiveLanguageServerClient == null)
+            {
+                return;
+            }
+
+            // Only request the server capabilities if we don't already have them.
+            if (ServerCapabilities == null)
+            {
+                var initializeRequest = new LS.LspRequest<InitializeParams, InitializeResult>(Methods.InitializeName);
+                var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
+
+                var serverCapabilities = intializeResult?.Capabilities;
+                if (serverCapabilities != null && LanguageServicesUtils.TryParseJson<RoslynExperimentalCapabilities>(serverCapabilities?.Experimental, out var roslynExperimentalCapabilities))
+                {
+                    serverCapabilities.Experimental = roslynExperimentalCapabilities;
+                }
+
+                ServerCapabilities = serverCapabilities;
+            }
+        }
+    }
+
+    [Export]
+    [ExportCollaborationService(typeof(CSharpLSPClientLifeTimeService),
+                                Scope = SessionScope.Guest,
+                                Role = ServiceRole.LocalService,
+                                Features = "LspServices",
+                                CreationPriority = (int)ServiceRole.LocalService + 2000)]
+    internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
+    {
+        protected override string LanguageSpecificProviderName => StringConstants.CSharpProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new CSharpLSPClientLifeTimeService();
+
+        private class CSharpLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
+        }
+    }
+
+    [Export]
+    [ExportCollaborationService(typeof(VisualBasicLSPClientLifeTimeService),
+                                Scope = SessionScope.Guest,
+                                Role = ServiceRole.LocalService,
+                                Features = "LspServices",
+                                CreationPriority = (int)ServiceRole.LocalService + 2000)]
+    internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
+    {
+        protected override string LanguageSpecificProviderName => StringConstants.VisualBasicProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new VisualBasicLSPClientLifeTimeService();
+
+        private class VisualBasicLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
+        }
+    }
+
+    [Export]
+    [ExportCollaborationService(typeof(TypeScriptLSPClientLifeTimeService),
+                                Scope = SessionScope.Guest,
+                                Role = ServiceRole.LocalService,
+                                Features = "LspServices",
+                                CreationPriority = (int)ServiceRole.LocalService + 2000)]
+    internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
+    {
+        protected override string LanguageSpecificProviderName => StringConstants.TypeScriptProviderName;
+
+        protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new TypeScriptLSPClientLifeTimeService();
+
+        private class TypeScriptLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        {
         }
     }
 }

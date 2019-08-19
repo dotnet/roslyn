@@ -23,11 +23,11 @@ namespace System.Runtime.CompilerServices
         public readonly byte[] NullableFlags;
         public NullableAttribute(byte flag)
         {
-            Flags = new byte[] { flag };
+            NullableFlags = new byte[] { flag };
         }
         public NullableAttribute(byte[] flags)
         {
-            Flags = flags;
+            NullableFlags = flags;
         }
     }
 }
@@ -78,7 +78,6 @@ Each type parameter definition may have an associated `NullableAttribute` with a
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(
-        AttributeTargets.Module |
         AttributeTargets.Class |
         AttributeTargets.Delegate |
         AttributeTargets.Interface |
@@ -102,7 +101,7 @@ The type declaration is synthesized by the compiler if not already included in t
 
 The `NullableContextAttribute` is optional - nullable annotations can be represented in metadata with full fidelity using `NullableAttribute` only.
 
-`NullableContextAttribute` is valid in metadata at the module level and at type and method declarations.
+`NullableContextAttribute` is valid in metadata at the type and method declarations.
 The `byte` value represents the implicit `NullableAttribute` value for type references within that scope
 that do not have an explicit `NullableAttribute` and would not otherwise be represented by an empty `byte[]`.
 The nearest `NullableContextAttribute` in the metadata hierarchy applies.
@@ -121,8 +120,6 @@ and any `NullableContextAttribute` attributes on immediate children.
 If there are no single `byte` values, there are no changes.
 Otherwise, a `NullableContext(value)` attribute is created at that level where `value` is most common
 value (preferring `0` over `1` and preferring `1` over `2`), and all `NullableAttribute` and `NullableContextAttribute` attributes with that value are removed.
-That iterative process continues up to the module level.
-If the common value at the module level is a value other than `0` (the default), a module level `NullableContext(value)` attribute is emitted.
 
 Note that an assembly compiled with C#8 where all reference types are oblivious will have no
 `NullableContextAttribute` and no `NullableAttribute` attributes emitted.

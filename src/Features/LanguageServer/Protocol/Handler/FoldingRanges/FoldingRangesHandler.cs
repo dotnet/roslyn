@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(keepThreadContext);
             if (blockStructure == null)
             {
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
 
             foreach (var span in blockStructure.Spans)
             {

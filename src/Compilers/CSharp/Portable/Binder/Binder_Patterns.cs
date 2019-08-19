@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol expressionType = expression.Type;
             if ((object)expressionType == null || expressionType.IsVoidType())
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindRValueWithoutTargetType(patternExpression, diagnostics);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);

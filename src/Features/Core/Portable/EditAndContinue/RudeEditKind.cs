@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InternalError = 80,
 
         InsertMethodWithExplicitInterfaceSpecifier = 81,
+        InsertIntoInterface = 82,
+        InsertLocalFunctionIntoInterfaceMethod = 83,
+        SwitchExpressionUpdate = 84,
+        ChangingFromAsynchronousToSynchronous = 85,
+        ChangingStateMachineShape = 86,
 
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,

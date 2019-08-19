@@ -28,21 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override async Task<SyntaxNode> GetSelectedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
             // Consider:
             // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 
             // VariableDeclaratorSyntax: for fields the MemberDeclaration can actually represent multiple declarations, e.g. `int a = 0, b = 1;`.
             // ..Since the user might want to select & pull up only one of them (e.g. `int a = 0, [|b = 1|];` we also look for closest VariableDeclaratorSyntax.
-            var memberDecl = await refactoringHelperService.TryGetSelectedNodeAsync<MemberDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var memberDecl = await context.TryGetRelevantNodeAsync<MemberDeclarationSyntax>().ConfigureAwait(false);
             if (memberDecl != default)
             {
                 return memberDecl;
             }
 
-            var varDecl = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var varDecl = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
             return varDecl;
         }
     }

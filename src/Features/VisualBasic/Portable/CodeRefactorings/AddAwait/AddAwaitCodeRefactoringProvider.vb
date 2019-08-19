@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddAwait), [Shared]>
     Friend Class VisualBasicAddAwaitCodeRefactoringProvider
-        Inherits AbstractAddAwaitCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax)
+        Inherits AbstractAddAwaitCodeRefactoringProvider(Of InvocationExpressionSyntax)
 
         <ImportingConstructor>
         Public Sub New()

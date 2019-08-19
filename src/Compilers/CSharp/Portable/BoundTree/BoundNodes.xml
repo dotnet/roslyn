@@ -367,14 +367,8 @@
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-
-    <!-- Converted nodes are meant for semantic model and IOperation use only -->
-    <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
-    <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
-
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
@@ -1184,19 +1178,35 @@
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
-  <Node Name="BoundSwitchExpression" Base="BoundExpression">
+  <AbstractNode Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol?"/>
     <Field Name="ReportedNotExhaustive" Type="bool"/>
-  </Node>
+  </AbstractNode>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="WhenClause" Type="BoundExpression?"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression">
+  </Node>
+
+  <!-- 
+  Switch expressions can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted switch expression is one which has been already converted to a target type.
+  Converted switch expressions always has a type.
+  -->
+  <Node Name="BoundConvertedSwitchExpression" Base="BoundSwitchExpression">
+    <!-- Converted switch expression must have a type, even if that's `void` for a statement. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">
@@ -1498,11 +1508,16 @@
   -->
   <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+
+    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
+    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </AbstractNode>
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
+  Once converted to a target type, they cannot be target-typed again.
   The tuple literal is one which has not been converted to a target type.
   -->
   <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
@@ -1511,26 +1526,21 @@
     Ex: 
      (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
-    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
-
-    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
-    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
-  The Converted tuple literal is one which has been already converted to a target type.
+  Once converted to a target type, they cannot be target-typed again.
+  The Converted tuple literal is one which has already been converted to a target type.
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
-    <!-- Converted tuple must have a type -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <!-- Original tuple is preserved for the purpose of semantic model -->
-    <Field Name="SourceTuple" Type="BoundTupleLiteral" SkipInVisitor="ExceptNullabilityRewriter" />
+    <!-- Original tuple is preserved for the purpose of semantic model.
+         When tuples are created as part of lowering, this could be null. -->
+    <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
   </Node>
-  
+
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1779,7 +1789,7 @@
     <Field Name="ApplicableIndexers" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundLambda" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="BoundLambda" Base="BoundExpression">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
@@ -1795,7 +1805,7 @@
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundQueryClause" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="BoundQueryClause" Base="BoundExpression">
     <!-- Equal to Value.Type. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- The value computed for this query clause. -->
@@ -1927,7 +1937,7 @@
   <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
-  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>

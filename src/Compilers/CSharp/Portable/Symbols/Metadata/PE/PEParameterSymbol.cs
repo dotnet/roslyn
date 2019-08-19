@@ -693,6 +693,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return annotations;
         }
 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                var attributes = GetAttributes();
+                var result = ImmutableHashSet<string>.Empty;
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+                    {
+                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
+                        {
+                            result = result.Add(parameterName);
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
+
         public override TypeWithAnnotations TypeWithAnnotations
         {
             get

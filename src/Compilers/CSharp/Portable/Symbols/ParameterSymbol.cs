@@ -385,6 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get
@@ -410,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Type; }
         }
 
-        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
