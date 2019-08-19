@@ -111,13 +111,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute)
             => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
-                attribute.AttributeClass.Name switch
-                {
-                    nameof(AllowNullAttribute) => true,
-                    nameof(MaybeNullAttribute) => true,
-                    nameof(MaybeNullWhenAttribute) => true,
-                    _ => false
-                };
+               IsAllowNullOrMaybeNullAttributeName(attribute.AttributeClass.Name);
+
+        private static bool IsAllowNullOrMaybeNullAttributeName(string name) => name switch
+        {
+            nameof(AllowNullAttribute) => true,
+            nameof(MaybeNullAttribute) => true,
+            nameof(MaybeNullWhenAttribute) => true,
+            _ => false
+        };
 
         /// <summary>
         /// Indicates whether the specified attribute is
@@ -128,28 +130,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static bool IsDisallowNullOrNotNullAttribute(AttributeData attribute)
             => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
-                attribute.AttributeClass.Name switch
-                {
-                    nameof(DisallowNullAttribute) => true,
-                    nameof(NotNullAttribute) => true,
-                    nameof(NotNullWhenAttribute) => true,
-                    nameof(NotNullIfNotNullAttribute) => true,
-                    _ => false
-                };
+               IsDisallowNullOrNotNullAttributeName(attribute.AttributeClass.Name);
+
+        private static bool IsDisallowNullOrNotNullAttributeName(string name) => name switch
+        {
+            nameof(DisallowNullAttribute) => true,
+            nameof(NotNullAttribute) => true,
+            nameof(NotNullWhenAttribute) => true,
+            nameof(NotNullIfNotNullAttribute) => true,
+            _ => false
+        };
 
         public static bool IsNullableFlowAnalysisAttribute(AttributeData attribute)
             => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
-                attribute.AttributeClass.Name switch
-                {
-                    nameof(AllowNullAttribute) => true,
-                    nameof(DisallowNullAttribute) => true,
-                    nameof(MaybeNullAttribute) => true,
-                    nameof(NotNullAttribute) => true,
-                    nameof(MaybeNullWhenAttribute) => true,
-                    nameof(NotNullWhenAttribute) => true,
-                    nameof(NotNullIfNotNullAttribute) => true,
-                    _ => false
-                };
+               (IsAllowNullOrMaybeNullAttributeName(attribute.AttributeClass.Name) ||
+                IsDisallowNullOrNotNullAttributeName(attribute.AttributeClass.Name));
 
         private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol)
             => namespaceSymbol.Name == nameof(System.Diagnostics.CodeAnalysis) &&
