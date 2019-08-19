@@ -431,10 +431,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If baseTypeIsInterface Then
-                    GetBaseInterfaces(current, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                    AddBaseInterfaces(current, baseInterfaces, interfacesLookedAt, basesBeingResolved)
                 End If
 
-                If basesBeingResolved.InheritsBeingResolvedOpt IsNot Nothing AndAlso basesBeingResolved.InheritsBeingResolvedOpt.Contains(current) Then
+                If basesBeingResolved.InheritsBeingResolvedOpt?.Contains(current) Then
                     ' We can't obtain BaseType if we're currently resolving the base type of current.
                     current = Nothing ' can't go up the base type chain.
                 Else
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit While
                     End If
 
-                    GetBaseInterfaces(currentBase, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                    AddBaseInterfaces(currentBase, baseInterfaces, interfacesLookedAt, basesBeingResolved)
                 End While
 
                 If Not result Then
@@ -482,9 +482,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Shared Sub GetBaseInterfaces(derived As TypeSymbol, baseInterfaces As ArrayBuilder(Of NamedTypeSymbol), interfacesLookedAt As PooledHashSet(Of NamedTypeSymbol), basesBeingResolved As BasesBeingResolved)
-            If (basesBeingResolved.InheritsBeingResolvedOpt IsNot Nothing AndAlso basesBeingResolved.InheritsBeingResolvedOpt.Contains(derived)) OrElse
-               (basesBeingResolved.ImplementsBeingResolvedOpt IsNot Nothing AndAlso basesBeingResolved.ImplementsBeingResolvedOpt.Contains(derived)) Then
+        Private Shared Sub AddBaseInterfaces(derived As TypeSymbol, baseInterfaces As ArrayBuilder(Of NamedTypeSymbol), interfacesLookedAt As PooledHashSet(Of NamedTypeSymbol), basesBeingResolved As BasesBeingResolved)
+            If basesBeingResolved.InheritsBeingResolvedOpt?.Contains(derived) OrElse
+               basesBeingResolved.ImplementsBeingResolvedOpt?.Contains(derived) Then
                 Return
             End If
 
@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             baseInterfaces.Add(definition)
                         End If
                     Case TypeKind.TypeParameter
-                        GetBaseInterfaces(candidate, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                        AddBaseInterfaces(candidate, baseInterfaces, interfacesLookedAt, basesBeingResolved)
                 End Select
             Next
         End Sub
