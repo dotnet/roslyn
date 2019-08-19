@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var genericTaskType = model.Compilation.TaskOfTType();
                 var taskType = model.Compilation.TaskType();
 
-                if (returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
+                if (taskType is object && returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
                 {
                     // convert void to Task type
                     awaitTaskReturn = true;
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+            protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
                 IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
