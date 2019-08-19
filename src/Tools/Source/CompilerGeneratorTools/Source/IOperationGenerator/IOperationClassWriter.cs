@@ -349,9 +349,9 @@ namespace IOperationGenerator
 
                 var allProps = GetAllProperties(type);
                 bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
-                var ioperationTypes = allProps.Where(p => IsIOperationType(p.Type)).ToList();
-                var publicIOperationTypes = ioperationTypes.Where(p => !p.IsInternal).ToList();
-                var hasIOpChildren = ioperationTypes.Count != 0;
+                var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
+                var publicIOperationTypes = ioperationProperties.Where(p => !p.IsInternal).ToList();
+                var hasIOpChildren = ioperationProperties.Count != 0;
                 var constructorAccessibility = type.IsAbstract ? "protected" : "internal";
                 string typeName = type.Name[1..];
 
@@ -397,7 +397,7 @@ namespace IOperationGenerator
                                 else
                                 {
                                     Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
-                                    var childrenOrdered = node.ChildrenOrder!.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                                    var childrenOrdered = GetPropertyOrder(node);
 
                                     foreach (var childName in childrenOrdered)
                                     {
@@ -469,7 +469,7 @@ namespace IOperationGenerator
 
                     if (hasIOpChildren)
                     {
-                        foreach (var property in ioperationTypes)
+                        foreach (var property in ioperationProperties)
                         {
                             writeProperty(property, propExtensibility: "override ");
                         }
@@ -497,7 +497,7 @@ namespace IOperationGenerator
 
                     writeClassHeader("abstract", @class, @base, type.Name);
 
-                    var propertiesAndFieldNames = ioperationTypes.Select(i => (i, $"_lazy{i.Name}", $"s_unset{GetSubName(i.Type)}")).ToList();
+                    var propertiesAndFieldNames = ioperationProperties.Select(i => (i, $"_lazy{i.Name}", $"s_unset{GetSubName(i.Type)}")).ToList();
 
                     foreach (var (prop, name, unset) in propertiesAndFieldNames)
                     {
@@ -526,7 +526,7 @@ namespace IOperationGenerator
                             var localName = prop.Name.ToCamelCase();
                             WriteLine($"{prop.Type} {localName} = Create{prop.Name}();");
                             WriteLine($"SetParentOperation({localName}, this);");
-                            WriteLine($"ImmutableInterlocked.InterlockedCompareExchange(ref {fieldName}, {localName}, default);");
+                            WriteLine($"ImmutableInterlocked.InterlockedInitialize(ref {fieldName}, {localName});");
                             Unbrace();
 
                         }
@@ -792,6 +792,8 @@ namespace IOperationGenerator
             arrayType = null;
             return false;
         }
+
+        private static List<string> GetPropertyOrder(Node node) => node.ChildrenOrder?.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList() ?? new List<string>();
 
         private enum ClassType
         {

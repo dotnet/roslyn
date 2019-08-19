@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> children = GetChildren();
                     SetParentOperation(children, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, children, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildrenInterlocked, children);
                 }
 
                 return _lazyChildrenInterlocked;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> children = CreateChildren();
                     SetParentOperation(children, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, children, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildrenInterlocked, children);
                 }
 
                 return _lazyChildrenInterlocked;
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
                 }
 
                 return _lazyArgumentsInterlocked;

@@ -2805,7 +2805,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> operations = CreateOperations();
                     SetParentOperation(operations, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyOperations, operations, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyOperations, operations);
                 }
                 return _lazyOperations;
             }
@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IVariableDeclarationOperation> declarations = CreateDeclarations();
                     SetParentOperation(declarations, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarations, declarations, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDeclarations, declarations);
                 }
                 return _lazyDeclarations;
             }
@@ -2924,7 +2924,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<ISwitchCaseOperation> cases = CreateCases();
                     SetParentOperation(cases, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCases, cases, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCases, cases);
                 }
                 return _lazyCases;
             }
@@ -3029,7 +3029,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> nextVariables = CreateNextVariables();
                     SetParentOperation(nextVariables, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariables, nextVariables, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyNextVariables, nextVariables);
                 }
                 return _lazyNextVariables;
             }
@@ -3111,7 +3111,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> before = CreateBefore();
                     SetParentOperation(before, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBefore, before, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyBefore, before);
                 }
                 return _lazyBefore;
             }
@@ -3139,7 +3139,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> atLoopBottom = CreateAtLoopBottom();
                     SetParentOperation(atLoopBottom, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAtLoopBottom, atLoopBottom, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAtLoopBottom, atLoopBottom);
                 }
                 return _lazyAtLoopBottom;
             }
@@ -3286,7 +3286,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> nextVariables = CreateNextVariables();
                     SetParentOperation(nextVariables, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariables, nextVariables, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyNextVariables, nextVariables);
                 }
                 return _lazyNextVariables;
             }
@@ -3634,7 +3634,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<ICatchClauseOperation> catches = CreateCatches();
                     SetParentOperation(catches, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCatches, catches, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCatches, catches);
                 }
                 return _lazyCatches;
             }
@@ -3908,7 +3908,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IArgumentOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArguments, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
                 }
                 return _lazyArguments;
             }
@@ -4041,7 +4041,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IArgumentOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArguments, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
                 }
                 return _lazyArguments;
             }
@@ -4107,7 +4107,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> indices = CreateIndices();
                     SetParentOperation(indices, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIndices, indices, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyIndices, indices);
                 }
                 return _lazyIndices;
             }
@@ -4292,7 +4292,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IArgumentOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArguments, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
                 }
                 return _lazyArguments;
             }
@@ -4756,7 +4756,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IArgumentOperation> arguments = CreateArguments();
                     SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArguments, arguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
                 }
                 return _lazyArguments;
             }
@@ -4852,7 +4852,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
                     SetParentOperation(dimensionSizes, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizes, dimensionSizes, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDimensionSizes, dimensionSizes);
                 }
                 return _lazyDimensionSizes;
             }
@@ -5350,7 +5350,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IInterpolatedStringContentOperation> parts = CreateParts();
                     SetParentOperation(parts, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParts, parts, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParts, parts);
                 }
                 return _lazyParts;
             }
@@ -5397,7 +5397,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> initializers = CreateInitializers();
                     SetParentOperation(initializers, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializers, initializers, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyInitializers, initializers);
                 }
                 return _lazyInitializers;
             }
@@ -5444,7 +5444,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> initializers = CreateInitializers();
                     SetParentOperation(initializers, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializers, initializers, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyInitializers, initializers);
                 }
                 return _lazyInitializers;
             }
@@ -5602,7 +5602,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> elements = CreateElements();
                     SetParentOperation(elements, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElements, elements, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyElements, elements);
                 }
                 return _lazyElements;
             }
@@ -6333,7 +6333,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> elementValues = CreateElementValues();
                     SetParentOperation(elementValues, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementValues, elementValues, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyElementValues, elementValues);
                 }
                 return _lazyElementValues;
             }
@@ -6403,7 +6403,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> ignoredArguments = CreateIgnoredArguments();
                     SetParentOperation(ignoredArguments, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredArguments, ignoredArguments, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyIgnoredArguments, ignoredArguments);
                 }
                 return _lazyIgnoredArguments;
             }
@@ -6463,7 +6463,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IVariableDeclaratorOperation> declarators = CreateDeclarators();
                     SetParentOperation(declarators, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarators, declarators, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDeclarators, declarators);
                 }
                 return _lazyDeclarators;
             }
@@ -6491,7 +6491,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions();
                     SetParentOperation(ignoredDimensions, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredDimensions, ignoredDimensions, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyIgnoredDimensions, ignoredDimensions);
                 }
                 return _lazyIgnoredDimensions;
             }
@@ -6688,7 +6688,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<ICaseClauseOperation> clauses = CreateClauses();
                     SetParentOperation(clauses, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClauses, clauses, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClauses, clauses);
                 }
                 return _lazyClauses;
             }
@@ -6702,7 +6702,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> body = CreateBody();
                     SetParentOperation(body, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBody, body, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyBody, body);
                 }
                 return _lazyBody;
             }
@@ -7520,7 +7520,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IReDimClauseOperation> clauses = CreateClauses();
                     SetParentOperation(clauses, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClauses, clauses, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClauses, clauses);
                 }
                 return _lazyClauses;
             }
@@ -7586,7 +7586,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
                     SetParentOperation(dimensionSizes, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizes, dimensionSizes, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDimensionSizes, dimensionSizes);
                 }
                 return _lazyDimensionSizes;
             }
@@ -7649,7 +7649,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IPatternOperation> deconstructionSubpatterns = CreateDeconstructionSubpatterns();
                     SetParentOperation(deconstructionSubpatterns, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeconstructionSubpatterns, deconstructionSubpatterns, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDeconstructionSubpatterns, deconstructionSubpatterns);
                 }
                 return _lazyDeconstructionSubpatterns;
             }
@@ -7663,7 +7663,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<IPropertySubpatternOperation> propertySubpatterns = CreatePropertySubpatterns();
                     SetParentOperation(propertySubpatterns, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPropertySubpatterns, propertySubpatterns, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);
                 }
                 return _lazyPropertySubpatterns;
             }
@@ -7737,7 +7737,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     ImmutableArray<ISwitchExpressionArmOperation> arms = CreateArms();
                     SetParentOperation(arms, this);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArms, arms, default);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArms, arms);
                 }
                 return _lazyArms;
             }

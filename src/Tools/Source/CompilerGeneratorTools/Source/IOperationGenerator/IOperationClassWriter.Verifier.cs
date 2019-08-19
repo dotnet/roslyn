@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 
 namespace IOperationGenerator
@@ -20,6 +22,7 @@ namespace IOperationGenerator
                 if (!abstractNode.Name.EndsWith("Operation"))
                 {
                     Console.WriteLine($"All IOperation node names must end with Operation. {abstractNode.Name} does not.");
+                    error = true;
                 }
 
                 if (!_typeMap.ContainsKey(abstractNode.Base))
@@ -40,7 +43,7 @@ namespace IOperationGenerator
                     {
                         if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal)
                         {
-                            Console.WriteLine($"{abstractNode.Name}.{prop.Name} does not have correctly formatted comments, please ensure that there is a <summary> block for the type.");
+                            Console.WriteLine($"{abstractNode.Name}.{prop.Name} does not have correctly formatted comments, please ensure that there is a <summary> block for the property.");
                             error = true;
                         }
                     }
@@ -69,13 +72,13 @@ namespace IOperationGenerator
 
                 if (node.ChildrenOrder is null)
                 {
-                    Console.WriteLine($"{node.Name} has more than 1 IOperation properties and must declare an explicit ordering with the ChildrenOrder attribute.");
+                    Console.WriteLine($"{node.Name} has more than 1 IOperation property and must declare an explicit ordering with the ChildrenOrder attribute.");
                     Console.WriteLine($"Properties: {string.Join(", ", properties)}");
                     error = true;
                     continue;
                 }
 
-                var childrenOrdered = node.ChildrenOrder.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+                var childrenOrdered = GetPropertyOrder(node);
                 foreach (var child in childrenOrdered)
                 {
                     if (!properties.Remove(child))

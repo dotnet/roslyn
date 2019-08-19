@@ -3504,7 +3504,7 @@ oneMoreTime:
                 if (exceptionTarget != null)
                 {
                     AddStatement(new SimpleAssignmentOperation(
-                                         isRef: false,
+                        isRef: false,
                         target: exceptionTarget,
                         value: new CaughtExceptionOperation(syntax, exceptionType),
                         semanticModel: null,
@@ -4228,8 +4228,8 @@ oneMoreTime:
                                                                      operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
                                                                      constantValue: default, isImplicit: true);
                     default:
-                        return new SimpleAssignmentOperation(isRef: false,
-                            Visit(operation.LoopControlVariable), // In C# this is an error case and VB doesn't support ref locals
+                        return new SimpleAssignmentOperation(isRef: false, // In C# this is an error case and VB doesn't support ref locals
+                            Visit(operation.LoopControlVariable),
                             current, semanticModel: null, operation.LoopControlVariable.Syntax,
                             operation.LoopControlVariable.Type,
                             constantValue: default, isImplicit: true);
