@@ -5075,7 +5075,7 @@ class Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_SimplifyNullableWithBangOperator() As Task
+        Public Async Function TestCSharp_SimplifyNullableWithNullableSuppressionOperator() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
