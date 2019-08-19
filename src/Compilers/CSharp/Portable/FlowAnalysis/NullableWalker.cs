@@ -677,8 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             int capacity = state.Capacity;
             for (int slot = start; slot < capacity; slot++)
             {
-                state[slot] = GetDefaultState(ref state, slot);
+                PopulateOneSlot(ref state, slot);
             }
+        }
+
+        private void PopulateOneSlot(ref LocalState state, int slot)
+        {
+            state[slot] = GetDefaultState(ref state, slot);
         }
 
         private NullableFlowState GetDefaultState(ref LocalState state, int slot)
@@ -695,16 +700,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Local:
-                    // Locals are considered not null before they are definitely assigned
-                    return NullableFlowState.NotNull;
+                    {
+                        var local = (LocalSymbol)symbol;
+                        if (!_variableTypes.TryGetValue(local, out TypeWithAnnotations localType))
+                        {
+                            localType = local.TypeWithAnnotations;
+                        }
+
+                        return localType.ToTypeWithState().State;
+                    }
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (parameter.RefKind == RefKind.Out)
-                        {
-                            return NullableFlowState.NotNull;
-                        }
-
                         if (!_variableTypes.TryGetValue(parameter, out TypeWithAnnotations parameterType))
                         {
                             parameterType = parameter.TypeWithAnnotations;
@@ -1318,21 +1325,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (slot > 0)
             {
-                if (parameter.RefKind == RefKind.Out)
+                this.State[slot] = parameterType.ToTypeWithState().State;
+                if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
                 {
-                    this.State[slot] = NullableFlowState.NotNull;
-                }
-                else
-                {
-                    this.State[slot] = parameterType.ToTypeWithState().State;
-                    if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
-                    {
-                        InheritNullableStateOfTrackableStruct(
-                            parameterType.Type,
-                            slot,
-                            valueSlot: -1,
-                            isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
-                    }
+                    InheritNullableStateOfTrackableStruct(
+                        parameterType.Type,
+                        slot,
+                        valueSlot: -1,
+                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
                 }
             }
         }
@@ -1461,6 +1461,81 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SetResult(node, GetAdjustedResult(type, slot), type);
             return null;
+        }
+
+        public override BoundNode VisitBlock(BoundBlock node)
+        {
+            DeclareLocals(node.Locals);
+            foreach (var statement in node.Statements)
+            {
+                VisitStatement(statement);
+            }
+
+            return null;
+        }
+
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            DeclareLocals(node.Locals);
+            return base.VisitDoStatement(node);
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            DeclareLocals(node.Locals);
+            return base.VisitWhileStatement(node);
+        }
+
+        public override BoundNode VisitForStatement(BoundForStatement node)
+        {
+            DeclareLocals(node.OuterLocals);
+            DeclareLocals(node.InnerLocals);
+            return base.VisitForStatement(node);
+        }
+
+        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        {
+            DeclareLocals(node.IterationVariables);
+            return base.VisitForEachStatement(node);
+        }
+
+        public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+        {
+            DeclareLocals(node.Locals);
+            return base.VisitUsingStatement(node);
+        }
+
+        public override BoundNode VisitFixedStatement(BoundFixedStatement node)
+        {
+            DeclareLocals(node.Locals);
+            return base.VisitFixedStatement(node);
+        }
+
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            DeclareLocals(node.Locals);
+            return base.VisitConstructorMethodBody(node);
+        }
+
+        private void DeclareLocal(LocalSymbol local)
+        {
+            if (local.DeclarationKind != LocalDeclarationKind.None)
+            {
+                int slot = GetOrCreateSlot(local);
+                if (slot > 0)
+                {
+                    PopulateOneSlot(ref this.State, slot);
+                    InheritDefaultState(slot);
+                }
+            }
+        }
+
+        private void DeclareLocals(ImmutableArray<LocalSymbol> locals)
+        {
+            foreach (var local in locals)
+            {
+                DeclareLocal(local);
+            }
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
