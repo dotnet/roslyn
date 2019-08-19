@@ -350,7 +350,7 @@ namespace IOperationGenerator
                 var allProps = GetAllProperties(type);
                 bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
                 var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
-                var publicIOperationTypes = ioperationProperties.Where(p => !p.IsInternal).ToList();
+                var publicIOperationProps = ioperationProperties.Where(p => !p.IsInternal).ToList();
                 var hasIOpChildren = ioperationProperties.Count != 0;
                 var constructorAccessibility = type.IsAbstract ? "protected" : "internal";
                 string typeName = type.Name[1..];
@@ -386,13 +386,13 @@ namespace IOperationGenerator
                     {
                         if (!node.SkipChildrenGeneration)
                         {
-                            if (publicIOperationTypes.Count > 0)
+                            if (publicIOperationProps.Count > 0)
                             {
                                 var orderedProperties = new List<Property>();
 
-                                if (publicIOperationTypes.Count == 1)
+                                if (publicIOperationProps.Count == 1)
                                 {
-                                    orderedProperties.Add(publicIOperationTypes.Single());
+                                    orderedProperties.Add(publicIOperationProps.Single());
                                 }
                                 else
                                 {
@@ -401,7 +401,7 @@ namespace IOperationGenerator
 
                                     foreach (var childName in childrenOrdered)
                                     {
-                                        orderedProperties.Add(publicIOperationTypes.Find(p => p.Name == childName) ??
+                                        orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
                                             throw new InvalidOperationException($"Cannot find property for {childName}"));
                                     }
                                 }

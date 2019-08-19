@@ -58,7 +58,7 @@ namespace IOperationGenerator
                 {
                     if (node.ChildrenOrder is string order)
                     {
-                        var splitOrder = order.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+                        var splitOrder = GetPropertyOrder(node);
 
                         if (splitOrder.Count != properties.Count || (properties.Count == 1 && properties[0] != splitOrder[0]))
                         {
