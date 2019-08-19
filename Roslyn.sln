@@ -424,6 +424,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeBenchmarks", "src\Tools\IdeBenchmarks\IdeBenchmarks.csproj", "{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{157EA250-2F28-4948-A8F2-D58EAEA05DC8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.vsconfig = .vsconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
