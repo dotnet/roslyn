@@ -34,12 +34,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
-        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
-        }
-
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {

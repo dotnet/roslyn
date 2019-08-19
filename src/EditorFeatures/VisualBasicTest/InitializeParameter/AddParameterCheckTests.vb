@@ -466,62 +466,6 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-        Public Async Function TestMultiNullableParameters() As Task
-            Await TestInRegularAndScript1Async(
-"
-Imports System
-
-class C
-    public sub new([||]a as string, b as string, c as string)
-    end sub
-end class",
-"
-Imports System
-
-class C
-    public sub new(a as string, b as string, c as string)
-        If String.IsNullOrEmpty(a) Then
-            Throw New ArgumentException(""message"", NameOf(a))
-        End If
-
-        If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
-        End If
-
-        If String.IsNullOrEmpty(c) Then
-            Throw New ArgumentException(""message"", NameOf(c))
-        End If
-    end sub
-end class", index:=3)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-        Public Async Function TestMultiNullableWithCursorOnNonNullable() As Task
-            Await TestInRegularAndScript1Async(
-"
-Imports System
-
-class C
-    public sub new([||]a as boolean, b as string, c as object)
-    end sub
-end class",
-"
-Imports System
-
-class C
-    public sub new(a as boolean, b as string, c as object)
-        If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
-        End If
-
-        If c Is Nothing Then
-            Throw New ArgumentNullException(NameOf(c))
-        End If
-    end sub
-end class", index:=0)
-        End Function
-
         <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestSimpleReferenceTypeWithParameterNameSelected1() As Task
