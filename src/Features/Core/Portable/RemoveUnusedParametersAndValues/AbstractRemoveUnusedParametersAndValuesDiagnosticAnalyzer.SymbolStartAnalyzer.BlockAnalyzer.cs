@@ -333,10 +333,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             return false;
 
                         default:
-                            if (operationBlock.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                            if (operationBlock.HasAnyOperationDescendant(o => o.Kind == OperationKind.None ||
+                                (o is IConditionalOperation conditional && conditional.IsRef) ||
+                                (o is ISimpleAssignmentOperation assignment && assignment.IsRef)))
                             {
-                                // Workaround for https://github.com/dotnet/roslyn/issues/32100
-                                // Bail out in presence of OperationKind.None - not implemented IOperation.
+                                // Workarounds for:
+                                // 1) https://github.com/dotnet/roslyn/issues/32100: Bail out in presence of OperationKind.None - not implemented IOperation.
+                                // 2) https://github.com/dotnet/roslyn/issues/31007: We cannot perform flow analysis correctly for a ref assignment operation or ref conditional operation until this compiler feature is implemented.
                                 return false;
                             }
 

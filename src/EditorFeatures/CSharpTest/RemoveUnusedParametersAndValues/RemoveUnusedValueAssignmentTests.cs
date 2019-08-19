@@ -7086,5 +7086,45 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefAssignmentFollowedByAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+    
+    static void T1(ref int param)
+    {
+        [|param|] = ref MyUnsafeAdd(ref param, 1);
+        param = default;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefConditionalAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+
+    static void T1(ref int param, bool flag)
+    {
+        [|param|] = flag ? ref MyUnsafeAdd(ref param, 1) : ref MyUnsafeAdd(ref param, 2);
+        param = default;
+    }
+}");
+        }
     }
 }
