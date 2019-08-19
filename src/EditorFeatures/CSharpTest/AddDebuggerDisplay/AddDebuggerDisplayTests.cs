@@ -62,5 +62,44 @@ class C
     public override string ToString() => ""Foo"";
 }");
         }
+
+        [Fact]
+        public async Task NamespaceImportIsNotDuplicated()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Diagnostics;
+
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{ToString(),nq}"")]
+class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NamespaceImportIsSorted()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Xml;
+
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+using System.Xml;
+
+[DebuggerDisplay(""{ToString(),nq}"")]
+class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
     }
 }
