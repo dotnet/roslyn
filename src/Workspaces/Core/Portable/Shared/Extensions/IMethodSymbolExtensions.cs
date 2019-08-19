@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetAttributes(),
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
-                method.ReturnType.SubstituteTypes(mapping, typeGenerator),
+                method.GetReturnTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator),
                 method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
                 method.Parameters.SelectAsArray(p =>
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type.SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)));
         }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
+                        p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability(), p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
         }

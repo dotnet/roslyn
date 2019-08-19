@@ -338,6 +338,63 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoNullableAttributesInMethodFromMetadata()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document>
+#nullable enable
+
+public interface IInterface
+{
+    void M(string? s1, string s2);
+    string this[string? s1, string s2] { get; set; }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document>
+#nullable enable
+
+using System;
+
+class C : [|IInterface|]
+{
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C : IInterface
+{
+    public string this[string? s1, string s2]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public void M(string? s1, string s2)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
