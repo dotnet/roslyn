@@ -219,10 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (false, hasGenerics);
         }
 
-        /// <summary>
-        /// Returns a boolean value if we can determine whether the type is managed
-        /// without looking at its fields and Unset otherwise.
-        /// </summary>
         private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
         {
             // To match dev10, we treat enums as their underlying types.
@@ -231,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = type.GetEnumUnderlyingType();
             }
 
-            bool hasGenerics = type.TupleUnderlyingTypeOrSelf().GetArity() > 0;
+            bool hasGenerics = type.TupleUnderlyingTypeOrSelf() is NamedTypeSymbol { IsGenericType: true };
 
             // Short-circuit common cases.
             switch (type.SpecialType)
