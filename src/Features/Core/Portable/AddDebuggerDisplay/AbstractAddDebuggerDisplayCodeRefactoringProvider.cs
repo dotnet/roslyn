@@ -22,18 +22,16 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
 
-            var generator = SyntaxGenerator.GetGenerator(context.Document);
-
             if (type != null)
             {
-                if (!DeclaresToStringOverride(generator, type)) return;
+                if (!DeclaresToStringOverride(type)) return;
             }
             else
             {
                 var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
                 if (!IsToStringOverride(method)) return;
 
-                type = (TTypeDeclarationSyntax)method.Parent;
+                type = method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
             }
 
             if (HasDebuggerDisplayAttribute(type)) return;
@@ -100,10 +98,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
 
-        protected virtual bool DeclaresToStringOverride(SyntaxGenerator generator, TTypeDeclarationSyntax typeDeclaration)
-        {
-            return generator.GetMembers(typeDeclaration).OfType<TMethodDeclarationSyntax>().Any(IsToStringOverride);
-        }
+        protected abstract bool DeclaresToStringOverride(TTypeDeclarationSyntax typeDeclaration);
 
         protected bool IsDebuggerDisplayAttributeIdentifier(SyntaxToken name)
         {

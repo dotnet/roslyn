@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
 
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddDebuggerDisplayCodeRefactoringProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicAddDebuggerDisplayCodeRefactoringProvider
-        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax, MethodBlockSyntax)
+        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax, MethodStatementSyntax)
 
         Protected Overrides Function HasDebuggerDisplayAttribute(typeDeclaration As TypeBlockSyntax) As Boolean
             Return (
@@ -35,17 +35,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
             Return identifier IsNot Nothing AndAlso IsDebuggerDisplayAttributeIdentifier(identifier.Identifier)
         End Function
 
-        Protected Overrides Function IsToStringOverride(methodDeclaration As MethodBlockSyntax) As Boolean
+        Protected Overrides Function IsToStringOverride(methodDeclaration As MethodStatementSyntax) As Boolean
             ' Purposely bails for efficiency if no "ToString" override is in the same syntax tree, regardless of whether
             ' it's declared in another partial class file. Since the DebuggerDisplay attribute will refer to it, it's
             ' nicer to have them both in the same file anyway.
 
             If methodDeclaration Is Nothing Then Return False
-            If methodDeclaration.SubOrFunctionStatement.GetArity <> 0 Then Return False
-            If methodDeclaration.SubOrFunctionStatement.ParameterList?.Parameters.Any Then Return False
-            If Not methodDeclaration.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.OverridesKeyword) Then Return False
+            If methodDeclaration.GetArity <> 0 Then Return False
+            If methodDeclaration.ParameterList?.Parameters.Any Then Return False
+            If Not methodDeclaration.Modifiers.Any(SyntaxKind.OverridesKeyword) Then Return False
 
             Return True
+        End Function
+
+        Protected Overrides Function DeclaresToStringOverride(typeDeclaration As TypeBlockSyntax) As Boolean
+            Return typeDeclaration.Members.OfType(Of MethodBlockSyntax).Any(Function(b) IsToStringOverride(b.SubOrFunctionStatement))
         End Function
     End Class
 End Namespace

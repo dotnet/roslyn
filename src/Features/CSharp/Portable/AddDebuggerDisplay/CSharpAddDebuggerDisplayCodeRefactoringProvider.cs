@@ -49,5 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
                 Modifiers: var modifiers
             } && modifiers.Any(SyntaxKind.OverrideKeyword);
         }
+
+        protected override bool DeclaresToStringOverride(TypeDeclarationSyntax typeDeclaration)
+        {
+            return typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Any(IsToStringOverride);
+        }
     }
 }
