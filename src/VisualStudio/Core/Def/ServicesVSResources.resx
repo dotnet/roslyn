@@ -1037,9 +1037,6 @@ I agree to all of the foregoing:</value>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
   </data>
-  <data name="Live_analysis" xml:space="preserve">
-    <value>Live analysis</value>
-  </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
   </data>
@@ -1319,5 +1316,14 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
     <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
+  <data name="Running_low_priority_background_processes" xml:space="preserve">
+    <value>Running low priority background processes</value>
+  </data>
+  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
+    <value>Evaluating ({0} tasks in queue)</value>
+  </data>
+  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
+    <value>Paused ({0} tasks in queue)</value>
   </data>
 </root>

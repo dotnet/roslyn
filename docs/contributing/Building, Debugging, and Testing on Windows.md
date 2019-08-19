@@ -15,22 +15,14 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 RC](https://visualstudio.microsoft.com/downloads/#2019rc)
+1. [Visual Studio 2019 16.2](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "RC1" or greater
+    - Ensure Visual Studio is on Version "16.2" or greater
     - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
 1. [.NET Core SDK 3.0 Preview 6](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100-preview6-012264/dotnet-sdk-3.0.100-preview6-012264-win-x64.exe )
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
-
-If you already installed Visual Studio and need to add the necessary work loads or move to Preview 4:
-do the following:
-
-- Run the Visual Studio Installer from your start menu. You can just search for "Visual Studio Installer". If you can't find it, it's typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-- The Visual Studio installation will be listed under the Installed section
-- Click on the menu icon (three horizontal lines), click Modify
-- Choose the workloads listed above and click Modify
 
 ## Running Tests
 
@@ -42,7 +34,7 @@ The Test.cmd script will run our unit test on already built binaries.  It can be
 
 1. Run the "Developer Command Prompt for VS2019" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
+3. Run `Test.cmd` in the command prompt.
 
 You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .NET Framework, whilst passing in the `-testCoreClr` switch will run the tests on .NET Core.
 

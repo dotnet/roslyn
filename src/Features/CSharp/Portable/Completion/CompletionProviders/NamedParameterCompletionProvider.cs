@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                 if (within != null)
                 {
-                    return indexers.Where(i => i.IsAccessibleWithin(within, throughTypeOpt: expressionType))
+                    return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
                                    .Select(i => i.Parameters);
                 }
             }

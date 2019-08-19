@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public Task Running => _running;
 
+                    public int WorkItemCount => _workItemQueue.WorkItemCount;
                     public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
