@@ -25,7 +25,7 @@ namespace Newtonsoft.Json
     {
         public TypeNameHandling TypeNameHandling { get; set; }
         public SerializationBinder Binder { get; set; }
-        public ISerializationBinder SerializationBinder { get; set; }
+        public Newtonsoft.Json.Serialization.ISerializationBinder SerializationBinder { get; set; }
     }
 
     public static class JsonConvert
@@ -182,7 +182,7 @@ namespace Newtonsoft.Json.Serialization
     }
 }
 
-public class MyISerializationBinder : Newtonsoft.Json.ISerializationBinder
+public class MyISerializationBinder : Newtonsoft.Json.Serialization.ISerializationBinder
 {
     public Type BindToType(string assemblyName, string typeName)
     {
@@ -227,7 +227,7 @@ Namespace Newtonsoft.Json
     Public Class JsonSerializerSettings
         Public Property TypeNameHandling As TypeNameHandling
         Public Property Binder As SerializationBinder
-        Public Property SerializationBinder As ISerializationBinder
+        Public Property SerializationBinder As Newtonsoft.Json.Serialization.ISerializationBinder
     End Class
 
     Public Class JsonConvert
@@ -237,13 +237,57 @@ Namespace Newtonsoft.Json
     End Class
 
     Public Class JsonSerializer
+        Public Property TypeNameHandling As TypeNameHandling
+        Public Property Binder As SerializationBinder
+        Public Property SerializationBinder As Newtonsoft.Json.Serialization.ISerializationBinder
+
+        Public Shared Function Create() As JsonSerializer
+            Return Nothing
+        End Function
+
+        Public Shared Function Create(settings As JsonSerializerSettings) As JsonSerializer
+            Return Nothing
+        End Function
+
+        Public Shared CreateDefault() As JsonSerializer
+            Return Nothing
+        End Function
+
+        Public Shared Function CreateDefault(settings as JsonSerializerSettings) As JsonSerializer
+            Return Nothing
+        End Function
+
+        Public Function Deserialize(reader As JsonReader) As Object
+            Return Nothing
+        End Function
+
+        Public Function Deserialize(reader As TextReader, objectType As Type) As Object
+            Return Nothing
+        End Function
+
+        Public Function Deserialize(Of T)(reader As JsonReader) As T
+            Return Default(T)
+        End Function
+
+        Public Function Deserialize(reader As JsonReader, objectType As Type) As Object
+            Return Nothing
+        End Function
+
+        Public Sub Populate(reader As TextReader, target As Object)
+        End Sub
+
+        Public Sub Populate(reader As JsonReader, target As Object)
+        End Sub
+    End Class
+
+    Public Class JsonReader
     End Class
 End Namespace
 
 Namespace Newtonsoft.Json.Serialization
     Public Interface ISerializationBinder
         Function BindToType(assemblyName As String, typeName As String) As Type
-        Sub BindToName(serializedType as Type, <Out()> ByRef assemblyName As String, <Out()> ByRef typeName As String)
+        Sub BindToName(serializedType as Type, ByRef assemblyName As String, ByRef typeName As String)
     End Interface
 
     Public Class DefaultSerializationBinder
