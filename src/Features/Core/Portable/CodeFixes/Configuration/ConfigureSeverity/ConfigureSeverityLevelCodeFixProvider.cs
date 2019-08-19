@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -42,12 +41,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
