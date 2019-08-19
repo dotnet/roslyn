@@ -49,6 +49,44 @@ class A
         }
 
         [Fact]
+        public async Task NotOfferedWhenToStringIsNotOverriddenInSameFile()
+        {
+            await TestMissingAsync(@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""Part1.cs""><![CDATA[
+partial class A
+{
+    public override string ToString() => ""Foo"";
+}
+]]>
+        </Document>
+        <Document FilePath=""Part2.cs""><![CDATA[
+[||]partial class A
+{
+    public int Foo { get; }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnWrongOverloadOfToString()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class A
+{
+    public virtual string ToString(int bar) => ""Foo"";
+}
+
+[||]class B : A
+{
+    public override string ToString(int bar) => ""Bar"";
+}");
+        }
+
+        [Fact]
         public async Task OfferedOnStructWithOverriddenToString()
         {
             await TestInRegularAndScriptAsync(@"
@@ -73,6 +111,32 @@ struct Foo
 {
     public int Bar { get; }
 }");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnInterfaceWithToString()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[||]interface IFoo
+{
+    string ToString();
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnEnum()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[||]enum Foo
+{
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnDelegate()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[||]delegate void Foo();");
         }
 
         [Fact]
@@ -182,6 +246,31 @@ class C
             await TestMissingInRegularAndScriptAsync(@"
 [BrokenCode.DebuggerDisplay(""Foo"")]
 [||]class C
+{
+    public override string ToString() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task AliasedTypeIsNotRecognized()
+        {
+            // This situation seems sufficiently unlikely that there is no need to make the majority of cases where
+            // there is an attribute wait for the semantic model.
+
+            await TestInRegularAndScriptAsync(@"
+using DD = System.Diagnostics.DebuggerDisplayAttribute;
+
+[DD(""Foo"")]
+[||]class C
+{
+    public override string ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+using DD = System.Diagnostics.DebuggerDisplayAttribute;
+
+[DD(""Foo"")]
+[DD(""{ToString(),nq}"")]
+class C
 {
     public override string ToString() => ""Foo"";
 }");
