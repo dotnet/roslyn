@@ -744,8 +744,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 filePathToTextBufferMap.Add(filePath, textBuffer);
             }
 
+            var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
+            if (documentServiceProvider != null && testDocumentServiceProvider != null)
+            {
+                AssertEx.Fail("A non-null documentServiceProvider is provided when creating TestWorkspace from XML, which might conflict with the valued provided by individual document.");
+            }
+
+            documentServiceProvider = testDocumentServiceProvider;
+
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+        }
+
+        private static TestDocumentServiceProvider GetDocumentServiceProvider(XElement documentElement)
+        {
+            var canApplyChange = (bool?)documentElement.Attribute("CanApplyChange");
+            var supportDiagnostics = (bool?)documentElement.Attribute("SupportDiagnostics");
+
+            if (canApplyChange == null && supportDiagnostics == null)
+            {
+                return null;
+            }
+
+            return new TestDocumentServiceProvider(
+                canApplyChange ?? true,
+                supportDiagnostics ?? true);
         }
 
         private static string GetFilePath(
