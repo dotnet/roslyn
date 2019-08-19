@@ -333,9 +333,14 @@ namespace Test.Utilities
 
         private void VerifyAcrossTwoAssemblies(string dependencySource, string source, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
         {
+            VerifyAcrossTwoAssemblies(dependencySource, source, language, language, additionalFileOpt, expected);
+        }
+
+        protected void VerifyAcrossTwoAssemblies(string dependencySource, string source, string dependencyLanguage, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
+        {
             Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
 
-            var dependencyProject = CreateProject(new[] { dependencySource }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            var dependencyProject = CreateProject(new[] { dependencySource }, language: dependencyLanguage, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, projectName: "DependencyProject");
             var project =
                 CreateProject(new[] { source }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: dependencyProject.Solution)
                     .AddProjectReference(new ProjectReference(dependencyProject.Id));
@@ -520,6 +525,7 @@ namespace Test.Utilities
             {
                 Compilation compilation = project.GetCompilationAsync().Result;
                 compilation = EnableAnalyzer(analyzerOpt, compilation);
+                List<MetadataReference> l = compilation.References.ToList();
 
                 ImmutableArray<Diagnostic> diags = compilation.GetAnalyzerDiagnostics(new[] { analyzerOpt }, validationMode, analyzerOptions);
                 if (spans == null)
