@@ -745,12 +745,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
-            if (documentServiceProvider != null && testDocumentServiceProvider != null)
-            {
-                AssertEx.Fail("A non-null documentServiceProvider is provided when creating TestWorkspace from XML, which might conflict with the valued provided by individual document.");
-            }
 
-            documentServiceProvider = testDocumentServiceProvider;
+            if (documentServiceProvider == null)
+            {
+                documentServiceProvider = testDocumentServiceProvider;
+            }
+            else if (testDocumentServiceProvider != null)
+            {
+                AssertEx.Fail("A non-null documentServiceProvider is provided when creating TestWorkspace from XML, which might conflict with the valued provided in document attributes.");
+            }
 
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
