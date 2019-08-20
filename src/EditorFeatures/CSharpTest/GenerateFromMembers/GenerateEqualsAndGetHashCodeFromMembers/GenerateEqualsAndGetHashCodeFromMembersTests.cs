@@ -89,6 +89,45 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestNullableReferenceIEquatable()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    [|S? a;|]
+}",
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    S? a;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Program program &&
+               EqualityComparer<S?>.Default.Equals(a, program.a);
+    }
+
+    public override int GetHashCode()
+    {
+        return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestValueIEquatable()
         {
             await TestInRegularAndScript1Async(
