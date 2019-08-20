@@ -295,8 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             }
                         }
                     }
-
-                    return OperationStatus.Succeeded;
+                    else
+                    {
+                        return OperationStatus.Succeeded;
+                    }
                 }
 
                 return OperationStatus.NoActiveStatement;
