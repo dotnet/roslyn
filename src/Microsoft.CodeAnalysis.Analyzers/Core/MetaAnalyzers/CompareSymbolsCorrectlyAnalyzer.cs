@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsSymbolType(IOperation operation, INamedTypeSymbol symbolType)
         {
-            if (operation.Type is object)
+            if (operation.Type is object && IsSymbolType(operation.Type, symbolType))
             {
-                return IsSymbolType(operation.Type, symbolType);
+                return true;
             }
 
             if (operation is IConversionOperation conversion)
