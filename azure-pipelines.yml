@@ -183,10 +183,11 @@ jobs:
         _args: --testCoreClr --docker
         _name: CoreClr
         _configuration: Debug
-      mono:
-        _args: --testMono --docker
-        _name: Mono
-        _configuration: Debug
+# Disabling Mono while https://github.com/mono/mono/issues/16373 is worked out
+#      mono:
+#        _args: --testMono --docker
+#        _name: Mono
+#        _configuration: Debug
   timeoutInMinutes: 90
   steps:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
