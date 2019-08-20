@@ -36,16 +36,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The await expression will be lowered to code that involves the use of side-effects
-            // such as jumps and labels, therefore it is represented by a BoundSpillSequence.
-            // The resulting nodes will be "spilled" to move such statements to the top
-            // level (i.e. into the enclosing statement list).
+            // such as jumps and labels, which we can only emit with an empty stack, so we require
+            // that the await expression itself is produced only when the stack is empty.
+            // Therefore it is represented by a BoundSpillSequence.  The resulting nodes will be "spilled" to move
+            // such statements to the top level (i.e. into the enclosing statement list).  Here we ensure
+            // that the await result itself is stored into a temp at the statement level, as that is
+            // the form handled by async lowering.
             _needsSpilling = true;
+            var tempAccess = _factory.StoreToTemp(rewrittenAwait, out BoundAssignmentOperator tempAssignment, syntaxOpt: rewrittenAwait.Syntax,
+                kind: SynthesizedLocalKind.Spill);
             return new BoundSpillSequence(
                 syntax: rewrittenAwait.Syntax,
-                locals: ImmutableArray<LocalSymbol>.Empty,
-                sideEffects: ImmutableArray<BoundStatement>.Empty,
-                value: rewrittenAwait,
-                type: rewrittenAwait.Type);
+                locals: ImmutableArray.Create<LocalSymbol>(tempAccess.LocalSymbol),
+                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
+                value: tempAccess,
+                type: tempAccess.Type);
         }
     }
 }
