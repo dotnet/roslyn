@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
                 else if (closure.CapturedEnvironments.Count == 0 &&
+                         originalMethod.MethodKind == MethodKind.LambdaMethod &&
                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
                 {
                     translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
@@ -1017,6 +1018,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(realTypeArguments.Length == 0);
             }
+
+            receiver ??= new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
         }
 
         public override BoundNode VisitCall(BoundCall node)
