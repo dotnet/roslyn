@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -33,32 +33,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        internal const string UseThrowExpressionFixableDiagnosticId = IDEDiagnosticIds.UseThrowExpressionDiagnosticId + "_Fixable";
-
-        private static readonly LocalizableString s_title = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_message = new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-
-        private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-            s_title,
-            s_message);
-        private static readonly DiagnosticDescriptor s_fixableDescriptor = CreateDescriptorWithId(
-            UseThrowExpressionFixableDiagnosticId,
-            s_title,
-            s_message,
-            isConfigurable: false);
-
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
-            : base(GetSupportedDescriptorsWithOptions())
+            : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   CodeStyleOptions.PreferThrowExpression,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
-        }
-
-        private static ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> GetSupportedDescriptorsWithOptions()
-        {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IPerLanguageOption>();
-            builder.Add(s_descriptor, CodeStyleOptions.PreferThrowExpression);
-            builder.Add(s_fixableDescriptor, CodeStyleOptions.PreferThrowExpression);
-            return builder.ToImmutable();
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -115,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatementSyntax.Language);
-            if (!option.Value || option.Notification.Severity == ReportDiagnostic.Suppress)
+            if (!option.Value)
             {
                 return;
             }
@@ -163,13 +143,29 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.Exception.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            // Report a configurable diagnostic on the throw statement span.
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(s_descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
+                DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
 
-            // Report a non-configurable hidden fixable diagnostic on the "if" span so the code fix can be invoked from anywhere inside the "if" span.
+            // Fade out the rest of the if that surrounds the 'throw' exception.
+
+            var tokenBeforeThrow = throwStatementSyntax.GetFirstToken().GetPreviousToken();
+            var tokenAfterThrow = throwStatementSyntax.GetLastToken().GetNextToken();
             context.ReportDiagnostic(
-                Diagnostic.Create(s_fixableDescriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations));
+                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
+                    Location.Create(syntaxTree, TextSpan.FromBounds(
+                        ifOperation.Syntax.SpanStart,
+                        tokenBeforeThrow.Span.End)),
+                    additionalLocations: allLocations));
+
+            if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
+                        Location.Create(syntaxTree, TextSpan.FromBounds(
+                            tokenAfterThrow.Span.Start,
+                            ifOperation.Syntax.Span.End)),
+                        additionalLocations: allLocations));
+            }
         }
 
         private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)
