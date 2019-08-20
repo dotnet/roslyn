@@ -11,7 +11,7 @@ dependencies:
   - .yamato/set_exe_bit_osx.yml
 
 commands:
-  - sudo apt-get update -qy && sudo apt-get -qy upgrade
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get update -qy && sudo DEBIAN_FRONTEND=noninteractive apt-get -qy upgrade
   - sudo apt-get install -y p7zip-full p7zip-rar
   - mkdir producedbuilds
   - 7z a producedbuilds/builds.7z Artifacts/Builds/*
@@ -22,6 +22,9 @@ triggers:
   branches:
     only:
       - "/.*/"
+  recurring:
+    - branch: unity-master
+      frequency: weekly
 
 artifacts: 
   builds:

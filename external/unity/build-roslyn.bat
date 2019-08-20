@@ -33,3 +33,5 @@ ECHO RoslynBuilder failed
 GOTO :EXIT
 
 :EXIT
+
+EXIT /B %ERRORLEVEL%
