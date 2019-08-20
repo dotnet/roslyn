@@ -602,7 +602,6 @@ try {
   if ($ci) {
     List-Processes
     Prepare-TempDir
-    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }
@@ -625,6 +624,10 @@ try {
   {
     echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
     throw $_
+  }
+
+  if ($restore -or $ci) {
+    EnablePreviewSdks
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
