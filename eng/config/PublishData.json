@@ -45,6 +45,15 @@
       "vsBranch": "rel/d16.3",
       "vsMajorVersion": 16
     },
+    "release/dev16.4-preview1-vs-deps": {
+      "nugetKind": ["Shipping", "NonShipping"],
+      "version": "3.4.*",
+      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+      "channels": [ "dev16.4", "dev16.4p1" ],
+      "vsBranch": "lab/d16.4stg",
+      "vsMajorVersion": 16
+    },
     "master-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.3.*",
