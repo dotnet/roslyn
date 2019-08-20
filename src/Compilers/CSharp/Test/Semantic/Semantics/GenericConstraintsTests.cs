@@ -3938,6 +3938,33 @@ public unsafe struct OtherStruct
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void GenericNestedStructPointerFieldRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public struct InnerStruct
+    {
+        public T field;
+    }
+}
+
+public unsafe struct OtherStruct
+{
+    public MyStruct<int>.InnerStruct* ms;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (12,39): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public MyStruct<int>.InnerStruct* ms;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 39)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingTuple_Unmanaged_RequiresCSharp8()
         {

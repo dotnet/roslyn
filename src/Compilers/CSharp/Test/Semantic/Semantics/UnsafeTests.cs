@@ -2715,11 +2715,14 @@ class C<U>
     S<int> f2;
     S<U>.R f3;
     S<int>.R f4;
+    S<U>.R2 f5;
+    S<int>.R2 f6;
 }
 
 struct S<T>
 {
     struct R { }
+    internal struct R2 { }
 }
 ";
             var compilation = CreateCompilation(text);
@@ -2734,6 +2737,11 @@ struct S<T>
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKind);
             Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKind);
+
+            Assert.False(type.GetMember<FieldSymbol>("f5").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f6").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKind);
         }
 
         [Fact]
