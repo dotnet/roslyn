@@ -2958,11 +2958,15 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseForEachLoopOperation : BaseLoopOperation, IForEachLoopOperation
     {
-        internal BaseForEachLoopOperation(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(loopKind, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal BaseForEachLoopOperation(bool isAsynchronous, LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(loopKind, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            IsAsynchronous = isAsynchronous;
+        }
         public abstract IOperation LoopControlVariable { get; }
         public abstract IOperation Collection { get; }
         public abstract ImmutableArray<IOperation> NextVariables { get; }
+        public bool IsAsynchronous { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2981,8 +2985,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
     {
-        internal ForEachLoopOperation(IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, LoopKind loopKind, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(loopKind, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        internal ForEachLoopOperation(IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, bool isAsynchronous, LoopKind loopKind, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isAsynchronous, loopKind, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopControlVariable = SetParentOperation(loopControlVariable, this);
             Collection = SetParentOperation(collection, this);
@@ -3000,8 +3004,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyCollection = s_unset;
         private ImmutableArray<IOperation> _lazyNextVariables;
         private IOperation _lazyBody = s_unset;
-        internal LazyForEachLoopOperation(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(loopKind, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyForEachLoopOperation(bool isAsynchronous, LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isAsynchronous, loopKind, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateLoopControlVariable();
         public override IOperation LoopControlVariable
         {
@@ -3666,14 +3670,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseUsingOperation : Operation, IUsingOperation
     {
-        internal BaseUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal BaseUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(OperationKind.Using, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Locals = locals;
+            IsAsynchronous = isAsynchronous;
         }
         public abstract IOperation Resources { get; }
         public abstract IOperation Body { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        public bool IsAsynchronous { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3687,8 +3693,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UsingOperation : BaseUsingOperation, IUsingOperation
     {
-        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(locals, isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Resources = SetParentOperation(resources, this);
             Body = SetParentOperation(body, this);
@@ -3700,8 +3706,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyResources = s_unset;
         private IOperation _lazyBody = s_unset;
-        internal LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(locals, isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateResources();
         public override IOperation Resources
         {

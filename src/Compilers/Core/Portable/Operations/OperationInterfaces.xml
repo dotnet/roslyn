@@ -179,6 +179,7 @@
         </summary>
       </Comments>
     </Property>
+    <Property Name="Info" Type="ForEachLoopOperationInfo" Internal="true" SkipGeneration="true" />
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>

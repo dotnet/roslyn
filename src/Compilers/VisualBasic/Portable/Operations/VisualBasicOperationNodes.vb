@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _forEachLoop As BoundForEachStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(isAsynchronous:=False, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _forEachLoop = forEachLoop
         End Sub
@@ -1095,16 +1095,10 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _boundUsingStatement As BoundUsingStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(locals, isAsynchronous:=False, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundUsingStatement = boundUsingStatement
         End Sub
-
-        Public Overrides ReadOnly Property IsAsynchronous As Boolean
-            Get
-                Return False
-            End Get
-        End Property
 
         Protected Overrides Function CreateResources() As IOperation
             Return _operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement)

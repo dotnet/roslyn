@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
             return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable),
-                                            Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
+                                            Visit(operation.Collection), VisitArray(operation.NextVariables), operation.IsAsynchronous, Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
