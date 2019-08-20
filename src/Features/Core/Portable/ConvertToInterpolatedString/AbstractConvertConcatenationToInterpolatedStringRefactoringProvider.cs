@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
     /// <summary>
-    /// Code refactoring that converts expresions of the form:  a + b + " str " + d + e
+    /// Code refactoring that converts expressions of the form:  a + b + " str " + d + e
     /// into:
     ///     $"{a + b} str {d}{e}".
     /// </summary>
@@ -40,20 +40,16 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            // Currently we can concat only full subtrees. Therefore we can't support arbitrary selection. We could
+            // Currently we can concatenate only full subtrees. Therefore we can't support arbitrary selection. We could
             // theoretically support selecting the selections that correspond to full sub-trees (e.g. prefixes of 
-            // correct lenght butfrom UX point of view that it would feel arbitrary). 
-            // Thus, we only support selection that takes the whole topmost expression. It breaks some leniency around underselection
+            // correct length but from UX point of view that it would feel arbitrary). 
+            // Thus, we only support selection that takes the whole topmost expression. It breaks some leniency around under-selection
             // but it's the best solution so far.
             if (CodeRefactoringHelpers.IsNodeUnderselected(top, textSpan) ||
                 IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
                 return;
             }
-
-            //var position = textSpan.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            //var token = root.FindToken(position);
 
             // Now walk down the concatenation collecting all the pieces that we are
             // concatenating.
@@ -88,14 +84,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(
                 new MyCodeAction(
                     _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
                 top.Span);
         }
-
-
 
         private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     content.Add(generator.Interpolation(piece.WithoutTrivia()));
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
-                // so we know to concatinate future string literals together if we encounter them.
+                // so we know to concatenate future string literals together if we encounter them.
                 previousContentWasStringLiteralExpression = currentContentIsStringLiteral;
             }
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines if a <paramref name="node"/> is underselected given <paramref name="selection"/>.
         /// </para>
         /// <para>
-        /// Underselection is defined as ommiting whole nodes from either the beginning or the end. It can be used e.g. to detect that
+        /// Underselection is defined as omitting whole nodes from either the beginning or the end. It can be used e.g. to detect that
         /// following selection `1 + [|2 + 3|]` is underselecting the whole expression node tree.
         /// </para>
         /// <para>
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
             // Node is underselected if either the first (lowest) child doesn't contain start of selection
             // of the last child doesn't intersect with the end.
-            // It's a crude heuristic but it allows omiting parts of nodes or trivial tokens from the beginning/end 
+            // It's a crude heuristic but it allows omitting parts of nodes or trivial tokens from the beginning/end 
             // but fires up e.g.: `1 + [|2 + 3|]`.
             return !beginningNode.Span.IntersectsWith(selection.Start) || !endNode.Span.IntersectsWith(selection.End - 1);
         }
