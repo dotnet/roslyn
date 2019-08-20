@@ -22,7 +22,7 @@ function InstallSourcelinkCli ($sourcelinkCliVersion) {
   else {
     Write-Host "Installing SourceLink CLI version $sourcelinkCliVersion..."
     Write-Host "You may need to restart your command window if this is the first dotnet tool you have installed."
-    & "$dotnet" tool install $sourcelinkCliPackageName --version $sourcelinkCliVersion --verbosity $verbosity --global 
+    & "$dotnet" tool install $sourcelinkCliPackageName --version $sourcelinkCliVersion --verbosity $verbosity --global --add-source https://api.nuget.org/v3/index.json
   }
 }
 
