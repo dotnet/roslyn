@@ -37,22 +37,27 @@ class C2
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (C1 V_0) //c1
+  // sequence point: using var c1 = new C1();
   IL_0000:  newobj     ""C1..ctor()""
   IL_0005:  stloc.0
   .try
   {
+    // sequence point: }
     IL_0006:  leave.s    IL_0012
   }
   finally
   {
+    // sequence point: <hidden>
     IL_0008:  ldloc.0
     IL_0009:  brfalse.s  IL_0011
     IL_000b:  ldloc.0
     IL_000c:  callvirt   ""void System.IDisposable.Dispose()""
+    // sequence point: <hidden>
     IL_0011:  endfinally
   }
+  // sequence point: }
   IL_0012:  ret
-}");
+}", sequencePoints: "C2.Main", source: source);
         }
 
         [Fact]
