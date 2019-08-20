@@ -123,7 +123,36 @@ range_case_clause
   ;
 
 relational_case_clause
-  : 'Is'? ('=' | '<>' | '<' | '<=' | '>=' | '>') expression
+  : case_equals_clause
+  | case_greater_than_clause
+  | case_greater_than_or_equal_clause
+  | case_less_than_clause
+  | case_less_than_or_equal_clause
+  | case_not_equals_clause
+  ;
+
+case_equals_clause
+  : 'Is'? '=' expression
+  ;
+
+case_greater_than_clause
+  : 'Is'? '>=' expression
+  ;
+
+case_greater_than_or_equal_clause
+  : 'Is'? '<=' expression
+  ;
+
+case_less_than_clause
+  : 'Is'? '<' expression
+  ;
+
+case_less_than_or_equal_clause
+  : 'Is'? '>' expression
+  ;
+
+case_not_equals_clause
+  : 'Is'? '<>' expression
   ;
 
 simple_case_clause
@@ -164,11 +193,125 @@ declaration_statement
   ;
 
 end_block_statement
-  : 'End' ('If' | 'Using' | 'With' | 'Select' | 'Structure' | 'Enum' | 'Interface' | 'Class' | 'Module' | 'Namespace' | 'Sub' | 'Function' | 'Get' | 'Set' | 'Property' | 'Operator' | 'Event' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent' | 'While' | 'Try' | 'SyncLock')
+  : end_add_handler_statement
+  | end_class_statement
+  | end_enum_statement
+  | end_event_statement
+  | end_function_statement
+  | end_get_statement
+  | end_if_statement
+  | end_interface_statement
+  | end_module_statement
+  | end_namespace_statement
+  | end_operator_statement
+  | end_property_statement
+  | end_raise_event_statement
+  | end_remove_handler_statement
+  | end_select_statement
+  | end_set_statement
+  | end_structure_statement
+  | end_sub_statement
+  | end_sync_lock_statement
+  | end_try_statement
+  | end_using_statement
+  | end_while_statement
+  | end_with_statement
+  ;
+
+end_add_handler_statement
+  : 'End' 'AddHandler'
+  ;
+
+end_class_statement
+  : 'End' 'Class'
+  ;
+
+end_enum_statement
+  : 'End' 'Enum'
+  ;
+
+end_event_statement
+  : 'End' 'Event'
+  ;
+
+end_function_statement
+  : 'End' 'Function'
+  ;
+
+end_get_statement
+  : 'End' 'Get'
+  ;
+
+end_if_statement
+  : 'End' 'If'
+  ;
+
+end_interface_statement
+  : 'End' 'Interface'
+  ;
+
+end_module_statement
+  : 'End' 'Module'
+  ;
+
+end_namespace_statement
+  : 'End' 'Namespace'
+  ;
+
+end_operator_statement
+  : 'End' 'Operator'
+  ;
+
+end_property_statement
+  : 'End' 'Property'
+  ;
+
+end_raise_event_statement
+  : 'End' 'RaiseEvent'
+  ;
+
+end_remove_handler_statement
+  : 'End' 'RemoveHandler'
+  ;
+
+end_select_statement
+  : 'End' 'Select'
+  ;
+
+end_set_statement
+  : 'End' 'Set'
+  ;
+
+end_structure_statement
+  : 'End' 'Structure'
+  ;
+
+end_sub_statement
+  : 'End' 'Sub'
+  ;
+
+end_sync_lock_statement
+  : 'End' 'SyncLock'
+  ;
+
+end_try_statement
+  : 'End' 'Try'
+  ;
+
+end_using_statement
+  : 'End' 'Using'
+  ;
+
+end_while_statement
+  : 'End' 'While'
+  ;
+
+end_with_statement
+  : 'End' 'With'
   ;
 
 enum_block
-  : enum_statement statement* end_block_statement
+  : enum_statement statement* end_enum_statement
   ;
 
 enum_statement
@@ -245,7 +388,7 @@ equals_value
   ;
 
 event_block
-  : event_statement accessor_block* end_block_statement
+  : event_statement accessor_block* end_event_statement
   ;
 
 event_statement
@@ -286,11 +429,59 @@ type_argument_list
   ;
 
 accessor_block
-  : accessor_statement statement* end_block_statement
+  : add_handler_accessor_block
+  | get_accessor_block
+  | raise_event_accessor_block
+  | remove_handler_accessor_block
+  | set_accessor_block
+  ;
+
+add_handler_accessor_block
+  : accessor_statement end_add_handler_statement
   ;
 
 accessor_statement
-  : attribute_list* modifier* ('Get' | 'Set' | 'AddHandler' | 'RemoveHandler' | 'RaiseEvent') parameter_list?
+  : add_handler_accessor_statement
+  | get_accessor_statement
+  | raise_event_accessor_statement
+  | remove_handler_accessor_statement
+  | set_accessor_statement
+  ;
+
+add_handler_accessor_statement
+  : 'AddHandler'
+  ;
+
+get_accessor_statement
+  : 'Get'
+  ;
+
+raise_event_accessor_statement
+  : 'RaiseEvent'
+  ;
+
+remove_handler_accessor_statement
+  : 'RemoveHandler'
+  ;
+
+set_accessor_statement
+  : 'Set'
+  ;
+
+get_accessor_block
+  : accessor_statement end_get_statement
+  ;
+
+raise_event_accessor_block
+  : accessor_statement end_raise_event_statement
+  ;
+
+remove_handler_accessor_block
+  : accessor_statement end_remove_handler_statement
+  ;
+
+set_accessor_block
+  : accessor_statement end_set_statement
   ;
 
 field_declaration
@@ -331,7 +522,12 @@ method_base
   ;
 
 declare_statement
-  : attribute_list* modifier* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? ('Sub' | 'Function') identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
+  : declare_function_statement
+  | declare_sub_statement
+  ;
+
+declare_function_statement
+  : 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Function' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? simple_as_clause?
   ;
 
 literal_expression
@@ -346,8 +542,17 @@ literal_expression
   | string_literal_token
   ;
 
+declare_sub_statement
+  : 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Sub' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? simple_as_clause?
+  ;
+
 delegate_statement
-  : attribute_list* modifier* 'Delegate' ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause?
+  : delegate_function_statement
+  | delegate_sub_statement
+  ;
+
+delegate_function_statement
+  : 'Delegate' 'Function' identifier_token type_parameter_list? simple_as_clause?
   ;
 
 type_parameter_list
@@ -374,9 +579,21 @@ constraint
   ;
 
 special_constraint
+  : class_constraint
+  | new_constraint
+  | structure_constraint
+  ;
+
+class_constraint
   : 'Class'
-  | 'New'
-  | 'Structure'
+  ;
+
+new_constraint
+  : 'New'
+  ;
+
+structure_constraint
+  : 'Structure'
   ;
 
 type_constraint
@@ -387,12 +604,30 @@ type_parameter_single_constraint_clause
   : 'As' constraint
   ;
 
+delegate_sub_statement
+  : 'Delegate' 'Sub' identifier_token type_parameter_list? simple_as_clause?
+  ;
+
 lambda_header
-  : attribute_list* modifier* ('Sub' | 'Function') parameter_list? simple_as_clause?
+  : function_lambda_header
+  | sub_lambda_header
+  ;
+
+function_lambda_header
+  : 'Function' simple_as_clause?
+  ;
+
+sub_lambda_header
+  : 'Sub' simple_as_clause?
   ;
 
 method_statement
-  : attribute_list* modifier* ('Sub' | 'Function') identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
+  : function_statement
+  | sub_statement
+  ;
+
+function_statement
+  : 'Function' identifier_token type_parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
 
 handles_clause
@@ -423,6 +658,10 @@ with_events_property_event_container
   : with_events_event_container '.' identifier_name
   ;
 
+sub_statement
+  : 'Sub' identifier_token type_parameter_list? simple_as_clause? handles_clause? implements_clause?
+  ;
+
 operator_statement
   : attribute_list* modifier* 'Operator' ('CType' | 'IsTrue' | 'IsFalse' | 'Not' | '+' | '-' | '*' | '/' | '^' | '\\' | '&' | '<<' | '>>' | 'Mod' | 'Or' | 'Xor' | 'And' | 'Like' | '=' | '<>' | '<' | '<=' | '>=' | '>') parameter_list? simple_as_clause?
   ;
@@ -443,19 +682,28 @@ method_block_base
   ;
 
 constructor_block
-  : sub_new_statement statement* end_block_statement
+  : sub_new_statement statement* end_sub_statement
   ;
 
 method_block
-  : method_statement statement* end_block_statement
+  : function_block
+  | sub_block
+  ;
+
+function_block
+  : method_statement end_function_statement
+  ;
+
+sub_block
+  : method_statement end_sub_statement
   ;
 
 operator_block
-  : operator_statement statement* end_block_statement
+  : operator_statement statement* end_operator_statement
   ;
 
 namespace_block
-  : namespace_statement statement* end_block_statement
+  : namespace_statement statement* end_namespace_statement
   ;
 
 namespace_statement
@@ -463,7 +711,7 @@ namespace_statement
   ;
 
 property_block
-  : property_statement accessor_block* end_block_statement
+  : property_statement accessor_block* end_property_statement
   ;
 
 type_block
@@ -474,7 +722,7 @@ type_block
   ;
 
 class_block
-  : class_statement inherits_statement* implements_statement* statement* end_block_statement
+  : class_statement inherits_statement* implements_statement* statement* end_class_statement
   ;
 
 class_statement
@@ -482,7 +730,7 @@ class_statement
   ;
 
 interface_block
-  : interface_statement inherits_statement* implements_statement* statement* end_block_statement
+  : interface_statement inherits_statement* implements_statement* statement* end_interface_statement
   ;
 
 interface_statement
@@ -490,7 +738,7 @@ interface_statement
   ;
 
 module_block
-  : module_statement inherits_statement* implements_statement* statement* end_block_statement
+  : module_statement inherits_statement* implements_statement* statement* end_module_statement
   ;
 
 module_statement
@@ -498,7 +746,7 @@ module_statement
   ;
 
 structure_block
-  : structure_statement inherits_statement* implements_statement* statement* end_block_statement
+  : structure_statement inherits_statement* implements_statement* statement* end_structure_statement
   ;
 
 structure_statement
@@ -517,8 +765,16 @@ do_statement
   ;
 
 while_or_until_clause
+  : until_clause
+  | while_clause
+  ;
+
+until_clause
   : 'Until' expression
-  | 'While' expression
+  ;
+
+while_clause
+  : 'While' expression
   ;
 
 else_if_statement
@@ -568,8 +824,16 @@ executable_statement
   ;
 
 add_remove_handler_statement
+  : add_handler_statement
+  | remove_handler_statement
+  ;
+
+add_handler_statement
   : 'AddHandler' expression ',' expression
-  | 'RemoveHandler' expression ',' expression
+  ;
+
+remove_handler_statement
+  : 'RemoveHandler' expression ',' expression
   ;
 
 assignment_statement
@@ -581,7 +845,21 @@ call_statement
   ;
 
 continue_statement
-  : 'Continue' ('While' | 'Do' | 'For')
+  : continue_do_statement
+  | continue_for_statement
+  | continue_while_statement
+  ;
+
+continue_do_statement
+  : 'Continue' 'For'
+  ;
+
+continue_for_statement
+  : 'Continue' 'While'
+  ;
+
+continue_while_statement
+  : 'Continue' 'Do'
   ;
 
 do_loop_block
@@ -601,7 +879,51 @@ error_statement
   ;
 
 exit_statement
-  : 'Exit' ('Do' | 'For' | 'Sub' | 'Function' | 'Operator' | 'Property' | 'Try' | 'Select' | 'While')
+  : exit_do_statement
+  | exit_for_statement
+  | exit_function_statement
+  | exit_operator_statement
+  | exit_property_statement
+  | exit_select_statement
+  | exit_sub_statement
+  | exit_try_statement
+  | exit_while_statement
+  ;
+
+exit_do_statement
+  : 'Exit' 'Do'
+  ;
+
+exit_for_statement
+  : 'Exit' 'For'
+  ;
+
+exit_function_statement
+  : 'Exit' 'Function'
+  ;
+
+exit_operator_statement
+  : 'Exit' 'Operator'
+  ;
+
+exit_property_statement
+  : 'Exit' 'Property'
+  ;
+
+exit_select_statement
+  : 'Exit' 'Select'
+  ;
+
+exit_sub_statement
+  : 'Exit' 'Sub'
+  ;
+
+exit_try_statement
+  : 'Exit' 'Try'
+  ;
+
+exit_while_statement
+  : 'Exit' 'While'
   ;
 
 expression_statement
@@ -642,9 +964,21 @@ go_to_statement
   ;
 
 label
+  : identifier_label
+  | next_label
+  | numeric_label
+  ;
+
+identifier_label
+  : identifier_token
+  ;
+
+next_label
   : 'Next'
-  | identifier_token
-  | integer_literal_token
+  ;
+
+numeric_label
+  : integer_literal_token
   ;
 
 label_statement
@@ -657,7 +991,7 @@ local_declaration_statement
   ;
 
 multi_line_if_block
-  : if_statement statement* else_if_block* else_block? end_block_statement
+  : if_statement statement* else_if_block* else_block? end_if_statement
   ;
 
 if_statement
@@ -673,7 +1007,21 @@ else_block
   ;
 
 on_error_go_to_statement
-  : 'On' 'Error' 'GoTo' '-'? label
+  : on_error_go_to_label_statement
+  | on_error_go_to_minus_one_statement
+  | on_error_go_to_zero_statement
+  ;
+
+on_error_go_to_label_statement
+  : 'On' 'Error' 'GoTo' '-'? next_label
+  ;
+
+on_error_go_to_minus_one_statement
+  : 'On' 'Error' 'GoTo' '-'? numeric_label
+  ;
+
+on_error_go_to_zero_statement
+  : 'On' 'Error' 'GoTo' '-'? identifier_label
   ;
 
 on_error_resume_next_statement
@@ -697,7 +1045,21 @@ redim_clause
   ;
 
 resume_statement
-  : 'Resume' label?
+  : resume_label_statement
+  | resume_next_statement
+  | resume_statement
+  ;
+
+resume_label_statement
+  : 'Resume' numeric_label?
+  ;
+
+resume_next_statement
+  : 'Resume' next_label?
+  ;
+
+resume_statement
+  : 'Resume' identifier_label?
   ;
 
 return_statement
@@ -705,7 +1067,7 @@ return_statement
   ;
 
 select_block
-  : select_statement case_block* end_block_statement
+  : select_statement case_block* end_select_statement
   ;
 
 select_statement
@@ -713,6 +1075,15 @@ select_statement
   ;
 
 case_block
+  : case_block
+  | case_else_block
+  ;
+
+case_block
+  : case_statement statement*
+  ;
+
+case_else_block
   : case_statement statement*
   ;
 
@@ -725,12 +1096,20 @@ single_line_else_clause
   ;
 
 stop_or_end_statement
+  : end_statement
+  | stop_statement
+  ;
+
+end_statement
   : 'End'
-  | 'Stop'
+  ;
+
+stop_statement
+  : 'Stop'
   ;
 
 sync_lock_block
-  : sync_lock_statement statement* end_block_statement
+  : sync_lock_statement statement* end_sync_lock_statement
   ;
 
 sync_lock_statement
@@ -742,7 +1121,7 @@ throw_statement
   ;
 
 try_block
-  : try_statement statement* catch_block* finally_block? end_block_statement
+  : try_statement statement* catch_block* finally_block? end_try_statement
   ;
 
 try_statement
@@ -762,7 +1141,7 @@ finally_statement
   ;
 
 using_block
-  : using_statement statement* end_block_statement
+  : using_statement statement* end_using_statement
   ;
 
 using_statement
@@ -770,7 +1149,7 @@ using_statement
   ;
 
 while_block
-  : while_statement statement* end_block_statement
+  : while_statement statement* end_while_statement
   ;
 
 while_statement
@@ -778,7 +1157,7 @@ while_statement
   ;
 
 with_block
-  : with_statement statement* end_block_statement
+  : with_statement statement* end_with_statement
   ;
 
 with_statement
@@ -849,7 +1228,126 @@ binary_conditional_expression
   ;
 
 binary_expression
-  : expression ('+' | '-' | '*' | '/' | '\\' | '^' | '<<' | '>>' | '&' | 'Mod' | '=' | '<>' | '<' | '<=' | '>=' | '>' | 'Is' | 'IsNot' | 'Like' | 'Or' | 'Xor' | 'And' | 'OrElse' | 'AndAlso') expression
+  : add_expression
+  | and_also_expression
+  | and_expression
+  | concatenate_expression
+  | divide_expression
+  | equals_expression
+  | exclusive_or_expression
+  | exponentiate_expression
+  | greater_than_expression
+  | greater_than_or_equal_expression
+  | integer_divide_expression
+  | is_expression
+  | is_not_expression
+  | left_shift_expression
+  | less_than_expression
+  | less_than_or_equal_expression
+  | like_expression
+  | modulo_expression
+  | multiply_expression
+  | not_equals_expression
+  | or_else_expression
+  | or_expression
+  | right_shift_expression
+  | subtract_expression
+  ;
+
+add_expression
+  : expression '+' expression
+  ;
+
+and_also_expression
+  : expression 'AndAlso' expression
+  ;
+
+and_expression
+  : expression 'And' expression
+  ;
+
+concatenate_expression
+  : expression '>>' expression
+  ;
+
+divide_expression
+  : expression '/' expression
+  ;
+
+equals_expression
+  : expression '<>' expression
+  ;
+
+exclusive_or_expression
+  : expression 'Xor' expression
+  ;
+
+exponentiate_expression
+  : expression '^' expression
+  ;
+
+greater_than_expression
+  : expression 'Is' expression
+  ;
+
+greater_than_or_equal_expression
+  : expression '>=' expression
+  ;
+
+integer_divide_expression
+  : expression '\\' expression
+  ;
+
+is_expression
+  : expression 'IsNot' expression
+  ;
+
+is_not_expression
+  : expression 'Like' expression
+  ;
+
+left_shift_expression
+  : expression 'Mod' expression
+  ;
+
+less_than_expression
+  : expression '<=' expression
+  ;
+
+less_than_or_equal_expression
+  : expression '>' expression
+  ;
+
+like_expression
+  : expression '&' expression
+  ;
+
+modulo_expression
+  : expression '=' expression
+  ;
+
+multiply_expression
+  : expression '*' expression
+  ;
+
+not_equals_expression
+  : expression '<' expression
+  ;
+
+or_else_expression
+  : expression 'OrElse' expression
+  ;
+
+or_expression
+  : expression 'Or' expression
+  ;
+
+right_shift_expression
+  : expression '<<' expression
+  ;
+
+subtract_expression
+  : expression '-' expression
   ;
 
 cast_expression
@@ -939,7 +1437,16 @@ lambda_expression
   ;
 
 multi_line_lambda_expression
-  : lambda_header statement* end_block_statement
+  : multi_line_function_lambda_expression
+  | multi_line_sub_lambda_expression
+  ;
+
+multi_line_function_lambda_expression
+  : statement* end_sub_statement
+  ;
+
+multi_line_sub_lambda_expression
+  : statement* end_function_statement
   ;
 
 single_line_lambda_expression
@@ -947,7 +1454,16 @@ single_line_lambda_expression
   ;
 
 member_access_expression
-  : expression? ('.' | '!') simple_name
+  : dictionary_access_expression
+  | simple_member_access_expression
+  ;
+
+dictionary_access_expression
+  : expression? '!' generic_name
+  ;
+
+simple_member_access_expression
+  : expression? '.' identifier_name
   ;
 
 mid_expression
@@ -1057,17 +1573,42 @@ order_by_clause
   ;
 
 ordering
-  : expression ('Ascending' | 'Descending')?
+  : ascending_ordering
+  | descending_ordering
+  ;
+
+ascending_ordering
+  : expression 'Ascending'?
+  ;
+
+descending_ordering
+  : expression 'Descending'?
   ;
 
 partition_clause
+  : skip_clause
+  | take_clause
+  ;
+
+skip_clause
   : 'Skip' expression
-  | 'Take' expression
+  ;
+
+take_clause
+  : 'Take' expression
   ;
 
 partition_while_clause
+  : skip_while_clause
+  | take_while_clause
+  ;
+
+skip_while_clause
   : 'Skip' 'While' expression
-  | 'Take' 'While' expression
+  ;
+
+take_while_clause
+  : 'Take' 'While' expression
   ;
 
 select_clause
@@ -1087,14 +1628,39 @@ tuple_expression
   ;
 
 type_of_expression
-  : 'TypeOf' expression ('Is' | 'IsNot') type
+  : type_of_is_expression
+  | type_of_is_not_expression
+  ;
+
+type_of_is_expression
+  : 'TypeOf' expression 'Is' type
+  ;
+
+type_of_is_not_expression
+  : 'TypeOf' expression 'IsNot' type
   ;
 
 unary_expression
+  : address_of_expression
+  | not_expression
+  | unary_minus_expression
+  | unary_plus_expression
+  ;
+
+address_of_expression
+  : 'AddressOf' expression
+  ;
+
+not_expression
+  : 'Not' expression
+  ;
+
+unary_minus_expression
+  : '-' expression
+  ;
+
+unary_plus_expression
   : '+' expression
-  | '-' expression
-  | 'AddressOf' expression
-  | 'Not' expression
   ;
 
 xml_member_access_expression
@@ -1346,7 +1912,16 @@ external_source_directive_trivia
   ;
 
 if_directive_trivia
-  : '#' 'Else'? ('If' | 'ElseIf') expression 'Then'?
+  : else_if_directive_trivia
+  | if_directive_trivia
+  ;
+
+else_if_directive_trivia
+  : 'Else'? 'ElseIf' expression 'Then'?
+  ;
+
+if_directive_trivia
+  : 'Else'? 'If' expression 'Then'?
   ;
 
 reference_directive_trivia

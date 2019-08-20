@@ -40,10 +40,72 @@ Friend Class GrammarGenerator
         Dim nonTokens = _parseTree.NodeStructures.Values.Where(Function(n) Not n.IsToken)
         Dim tokens = _parseTree.NodeStructures.Values.Where(Function(n) n.IsToken)
 
+        ' Initial pass.  Set up base/inheritance rules and break out compound production
+        ' rules so they're available for other productions to reference.
+        Dim compoundNodes = New List(Of ParseNodeStructure)
+
         For Each structureNode In nonTokens.Concat(tokens)
             Dim parent = structureNode.ParentStructure
             If parent IsNot Nothing Then
                 _rules(parent.Name).Add(RuleReference(structureNode.Name))
+            End If
+
+            ' VB syntax has a ton of nodes that are effectively 'compound' nodes.  i.e. there is
+            ' EndBlockStatement (which is referenced by tons of other nodes, like EnumDeclaration,
+            ' ClassDeclaration, WhileStatement, etc. etc.)  However, all these nodes reference a
+            ' specific node-kind specialization of that compound node.  These specializations are
+            ' what spell out that while EndBlock is defined as `'End' ('Class' | 'Enum' | 'Structure
+            ' | ...)` that there are really N different specializations like `'End' 'Class'` `'End'
+            ' 'Enum'` etc.  In these cases to make the generated grammar much nicer, we emit as those
+            ' individual productions.
+            '
+            ' So, we first check if this production actually defines N different sub-kinds
+            If structureNode.NodeKinds.Count >= 2 Then
+                ' Then we see if there are children that having a matching number of kinds. When
+                ' this happens, it's the case that each kind the child could be corresponds 1:1
+                ' with all the different sub-kinds of hte production.
+                Dim correspondingChildren = structureNode.Children.Where(
+                    Function(c)
+                        Dim childKinds = TryCast(c.ChildKind, List(Of ParseNodeKind))
+                        Return childKinds IsNot Nothing AndAlso childKinds.Count = structureNode.NodeKinds.Count
+                    End Function).ToArray()
+
+                If correspondingChildren.Count > 0 Then
+                    compoundNodes.Add(structureNode)
+
+                    Dim correspondingChildrenKinds = correspondingChildren.ToDictionary(
+                        Function(c) c,
+                        Function(c) DirectCast(c.ChildKind, List(Of ParseNodeKind)))
+
+                    ' We then iterate each different kind, pickin out the specific subkinds of of
+                    ' each child that correspond to it.
+                    For i = 0 To structureNode.NodeKinds.Count - 1
+                        Dim nodeKind = structureNode.NodeKinds(i)
+                        Dim local_i = i
+                        Dim mappedChildren = structureNode.Children.Select(
+                        Function(c)
+                            If correspondingChildren.Contains(c) Then
+                                c.ChildKind = correspondingChildrenKinds(c)(local_i)
+                            End If
+
+                            Return c
+                        End Function).ToList()
+
+                        ' We then emit a production for the child kind.
+                        _rules.Add(nodeKind.Name, New List(Of Production)())
+                        _rules(nodeKind.Name).Add(HandleChildren(structureNode, mappedChildren))
+
+                        ' And then point the top level production at each of these child productions.
+                        _rules(structureNode.Name).Add(RuleReference(nodeKind.Name))
+                    Next
+                End If
+            End If
+        Next
+
+        For Each structureNode In nonTokens.Concat(tokens)
+            ' ignore compound nodes.  we handled it in the above loop.
+            If compoundNodes.Contains(structureNode) Then
+                Continue For
             End If
 
             If Not structureNode.Abstract Then
@@ -232,6 +294,14 @@ Friend Class GrammarGenerator
         ElseIf nodeKind.Name = "EndOfFileToken" Then
             Return New Production("")
         End If
+
+        If _rules.ContainsKey(nodeKind.Name) Then
+            Return RuleReference(nodeKind.Name)
+        End If
+
+        'If nodeKind.NodeStructure.Name = "EndBlockStatementSyntax" Then
+        '    Return RuleReference(nodeKind.Name)
+        'End If
 
         Return RuleReference(nodeKind.NodeStructure.Name)
     End Function
