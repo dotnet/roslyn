@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
         }
 
-        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol coclassSymbol)
+        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol? coclassSymbol)
         {
             if (!conversion.IsImplicit ||
                  info.ConvertedType == null ||
