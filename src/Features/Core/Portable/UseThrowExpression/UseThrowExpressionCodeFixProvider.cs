@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
+            => ImmutableArray.Create(AbstractUseThrowExpressionDiagnosticAnalyzer.UseThrowExpressionFixableDiagnosticId);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
 
-                // First, remote the if-statement entirely.
+                // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw ...'.
