@@ -413,6 +413,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 yield return foreachStatement;
             }
+
+            if (syntaxFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
+            {
+                yield return typeDeclaration;
+            }
         }
 
         protected virtual async Task AddNodesDeepIn<TSyntaxNode>(
