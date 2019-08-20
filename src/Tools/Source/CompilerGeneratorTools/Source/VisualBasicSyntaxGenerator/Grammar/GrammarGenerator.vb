@@ -85,7 +85,7 @@ Friend Class GrammarGenerator
                         Dim mappedChildren = structureNode.Children.Select(
                         Function(c)
                             If correspondingChildren.Contains(c) Then
-                                c.ChildKind = correspondingChildrenKinds(c)(local_i)
+                                Return c.WithChildKind(correspondingChildrenKinds(c)(local_i))
                             End If
 
                             Return c
@@ -121,8 +121,8 @@ Friend Class GrammarGenerator
                         Dim childStructure = GetCommonStructure(kinds)
                         If childStructure.IsToken Then
                             For Each kind In kinds
-                                child.ChildKind = kind
-                                _rules(structureNode.Name).Add(HandleChildren(structureNode, children))
+                                _rules(structureNode.Name).Add(HandleChildren(structureNode, children.Select(
+                                    Function(c) If(c Is child, child.WithChildKind(kind), c))))
                             Next
                             Continue For
                         End If
@@ -174,7 +174,7 @@ Friend Class GrammarGenerator
             productions.SelectMany(Function(p) p.ReferencedRules))
     End Function
 
-    Private Function HandleChildren(structureNode As ParseNodeStructure, children As List(Of ParseNodeChild), Optional delim As String = " ") As Production
+    Private Function HandleChildren(structureNode As ParseNodeStructure, children As IEnumerable(Of ParseNodeChild), Optional delim As String = " ") As Production
         Return Join(delim, children.Select(
                     Function(child) HandleField(structureNode, child)))
     End Function
