@@ -1672,8 +1672,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Implements ITest33
+               ~~~~~~~
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub M1() Implements ITest33.M1
+                        ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1712,8 +1719,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1753,8 +1764,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1793,8 +1808,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1833,8 +1852,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+        ITest33.M1()
+        ~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1919,10 +1942,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics(
 <error>
-BC31542: Embedded interop structure 'ITest33' can contain only public instance fields.
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
         Dim x = ITest33.F1
                 ~~~~~~~~~~
 </error>
@@ -1972,12 +1994,16 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest44)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
+        <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
             Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
@@ -2019,8 +2045,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37308: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest44)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>

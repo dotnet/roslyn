@@ -8863,6 +8863,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        /// </summary>
+        internal static string ERR_ReAbstractionInNoPIAType {
+            get {
+                return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: &apos;readonly&apos; can only be used on accessors if the property or indexer has both a get and a set accessor.
         /// </summary>
         internal static string ERR_ReadOnlyModMissingAccessor {
