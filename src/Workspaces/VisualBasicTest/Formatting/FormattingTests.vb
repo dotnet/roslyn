@@ -2382,15 +2382,15 @@ End Module</Code>
 Module Module1
     Sub Main()
         Dim mmm = Sub(ByRef x As String, _
-                                         y As Integer)
+                                y As Integer)
                       Console.WriteLine(x &amp; y)
                   End Sub, zzz = Sub(y, _
-                                        x)
-                                     mmm(y, _
                                             x)
+                                     mmm(y, _
+                                       x)
                                  End Sub
         lll = Sub(x _
-                    )
+        )
                   Console.WriteLine(x)
               End Sub
     End Sub
@@ -3288,26 +3288,6 @@ End Module
         End Function
 
         <Fact>
-        <WorkItem(542698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function ColonTrivia2___() As Task
-            Dim code = <Code>Imports _
-        System.Collections.Generic _
-:
-: Imports _
-          System
-Imports System.Linq
-
-Module Program
-    Sub Main(args As String())
-        Console.WriteLine("TEST")
-    End Sub
-End Module
-</Code>
-            Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
-        End Function
-
-        <Fact>
         <WorkItem(543197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543197")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function KeyInAnonymousType() As Task
@@ -3927,18 +3907,17 @@ Namespace NS
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function TestBang() As Task
             Dim code =
 <Code><![CDATA[
 Imports System.Collections
- 
+
 Module Program
     Sub Main()
         Dim x As New Hashtable
-        Dim y = x               !                    _
-        Goo
+        Dim y = x               !            _
+            Goo
     End Sub
 End Module
 ]]></Code>
@@ -3952,36 +3931,6 @@ Module Program
         Dim x As New Hashtable
         Dim y = x ! _
         Goo
-    End Sub
-End Module
-]]></Code>
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function TestBang___() As Task
-            Dim code =
-<Code><![CDATA[
-Imports System.Collections
-
-Module Program
-    Sub Main()
-        Dim x As New Hashtable
-        Dim y = x               !                    _
-        Goo
-    End Sub
-End Module
-]]></Code>
-
-            Dim expected =
-<Code><![CDATA[
-Imports System.Collections
-
-Module Program
-    Sub Main()
-        Dim x As New Hashtable
-        Dim y = x ! _
-                    Goo
     End Sub
 End Module
 ]]></Code>
