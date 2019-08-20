@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
+        private static readonly TestParameters CSharp8 =
+            new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
@@ -396,6 +399,31 @@ class Program<T>
 
             await TestInRegularAndScript1Async(code, expected,
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsNullableContext()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+class Program
+{
+    [|int a;|]
+}",
+@"#nullable enable
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}",
+parameters: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
