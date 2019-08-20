@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
             foreach (var symbol in selectedMembers)
             {
-                var type = symbol is IFieldSymbol
-                    ? ((IFieldSymbol)symbol).Type
-                    : ((IPropertySymbol)symbol).Type;
+                var type = symbol.GetMemberType();
 
                 var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
                 if (identifierNameParts.BaseName == "")

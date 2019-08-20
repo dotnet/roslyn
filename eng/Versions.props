@@ -53,7 +53,7 @@
     <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.18</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
-    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4-beta2.19365.1+a6bc06eb</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
+    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
     <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
@@ -215,7 +215,6 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
-
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
@@ -248,6 +247,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification" />
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Client" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.CodeSchema" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common" />

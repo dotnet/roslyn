@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
-                        parameter.Type, uniqueName);
+                        parameter.GetTypeWithAnnotatedNullability(), uniqueName);
                 }
             }
 
@@ -186,7 +185,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         new DeclarationModifiers(),
-                        parameter.Type,
+                        parameter.GetTypeWithAnnotatedNullability(),
                         RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,

@@ -421,11 +421,11 @@ Done:
             Return namedType
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Return BaseTypeNoUseSiteDiagnostics
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
             Dim result = GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If result IsNot Nothing Then

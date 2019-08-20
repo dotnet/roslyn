@@ -66,8 +66,15 @@ namespace IOperationGenerator
         public string? VisitorName;
 
         [XmlAttribute(AttributeName = "SkipInVisitor")]
-        public string SkipInVisitorText;
+        public string? SkipInVisitorText;
         public bool SkipInVisitor => SkipInVisitorText == "true";
+
+        [XmlAttribute(AttributeName = "SkipChildrenGeneration")]
+        public string? SkipChildrenGenerationText;
+        public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
+
+        [XmlAttribute]
+        public string? ChildrenOrder;
 
         public override bool IsAbstract => false;
     }
@@ -89,6 +96,14 @@ namespace IOperationGenerator
         [XmlAttribute(AttributeName = "New")]
         public string NewText;
         public bool IsNew => NewText == "true";
+
+        [XmlAttribute(AttributeName = "Internal")]
+        public string? IsInternalText;
+        public bool IsInternal => IsInternalText == "true";
+
+        [XmlAttribute(AttributeName = "SkipGeneration")]
+        public string? SkipGenerationText;
+        public bool SkipGeneration => SkipGenerationText == "true";
 
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;

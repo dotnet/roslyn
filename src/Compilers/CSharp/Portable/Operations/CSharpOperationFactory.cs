@@ -1387,12 +1387,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ImmutableArray<IPropertySymbol> initializedProperties = ImmutableArray.Create<IPropertySymbol>(boundPropertyEqualsValue.Property);
             BoundNode value = boundPropertyEqualsValue.Value;
-            OperationKind kind = OperationKind.PropertyInitializer;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPropertyEqualsValue.WasCompilerGenerated;
-            return new CSharpLazyPropertyInitializerOperation(this, value, boundPropertyEqualsValue.Locals.As<ILocalSymbol>(), initializedProperties, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyPropertyInitializerOperation(this, value, boundPropertyEqualsValue.Locals.As<ILocalSymbol>(), initializedProperties, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IParameterInitializerOperation CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
@@ -2073,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         var receiver = new InstanceReferenceOperation(
                             InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue: default, isImplicit: true);
                         return new PropertyReferenceOperation(
-                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, _semanticModel, nameSyntax, property.Type,
+                            property, ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type,
                             constantValue: default, isImplicit: isImplicit);
                     }
                 default:
