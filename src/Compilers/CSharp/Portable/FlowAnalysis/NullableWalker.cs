@@ -5325,6 +5325,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundExpression arg when arg.Type is { TypeKind: TypeKind.Delegate } argType:
+                    {
+                        var argTypeWithAnnotations = TypeWithAnnotations.Create(argType, NullableAnnotation.NotAnnotated);
+                        var argState = VisitRvalueWithState(arg);
+                        ReportNullableAssignmentIfNecessary(arg, argTypeWithAnnotations, argState, useLegacyWarnings: false);
+                        if (!arg.IsSuppressed)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(arg.Syntax.Location, delegateType, argType.DelegateInvokeMethod(), invokedAsExtensionMethod: false);
+                        }
+                    }
+                    break;
                 default:
                     VisitRvalue(node.Argument);
                     break;
