@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// is applicable, and satisfies type parameter constraints, based on the
         /// "this" argument type. Otherwise, returns null.
         /// </summary>
-        /// <param name="compilation">Compilation used to check constraints.  Language version 7.3 is assumed if this is null.</param>
+        /// <param name="compilation">Compilation used to check constraints.
+        /// The latest language version is assumed if this is null.</param>
         public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation? compilation)
 #nullable disable
         {
