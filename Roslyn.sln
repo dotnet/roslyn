@@ -424,6 +424,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeBenchmarks", "src\Tools\IdeBenchmarks\IdeBenchmarks.csproj", "{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{157EA250-2F28-4948-A8F2-D58EAEA05DC8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.vsconfig = .vsconfig
+	EndProjectSection
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilersIOperationGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\IOperationGenerator\CompilersIOperationGenerator.csproj", "{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}"
 EndProject
 Global

@@ -460,5 +460,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SnapshotService_IsExperimentEnabledAsync,
 
         Liveshare_UnknownCodeAction,
+        Liveshare_LexicalClassifications,
+        Liveshare_SyntacticClassifications,
     }
 }

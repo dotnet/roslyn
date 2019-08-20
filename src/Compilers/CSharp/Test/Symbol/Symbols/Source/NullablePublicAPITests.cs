@@ -2217,5 +2217,73 @@ public class C
             Assert.Equal("s", symbol.Name);
             Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
         }
+
+        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        public void MissingSymbols_ReinferredParent()
+        {
+            var source = @"
+class C
+{
+    public void A<T>(T t) where T:class
+    {
+        var c = new F<T>[] { }.Select(v => new { Value = v.Item }).ToArray();
+    }
+    private class F<T>
+    {
+        public F(T oldItem) => Item = oldItem;
+        public T Item { get; }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var select = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Select").Single();
+            var symbolInfo = model.GetSymbolInfo(select);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        public void MultipleSymbols_ReinferredParent()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void A<T>(T t) where T : class
+    {
+        var c = new F<T>[] { }.Select(v => new { Value = v.Item }).ToArray();
+    }
+    private class F<T>
+    {
+        public F(T oldItem) => Item = oldItem;
+        public T Item { get; }
+    }
+}
+static class ArrayExtensions
+{
+    public static U Select<T, U>(this T[] arr, Func<T, object, U> mapper, object arg) => throw null!;
+    public static U Select<T, U, V>(this T[] arr, Func<T, V, U> mapper, V arg) => throw null!;
+    public static U Select<T, U>(this T[] arr, C mapper) => throw null!;
+    public static U Select<T, U>(this T[] arr, string mapper) => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var select = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Select").Single();
+            var symbolInfo = model.GetSymbolInfo(select);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(4, symbolInfo.CandidateSymbols.Length);
+        }
     }
 }

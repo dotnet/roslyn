@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             if (IsUpgrade(project, newVersion))
             {
                 Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
-                var parseOptions = (CSharpParseOptions)project.ParseOptions;
+                var parseOptions = (CSharpParseOptions)project.ParseOptions!;
 
                 return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         {
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
-            var parseOptions = (CSharpParseOptions)project.ParseOptions;
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
             var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
 
             var workspace = project.Solution.Workspace;
