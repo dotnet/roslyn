@@ -6,9 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+
+#if LEGACY_CODE_METRICS_MODE
+using Analyzer.Utilities.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {

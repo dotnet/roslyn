@@ -693,7 +693,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
 
-                HandleEscapingOperation(arrayCreation, initializer);
+                // We use the array initializer as the escaping operation instead of arrayCreation
+                // to ensure we have a unique escaping operation key for each initializer.
+                HandleEscapingOperation(initializer, initializer);
             }
 
             #region Visitor methods
