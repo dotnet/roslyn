@@ -10,7 +10,7 @@ option_statement
   ;
 
 imports_statement
-  : 'Imports' (imports_clause(',' imports_clause)*)?
+  : 'Imports' (imports_clause (',' imports_clause)*)?
   ;
 
 imports_clause
@@ -39,7 +39,7 @@ attributes_statement
   ;
 
 attribute_list
-  : '<' (attribute(',' attribute)*)? '>'
+  : '<' (attribute (',' attribute)*)? '>'
   ;
 
 attribute
@@ -52,7 +52,7 @@ attribute_target
   ;
 
 argument_list
-  : '(' (argument(',' argument)*)? ')'
+  : '(' (argument (',' argument)*)? ')'
   ;
 
 argument
@@ -104,7 +104,7 @@ statement
   ;
 
 case_statement
-  : 'Case' (case_clause(',' case_clause)*)?
+  : 'Case' (case_clause (',' case_clause)*)?
   ;
 
 case_clause
@@ -338,7 +338,7 @@ anonymous_object_creation_expression
   ;
 
 object_member_initializer
-  : 'With' '{' (field_initializer(',' field_initializer)*)? '}'
+  : 'With' '{' (field_initializer (',' field_initializer)*)? '}'
   ;
 
 field_initializer
@@ -363,7 +363,7 @@ array_rank_specifier
   ;
 
 collection_initializer
-  : '{' (expression(',' expression)*)? '}'
+  : '{' (expression (',' expression)*)? '}'
   ;
 
 object_creation_expression
@@ -396,7 +396,7 @@ event_statement
   ;
 
 parameter_list
-  : '(' (parameter(',' parameter)*)? ')'
+  : '(' (parameter (',' parameter)*)? ')'
   ;
 
 parameter
@@ -408,7 +408,7 @@ modified_identifier
   ;
 
 implements_clause
-  : 'Implements' (qualified_name(',' qualified_name)*)?
+  : 'Implements' (qualified_name (',' qualified_name)*)?
   ;
 
 qualified_name
@@ -425,7 +425,7 @@ generic_name
   ;
 
 type_argument_list
-  : '(' 'Of' (type(',' type)*)? ')'
+  : '(' 'Of' (type (',' type)*)? ')'
   ;
 
 accessor_block
@@ -485,11 +485,11 @@ set_accessor_block
   ;
 
 field_declaration
-  : attribute_list* modifier* (variable_declarator(',' variable_declarator)*)?
+  : attribute_list* modifier* (variable_declarator (',' variable_declarator)*)?
   ;
 
 variable_declarator
-  : (modified_identifier(',' modified_identifier)*)? as_clause? equals_value?
+  : (modified_identifier (',' modified_identifier)*)? as_clause? equals_value?
   ;
 
 incomplete_member
@@ -502,11 +502,11 @@ inherits_or_implements_statement
   ;
 
 implements_statement
-  : 'Implements' (type(',' type)*)?
+  : 'Implements' (type (',' type)*)?
   ;
 
 inherits_statement
-  : 'Inherits' (type(',' type)*)?
+  : 'Inherits' (type (',' type)*)?
   ;
 
 method_base
@@ -556,7 +556,7 @@ delegate_function_statement
   ;
 
 type_parameter_list
-  : '(' 'Of' (type_parameter(',' type_parameter)*)? ')'
+  : '(' 'Of' (type_parameter (',' type_parameter)*)? ')'
   ;
 
 type_parameter
@@ -570,7 +570,7 @@ type_parameter_constraint_clause
   ;
 
 type_parameter_multiple_constraint_clause
-  : 'As' '{' (constraint(',' constraint)*)? '}'
+  : 'As' '{' (constraint (',' constraint)*)? '}'
   ;
 
 constraint
@@ -631,7 +631,7 @@ function_statement
   ;
 
 handles_clause
-  : 'Handles' (handles_clause_item(',' handles_clause_item)*)?
+  : 'Handles' (handles_clause_item (',' handles_clause_item)*)?
   ;
 
 handles_clause_item
@@ -871,7 +871,7 @@ loop_statement
   ;
 
 erase_statement
-  : 'Erase' (expression(',' expression)*)?
+  : 'Erase' (expression (',' expression)*)?
   ;
 
 error_statement
@@ -948,7 +948,7 @@ for_step_clause
   ;
 
 next_statement
-  : 'Next' (expression(',' expression)*)?
+  : 'Next' (expression (',' expression)*)?
   ;
 
 for_each_block
@@ -987,7 +987,7 @@ label_statement
   ;
 
 local_declaration_statement
-  : modifier* (variable_declarator(',' variable_declarator)*)?
+  : modifier* (variable_declarator (',' variable_declarator)*)?
   ;
 
 multi_line_if_block
@@ -1037,7 +1037,7 @@ raise_event_statement
   ;
 
 re_dim_statement
-  : 'ReDim' 'Preserve'? (redim_clause(',' redim_clause)*)?
+  : 'ReDim' 'Preserve'? (redim_clause (',' redim_clause)*)?
   ;
 
 redim_clause
@@ -1145,7 +1145,7 @@ using_block
   ;
 
 using_statement
-  : 'Using' expression? (variable_declarator(',' variable_declarator)*)?
+  : 'Using' expression? (variable_declarator (',' variable_declarator)*)?
   ;
 
 while_block
@@ -1516,7 +1516,7 @@ query_clause
   ;
 
 aggregate_clause
-  : 'Aggregate' (collection_range_variable(',' collection_range_variable)*)? query_clause* 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Aggregate' (collection_range_variable (',' collection_range_variable)*)? query_clause* 'Into' (aggregation_range_variable (',' aggregation_range_variable)*)?
   ;
 
 collection_range_variable
@@ -1536,11 +1536,11 @@ distinct_clause
   ;
 
 from_clause
-  : 'From' (collection_range_variable(',' collection_range_variable)*)?
+  : 'From' (collection_range_variable (',' collection_range_variable)*)?
   ;
 
 group_by_clause
-  : 'Group' (expression_range_variable(',' expression_range_variable)*)? 'By' (expression_range_variable(',' expression_range_variable)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Group' (expression_range_variable (',' expression_range_variable)*)? 'By' (expression_range_variable (',' expression_range_variable)*)? 'Into' (aggregation_range_variable (',' aggregation_range_variable)*)?
   ;
 
 expression_range_variable
@@ -1553,7 +1553,7 @@ join_clause
   ;
 
 group_join_clause
-  : 'Group' 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)? 'Into' (aggregation_range_variable(',' aggregation_range_variable)*)?
+  : 'Group' 'Join' (collection_range_variable (',' collection_range_variable)*)? join_clause* 'On' (join_condition ('And' join_condition)*)? 'Into' (aggregation_range_variable (',' aggregation_range_variable)*)?
   ;
 
 join_condition
@@ -1561,15 +1561,15 @@ join_condition
   ;
 
 simple_join_clause
-  : 'Join' (collection_range_variable(',' collection_range_variable)*)? join_clause* 'On' (join_condition('And' join_condition)*)?
+  : 'Join' (collection_range_variable (',' collection_range_variable)*)? join_clause* 'On' (join_condition ('And' join_condition)*)?
   ;
 
 let_clause
-  : 'Let' (expression_range_variable(',' expression_range_variable)*)?
+  : 'Let' (expression_range_variable (',' expression_range_variable)*)?
   ;
 
 order_by_clause
-  : 'Order' 'By' (ordering(',' ordering)*)?
+  : 'Order' 'By' (ordering (',' ordering)*)?
   ;
 
 ordering
@@ -1612,7 +1612,7 @@ take_while_clause
   ;
 
 select_clause
-  : 'Select' (expression_range_variable(',' expression_range_variable)*)?
+  : 'Select' (expression_range_variable (',' expression_range_variable)*)?
   ;
 
 where_clause
@@ -1624,7 +1624,7 @@ ternary_conditional_expression
   ;
 
 tuple_expression
-  : '(' (simple_argument(',' simple_argument)*)? ')'
+  : '(' (simple_argument (',' simple_argument)*)? ')'
   ;
 
 type_of_expression
@@ -1703,7 +1703,7 @@ predefined_type
   ;
 
 tuple_type
-  : '(' (tuple_element(',' tuple_element)*)? ')'
+  : '(' (tuple_element (',' tuple_element)*)? ')'
   ;
 
 tuple_element
@@ -1780,7 +1780,7 @@ cref_reference
   ;
 
 cref_signature
-  : '(' (cref_signature_part(',' cref_signature_part)*)? ')'
+  : '(' (cref_signature_part (',' cref_signature_part)*)? ')'
   ;
 
 cref_signature_part
@@ -1880,7 +1880,7 @@ const_directive_trivia
   ;
 
 disable_warning_directive_trivia
-  : '#' 'Disable' 'Warning' (identifier_name(',' identifier_name)*)?
+  : '#' 'Disable' 'Warning' (identifier_name (',' identifier_name)*)?
   ;
 
 else_directive_trivia
@@ -1888,7 +1888,7 @@ else_directive_trivia
   ;
 
 enable_warning_directive_trivia
-  : '#' 'Enable' 'Warning' (identifier_name(',' identifier_name)*)?
+  : '#' 'Enable' 'Warning' (identifier_name (',' identifier_name)*)?
   ;
 
 end_external_source_directive_trivia
