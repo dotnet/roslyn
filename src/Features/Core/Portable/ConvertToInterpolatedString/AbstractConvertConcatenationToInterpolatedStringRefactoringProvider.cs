@@ -60,7 +60,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
-            var stringLiterals = pieces.Where(syntaxFacts.IsStringLiteralExpression).ToImmutableArray();
+            var stringLiterals = pieces
+                .Where(x => syntaxFacts.IsStringLiteralExpression(x) || syntaxFacts.IsCharacterLiteralExpression(x))
+                .ToImmutableArray();
 
             // If the entire expression is just concatenated strings, then don't offer to
             // make an interpolated string.  The user likely manually split this for
@@ -113,12 +115,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var previousContentWasStringLiteralExpression = false;
             foreach (var piece in pieces)
             {
-                var currentContentIsStringLiteral = syntaxFacts.IsStringLiteralExpression(piece);
-                if (currentContentIsStringLiteral)
+                var isCharacterLiteral = syntaxFacts.IsCharacterLiteralExpression(piece);
+                var currentContentIsStringOrCharacterLiteral = syntaxFacts.IsStringLiteralExpression(piece) || isCharacterLiteral;
+                if (currentContentIsStringOrCharacterLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
                     var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
-                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
+                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral, isCharacterLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
                 // so we know to concatinate future string literals together if we encounter them.
-                previousContentWasStringLiteralExpression = currentContentIsStringLiteral;
+                previousContentWasStringLiteralExpression = currentContentIsStringOrCharacterLiteral;
             }
 
             return generator.InterpolatedStringExpression(startToken, content, endToken);
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
         }
 
-        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral);
+        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
         protected abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatimStringLiteral);
         protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
