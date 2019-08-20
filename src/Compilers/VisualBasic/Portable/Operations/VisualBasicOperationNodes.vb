@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _arrayInitialization As BoundArrayInitialization
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayInitialization As BoundArrayInitialization, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, constantValue, isImplicit)
+            MyBase.New(semanticModel, syntax, type:=Nothing, constantValue, isImplicit)
             _operationFactory = operationFactory
             _arrayInitialization = arrayInitialization
         End Sub
@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(locals:=ImmutableArray(Of ILocalSymbol).Empty, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedFields As ImmutableArray(Of IFieldSymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _forEachLoop As BoundForEachStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _forEachLoop = forEachLoop
         End Sub
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _boundForToLoop As BoundForToStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, boundForToLoop As BoundForToStatement, locals As ImmutableArray(Of ILocalSymbol), isChecked As Boolean, info As (LoopObject As ILocalSymbol, UserDefinedInfo As ForToLoopOperationUserDefinedInfo), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(isChecked, info, LoopKind.ForTo, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundForToLoop = boundForToLoop
         End Sub
@@ -806,7 +806,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), parameter As IParameterSymbol, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -840,7 +840,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedProperties As ImmutableArray(Of IPropertySymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -880,7 +880,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _rangeCaseClause As BoundRangeCaseClause
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, rangeCaseClause As BoundRangeCaseClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(CaseKind.Range, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _rangeCaseClause = rangeCaseClause
         End Sub
@@ -901,7 +901,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, relation As BinaryOperatorKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(relation, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(relation, CaseKind.Relational, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -935,7 +935,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _value As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(label, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
         End Sub
@@ -1023,7 +1023,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _tupleExpression As BoundTupleExpression
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
+            MyBase.New(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _tupleExpression = tupleExpression
         End Sub
@@ -1133,7 +1133,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _conditionalLoop As IBoundConditionalLoop
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalLoop As IBoundConditionalLoop, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(conditionIsTop, conditionIsUntil, LoopKind.While, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _conditionalLoop = conditionalLoop
         End Sub
