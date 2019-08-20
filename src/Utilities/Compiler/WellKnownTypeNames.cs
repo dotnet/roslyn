@@ -134,6 +134,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsIEnumerator = "System.Collections.IEnumerator";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
+        public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemCollectionsIList = "System.Collections.IList";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
@@ -322,8 +323,13 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemString = "System.String";
+        public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
+        public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
         public const string SystemConvert = "System.Convert";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
+        public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
+        public const string SystemRandom = "System.Random";
+        public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
     }
 }

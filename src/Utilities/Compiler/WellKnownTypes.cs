@@ -46,6 +46,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerator1);
         }
 
+        public static INamedTypeSymbol Queryable(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemLinqQueryable);
+        }
+
         public static INamedTypeSymbol IList(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIList);
