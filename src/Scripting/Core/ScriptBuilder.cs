@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             Debug.Assert(assemblyLoader != null);
 
-            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
+            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "_" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
             _assemblyLoader = assemblyLoader;
         }
 
