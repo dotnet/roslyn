@@ -567,6 +567,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsUnsuppressableError()
             => DefaultSeverity == DiagnosticSeverity.Error && IsNotConfigurable();
+
+        /// <summary>
+        /// Returns true if this is a unsuppressed diagnostic with an effective error severity.
+        /// </summary>
+        internal bool IsUnsuppressedError
+            => Severity == DiagnosticSeverity.Error && !IsSuppressed;
     }
 
     /// <summary>
