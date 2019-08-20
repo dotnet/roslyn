@@ -7826,7 +7826,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem(2676, "https://github.com/dotnet/csharplang/issues/2676")]
+        [Fact, WorkItem(38121, "https://github.com/dotnet/roslyn/issues/38121")]
         public void GenericPropertyPattern()
         {
             UsingExpression("e is A<B> {}");
