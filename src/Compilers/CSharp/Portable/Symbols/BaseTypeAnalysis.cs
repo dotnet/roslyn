@@ -219,6 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (false, hasGenerics);
         }
 
+        /// <summary>
+        /// Returns True or False if we can determine whether the type is managed
+        /// without looking at its fields and Unknown otherwise.
+        /// Also returns whether or not the given type is generic.
+        /// </summary>
         private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
         {
             // To match dev10, we treat enums as their underlying types.
