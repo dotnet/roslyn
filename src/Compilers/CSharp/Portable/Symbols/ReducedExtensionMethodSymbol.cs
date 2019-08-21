@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-#nullable enable
         /// <summary>
         /// Return the extension method in reduced form if the extension method
         /// is applicable, and satisfies type parameter constraints, based on the
@@ -34,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.
         /// The latest language version is assumed if this is null.</param>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation? compilation)
-#nullable disable
+        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation)
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
@@ -102,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
-#nullable enable
         /// <summary>
         /// If the extension method is applicable based on the "this" argument type, return
         /// the method constructed with the inferred type arguments. If the method is not an
@@ -110,9 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// applicable, or if constraints when inferring type parameters from the "this" type
         /// are not satisfied, the return value is null.
         /// </summary>
-        /// <param name="compilation">Compilation used to check constraints.  Language version 7.3 is assumed if this is null.</param>
-        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation? compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-#nullable disable
+        /// <param name="compilation">Compilation used to check constraints.  The latest language version is assumed if this is null.</param>
+        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(method.IsExtensionMethod);
             Debug.Assert((object)thisType != null);

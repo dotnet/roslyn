@@ -6324,17 +6324,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#nullable enable
         private MethodGroupResolution BindExtensionMethod(
             SyntaxNode expression,
             string methodName,
-            AnalyzedArguments? analyzedArguments,
+            AnalyzedArguments analyzedArguments,
             BoundExpression left,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             bool isMethodGroupConversion,
             RefKind returnRefKind,
-            TypeSymbol? returnType)
-#nullable disable
+            TypeSymbol returnType)
         {
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
