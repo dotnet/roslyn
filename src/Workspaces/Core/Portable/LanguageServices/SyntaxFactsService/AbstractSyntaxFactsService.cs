@@ -575,6 +575,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsExpressionStatement(SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
-#nullable disable
+#nullable restore
     }
 }
