@@ -495,6 +495,8 @@ Public Class ParseNodeChild
 
     Public ReadOnly IsOptional As Boolean
 
+    Public ReadOnly MinCount As Integer
+
     Public ReadOnly IsList As Boolean
 
     Public ReadOnly IsSeparated As Boolean
@@ -532,6 +534,7 @@ Public Class ParseNodeChild
         IsList = If(CType(el.Attribute("list"), Boolean?), False)
         IsSeparated = el.@<separator-kind> <> ""
         IsOptional = If(CType(el.Attribute("optional"), Boolean?), False)
+        MinCount = If(CType(el.Attribute("min-count"), Integer?), 0)
         Description = el.<description>.Value
         NotInFactory = If(CType(el.Attribute("not-in-factory"), Boolean?), False)
         GenerateWith = If(CType(el.Attribute("generate-with"), Boolean?), False)

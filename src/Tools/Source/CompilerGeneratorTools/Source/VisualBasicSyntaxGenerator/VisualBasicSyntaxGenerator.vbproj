@@ -33,4 +33,7 @@
       <LogicalName>VBSyntaxModelSchema.xsd</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Generated\VisualBasic.Grammar.g4" Link="Grammar\VisualBasic.Grammar.g4" />
+  </ItemGroup>
 </Project>

@@ -193,7 +193,9 @@ Friend Class GrammarGenerator
         Dim childProduction = HandleChildKind(structureNode, child, child.ChildKind)
         Dim separatorProd = HandleChildKind(structureNode, child, child.SeparatorsKind)
 
-        Return childProduction.Suffix(" (" + separatorProd.Text + " " + childProduction.Text + ")*").Parenthesize().Suffix("?")
+        Return childProduction.Suffix(" (" + separatorProd.Text + " " + childProduction.Text + ")").
+            Suffix("*", [when]:=child.MinCount < 2).Suffix("+", [when]:=child.MinCount >= 2).
+            Parenthesize([when]:=child.MinCount = 0).Suffix("?", [when]:=child.MinCount = 0)
     End Function
 
     Private Function HandleList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
