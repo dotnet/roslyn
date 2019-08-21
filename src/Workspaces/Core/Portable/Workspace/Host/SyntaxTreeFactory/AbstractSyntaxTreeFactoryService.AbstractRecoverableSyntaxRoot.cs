@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -161,9 +162,33 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
+                var tickCount = Environment.TickCount;
+                try
                 {
-                    return RecoverRoot(stream, cancellationToken);
+                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
+                    {
+                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRootAsync, blockId: 0);
+                    }
+
+                    using (var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        return RecoverRoot(stream, cancellationToken);
+                    }
+                }
+                finally
+                {
+                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
+                    {
+                        var tick = Environment.TickCount - tickCount;
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
+                        }
+                        else
+                        {
+                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
+                        }
+                    }
                 }
             }
 
@@ -171,9 +196,33 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (var stream = _storage.ReadStream(cancellationToken))
+                var tickCount = Environment.TickCount;
+                try
                 {
-                    return RecoverRoot(stream, cancellationToken);
+                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
+                    {
+                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRoot, blockId: 0);
+                    }
+
+                    using (var stream = _storage.ReadStream(cancellationToken))
+                    {
+                        return RecoverRoot(stream, cancellationToken);
+                    }
+                }
+                finally
+                {
+                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
+                    {
+                        var tick = Environment.TickCount - tickCount;
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
+                        }
+                        else
+                        {
+                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
+                        }
+                    }
                 }
             }
 
@@ -186,6 +235,8 @@ namespace Microsoft.CodeAnalysis.Host
 
     internal interface IRecoverableSyntaxTree<TRoot> where TRoot : SyntaxNode
     {
+        string FilePath { get; }
+
         TRoot CloneNodeAsRoot(TRoot root);
     }
 }
