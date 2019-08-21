@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            bool inferType = node.NaturalTypeOpt is object && node.NaturalTypeOpt.Equals(node.Type, TypeCompareKind.ConsiderEverything);
+            bool inferType = !node.WasTargetTyped;
             VisitSwitchExpressionCore(node, inferType);
             return null;
         }

@@ -1231,6 +1231,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
+    <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">
@@ -1567,6 +1568,7 @@
     <!-- Original tuple is preserved for the purpose of semantic model.
          When tuples are created as part of lowering, this could be null. -->
     <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
+    <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">

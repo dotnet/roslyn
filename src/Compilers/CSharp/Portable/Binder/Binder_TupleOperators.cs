@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
+                        tuple.Syntax, tuple, wasTargetTyped: false, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type

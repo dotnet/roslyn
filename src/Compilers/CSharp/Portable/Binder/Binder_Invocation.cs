@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), targetTyped: false, diagnostics);
                                 break;
                         }
                     }
