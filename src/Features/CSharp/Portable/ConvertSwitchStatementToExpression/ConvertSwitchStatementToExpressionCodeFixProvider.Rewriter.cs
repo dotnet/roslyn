@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     // The default label must come last in the switch expression.
                     .OrderBy(section => SingleOrDefaultSwitchLabel(section.Labels).IsKind(SyntaxKind.DefaultSwitchLabel))
                     .Select(s =>
-                        (leadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
-                         trailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() } ,
+                        (tokensForLeadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
+                         tokensForTrailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() },
                          armExpression: GetSwitchExpressionArm(s)))
                     .ToList();
 
@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement))
                     {
                         switchArms.Add(
-                            (leadingTrivia: new[] { nextStatement.GetFirstToken() },
-                             trailingTrivia: new[] { nextStatement.GetLastToken() },
+                            (tokensForLeadingTrivia: new[] { nextStatement.GetFirstToken() },
+                             tokensForTrailingTrivia: new[] { nextStatement.GetLastToken() },
                              SwitchExpressionArm(DiscardPattern(), Visit(nextStatement))));
                     }
                 }
@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
                     Token(SyntaxKind.OpenBraceToken),
                     SeparatedList(
-                        switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.leadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
-                        switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.trailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),
+                        switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.tokensForLeadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
+                        switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),
                     Token(SyntaxKind.CloseBraceToken));
             }
 
