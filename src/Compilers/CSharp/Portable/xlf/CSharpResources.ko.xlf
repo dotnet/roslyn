@@ -1414,6 +1414,16 @@
         <target state="needs-review-translation">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 컨텍스트 내에만 사용되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 컨텍스트 내에만 사용되어야 합니다.</target>
@@ -8891,8 +8901,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">문자열 상수의 길이가 현재 메모리 제한을 초과합니다. 문자열을 여러 상수로 분할해 보세요.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">문자열 상수의 길이가 현재 메모리 제한을 초과합니다. 문자열을 여러 상수로 분할해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

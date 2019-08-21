@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         /// the type you're current on if you're on the header of a class/interface.
         /// </summary>
         internal static INamedTypeSymbol GetEnclosingNamedType(
-            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
+            SemanticModel semanticModel, SyntaxNode root, int start)
         {
             var token = root.FindToken(start);
             if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
@@ -121,9 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
             foreach (var symbol in selectedMembers)
             {
-                var type = symbol is IFieldSymbol
-                    ? ((IFieldSymbol)symbol).Type
-                    : ((IPropertySymbol)symbol).Type;
+                var type = symbol.GetMemberType();
 
                 var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
                 if (identifierNameParts.BaseName == "")

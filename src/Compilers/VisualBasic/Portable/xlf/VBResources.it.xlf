@@ -8759,8 +8759,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">

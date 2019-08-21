@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IPropertySymbol RemoveAttributeFromParameters(
-            this IPropertySymbol property, INamedTypeSymbol[] attributesToRemove)
+            this IPropertySymbol property, INamedTypeSymbol?[]? attributesToRemove)
         {
             if (attributesToRemove == null)
             {
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Where(attr => attr != null).Any(attr => attr.Equals(a.AttributeClass));
+                attributesToRemove.Any(attr => attr?.Equals(a.AttributeClass) ?? false);
 
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsWritableInConstructor(this IPropertySymbol property)
             => (property.SetMethod != null || ContainsBackingField(property));
 
-        public static IFieldSymbol GetBackingFieldIfAny(this IPropertySymbol property)
+        public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));

@@ -3,12 +3,13 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
     internal class CSharpConvertConcatenationToInterpolatedStringRefactoringProvider :
-        AbstractConvertConcatenationToInterpolatedStringRefactoringProvider
+        AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<ExpressionSyntax>
     {
         private const string InterpolatedVerbatimText = "$@\"";
 

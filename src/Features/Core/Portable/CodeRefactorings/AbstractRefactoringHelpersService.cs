@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRightOrIn == default)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // assume non-trivia token can't span multiple lines
@@ -266,20 +265,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             do
             {
                 var nonHiddenExtractedSelectedNodes = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
-                foreach (var selectedNode in nonHiddenExtractedSelectedNodes)
+                foreach (var nonHiddenExtractedNode in nonHiddenExtractedSelectedNodes)
                 {
                     // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
                     // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
                     // if user selected only its attributes.
 
                     // Selection contains only AttributeLists -> don't consider current Node
-                    var spanWithoutAttributes = GetSpanWithoutAttributes(selectedNode, root, syntaxFacts);
+                    var spanWithoutAttributes = GetSpanWithoutAttributes(nonHiddenExtractedNode, root, syntaxFacts);
                     if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
                     {
                         break;
                     }
 
-                    relevantNodesBuilder.Add(selectedNode);
+                    relevantNodesBuilder.Add(nonHiddenExtractedNode);
                 }
 
                 prevNode = selectionNode;
@@ -313,15 +312,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            // `var a = b;`
-            if (syntaxFacts.IsLocalDeclarationStatement(node))
+            // `var a = b;` | `var a = b`;
+            if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
                 // is wanted.
                 // `var a = 1, `c = 2, d = 3`;
                 // -> `var a = 1`, c = 2, d = 3;
-                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
                 if (variables.Count == 1)
                 {
                     var declaredVariable = variables.First();
@@ -343,17 +344,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // var `a = b`;
-            // -> `var a = b`;
-            if (syntaxFacts.IsLocalDeclarationStatement(node?.Parent))
+            if (syntaxFacts.IsVariableDeclarator(node))
             {
-                // Check if there's only one variable being declared, otherwise following transformation
-                // would go through which isn't reasonable. If there's specifically selected just one, 
-                // we don't want to return LocalDeclarationStatement that contains multiple.
-                // var a = 1, `c = 2`, d = 3;
-                // -> `var a = 1, c = 2, d = 3`;
-                if (syntaxFacts.GetVariablesOfLocalDeclarationStatement(node.Parent).Count == 1)
+                // -> `b`
+                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
+                if (initializer != default)
                 {
-                    yield return node.Parent;
+                    var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                    if (value != default)
+                    {
+                        yield return value;
+                    }
                 }
             }
 

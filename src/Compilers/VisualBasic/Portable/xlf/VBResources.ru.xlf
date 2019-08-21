@@ -8760,8 +8760,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">

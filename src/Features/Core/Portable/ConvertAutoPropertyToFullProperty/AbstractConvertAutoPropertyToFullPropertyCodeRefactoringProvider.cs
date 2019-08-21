@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 return;
             }
 
-            if (!(IsValidAutoProperty(property, propertySymbol)))
+            if (!(IsValidAutoProperty(propertySymbol)))
             {
                 return;
             }
@@ -55,10 +55,11 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             context.RegisterRefactoring(
                 new ConvertAutoPropertyToFullPropertyCodeAction(
                     FeaturesResources.Convert_to_full_property,
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)),
+                property.Span);
         }
 
-        internal bool IsValidAutoProperty(SyntaxNode property, IPropertySymbol propertySymbol)
+        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default, Accessibility.Private,
                 DeclarationModifiers.From(propertySymbol),
-                propertySymbol.Type, fieldName,
+                propertySymbol.GetTypeWithAnnotatedNullability(), fieldName,
                 initializer: GetInitializerValue(property));
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;

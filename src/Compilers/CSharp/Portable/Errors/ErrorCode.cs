@@ -1704,6 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
         ERR_NullableDirectiveTargetExpected = 8668,
+        WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

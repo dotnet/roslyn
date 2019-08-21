@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol EnsureNonConflictingNames(
-            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts)
         {
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.
@@ -367,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// the first parameter is of <see cref="object"/> type and the second
         /// parameter inherits from or equals <see cref="EventArgs"/> type.
         /// </summary>
-        public static bool HasEventHandlerSignature(this IMethodSymbol method, INamedTypeSymbol eventArgsType)
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&

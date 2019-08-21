@@ -55,13 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
 
-                Assert.Empty(actions);
-                Assert.Null(actionsToInvoke);
-            }
+            Assert.Empty(actions);
+            Assert.Null(actionsToInvoke);
         }
 
         [Fact]
@@ -408,17 +406,16 @@ class C
                 index: 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30027")]
-        [WorkItem(30027, "https://github.com/dotnet/roslyn/issues/30027")]
+        [Fact]
         public async Task UpgradeAllProjectsToCSharp8_NullableReferenceType()
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""True"">
         <Document>
 class C
 {
-    void A(string? [|s|])
+    void A(string[|?|] s)
     {
     }
 }

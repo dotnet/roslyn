@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 context.RegisterRefactoring(
                     CreateCodeAction(
                         c => RefactorAsync(document, token.Span, ifOrElseIf.Span, c),
-                        syntaxFacts.GetText(syntaxKinds.IfKeyword)));
+                        syntaxFacts.GetText(syntaxKinds.IfKeyword)),
+                    ifOrElseIf.Span);
             }
         }
 

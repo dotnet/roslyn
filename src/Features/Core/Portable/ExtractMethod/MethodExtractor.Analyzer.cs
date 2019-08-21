@@ -86,8 +86,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                // check whether instance member is used inside of the selection
-                var instanceMemberIsUsed = IsInstanceMemberUsedInSelectedCode(dataFlowAnalysisData);
+                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
+                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
+                var shouldBeReadOnly = !isThisParameterWritten
+                    && thisParameterBeingRead != null
+                    && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
@@ -118,9 +123,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return new AnalyzerResult(
                     newDocument,
-                    typeParametersInDeclaration, typeParametersInConstraintList,
-                    parameters, variableToUseAsReturnValue, returnType, awaitTaskReturn,
-                    instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
+                    typeParametersInDeclaration,
+                    typeParametersInConstraintList,
+                    parameters,
+                    variableToUseAsReturnValue,
+                    returnType,
+                    awaitTaskReturn,
+                    instanceMemberIsUsed,
+                    shouldBeReadOnly,
+                    endOfSelectionReachable,
+                    operationStatus);
             }
 
             private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
@@ -606,19 +618,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
-            {
-                switch (symbol)
+                => symbol switch
                 {
-                    case ILocalSymbol local:
-                        return local.Type;
-                    case IParameterSymbol parameter:
-                        return parameter.Type;
-                    case IRangeVariableSymbol rangeVariable:
-                        return GetRangeVariableType(model, rangeVariable);
-                }
-
-                return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
-            }
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                    _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
+                };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
             {
@@ -647,8 +653,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsParameterUsedOutside(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -659,8 +664,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private bool IsParameterAssigned(ISymbol localOrParameter)
             {
                 // hack for now.
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -668,10 +672,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return parameter.RefKind != RefKind.Out;
             }
 
-            private bool IsThisParameter(ISymbol localOrParameter)
+            private static bool IsThisParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -681,8 +684,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -851,8 +853,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
 
-                var constructedType = type as INamedTypeSymbol;
-                if (constructedType == null)
+                if (!(type is INamedTypeSymbol constructedType))
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
@@ -882,8 +883,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var candidate = arguments[i] as INamedTypeSymbol;
-                    if (candidate == null)
+                    if (!(arguments[i] is INamedTypeSymbol candidate))
                     {
                         continue;
                     }
@@ -939,15 +939,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            private bool IsInstanceMemberUsedInSelectedCode(DataFlowAnalysis dataFlowAnalysisData)
-            {
-                Contract.ThrowIfNull(dataFlowAnalysisData);
-
-                // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => IsThisParameter(s)) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
-            }
-
             protected VariableInfo CreateFromSymbolCommon<T>(
                 Compilation compilation,
                 ISymbol symbol,
@@ -955,19 +946,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                switch (symbol)
+                return symbol switch
                 {
-                    case ILocalSymbol local:
-                        return new VariableInfo(
-                            new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
-                            style);
-                    case IParameterSymbol parameter:
-                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
-                    case IRangeVariableSymbol rangeVariable:
-                        return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
-                }
-
-                return Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown);
+                    ILocalSymbol local => new VariableInfo(
+                        new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                        style),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
+                    _ => Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown),
+                };
             }
         }
     }

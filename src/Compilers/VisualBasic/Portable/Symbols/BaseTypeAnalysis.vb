@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Given base being resolved chain and current type produce the diagnostics 
         ''' or Nothing if there is no cycle detected
         ''' </summary>
-        Friend Function GetDependenceDiagnosticForBase(this As SourceNamedTypeSymbol, basesBeingResolved As ConsList(Of Symbol)) As DiagnosticInfo
+        Friend Function GetDependenceDiagnosticForBase(this As SourceNamedTypeSymbol, basesBeingResolved As BasesBeingResolved) As DiagnosticInfo
             Dim hasContainment As Boolean = False
-            Dim current As ConsList(Of Symbol) = basesBeingResolved
+            Dim current As ConsList(Of TypeSymbol) = basesBeingResolved.InheritsBeingResolvedOpt
             Dim previous As NamedTypeSymbol = this
             Dim dependency As ConsList(Of DependencyDesc) = ConsList(Of DependencyDesc).Empty.Prepend(New DependencyDesc(DependencyKind.Inheritance, this))
             Dim count As Integer = 1

@@ -1414,6 +1414,16 @@
         <target state="needs-review-translation">A anotação para tipos de referência que permitem valor nulo deve ser usada apenas em código dentro de um contexto '#nullable'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">A anotação para tipos de referência que permitem valor nulo deve ser usada apenas em código dentro de um contexto '#nullable'.</target>
@@ -8891,8 +8901,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

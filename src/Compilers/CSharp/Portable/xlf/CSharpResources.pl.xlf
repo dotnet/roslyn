@@ -1414,6 +1414,16 @@
         <target state="needs-review-translation">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem „#nullable”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem „#nullable”.</target>
@@ -8891,8 +8901,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">

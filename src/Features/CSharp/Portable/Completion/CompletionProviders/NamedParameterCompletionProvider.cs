@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var argumentList = token.Parent as BaseArgumentListSyntax;
-                if (argumentList == null)
+                if (!(token.Parent is BaseArgumentListSyntax argumentList))
                 {
                     return;
                 }
@@ -157,9 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             ObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var type = semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type as INamedTypeSymbol;
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-            if (type != null && within != null && type.TypeKind != TypeKind.Delegate)
+            if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type && within != null && type.TypeKind != TypeKind.Delegate)
             {
                 return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                 .Select(c => c.Parameters);
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                 if (within != null)
                 {
-                    return indexers.Where(i => i.IsAccessibleWithin(within, throughTypeOpt: expressionType))
+                    return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
                                    .Select(i => i.Parameters);
                 }
             }

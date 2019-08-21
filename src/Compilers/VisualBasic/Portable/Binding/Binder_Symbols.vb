@@ -598,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
 
                 If resolvingBaseType AndAlso lookupResult.IsGood Then
-                    Debug.Assert(binder.BasesBeingResolved IsNot Nothing AndAlso binder.BasesBeingResolved.Any)
+                    Debug.Assert(binder.BasesBeingResolved.InheritsBeingResolvedOpt IsNot Nothing AndAlso binder.BasesBeingResolved.InheritsBeingResolvedOpt.Any)
                     AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult, typeSyntax, binder, diagBag, reportedAnError)
                 End If
             End Sub

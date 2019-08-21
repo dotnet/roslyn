@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                var parameters = TryMakeParameters(semanticModel, targetVariables, cancellationToken);
+                var parameters = TryMakeParameters(semanticModel, targetVariables);
                 if (parameters.IsDefault)
                 {
                     return false;
@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
             }
 
-            private static ImmutableArray<IParameterSymbol> TryMakeParameters(
-                SemanticModel semanticModel, SyntaxNode target, CancellationToken cancellationToken)
+            private static ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target)
             {
                 var targetType = semanticModel.GetTypeInfo(target).Type;
                 if (targetType?.IsTupleType != true)

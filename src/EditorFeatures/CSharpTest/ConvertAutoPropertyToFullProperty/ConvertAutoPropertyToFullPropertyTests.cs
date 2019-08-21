@@ -1219,20 +1219,18 @@ partial class Program
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
-            {
-                // refactor file1 and check
-                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-                await TestActionAsync(
-                    testWorkspace,
-                    file1AfterRefactor,
-                    action,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
-            }
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+            // refactor file1 and check
+            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            await TestActionAsync(
+                testWorkspace,
+                file1AfterRefactor,
+                action,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                parameters: default);
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
@@ -1265,20 +1263,18 @@ partial class Program
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
-            {
-                // refactor file2 and check
-                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-                await TestActionAsync(
-                    testWorkspace,
-                    file2AfterRefactor,
-                    action,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
-            }
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+            // refactor file2 and check
+            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            await TestActionAsync(
+                testWorkspace,
+                file2AfterRefactor,
+                action,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                parameters: default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -1290,6 +1286,28 @@ partial class Program
 }");
 
             await TestMissingAsync("public int G[||]oo { get; set; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task NullBackingField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class Program
+{
+    string? Name[||] { get; set; }
+}",
+@"
+#nullable enable
+
+class Program
+{
+    private string? name;
+
+    string? Name { get => name; set => name = value; }
+}");
         }
     }
 }

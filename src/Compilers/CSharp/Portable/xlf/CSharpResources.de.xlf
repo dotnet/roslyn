@@ -1414,6 +1414,16 @@
         <target state="needs-review-translation">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Kontexts verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Kontexts verwendet werden.</target>
@@ -8891,8 +8901,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Die Länge der Zeichenfolgenkonstante überschreitet das aktuelle Speicherlimit. Versuchen Sie, die Zeichenfolge in mehrere Konstanten aufzuteilen.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Die Länge der Zeichenfolgenkonstante überschreitet das aktuelle Speicherlimit. Versuchen Sie, die Zeichenfolge in mehrere Konstanten aufzuteilen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
