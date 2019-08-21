@@ -18,7 +18,7 @@ Param(
     [Parameter(Mandatory=$true)]
     [string]$LibraryName,
     [Parameter(Mandatory=$true)]
-    [string]$Author,
+    [string]$Author = "Microsoft Corporation",
     [Parameter()]
     [string]$CodeCovToken,
     [Parameter()]
