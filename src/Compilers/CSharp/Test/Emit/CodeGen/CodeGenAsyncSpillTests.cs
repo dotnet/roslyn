@@ -3007,6 +3007,93 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+struct S
+{
+    int? i;
+
+    static async Task Main()
+    {
+        S s = default;
+        await M(s);
+        s.i = 0;
+        await M(s);
+    }
+
+    static async Task M(S s)
+    {
+        Console.WriteLine(s.i += await GetInt());
+    }
+
+    static Task<int?> GetInt() => Task.FromResult((int?)1);
+}";
+            CompileAndVerify(source, expectedOutput: "1", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "1", options: TestOptions.ReleaseExe);
+        }
+
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_02()
+        {
+            var source = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await new C().M();
+    }
+
+    int field = 1;
+    async System.Threading.Tasks.Task M()
+    {
+         this.field += await M2();
+         System.Console.Write(this.field);
+    }
+
+    async System.Threading.Tasks.Task<int> M2()
+    {
+         await System.Threading.Tasks.Task.Yield();
+         return 42;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+        }
+
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_03()
+        {
+            var source = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await new C().M();
+    }
+
+    int? field = 1;
+    async System.Threading.Tasks.Task M()
+    {
+         this.field += await M2();
+         System.Console.Write(this.field);
+    }
+
+    async System.Threading.Tasks.Task<int?> M2()
+    {
+         await System.Threading.Tasks.Task.Yield();
+         return 42;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+        }
+
         [Fact]
         public void SpillSacrificialRead()
         {
