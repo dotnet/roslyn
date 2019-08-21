@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 if (_sawNullLiteral)
                 {
+                    // If we've seen a null literal, we already casted one of the arms if needed,
+                    // so at this point the final expression will pick the correct type.
                     return node;
                 }
 
@@ -147,8 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var targetType = _semanticModel.GetTypeInfo(node).ConvertedType;
                 if (targetType.IsNullable())
                 {
-                    // The null literal on reference types will be either target-typed or
-                    // implicitly converted to the common type.
+                    // Only cast if this is a nullable value type. The null literal
+                    // for reference types will be either target-typed or implicitly
+                    // converted to the common type.
                     return nullLiteral.Cast(targetType);
                 }
 
