@@ -8,8 +8,6 @@ The name to use in copyright and owner notices.
 .PARAMETER CodeCovToken
 A token obtained from codecov.io for your repo. If not specified, code coverage results will not be published to codecov.io,
 but can be added later by editing the Azure Pipelines YAML file.
-.PARAMETER CIFeed
-The `/{guid}` path to the Azure Pipelines artifact feed to push your nuget package to as part of your CI.
 .PARAMETER Squash
 A switch that causes all of git history to be squashed to just one initial commit for the template, and one for its expansion.
 #>
@@ -21,8 +19,6 @@ Param(
     [string]$Author = "Microsoft Corporation",
     [Parameter()]
     [string]$CodeCovToken,
-    [Parameter()]
-    [string]$CIFeed,
     [Parameter()]
     [switch]$Squash
 )
