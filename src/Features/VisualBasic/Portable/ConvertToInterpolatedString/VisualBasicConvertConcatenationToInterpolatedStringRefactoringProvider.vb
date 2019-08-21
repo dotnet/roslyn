@@ -3,11 +3,12 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ExtractMethod), [Shared]>
     Friend Class VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider
-        Inherits AbstractConvertConcatenationToInterpolatedStringRefactoringProvider
+        Inherits AbstractConvertConcatenationToInterpolatedStringRefactoringProvider(Of ExpressionSyntax)
 
         <ImportingConstructor>
         Public Sub New()

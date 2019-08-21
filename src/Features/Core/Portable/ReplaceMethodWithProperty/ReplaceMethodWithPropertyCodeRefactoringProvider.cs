@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplaceMethodWithPropertyService>();
             if (service == null)
             {
