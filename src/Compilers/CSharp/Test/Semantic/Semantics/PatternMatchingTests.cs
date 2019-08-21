@@ -6036,7 +6036,7 @@ unsafe public class C {
                 // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
                 //         var b1 = x is object o1;         // not allowed 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
-                // (10,23): error CS8421: Pattern-matching is not permitted for pointer types.
+                // (10,23): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         var b2 = p is object o2;         // not allowed 2
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "object").WithLocation(10, 23),
                 // (7,31): warning CS0168: The variable 'z0' is declared but never used
