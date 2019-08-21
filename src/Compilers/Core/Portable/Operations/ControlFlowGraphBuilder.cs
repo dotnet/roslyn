@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            static bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
+            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
