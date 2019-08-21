@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var returnOperation in returnOperations)
                 {
-                    if (!ReturnOperationBelongsTo(returnOperation.Syntax, methodOperation.Syntax))
+                    if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
                     {
                         continue;
                     }
@@ -700,11 +700,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
                 return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
-                bool ReturnOperationBelongsTo(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
+                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
                 {
                     var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(n => n switch
                     {
-                        MethodDeclarationSyntax _ => true,
                         BaseMethodDeclarationSyntax _ => true,
                         AnonymousFunctionExpressionSyntax _ => true,
                         LocalFunctionStatementSyntax _ => true,
