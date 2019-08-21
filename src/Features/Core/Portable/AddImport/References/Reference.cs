@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,52 +30,27 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public int CompareTo(Document document, Reference other)
+                => IComparableHelper.CompareTo(this, other, r => GetComparisonComponents(r, document));
+
+            private static IEnumerable<IComparable> GetComparisonComponents(Reference reference, Document document)
             {
+                var searchResult = reference.SearchResult;
                 // If references have different weights, order by the ones with lower weight (i.e.
                 // they are better matches).
-                if (SearchResult.Weight < other.SearchResult.Weight)
-                {
-                    return -1;
-                }
+                yield return searchResult.Weight;
 
-                if (SearchResult.Weight > other.SearchResult.Weight)
-                {
-                    return 1;
-                }
+                // Prefer the name doesn't need to change.
+                yield return !searchResult.DesiredNameMatchesSourceName(document);
 
-                if (SearchResult.DesiredNameMatchesSourceName(document))
-                {
-                    if (!other.SearchResult.DesiredNameMatchesSourceName(document))
-                    {
-                        // Prefer us as our name doesn't need to change.
-                        return -1;
-                    }
-                }
-                else
-                {
-                    if (other.SearchResult.DesiredNameMatchesSourceName(document))
-                    {
-                        // Prefer them as their name doesn't need to change.
-                        return 1;
-                    }
-                    else
-                    {
-                        // Both our names need to change.  Sort by the name we're 
-                        // changing to.
-                        var diff = StringComparer.OrdinalIgnoreCase.Compare(
-                            SearchResult.DesiredName, other.SearchResult.DesiredName);
-                        if (diff != 0)
-                        {
-                            return diff;
-                        }
-                    }
-                }
+                // Sort by the name we're  changing to.
+                yield return searchResult.DesiredName;
 
                 // If the weights are the same and no names changed, just order 
                 // them based on the namespace we're adding an import for.
-                return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    SearchResult.NameParts, other.SearchResult.NameParts,
-                    placeSystemNamespaceFirst: true);
+                foreach (var c in INamespaceOrTypeSymbolExtensions.GetComparisonComponents(searchResult.NameParts, placeSystemNamespaceFirst: true))
+                {
+                    yield return c;
+                }
             }
 
             public override bool Equals(object obj)

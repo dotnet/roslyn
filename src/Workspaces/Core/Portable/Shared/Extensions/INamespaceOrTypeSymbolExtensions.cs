@@ -44,35 +44,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static int CompareNameParts(
             IReadOnlyList<string> names1, IReadOnlyList<string> names2,
             bool placeSystemNamespaceFirst)
+            => IComparableHelper.CompareTo(names1, names2, names => GetComparisonComponents(names, placeSystemNamespaceFirst));
+
+        public static IEnumerable<IComparable> GetComparisonComponents(IReadOnlyList<string> names, bool placeSystemNamespaceFirst)
         {
-            for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
+            bool isFirstItem = true;
+            foreach (var name in names)
             {
-                var name1 = names1[i];
-                var name2 = names2[i];
+                // For each item iteration, compare if one of list is over. The shorter wins in the case (-1 in Compare).
+                yield return true;
 
-                if (i == 0 && placeSystemNamespaceFirst)
+                if (isFirstItem && placeSystemNamespaceFirst)
                 {
-                    var name1IsSystem = name1 == nameof(System);
-                    var name2IsSystem = name2 == nameof(System);
+                    isFirstItem = false;
 
-                    if (name1IsSystem && !name2IsSystem)
-                    {
-                        return -1;
-                    }
-                    else if (!name1IsSystem && name2IsSystem)
-                    {
-                        return 1;
-                    }
+                    // If one has System in the beginning and another does not,
+                    // the one with System should win (-1 in Compare).
+                    yield return name != nameof(System);
                 }
 
-                var comp = name1.CompareTo(name2);
-                if (comp != 0)
-                {
-                    return comp;
-                }
+                yield return name;
             }
 
-            return names1.Count - names2.Count;
+            // Items are over in the current list. This list should win (Compare == -1) if another one still produces items.
+            yield return false;
         }
 
         private static void GetNameParts(INamespaceOrTypeSymbol? namespaceOrTypeSymbol, List<string> result)

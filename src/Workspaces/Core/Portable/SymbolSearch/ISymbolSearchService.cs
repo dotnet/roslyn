@@ -105,14 +105,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             => PackageName.Equals(other.PackageName);
 
         public int CompareTo(PackageWithAssemblyResult other)
-        {
-            var diff = Rank - other.Rank;
-            if (diff != 0)
-            {
-                return -diff;
-            }
+         => IComparableHelper.CompareTo(this, other, GetComparables);
 
-            return PackageName.CompareTo(other.PackageName);
+        private static IEnumerable<IComparable> GetComparables(PackageWithAssemblyResult package)
+        {
+            yield return package.Rank;
+            yield return package.PackageName;
         }
     }
 

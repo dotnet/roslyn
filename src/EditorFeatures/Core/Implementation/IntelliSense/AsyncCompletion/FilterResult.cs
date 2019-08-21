@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Utilities;
 
@@ -9,15 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal struct FilterResult : IComparable<FilterResult>
     {
-        static readonly ImmutableArray<Func<FilterResult, IComparable>> s_comparingComponents =
-            ImmutableArray.Create<Func<FilterResult, IComparable>>(
-                f => f.CompletionItem.FilterText.GetCaseInsensitivePrefixLength(f.FilterText),
-                f => f.CompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? f.CompletionItem.Rules.MatchPriority
-                    : MatchPriority.Default,
-                f => f.CompletionItem.FilterText.GetCaseSensitivePrefixLength(f.FilterText),
-                f => f.CompletionItem.IsPreferredItem());
-
         public readonly CompletionItem CompletionItem;
         public readonly bool MatchedFilterText;
         public readonly string FilterText;
@@ -30,6 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public int CompareTo(FilterResult other)
-            => IComparableHelper.CompareTo(this, other, s_comparingComponents);
+            => IComparableHelper.CompareTo(this, other, GetComparisonComponents);
+
+        private static IEnumerable<IComparable> GetComparisonComponents(FilterResult filterResult)
+        {
+            var completionItem = filterResult.CompletionItem;
+            yield return completionItem.FilterText.GetCaseInsensitivePrefixLength(filterResult.FilterText);
+            yield return completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                ? filterResult.CompletionItem.Rules.MatchPriority
+                : MatchPriority.Default;
+
+            yield return completionItem.FilterText.GetCaseSensitivePrefixLength(filterResult.FilterText);
+            yield return completionItem.IsPreferredItem();
+        }
     }
 }

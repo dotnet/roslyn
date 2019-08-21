@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -57,44 +58,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             => CompareTo(other, ignoreCase: false);
 
         public int CompareTo(PatternMatch other, bool ignoreCase)
+            => IComparableHelper.CompareTo(this, other, patternMatch => GetComparisonComponents(patternMatch, ignoreCase));
+
+        private static IEnumerable<IComparable> GetComparisonComponents(PatternMatch patternMatch, bool ignoreCase)
         {
-            int diff;
-            if ((diff = CompareType(this, other)) != 0 ||
-                (diff = CompareCase(this, other, ignoreCase)) != 0 ||
-                (diff = ComparePunctuation(this, other)) != 0)
-            {
-                return diff;
-            }
+            // Compare types
+            yield return patternMatch.Kind;
 
-            return 0;
-        }
-
-        private static int ComparePunctuation(PatternMatch result1, PatternMatch result2)
-        {
-            // Consider a match to be better if it was successful without stripping punctuation
-            // versus a match that had to strip punctuation to succeed.
-            if (result1._punctuationStripped != result2._punctuationStripped)
-            {
-                return result1._punctuationStripped ? 1 : -1;
-            }
-
-            return 0;
-        }
-
-        private static int CompareCase(PatternMatch result1, PatternMatch result2, bool ignoreCase)
-        {
+            // Compare cases
             if (!ignoreCase)
             {
-                if (result1.IsCaseSensitive != result2.IsCaseSensitive)
-                {
-                    return result1.IsCaseSensitive ? -1 : 1;
-                }
+                yield return !patternMatch.IsCaseSensitive;
             }
 
-            return 0;
+            // Consider a match to be better if it was successful without stripping punctuation
+            // versus a match that had to strip punctuation to succeed.
+            yield return patternMatch._punctuationStripped;
         }
-
-        private static int CompareType(PatternMatch result1, PatternMatch result2)
-            => result1.Kind - result2.Kind;
     }
 }

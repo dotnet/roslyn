@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -75,25 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 throw new InvalidOperationException(EditorFeaturesResources.Can_t_compare_positions_from_different_text_snapshots);
             }
 
-            if (Position < other.Position)
-            {
-                return -1;
-            }
-            else if (Position > other.Position)
-            {
-                return 1;
-            }
+            return IComparableHelper.CompareTo(this, other, GetComparisonComponents);
+        }
 
-            if (VirtualSpaces < other.VirtualSpaces)
-            {
-                return -1;
-            }
-            else if (VirtualSpaces > other.VirtualSpaces)
-            {
-                return 1;
-            }
-
-            return 0;
+        private static IEnumerable<IComparable> GetComparisonComponents(VirtualTreePoint p)
+        {
+            yield return p.Position;
+            yield return p.VirtualSpaces;
         }
 
         public bool Equals(VirtualTreePoint other)
