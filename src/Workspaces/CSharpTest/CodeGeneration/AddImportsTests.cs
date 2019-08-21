@@ -1262,6 +1262,7 @@ namespace B
 	}
 }
 
+#nullable enable
 #pragma warning disable
 
 class C
@@ -1296,6 +1297,7 @@ namespace B
 	}
 }
 
+#nullable enable
 #pragma warning disable
 
 class C
@@ -1330,6 +1332,7 @@ namespace B
 	}
 }
 
+#nullable enable
 #pragma warning disable
 
 class C

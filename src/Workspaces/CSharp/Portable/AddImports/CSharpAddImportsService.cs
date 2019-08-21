@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
 
         protected override bool IsEquivalentImport(SyntaxNode a, SyntaxNode b)
         {
-            return a.IsEquivalentTo(b);
+            return a.IsEquivalentTo(b, topLevel: false);
         }
 
         private class Rewriter : CSharpSyntaxRewriter
