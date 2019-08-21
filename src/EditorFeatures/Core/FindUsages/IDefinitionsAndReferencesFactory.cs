@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var containingSymbol = definition.ContainingSymbol;
-            if (containingSymbol != null && !containingSymbol.IsNamespace())
+            if (containingSymbol != null && containingSymbol.GetMemberType() != null)
             {
                 displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.s_containingMemberInfo, containingSymbol.Name));
             }
