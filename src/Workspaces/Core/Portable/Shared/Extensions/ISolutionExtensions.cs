@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -87,6 +88,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     yield return documentId;
                 }
             }
+        }
+
+        public static async Task<Solution> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
+        {
+            var solutionChanges = newSolution.GetChanges(oldSolution);
+
+            foreach (var projectChange in solutionChanges.GetProjectChanges())
+            {
+                foreach (var changedDocumentId in projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+                {
+                    var oldDocument = oldSolution.GetDocument(changedDocumentId)!;
+                    if (oldDocument.CanApplyChange())
+                    {
+                        continue;
+                    }
+
+                    var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var newDocument = newSolution.GetDocument(changedDocumentId)!;
+                    var revertedDocument = newDocument.WithSyntaxRoot(oldRoot);
+
+                    newSolution = revertedDocument.Project.Solution;
+                }
+            }
+
+            return newSolution;
         }
     }
 }

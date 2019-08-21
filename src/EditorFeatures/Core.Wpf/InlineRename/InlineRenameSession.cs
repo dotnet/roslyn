@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 var newSolution = _conflictResolutionTask.Result.NewSolution;
 
-                var excludeChangesTask = _workspace.ExcludeDisallowedDocumentTextChangesAsync(newSolution, waitContext.CancellationToken);
+                var excludeChangesTask = newSolution.ExcludeDisallowedDocumentTextChangesAsync(_workspace.CurrentSolution, waitContext.CancellationToken);
                 excludeChangesTask.Wait(waitContext.CancellationToken);
                 newSolution = excludeChangesTask.Result;
 

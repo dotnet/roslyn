@@ -1090,32 +1090,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal async Task<Solution> ExcludeDisallowedDocumentTextChangesAsync(Solution newSolution, CancellationToken cancellationToken)
-        {
-            var oldSolution = this.CurrentSolution;
-            var solutionChanges = newSolution.GetChanges(oldSolution);
-
-            foreach (var projectChange in solutionChanges.GetProjectChanges())
-            {
-                foreach (var changedDocumentId in projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-                {
-                    var oldDocument = oldSolution.GetDocument(changedDocumentId)!;
-                    if (oldDocument.CanApplyChange())
-                    {
-                        continue;
-                    }
-
-                    var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newDocument = newSolution.GetDocument(changedDocumentId)!;
-                    var revertedDocument = newDocument.WithSyntaxRoot(oldRoot);
-
-                    newSolution = revertedDocument.Project.Solution;
-                }
-            }
-
-            return newSolution;
-        }
-
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
         ///
