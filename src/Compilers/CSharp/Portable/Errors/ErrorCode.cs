@@ -1725,7 +1725,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
 
-        ERR_DuplicateNullSuppression = 8715
+        ERR_DuplicateNullSuppression = 8715,
+
+        ERR_ReAbstractionInNoPIAType = 8750,
 
         #endregion diagnostics introduced for C# 8.0
 
