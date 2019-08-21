@@ -696,56 +696,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 FirstOrDefault(Function(n) TypeOf n Is TypeBlockSyntax OrElse TypeOf n Is DelegateStatementSyntax)
         End Function
 
-        Public Function GetNameOfContainingType(node As SyntaxNode) As String Implements ISyntaxFactsService.GetNameOfContainingType
-            If node Is Nothing Then
-                Throw New ArgumentNullException(NameOf(node))
-            End If
-
-            Dim containingType = node.Ancestors.FirstOrDefault(Function(n) TypeOf n Is TypeBlockSyntax OrElse TypeOf n Is DelegateStatementSyntax)
-            If containingType Is Nothing Then
-                Return ""
-            End If
-
-            If (TypeOf containingType Is TypeBlockSyntax) Then
-                Return (DirectCast(containingType, TypeBlockSyntax)).GetNameToken().ValueText
-            ElseIf (TypeOf containingType Is DelegateStatementSyntax) Then
-                Return (DirectCast(containingType, DelegateStatementSyntax)).GetNameToken().ValueText
-            Else
-                Return ""
-            End If
-        End Function
-
-        Public Function GetNameOfContainingMember(node As SyntaxNode) As String Implements ISyntaxFactsService.GetNameOfContainingMember
-            While node IsNot Nothing
-
-                If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                    Return DirectCast(node, MethodBlockBaseSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
-                    Return DirectCast(node, MethodBaseSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                    Return DirectCast(node, PropertyStatementSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
-                    Return DirectCast(node, EventStatementSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is PropertyBlockSyntax Then
-                    Return DirectCast(node, PropertyBlockSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is TypeBlockSyntax Then
-                    Return DirectCast(node, TypeBlockSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is EnumBlockSyntax Then
-                    Return DirectCast(node, EnumBlockSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is NamespaceBlockSyntax Then
-                    Return DirectCast(node, NamespaceBlockSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is EventBlockSyntax Then
-                    Return DirectCast(node, EventBlockSyntax).GetNameToken.ValueText
-                ElseIf TypeOf node Is FieldDeclarationSyntax Then
-                    Return DirectCast(node, FieldDeclarationSyntax).GetNameToken.ValueText
-                End If
-
-                node = node.Parent
-            End While
-
-            Return ""
-        End Function
-
         Private Function IsMemberDeclaration(node As SyntaxNode) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.ClassStatement,

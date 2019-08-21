@@ -661,35 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
         }
 
-        public string GetNameOfContainingType(SyntaxNode node)
-        {
-            if (node == null)
-
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            var containingType = node.Ancestors().FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
-            if (containingType is BaseTypeDeclarationSyntax baseTypeDeclaration)
-            {
-                return baseTypeDeclaration.GetNameToken().ValueText;
-            }
-            else if (containingType is DelegateDeclarationSyntax delegateDeclaration)
-            {
-                return delegateDeclaration.GetNameToken().ValueText;
-            }
-            else
-            {
-                return "";
-            }
-        }
-
-        public string GetNameOfContainingMember(SyntaxNode node)
-        {
-            var containingMember = node.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
-            return containingMember == null ? "" : containingMember.GetNameToken().ValueText;
-        }
-
         public SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node)
             => throw ExceptionUtilities.Unreachable;
 

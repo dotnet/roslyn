@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, node), candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: reason)));
                 }
             }
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, node), candidateReason: match.reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: match.reason)));
                 }
             }
 
@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// <param name="syntaxFacts"></param>
         /// <param name="node"></param>
         /// <returns></returns>
-        private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
         {
             var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-            additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
-            additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
+            additionalProperties.Add(GetContainingTypeInfo(node, semanticModel, syntaxFacts));
+            additionalProperties.Add(GetContainingMemberInfo(node, semanticModel, syntaxFacts));
             return additionalProperties.ToImmutable();
         }
     }

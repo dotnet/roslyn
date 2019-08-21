@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(referenceUsageInfo, additionalProperties));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(referenceUsageInfo, additionalProperties));
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -370,20 +370,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt, ImmutableArray<CodeAnalysis.AdditionalProperty> customColumns)
+            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValues, ImmutableArray<CodeAnalysis.AdditionalProperty> customColumns)
             {
-                var result = GetAggregatedUsageColumnData(customColumnsDataOpt);
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
 
-                foreach (var column in customColumns)
-                {
-                    result = result.Add(column.Label, column.Value);
-                }
-
-                return result;
-            }
-
-            private ImmutableDictionary<string, string> GetAggregatedUsageColumnData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsDataOpt)
-            {
                 // Aggregate dictionary values to get column display values. For example, below input:
                 //
                 // {
@@ -397,15 +387,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //   { "Column1", "Value1, Value2" },
                 //   { "Column2", "Value3, Value4" }
                 // }
-
-                if (customColumnsDataOpt == null || customColumnsDataOpt.IsEmpty())
+                if (customColumnsWithMultipleValues != null && customColumnsWithMultipleValues.Any())
                 {
-                    return ImmutableDictionary<string, string>.Empty;
+                    foreach (var column in customColumnsWithMultipleValues)
+                    {
+                        builder.Add(column.Key, GetCustomColumn(column.Key).GetDisplayStringForAdditionalProperty(column.Value));
+                    }
                 }
 
-                return customColumnsDataOpt.Where(kvp => _customColumnTitleToStatesMap.ContainsKey(kvp.Key)).ToImmutableDictionary(
-                    keySelector: kvp => kvp.Key,
-                    elementSelector: kvp => GetCustomColumn(kvp.Key).GetDisplayStringForAdditionalProperty(kvp.Value));
+                // Similarly, add the regular custom column display values
+                if (customColumns != null)
+                {
+                    foreach (var column in customColumns)
+                    {
+                        if (column != null)
+                        {
+                            builder.Add(column.Label, column.Value);
+                        }
+                    }
+                }
+
+                return builder.ToImmutable();
 
                 // Local functions.
                 AbstractAdditionalPropertyDefinition GetCustomColumn(string columnName)
