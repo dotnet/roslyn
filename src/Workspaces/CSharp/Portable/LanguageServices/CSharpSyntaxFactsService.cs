@@ -664,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public string GetNameOfContainingType(SyntaxNode node)
         {
             if (node == null)
+
             {
                 throw new ArgumentNullException(nameof(node));
             }

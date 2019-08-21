@@ -398,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //   { "Column2", "Value3, Value4" }
                 // }
 
-                if (customColumnsDataOpt == null || !customColumnsDataOpt.Any())
+                if (customColumnsDataOpt == null || customColumnsDataOpt.IsEmpty())
                 {
                     return ImmutableDictionary<string, string>.Empty;
                 }
