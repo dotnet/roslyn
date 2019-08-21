@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
+#nullable enable
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax> : IRefactoringHelpersService
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <remark>
         /// Should also return given node. 
         /// </remark>
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
         {
             if (node == null)
             {
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             // `a()`;
             // -> `a();`
-            if (node.Parent != null && syntaxFacts.IsExpressionStatement(node.Parent))
+            if (syntaxFacts.IsExpressionStatement(node.Parent))
             {
                 yield return node.Parent;
             }

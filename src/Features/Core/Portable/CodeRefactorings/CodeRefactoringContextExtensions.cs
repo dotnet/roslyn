@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
+#nullable enable
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class CodeRefactoringContextExtensions
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        internal static Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
+        internal static Task<TSyntaxNode?> TryGetRelevantNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
             where TSyntaxNode : SyntaxNode
             => TryGetRelevantNodeAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             where TSyntaxNode : SyntaxNode
             => GetRelevantNodesAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
-        internal static async Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(
+        internal static async Task<TSyntaxNode?> TryGetRelevantNodeAsync<TSyntaxNode>(
             this Document document,
             TextSpan span,
             CancellationToken cancellationToken)

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Text;
 
+#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal static class CodeRefactoringHelpers
@@ -22,9 +23,17 @@ namespace Microsoft.CodeAnalysis
         /// that, for non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too large given user-selection even though
         /// it is the smallest that can be retrieved.
         /// </para>
+        /// <para>
+        /// Null node is always considered underselected.
+        /// </para>
         /// </summary>
-        public static bool IsNodeUnderselected(SyntaxNode node, TextSpan selection)
+        public static bool IsNodeUnderselected(SyntaxNode? node, TextSpan selection)
         {
+            if (node == null)
+            {
+                return true;
+            }
+
             if (selection.IsEmpty || node.Span.IsEmpty)
             {
                 return false;

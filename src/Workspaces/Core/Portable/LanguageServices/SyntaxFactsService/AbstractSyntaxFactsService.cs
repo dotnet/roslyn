@@ -551,6 +551,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
+#nullable enable
         public bool IsAwaitKeyword(SyntaxToken token)
             => token.RawKind == SyntaxKinds.AwaitKeyword;
 
@@ -563,16 +564,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsHashToken(SyntaxToken token)
             => token.RawKind == SyntaxKinds.HashToken;
 
-        public bool HasIncompleteParentMember(SyntaxNode node)
+        public bool HasIncompleteParentMember(SyntaxNode? node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
-        public bool IsUsingStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.UsingStatement;
+        public bool IsUsingStatement(SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.UsingStatement;
 
-        public bool IsReturnStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ReturnStatement;
+        public bool IsReturnStatement(SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ReturnStatement;
 
-        public bool IsExpressionStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ExpressionStatement;
+        public bool IsExpressionStatement(SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ExpressionStatement;
+#nullable disable
     }
 }

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken ParseToken(string text);
 
+#nullable enable
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
         bool IsGlobalNamespaceKeyword(SyntaxToken token);
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
+#nullable enable
 
         /// <summary>
         /// Returns 'true' if this a 'reserved' keyword for the language.  A 'reserved' keyword is a
@@ -105,8 +107,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTrueLiteralExpression(SyntaxNode node);
         bool IsThisExpression(SyntaxNode node);
         bool IsBaseExpression(SyntaxNode node);
-        bool IsExpressionStatement(SyntaxNode node);
-
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -264,7 +264,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDirective(SyntaxNode node);
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
-        bool IsUsingStatement(SyntaxNode node);
+#nullable enable
+        bool IsUsingStatement(SyntaxNode? node);
+#nullable disable
         bool IsStatement(SyntaxNode node);
         bool IsExecutableStatement(SyntaxNode node);
         bool IsParameter(SyntaxNode node);
@@ -287,7 +289,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
 
-        bool IsReturnStatement(SyntaxNode node);
+#nullable enable
+        bool IsExpressionStatement(SyntaxNode? node);
+        bool IsReturnStatement(SyntaxNode? node);
+#nullable disable
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
@@ -334,7 +339,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInConstructor(SyntaxNode node);
         bool IsMethodLevelMember(SyntaxNode node);
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
-        bool HasIncompleteParentMember(SyntaxNode node);
+#nullable enable
+        bool HasIncompleteParentMember(SyntaxNode? node);
+#nullable disable
 
         /// <summary>
         /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
