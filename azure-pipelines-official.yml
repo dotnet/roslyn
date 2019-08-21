@@ -169,69 +169,69 @@ stages:
         testRunTitle: 'Unit Tests'
       condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
-      # Publishes setup VSIXes to a drop.
-      # Note: The insertion tool looks for the display name of this task in the logs.
-      - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
-        displayName: Upload VSTS Drop
-        inputs:
-          DropName: $(VisualStudio.DropName)
-          DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-        condition: succeeded()
+    # Publishes setup VSIXes to a drop.
+    # Note: The insertion tool looks for the display name of this task in the logs.
+    - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
+      displayName: Upload VSTS Drop
+      inputs:
+        DropName: $(VisualStudio.DropName)
+        DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+      condition: succeeded()
 
-      # Publish insertion packages to CoreXT store.
-      - task: NuGetCommand@2
-        displayName: Publish CoreXT Packages 
-        inputs:
-          command: push
-          feedsToUse: config
-          packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
-          publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
-          allowPackageConflicts: true
-        condition: succeeded()
+    # Publish insertion packages to CoreXT store.
+    - task: NuGetCommand@2
+      displayName: Publish CoreXT Packages 
+      inputs:
+        command: push
+        feedsToUse: config
+        packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
+        publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
+        allowPackageConflicts: true
+      condition: succeeded()
 
-      # Publish an artifact that the RoslynInsertionTool is able to find by its name.
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifact VSSetup
-        inputs:
-          PathtoPublish: 'artifacts\VSSetup\$(BuildConfiguration)'
-          ArtifactName: 'VSSetup'
-        condition: succeeded()
+    # Publish an artifact that the RoslynInsertionTool is able to find by its name.
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact VSSetup
+      inputs:
+        PathtoPublish: 'artifacts\VSSetup\$(BuildConfiguration)'
+        ArtifactName: 'VSSetup'
+      condition: succeeded()
 
-      # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the 
-      # arcade templates depend on the name.
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifact Packages
-        inputs:
-          PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
-          ArtifactName: 'PackageArtifacts'
-        condition: succeeded()
+    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the 
+    # arcade templates depend on the name.
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
+        ArtifactName: 'PackageArtifacts'
+      condition: succeeded()
 
-      # Publish Asset Manifests for Build Asset Registry job
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Asset Manifests
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
-          ArtifactName: AssetManifests
-        condition: succeeded()
+    # Publish Asset Manifests for Build Asset Registry job
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Asset Manifests
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+        ArtifactName: AssetManifests
+      condition: succeeded()
 
-      # Tag the build at the very end when we know it's been successful.
-      - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
-        displayName: Tag build as ready for optimization training
-        inputs:
-          tags: 'ready-for-training'
-        condition: succeeded()
+    # Tag the build at the very end when we know it's been successful.
+    - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
+      displayName: Tag build as ready for optimization training
+      inputs:
+        tags: 'ready-for-training'
+      condition: succeeded()
 
-      - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
-        displayName: Perform Cleanup Tasks
-        condition: succeededOrFailed()
+    - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
+      displayName: Perform Cleanup Tasks
+      condition: succeededOrFailed()
 
-    # Publish to Build Asset Registry
-    - template: /eng/common/templates/job/publish-build-assets.yml
-      parameters:
-        dependsOn:
-          - OfficialBuild
-        queue:
-          name: Hosted VS2017
+  # Publish to Build Asset Registry
+  - template: /eng/common/templates/job/publish-build-assets.yml
+    parameters:
+      dependsOn:
+        - OfficialBuild
+      queue:
+        name: Hosted VS2017
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

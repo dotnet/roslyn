@@ -428,7 +428,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol>? parameters = default,
             ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null,
-            ITypeSymbol returnType = null)
+            ITypeSymbol returnType = null,
+            Optional<ImmutableArray<AttributeData>> returnTypeAttributes = default)
         {
             return CreateMethodSymbol(
                 containingType,
@@ -442,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 method.TypeParameters,
                 parameters ?? method.Parameters,
                 statements,
-                returnTypeAttributes: method.GetReturnTypeAttributes());
+                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes());
         }
 
         internal static IPropertySymbol CreatePropertySymbol(

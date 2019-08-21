@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
-        private static readonly TestParameters CSharp8 =
-            new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
-
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
@@ -86,6 +83,45 @@ class Program
     }
 }",
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestNullableReferenceIEquatable()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    [|S? a;|]
+}",
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    S? a;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Program program &&
+               EqualityComparer<S?>.Default.Equals(a, program.a);
+    }
+
+    public override int GetHashCode()
+    {
+        return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -422,8 +458,7 @@ class Program
         return obj is Program program &&
                a == program.a;
     }
-}",
-parameters: CSharp8);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
