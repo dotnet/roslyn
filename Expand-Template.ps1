@@ -146,6 +146,10 @@ try {
         'LibraryNoDots' = $LibraryName.Replace('.','');
     }
 
+    Replace-Placeholders -Path "azure-pipelines/variables/SymbolsFeatureName.ps1" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+
     # Self destruct
     $Invocation = (Get-Variable MyInvocation -Scope 1).Value
     git rm Expand-Template.ps1
