@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 foreach (var column in customColumns)
                 {
-                    result = result.Add(column.propertyInfo.label, column.propertyInfo.value);
+                    result = result.Add(column.Label, column.Value);
                 }
 
                 return result;

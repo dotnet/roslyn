@@ -7,9 +7,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal class AdditionalProperty
     {
-        public (string label, string value) propertyInfo;
-
         public static readonly AdditionalProperty None = new AdditionalProperty();
+
+        public string Label { get; set; }
+        public string Value { get; set; }
 
         public AdditionalProperty()
         {
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis
 
         public AdditionalProperty(string label, string value)
         {
-            propertyInfo.label = label;
-            propertyInfo.value = value;
+            Label = label;
+            Value = value;
         }
     }
 }
