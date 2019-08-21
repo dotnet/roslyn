@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal SymbolUsageInfo SymbolUsageInfo { get; }
 
+        /// <summary>
+        /// Additional properties for this reference
+        /// </summary>
         internal ImmutableArray<AdditionalProperty> AdditionalProperties { get; }
 
         /// <summary>

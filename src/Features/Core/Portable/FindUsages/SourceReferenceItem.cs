@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public bool IsWrittenTo { get; }
 
         /// <summary>
-        /// Additional information about the reference.
+        /// Additional properties for the reference that can have multiple values.
         /// Each entry represents a key-values pair of data. For example, consider the below entry:
         ///     { "ValueUsageInfo" } = { "Read", "Write" }
         /// This entry indicates that the reference has additional value usage information which indicate
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
-        public ReferenceUsageInfoMap ReferenceUsageInfo { get; }
+        public ReferenceUsageInfoMap AdditionalPropertiesWithMultipleValues { get; }
 
         /// <summary>
-        /// Additional properties for the reference, similar to ReferenceUsageInfo.
-        /// These property values are a single string, so do not need to allocate an array of strings.
+        /// Additional properties for the reference that can have only one value.
+        /// For example, { "ContainingTypeInfo" } = { "MyClass" }
         /// </summary>
         public ImmutableArray<AdditionalProperty> AdditionalProperties { get; }
 
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
-            ReferenceUsageInfo = ReferenceUsageInfoMap.Empty;
+            AdditionalPropertiesWithMultipleValues = ReferenceUsageInfoMap.Empty;
         }
 
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ReferenceUsageInfoMap referenceInfo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
-            ReferenceUsageInfo = referenceInfo ?? ReferenceUsageInfoMap.Empty;
+            AdditionalPropertiesWithMultipleValues = referenceInfo ?? ReferenceUsageInfoMap.Empty;
         }
 
         // Being used by TypeScript

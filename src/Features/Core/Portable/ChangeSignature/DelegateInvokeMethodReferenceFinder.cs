@@ -105,20 +105,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                  n => new FinderLocation(
-                      n,
+                  node => new FinderLocation(
+                      node,
                       new ReferenceLocation(
                           document,
                           null,
-                          n.GetLocation(),
+                          node.GetLocation(),
                           isImplicit: false,
                           symbolUsageInfo: GetSymbolUsageInfo(
-                              n,
+                              node,
                               semanticModel,
                               syntaxFactsService,
                               semanticFactsService,
                               cancellationToken),
-                          additionalProperties: ImmutableArray.Create(GetContainingTypeInfo(n, syntaxFactsService), GetContainingMemberInfo(n, syntaxFactsService)),
+                          additionalProperties: ImmutableArray.Create(GetContainingTypeInfo(node, syntaxFactsService), GetContainingMemberInfo(node, syntaxFactsService)),
                           candidateReason: CandidateReason.None)));
         }
     }

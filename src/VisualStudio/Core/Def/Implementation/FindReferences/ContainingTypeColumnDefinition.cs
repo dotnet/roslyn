@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
     [Name(ColumnName)]
     class ContainingTypeColumnDefinition : AbstractAdditionalPropertyDefinition
     {
-        public const string ColumnName = AbstractReferenceFinder.s_containingTypeInfo;
+        public const string ColumnName = AbstractReferenceFinder.ContainingTypeInfoPropertyName;
 
         [ImportingConstructor]
         public ContainingTypeColumnDefinition()

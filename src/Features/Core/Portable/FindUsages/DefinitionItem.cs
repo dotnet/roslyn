@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
         internal abstract bool IsExternal { get; }
 
         protected DefinitionItem(
-          ImmutableArray<string> tags,
-          ImmutableArray<TaggedText> displayParts,
-          ImmutableArray<TaggedText> nameDisplayParts,
-          ImmutableArray<TaggedText> originationParts,
-          ImmutableArray<DocumentSpan> sourceSpans,
-          ImmutableDictionary<string, string> properties,
-          bool displayIfNoReferences) :
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string> properties,
+            bool displayIfNoReferences) :
             this(
                 tags,
                 displayParts,
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         protected DefinitionItem(
-        ImmutableArray<string> tags,
-        ImmutableArray<TaggedText> displayParts,
-        ImmutableArray<TaggedText> nameDisplayParts,
-        ImmutableArray<TaggedText> originationParts,
-        ImmutableArray<DocumentSpan> sourceSpans,
-        ImmutableDictionary<string, string> properties,
-        ImmutableArray<AdditionalProperty> displayableProperties,
-        bool displayIfNoReferences)
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<AdditionalProperty> displayableProperties,
+            bool displayIfNoReferences)
         {
             Tags = tags;
             DisplayParts = displayParts;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            DisplayableProperties = displayableProperties;
+            DisplayableProperties = !displayableProperties.IsDefault ? displayableProperties : ImmutableArray<AdditionalProperty>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
             if (Properties.ContainsKey(MetadataSymbolKey))

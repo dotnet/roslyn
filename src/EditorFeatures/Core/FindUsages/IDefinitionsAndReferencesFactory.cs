@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var containingType = definition.ContainingType;
             if (containingType != null)
             {
-                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.s_containingTypeInfo, containingType.Name));
+                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingType.Name));
             }
 
             var containingSymbol = definition.ContainingSymbol;
             if (containingSymbol != null && containingSymbol.GetMemberType() != null)
             {
-                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.s_containingMemberInfo, containingSymbol.Name));
+                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.ContainingMemberInfoPropertyName, containingSymbol.Name));
             }
 
             return displayableProperties;

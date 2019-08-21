@@ -448,7 +448,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractAdditionalPropertyDefinition;
                             if (customColumnDefinition == null)
                             {
-                                Debug.Fail($"{nameof(SourceReferenceItem.ReferenceUsageInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractAdditionalPropertyDefinition)}' with this name.");
+                                Debug.Fail($"{nameof(SourceReferenceItem.AdditionalPropertiesWithMultipleValues)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractAdditionalPropertyDefinition)}' with this name.");
                                 continue;
                             }
 
@@ -497,7 +497,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                UpdateUsageColumnVisibility(reference.ReferenceUsageInfo);
+                UpdateUsageColumnVisibility(reference.AdditionalPropertiesWithMultipleValues);
                 return OnReferenceFoundWorkerAsync(reference);
             }
 

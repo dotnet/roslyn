@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
-        public const string s_containingTypeInfo = "ContainingTypeInfo";
-        public const string s_containingMemberInfo = "ContainingMemberInfo";
+        public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
+        public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
         public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
@@ -718,10 +718,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected static AdditionalProperty GetContainingTypeInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts) 
-            => new AdditionalProperty(s_containingTypeInfo, syntaxFacts.GetNameOfContainingType(node));
+            => new AdditionalProperty(ContainingTypeInfoPropertyName, syntaxFacts.GetNameOfContainingType(node));
 
         protected static AdditionalProperty GetContainingMemberInfo(SyntaxNode node, ISyntaxFactsService syntaxFacts) 
-            => new AdditionalProperty(s_containingMemberInfo, syntaxFacts.GetNameOfContainingMember(node));
+            => new AdditionalProperty(ContainingMemberInfoPropertyName, syntaxFacts.GetNameOfContainingMember(node));
     }
 
     internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractReferenceFinder

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
     [Name(ColumnName)]
     internal class ContainingMemberColumnDefinition : AbstractAdditionalPropertyDefinition
     {
-        public const string ColumnName = AbstractReferenceFinder.s_containingMemberInfo;
+        public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
 
         [ImportingConstructor]
         public ContainingMemberColumnDefinition()

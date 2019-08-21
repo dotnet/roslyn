@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     bucket => TryCreateDocumentSpanEntryAsync(
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
-                        reference.ReferenceUsageInfo,
+                        reference.AdditionalPropertiesWithMultipleValues,
                         reference.AdditionalProperties),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);

@@ -171,13 +171,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
 
-                    var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-                    additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
-                    additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
-
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, additionalProperties.ToImmutableAndFree(), candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, node), candidateReason: reason)));
                 }
             }
 
@@ -215,16 +211,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-
-                    var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-                    additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
-                    additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, additionalProperties.ToImmutableAndFree(), candidateReason: match.reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, node), candidateReason: match.reason)));
                 }
             }
 
             return locations.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Returns an array of additional properties which consists of the Containing Type and Containing Member of the reference.
+        /// </summary>
+        /// <param name="syntaxFacts"></param>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+            additionalProperties.Add(GetContainingTypeInfo(node, syntaxFacts));
+            additionalProperties.Add(GetContainingMemberInfo(node, syntaxFacts));
+            return additionalProperties.ToImmutable();
         }
     }
 }

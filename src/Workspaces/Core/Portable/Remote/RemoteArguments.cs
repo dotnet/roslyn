@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
         public ImmutableArray<AdditionalProperty> AdditionalProperties{ get; set; }
-        public AdditionalProperty ContainingMemberInfo { get; set; }
+
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
