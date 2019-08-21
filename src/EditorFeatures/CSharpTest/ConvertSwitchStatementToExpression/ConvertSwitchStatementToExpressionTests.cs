@@ -806,9 +806,14 @@ class Program
         {
             await TestInCSharp8(
 @"using System;
+using System.IO;
 
 class Program
 {
+    static SeekOrigin origin;
+    static long offset;
+    static long position;
+    static long length;
     public static void Test()
     {
         long target;
@@ -844,9 +849,14 @@ class Program
     }
 }",
 @"using System;
+using System.IO;
 
 class Program
 {
+    static SeekOrigin origin;
+    static long offset;
+    static long position;
+    static long length;
     public static void Test()
     {
         long target;
