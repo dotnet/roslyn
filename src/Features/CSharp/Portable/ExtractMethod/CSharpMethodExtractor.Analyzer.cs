@@ -147,14 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         var references = selectionOperation.DescendantsAndSelf()
                             .Where(IsSymbolReferencedByOperation);
 
-                        var flowState = GetFlowStateFromLocations(references);
-                        return base.GetSymbolType(semanticModel, symbol).WithNullability(flowState);
+                        if (AreAllReferencesNotNull(references))
+                        {
+                            return base.GetSymbolType(semanticModel, symbol).WithNullability(NullableAnnotation.NotAnnotated);
+                        }
+
+                        return base.GetSymbolType(semanticModel, symbol);
 
                     default:
                         return base.GetSymbolType(semanticModel, symbol);
                 }
 
-                NullableFlowState GetFlowStateFromLocations(IEnumerable<IOperation> references)
+                bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
                 {
                     foreach (var reference in references)
                     {
@@ -162,22 +166,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         switch (typeInfo.Nullability.FlowState)
                         {
-                            case NullableFlowState.MaybeNull: return NullableFlowState.MaybeNull;
-                            case NullableFlowState.None: return NullableFlowState.None;
+                            case NullableFlowState.MaybeNull:
+                            case NullableFlowState.None:
+                                return false;
                         }
                     }
 
-                    return NullableFlowState.NotNull;
+                    return true;
                 }
 
                 bool IsSymbolReferencedByOperation(IOperation operation)
-                => operation switch
-                {
-                    ILocalReferenceOperation localReference => localReference.Local == symbol,
-                    IParameterReferenceOperation parameterReference => parameterReference.Parameter == symbol,
-                    IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
-                    _ => false
-                };
+                    => operation switch
+                    {
+                        ILocalReferenceOperation localReference => localReference.Local == symbol,
+                        IParameterReferenceOperation parameterReference => parameterReference.Parameter == symbol,
+                        IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
+                        _ => false
+                    };
             }
         }
     }

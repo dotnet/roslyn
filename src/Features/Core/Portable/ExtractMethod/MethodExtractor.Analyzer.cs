@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap.Values);
-                    var returnType = GetReturnTypeFromStatement(model);
+                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
@@ -231,22 +231,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
-                        ? GetReturnTypeFromReturnVariable(_semanticDocument, variableToUseAsReturnValue)
+                        ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
                         : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed);
                 }
             }
-
-            protected ITypeSymbol GetReturnTypeFromStatement(SemanticModel semanticModel)
-            {
-                var compilation = semanticModel.Compilation;
-                return SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
-            }
-
-            protected ITypeSymbol GetReturnTypeFromReturnVariable(SemanticDocument semanticDocument, VariableInfo variableToUseAsReturnValue)
-                => variableToUseAsReturnValue.GetVariableType(semanticDocument);
 
             private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
             {

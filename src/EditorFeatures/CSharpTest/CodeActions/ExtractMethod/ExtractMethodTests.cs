@@ -2661,5 +2661,53 @@ class C
         return x;
     }
 }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullable_LambdaWithReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        Func<string?> returnNull = () =>
+        {
+            return null;
+        };
+
+        x = returnNull() ?? string.Empty;|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        Func<string?> returnNull = () =>
+        {
+            return null;
+        };
+
+        x = returnNull() ?? string.Empty;
+        return x;
+    }
+}");
     }
 }
