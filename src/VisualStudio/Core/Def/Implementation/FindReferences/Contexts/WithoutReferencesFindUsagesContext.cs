@@ -61,10 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // to navigate to.
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
-                        var additionalProperties = new ArrayBuilder<CodeAnalysis.AdditionalProperty>();
-                        additionalProperties.Add(new CodeAnalysis.AdditionalProperty(AbstractReferenceFinder.ContainingTypeInfoPropertyName, "Test"));
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, referenceUsageInfo: null, additionalProperties: ImmutableArray<CodeAnalysis.AdditionalProperty>.Empty).ConfigureAwait(false);
+                            definitionBucket,
+                            sourceSpan,
+                            HighlightSpanKind.Definition,
+                            referenceUsageInfo: null,
+                            additionalProperties: ImmutableArray<CodeAnalysis.AdditionalProperty>.Empty)
+                                .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }
