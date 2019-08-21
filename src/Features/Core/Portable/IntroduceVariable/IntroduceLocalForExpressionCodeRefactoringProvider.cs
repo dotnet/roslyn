@@ -58,14 +58,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected async Task<TExpressionStatementSyntax> GetExpressionStatementAsync(CodeRefactoringContext context)
         {
             var expressionStatement = await context.TryGetRelevantNodeAsync<TExpressionStatementSyntax>().ConfigureAwait(false);
-            if (expressionStatement == null)
-            {
-                // If an expression-statement wasn't selected, see if they're selecting
-                // an expression belonging to an expression-statement instead.
-                var expression = await context.TryGetRelevantNodeAsync<TExpressionSyntax>().ConfigureAwait(false);
-                expressionStatement = expression?.Parent as TExpressionStatementSyntax;
-            }
-
             return expressionStatement != null && IsValid(expressionStatement, context.Span)
                 ? expressionStatement
                 : null;

@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTrueLiteralExpression(SyntaxNode node);
         bool IsThisExpression(SyntaxNode node);
         bool IsBaseExpression(SyntaxNode node);
+        bool IsExpressionStatement(SyntaxNode node);
+
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);

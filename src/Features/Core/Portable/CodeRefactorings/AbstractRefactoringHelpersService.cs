@@ -365,6 +365,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out _, out _, out var rightSide);
                 yield return rightSide;
             }
+
+            // `a();`
+            // -> a()
+            if (syntaxFacts.IsExpressionStatement(node))
+            {
+                yield return syntaxFacts.GetExpressionOfExpressionStatement(node);
+            }
+
+            // `a()`;
+            // -> `a();`
+            if (node.Parent != null && syntaxFacts.IsExpressionStatement(node.Parent))
+            {
+                yield return node.Parent;
+            }
         }
 
         /// <summary>
