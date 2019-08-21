@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Private Sub New()
             _nameComparer = NameSyntaxComparer.Create(TokenComparer.NormalInstance)
+            _tokenComparer = TokenComparer.NormalInstance
         End Sub
 
         Public Sub New(tokenComparer As IComparer(Of SyntaxToken))
