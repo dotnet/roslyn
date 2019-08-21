@@ -687,9 +687,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), waitContext.CancellationToken))
             {
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
+                var newSolution = _conflictResolutionTask.Result.NewSolution;
+
+                var excludeChangesTask = _workspace.ExcludeDisallowedDocumentTextChangesAsync(newSolution, waitContext.CancellationToken);
+                excludeChangesTask.Wait(waitContext.CancellationToken);
+                newSolution = excludeChangesTask.Result;
+
                 waitContext.AllowCancel = false;
 
-                var newSolution = _conflictResolutionTask.Result.NewSolution;
                 if (previewChanges)
                 {
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
@@ -700,7 +705,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
-                        _conflictResolutionTask.Result.NewSolution,
+                        newSolution,
                         _triggerDocument.Project.Solution);
 
                     if (newSolution == null)
