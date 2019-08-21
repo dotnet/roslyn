@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(type);
+            var constructedType = equalityComparerType.ConstructWithNullability(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
@@ -375,8 +375,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return field.Type;
-                case IPropertySymbol property: return property.Type;
+                case IFieldSymbol field: return field.GetTypeWithAnnotatedNullability();
+                case IPropertySymbol property: return property.GetTypeWithAnnotatedNullability();
                 default: return compilation.GetSpecialType(SpecialType.System_Object);
             }
         }
