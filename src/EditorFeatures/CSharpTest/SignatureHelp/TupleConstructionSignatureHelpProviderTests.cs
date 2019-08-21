@@ -38,6 +38,21 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task InvocationWithNullableReferenceTypes()
+        {
+            var markup = @"
+class C
+{
+    (string?, string) y = [|($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(string?, string)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
         [WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestMissingTupleElement()
