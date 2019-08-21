@@ -9344,14 +9344,7 @@ public class C
 ");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
-
-            // TODO: https://github.com/dotnet/roslyn/issues/37237
-            // There should be no sequence points emitted within the switch expressions.
-            // 
-            // TODO: https://github.com/dotnet/roslyn/issues/37232
-            // The values of the closure offsets are incorrect.
-
-            verifier.VerifyIL("C.M", sequencePoints: "C.M", expectedIL: @"
+            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
     {
       // Code size      472 (0x1d8)
       .maxstack  2
@@ -9373,23 +9366,29 @@ public class C
                     object V_15,
                     C.<>c__DisplayClass0_3 V_16, //CS$<>8__locals3
                     int V_17)
-     -IL_0000:  nop
-     ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: <hidden>
+      IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
       IL_0006:  stloc.0
-     ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+      // sequence point: <hidden>
+      IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
       IL_000c:  stloc.2
       IL_000d:  call       ""object C.F()""
       IL_0012:  stloc.s    V_4
       IL_0014:  ldc.i4.1
       IL_0015:  brtrue.s   IL_0018
-     -IL_0017:  nop
-     ~IL_0018:  ldloc.s    V_4
+      // sequence point: switch  ...         }
+      IL_0017:  nop
+      // sequence point: <hidden>
+      IL_0018:  ldloc.s    V_4
       IL_001a:  isinst     ""int""
       IL_001f:  brfalse.s  IL_003e
       IL_0021:  ldloc.s    V_4
       IL_0023:  unbox.any  ""int""
       IL_0028:  stloc.s    V_5
-     ~IL_002a:  ldloc.s    V_5
+      // sequence point: <hidden>
+      IL_002a:  ldloc.s    V_5
       IL_002c:  ldc.i4.1
       IL_002d:  beq.s      IL_0075
       IL_002f:  br.s       IL_0031
@@ -9405,22 +9404,27 @@ public class C
       IL_004e:  ldloc.s    V_6
       IL_0050:  callvirt   ""object C.Q.get""
       IL_0055:  stloc.s    V_7
-     ~IL_0057:  ldloc.s    V_7
+      // sequence point: <hidden>
+      IL_0057:  ldloc.s    V_7
       IL_0059:  isinst     ""int""
       IL_005e:  brfalse    IL_0194
       IL_0063:  ldloc.2
       IL_0064:  ldloc.s    V_7
       IL_0066:  unbox.any  ""int""
       IL_006b:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
-     ~IL_0070:  br         IL_017e
-     ~IL_0075:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
+      // sequence point: <hidden>
+      IL_0070:  br         IL_017e
+      // sequence point: <hidden>
+      IL_0075:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
       IL_007a:  stloc.s    V_8
       IL_007c:  call       ""object C.F()""
       IL_0081:  stloc.s    V_10
       IL_0083:  ldc.i4.1
       IL_0084:  brtrue.s   IL_0087
-     -IL_0086:  nop
-     ~IL_0087:  ldloc.s    V_10
+      // sequence point: switch ...             
+      IL_0086:  nop
+      // sequence point: <hidden>
+      IL_0087:  ldloc.s    V_10
       IL_0089:  isinst     ""C""
       IL_008e:  stloc.s    V_11
       IL_0090:  ldloc.s    V_11
@@ -9428,17 +9432,20 @@ public class C
       IL_0094:  ldloc.s    V_11
       IL_0096:  callvirt   ""object C.P.get""
       IL_009b:  stloc.s    V_12
-     ~IL_009d:  ldloc.s    V_12
+      // sequence point: <hidden>
+      IL_009d:  ldloc.s    V_12
       IL_009f:  isinst     ""int""
       IL_00a4:  brfalse.s  IL_0104
       IL_00a6:  ldloc.s    V_8
       IL_00a8:  ldloc.s    V_12
       IL_00aa:  unbox.any  ""int""
       IL_00af:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
-     ~IL_00b4:  ldloc.s    V_11
+      // sequence point: <hidden>
+      IL_00b4:  ldloc.s    V_11
       IL_00b6:  callvirt   ""object C.Q.get""
       IL_00bb:  stloc.s    V_13
-     ~IL_00bd:  ldloc.s    V_13
+      // sequence point: <hidden>
+      IL_00bd:  ldloc.s    V_13
       IL_00bf:  isinst     ""C""
       IL_00c4:  stloc.s    V_14
       IL_00c6:  ldloc.s    V_14
@@ -9446,38 +9453,47 @@ public class C
       IL_00ca:  ldloc.s    V_14
       IL_00cc:  callvirt   ""object C.P.get""
       IL_00d1:  stloc.s    V_15
-     ~IL_00d3:  ldloc.s    V_15
+      // sequence point: <hidden>
+      IL_00d3:  ldloc.s    V_15
       IL_00d5:  isinst     ""int""
       IL_00da:  brfalse.s  IL_0104
       IL_00dc:  ldloc.s    V_8
       IL_00de:  ldloc.s    V_15
       IL_00e0:  unbox.any  ""int""
       IL_00e5:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
-     ~IL_00ea:  br.s       IL_00ec
+      // sequence point: <hidden>
+      IL_00ea:  br.s       IL_00ec
       IL_00ec:  br.s       IL_00ee
-     -IL_00ee:  ldloc.s    V_8
+      // sequence point: G(() => p + q)
+      IL_00ee:  ldloc.s    V_8
       IL_00f0:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
       IL_00f6:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
       IL_00fb:  call       ""int C.G(System.Func<int>)""
       IL_0100:  stloc.s    V_9
       IL_0102:  br.s       IL_010a
-     -IL_0104:  ldc.i4.s   10
+      // sequence point: 10
+      IL_0104:  ldc.i4.s   10
       IL_0106:  stloc.s    V_9
       IL_0108:  br.s       IL_010a
       IL_010a:  ldc.i4.1
       IL_010b:  brtrue.s   IL_010e
-     -IL_010d:  nop
-     -IL_010e:  ldloc.s    V_9
+      // sequence point: switch  ...         }
+      IL_010d:  nop
+      // sequence point: F() switch ...             
+      IL_010e:  ldloc.s    V_9
       IL_0110:  stloc.3
       IL_0111:  br         IL_0198
-     ~IL_0116:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
+      // sequence point: <hidden>
+      IL_0116:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
       IL_011b:  stloc.s    V_16
       IL_011d:  call       ""object C.F()""
       IL_0122:  stloc.s    V_15
       IL_0124:  ldc.i4.1
       IL_0125:  brtrue.s   IL_0128
-     -IL_0127:  nop
-     ~IL_0128:  ldloc.s    V_15
+      // sequence point: switch ...             
+      IL_0127:  nop
+      // sequence point: <hidden>
+      IL_0128:  ldloc.s    V_15
       IL_012a:  isinst     ""C""
       IL_012f:  stloc.s    V_14
       IL_0131:  ldloc.s    V_14
@@ -9485,71 +9501,90 @@ public class C
       IL_0135:  ldloc.s    V_14
       IL_0137:  callvirt   ""object C.P.get""
       IL_013c:  stloc.s    V_13
-     ~IL_013e:  ldloc.s    V_13
+      // sequence point: <hidden>
+      IL_013e:  ldloc.s    V_13
       IL_0140:  isinst     ""int""
       IL_0145:  brfalse.s  IL_016f
       IL_0147:  ldloc.s    V_16
       IL_0149:  ldloc.s    V_13
       IL_014b:  unbox.any  ""int""
       IL_0150:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
-     ~IL_0155:  br.s       IL_0157
+      // sequence point: <hidden>
+      IL_0155:  br.s       IL_0157
       IL_0157:  br.s       IL_0159
-     -IL_0159:  ldloc.s    V_16
+      // sequence point: G(() => r)
+      IL_0159:  ldloc.s    V_16
       IL_015b:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
       IL_0161:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
       IL_0166:  call       ""int C.G(System.Func<int>)""
       IL_016b:  stloc.s    V_9
       IL_016d:  br.s       IL_0175
-     -IL_016f:  ldc.i4.s   20
+      // sequence point: 20
+      IL_016f:  ldc.i4.s   20
       IL_0171:  stloc.s    V_9
       IL_0173:  br.s       IL_0175
       IL_0175:  ldc.i4.1
       IL_0176:  brtrue.s   IL_0179
-     -IL_0178:  nop
-     -IL_0179:  ldloc.s    V_9
+      // sequence point: F() switch ...             
+      IL_0178:  nop
+      // sequence point: F() switch ...             
+      IL_0179:  ldloc.s    V_9
       IL_017b:  stloc.3
       IL_017c:  br.s       IL_0198
       IL_017e:  br.s       IL_0180
-     -IL_0180:  ldloc.2
+      // sequence point: G(() => s)
+      IL_0180:  ldloc.2
       IL_0181:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
       IL_0187:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
       IL_018c:  call       ""int C.G(System.Func<int>)""
       IL_0191:  stloc.3
       IL_0192:  br.s       IL_0198
-     -IL_0194:  ldc.i4.0
+      // sequence point: 0
+      IL_0194:  ldc.i4.0
       IL_0195:  stloc.3
       IL_0196:  br.s       IL_0198
       IL_0198:  ldc.i4.1
       IL_0199:  brtrue.s   IL_019c
-     -IL_019b:  nop
-     ~IL_019c:  ldloc.0
+      // sequence point: return F() s ...         };
+      IL_019b:  nop
+      // sequence point: <hidden>
+      IL_019c:  ldloc.0
       IL_019d:  ldloc.3
       IL_019e:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
       IL_01a3:  ldc.i4.1
       IL_01a4:  brtrue.s   IL_01a7
-     -IL_01a6:  nop
-     ~IL_01a7:  br.s       IL_01a9
-     -IL_01a9:  ldloc.0
+      // sequence point: switch  ...         }
+      IL_01a6:  nop
+      // sequence point: <hidden>
+      IL_01a7:  br.s       IL_01a9
+      // sequence point: when t > 0
+      IL_01a9:  ldloc.0
       IL_01aa:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
       IL_01af:  ldc.i4.0
       IL_01b0:  bgt.s      IL_01b4
-     ~IL_01b2:  br.s       IL_01c8
-     -IL_01b4:  ldloc.0
+      // sequence point: <hidden>
+      IL_01b2:  br.s       IL_01c8
+      // sequence point: G(() => t)
+      IL_01b4:  ldloc.0
       IL_01b5:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
       IL_01bb:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
       IL_01c0:  call       ""int C.G(System.Func<int>)""
       IL_01c5:  stloc.1
       IL_01c6:  br.s       IL_01cc
-     -IL_01c8:  ldc.i4.0
+      // sequence point: 0
+      IL_01c8:  ldc.i4.0
       IL_01c9:  stloc.1
       IL_01ca:  br.s       IL_01cc
       IL_01cc:  ldc.i4.1
       IL_01cd:  brtrue.s   IL_01d0
-     -IL_01cf:  nop
-     ~IL_01d0:  ldloc.1
+      // sequence point: return F() s ...         };
+      IL_01cf:  nop
+      // sequence point: <hidden>
+      IL_01d0:  ldloc.1
       IL_01d1:  stloc.s    V_17
       IL_01d3:  br.s       IL_01d5
-     -IL_01d5:  ldloc.s    V_17
+      // sequence point: }
+      IL_01d5:  ldloc.s    V_17
       IL_01d7:  ret
     }
 ");
@@ -9655,6 +9690,394 @@ public class C
               </scope>
             </scope>
           </scope>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
+        [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SwitchExpression_MethodBody()
+        {
+            string source = @"
+using System;
+public class C
+{
+    static int M() => F() switch
+    {
+        1 => 1,
+        C { P: int p, Q: C { P: int q } } => G(() => p + q),
+        _ => 0
+    };
+
+    object P { get; set; }
+    object Q { get; set; }
+    static object F() => null;
+    static int G(Func<int> f) => 0;
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(c);
+
+            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
+    {
+      // Code size      171 (0xab)
+      .maxstack  2
+      .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                    int V_1,
+                    object V_2,
+                    int V_3,
+                    C V_4,
+                    object V_5,
+                    object V_6,
+                    C V_7,
+                    object V_8)
+      // sequence point: <hidden>
+      IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  call       ""object C.F()""
+      IL_000b:  stloc.2
+      IL_000c:  ldc.i4.1
+      IL_000d:  brtrue.s   IL_0010
+      // sequence point: switch ...     }
+      IL_000f:  nop
+      // sequence point: <hidden>
+      IL_0010:  ldloc.2
+      IL_0011:  isinst     ""int""
+      IL_0016:  brfalse.s  IL_0025
+      IL_0018:  ldloc.2
+      IL_0019:  unbox.any  ""int""
+      IL_001e:  stloc.3
+      // sequence point: <hidden>
+      IL_001f:  ldloc.3
+      IL_0020:  ldc.i4.1
+      IL_0021:  beq.s      IL_0087
+      IL_0023:  br.s       IL_00a1
+      IL_0025:  ldloc.2
+      IL_0026:  isinst     ""C""
+      IL_002b:  stloc.s    V_4
+      IL_002d:  ldloc.s    V_4
+      IL_002f:  brfalse.s  IL_00a1
+      IL_0031:  ldloc.s    V_4
+      IL_0033:  callvirt   ""object C.P.get""
+      IL_0038:  stloc.s    V_5
+      // sequence point: <hidden>
+      IL_003a:  ldloc.s    V_5
+      IL_003c:  isinst     ""int""
+      IL_0041:  brfalse.s  IL_00a1
+      IL_0043:  ldloc.0
+      IL_0044:  ldloc.s    V_5
+      IL_0046:  unbox.any  ""int""
+      IL_004b:  stfld      ""int C.<>c__DisplayClass0_0.<p>5__2""
+      // sequence point: <hidden>
+      IL_0050:  ldloc.s    V_4
+      IL_0052:  callvirt   ""object C.Q.get""
+      IL_0057:  stloc.s    V_6
+      // sequence point: <hidden>
+      IL_0059:  ldloc.s    V_6
+      IL_005b:  isinst     ""C""
+      IL_0060:  stloc.s    V_7
+      IL_0062:  ldloc.s    V_7
+      IL_0064:  brfalse.s  IL_00a1
+      IL_0066:  ldloc.s    V_7
+      IL_0068:  callvirt   ""object C.P.get""
+      IL_006d:  stloc.s    V_8
+      // sequence point: <hidden>
+      IL_006f:  ldloc.s    V_8
+      IL_0071:  isinst     ""int""
+      IL_0076:  brfalse.s  IL_00a1
+      IL_0078:  ldloc.0
+      IL_0079:  ldloc.s    V_8
+      IL_007b:  unbox.any  ""int""
+      IL_0080:  stfld      ""int C.<>c__DisplayClass0_0.<q>5__3""
+      // sequence point: <hidden>
+      IL_0085:  br.s       IL_008b
+      // sequence point: 1
+      IL_0087:  ldc.i4.1
+      IL_0088:  stloc.1
+      IL_0089:  br.s       IL_00a5
+      IL_008b:  br.s       IL_008d
+      // sequence point: G(() => p + q)
+      IL_008d:  ldloc.0
+      IL_008e:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
+      IL_0094:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0099:  call       ""int C.G(System.Func<int>)""
+      IL_009e:  stloc.1
+      IL_009f:  br.s       IL_00a5
+      // sequence point: 0
+      IL_00a1:  ldc.i4.0
+      IL_00a2:  stloc.1
+      IL_00a3:  br.s       IL_00a5
+      IL_00a5:  ldc.i4.1
+      IL_00a6:  brtrue.s   IL_00a9
+      // sequence point: F() switch ...     }
+      IL_00a8:  nop
+      // sequence point: <hidden>
+      IL_00a9:  ldloc.1
+      IL_00aa:  ret
+    }
+");
+            verifier.VerifyPdb("C.M", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""7"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""7"" />
+              <lambda offset=""92"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0xf"" startLine=""5"" startColumn=""27"" endLine=""10"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x10"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+            <entry offset=""0x3a"" hidden=""true"" document=""1"" />
+            <entry offset=""0x50"" hidden=""true"" document=""1"" />
+            <entry offset=""0x59"" hidden=""true"" document=""1"" />
+            <entry offset=""0x6f"" hidden=""true"" document=""1"" />
+            <entry offset=""0x85"" hidden=""true"" document=""1"" />
+            <entry offset=""0x87"" startLine=""7"" startColumn=""14"" endLine=""7"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x8d"" startLine=""8"" startColumn=""46"" endLine=""8"" endColumn=""60"" document=""1"" />
+            <entry offset=""0xa1"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""15"" document=""1"" />
+            <entry offset=""0xa8"" startLine=""5"" startColumn=""23"" endLine=""10"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xa9"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0xab"">
+            <namespace name=""System"" />
+            <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xab"" attributes=""0"" />
+          </scope>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
+        [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SwitchExpression_MethodBody_02()
+        {
+            string source = @"
+using System;
+public class C
+{
+    static Action M1(int x) => () => { _ = x; };
+    static Action M2(int x) => x switch { _ => () => { _ = x; } };
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(c);
+
+            verifier.VerifyIL("C.M1", sequencePoints: "C.M1", source: source, expectedIL: @"
+    {
+      // Code size       26 (0x1a)
+      .maxstack  2
+      .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+      // sequence point: <hidden>
+      IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+      IL_0007:  ldarg.0
+      IL_0008:  stfld      ""int C.<>c__DisplayClass0_0.x""
+      // sequence point: () => { _ = x; }
+      IL_000d:  ldloc.0
+      IL_000e:  ldftn      ""void C.<>c__DisplayClass0_0.<M1>b__0()""
+      IL_0014:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+      IL_0019:  ret
+    }
+");
+            verifier.VerifyIL("C.M2", sequencePoints: "C.M2", source: source, expectedIL: @"
+    {
+      // Code size       40 (0x28)
+      .maxstack  2
+      .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+                    System.Action V_1)
+      // sequence point: <hidden>
+      IL_0000:  newobj     ""C.<>c__DisplayClass1_0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+      IL_0007:  ldarg.0
+      IL_0008:  stfld      ""int C.<>c__DisplayClass1_0.x""
+      // sequence point: x switch { _ => () => { _ = x; } }
+      IL_000d:  ldc.i4.1
+      IL_000e:  brtrue.s   IL_0011
+      // sequence point: switch { _ => () => { _ = x; } }
+      IL_0010:  nop
+      // sequence point: <hidden>
+      IL_0011:  br.s       IL_0013
+      // sequence point: () => { _ = x; }
+      IL_0013:  ldloc.0
+      IL_0014:  ldftn      ""void C.<>c__DisplayClass1_0.<M2>b__0()""
+      IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+      IL_001f:  stloc.1
+      IL_0020:  br.s       IL_0022
+      IL_0022:  ldc.i4.1
+      IL_0023:  brtrue.s   IL_0026
+      // sequence point: x switch { _ => () => { _ = x; } }
+      IL_0025:  nop
+      // sequence point: <hidden>
+      IL_0026:  ldloc.1
+      IL_0027:  ret
+    }
+");
+            verifier.VerifyPdb("C.M1", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M1"" parameterNames=""x"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""0"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""0"" />
+              <lambda offset=""9"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd"" startLine=""5"" startColumn=""32"" endLine=""5"" endColumn=""48"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x1a"">
+            <namespace name=""System"" />
+            <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
+          </scope>
+        </method>
+      </methods>
+    </symbols>
+");
+            verifier.VerifyPdb("C.M2", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M2"" parameterNames=""x"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""M1"" parameterNames=""x"" />
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""0"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>1</methodOrdinal>
+              <closure offset=""0"" />
+              <lambda offset=""25"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd"" startLine=""6"" startColumn=""32"" endLine=""6"" endColumn=""66"" document=""1"" />
+            <entry offset=""0x10"" startLine=""6"" startColumn=""34"" endLine=""6"" endColumn=""66"" document=""1"" />
+            <entry offset=""0x11"" hidden=""true"" document=""1"" />
+            <entry offset=""0x13"" startLine=""6"" startColumn=""48"" endLine=""6"" endColumn=""64"" document=""1"" />
+            <entry offset=""0x25"" startLine=""6"" startColumn=""32"" endLine=""6"" endColumn=""66"" document=""1"" />
+            <entry offset=""0x26"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x28"">
+            <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
+          </scope>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SyntaxOffset_OutVarInInitializers_SwitchExpression()
+        {
+            var source =
+@"class C
+{ 
+    static int G(out int x) => throw null;
+    static int F(System.Func<int> x) => throw null;
+    C() { }
+
+    int y1 = G(out var z) switch { _ => F(() => z) }; // line 7
+}
+";
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+
+            c.VerifyPdb("C..ctor", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name="".ctor"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""-26"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>2</methodOrdinal>
+              <closure offset=""-26"" />
+              <lambda offset=""-4"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""54"" document=""1"" />
+            <entry offset=""0x15"" startLine=""7"" startColumn=""27"" endLine=""7"" endColumn=""53"" document=""1"" />
+            <entry offset=""0x16"" hidden=""true"" document=""1"" />
+            <entry offset=""0x18"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""51"" document=""1"" />
+            <entry offset=""0x2f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""54"" document=""1"" />
+            <entry offset=""0x30"" hidden=""true"" document=""1"" />
+            <entry offset=""0x37"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" document=""1"" />
+            <entry offset=""0x3e"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""10"" document=""1"" />
+            <entry offset=""0x3f"" startLine=""5"" startColumn=""11"" endLine=""5"" endColumn=""12"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x40"">
+            <scope startOffset=""0x0"" endOffset=""0x37"">
+              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x37"" attributes=""0"" />
+            </scope>
+          </scope>
+        </method>
+      </methods>
+    </symbols>
+");
+
+            c.VerifyPdb("C+<>c__DisplayClass2_0.<.ctor>b__0", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.ctor&gt;b__0"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""7"" startColumn=""49"" endLine=""7"" endColumn=""50"" document=""1"" />
+          </sequencePoints>
         </method>
       </methods>
     </symbols>
