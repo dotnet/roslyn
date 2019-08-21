@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var propertyStringBuilder = new StringBuilder();
             propertyStringBuilder.Append(" (");
             propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
-            if (operation is IForEachLoopOperation foreachLoop && foreachLoop.IsAsynchronous)
+            if (operation is IForEachLoopOperation { IsAsynchronous: true })
             {
                 propertyStringBuilder.Append($", IsAsynchronous");
             }
