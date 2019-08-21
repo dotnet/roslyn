@@ -1115,7 +1115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            if (prologue.Count > 0)
+            if (prologue.Count > 0
+            // If the block is a closure for a switch expression, then no hidden sequence point.
+            // That is because even though it introduces a scope, the switch expression does not have its own sequence point.
+            // However, see `SyntaxOffset_OutVarInInitializers_SwitchExpression` for a failure of this approach.
+                && !(node.Syntax is SwitchExpressionSyntax))
             {
                 newStatements.Add(new BoundSequencePoint(null, null) { WasCompilerGenerated = true });
             }
