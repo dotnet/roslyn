@@ -33,14 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' add basesBeingResolved that was passed in to the ones stored in this binder.
             Dim currentBasesBeingResolved = Me.BasesBeingResolved()
-            If Not basesBeingResolved.IsEmpty Then
-                For Each inheritsBeingResolved In If(basesBeingResolved.InheritsBeingResolvedOpt, ConsList(Of TypeSymbol).Empty)
-                    currentBasesBeingResolved = currentBasesBeingResolved.PrependInheritsBeingResolved(inheritsBeingResolved)
-                Next
-                For Each implementsBeingResolved In If(basesBeingResolved.ImplementsBeingResolvedOpt, ConsList(Of TypeSymbol).Empty)
-                    currentBasesBeingResolved = currentBasesBeingResolved.PrependImplementsBeingResolved(implementsBeingResolved)
-                Next
-            End If
+
+            For Each inheritsBeingResolved In If(basesBeingResolved.InheritsBeingResolvedOpt, ConsList(Of TypeSymbol).Empty)
+                currentBasesBeingResolved = currentBasesBeingResolved.PrependInheritsBeingResolved(inheritsBeingResolved)
+            Next
+            For Each implementsBeingResolved In If(basesBeingResolved.ImplementsBeingResolvedOpt, ConsList(Of TypeSymbol).Empty)
+                currentBasesBeingResolved = currentBasesBeingResolved.PrependImplementsBeingResolved(implementsBeingResolved)
+            Next
 
             Return m_containingBinder.CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, currentBasesBeingResolved)
         End Function
@@ -68,13 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function PrependImplementsBeingResolved(symbol As TypeSymbol) As BasesBeingResolved
             Return New BasesBeingResolved(InheritsBeingResolvedOpt, If(ImplementsBeingResolvedOpt, ConsList(Of TypeSymbol).Empty).Prepend(symbol))
         End Function
-
-        Public ReadOnly Property IsEmpty As Boolean
-            Get
-                Return (InheritsBeingResolvedOpt Is Nothing OrElse InheritsBeingResolvedOpt Is ConsList(Of Symbol).Empty) AndAlso
-                       (ImplementsBeingResolvedOpt Is Nothing OrElse ImplementsBeingResolvedOpt Is ConsList(Of Symbol).Empty)
-            End Get
-        End Property
     End Structure
 
 End Namespace
