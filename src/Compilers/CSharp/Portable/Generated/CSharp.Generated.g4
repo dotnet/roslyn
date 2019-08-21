@@ -242,31 +242,7 @@ accessor_list
   ;
 
 accessor_declaration
-  : add_accessor_declaration
-  | get_accessor_declaration
-  | remove_accessor_declaration
-  | set_accessor_declaration
-  | unknown_accessor_declaration
-  ;
-
-add_accessor_declaration
-  : attribute_list* modifier* 'add' (block | (arrow_expression_clause ';'))
-  ;
-
-get_accessor_declaration
-  : attribute_list* modifier* 'get' (block | (arrow_expression_clause ';'))
-  ;
-
-remove_accessor_declaration
-  : attribute_list* modifier* 'remove' (block | (arrow_expression_clause ';'))
-  ;
-
-set_accessor_declaration
-  : attribute_list* modifier* 'set' (block | (arrow_expression_clause ';'))
-  ;
-
-unknown_accessor_declaration
-  : attribute_list* modifier* identifier_token (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
   ;
 
 indexer_declaration
@@ -720,66 +696,7 @@ initializer_expression
   ;
 
 assignment_expression
-  : add_assignment_expression
-  | and_assignment_expression
-  | coalesce_assignment_expression
-  | divide_assignment_expression
-  | exclusive_or_assignment_expression
-  | left_shift_assignment_expression
-  | modulo_assignment_expression
-  | multiply_assignment_expression
-  | or_assignment_expression
-  | right_shift_assignment_expression
-  | simple_assignment_expression
-  | subtract_assignment_expression
-  ;
-
-add_assignment_expression
-  : expression '+=' expression
-  ;
-
-and_assignment_expression
-  : expression '&=' expression
-  ;
-
-coalesce_assignment_expression
-  : expression '??=' expression
-  ;
-
-divide_assignment_expression
-  : expression '/=' expression
-  ;
-
-exclusive_or_assignment_expression
-  : expression '^=' expression
-  ;
-
-left_shift_assignment_expression
-  : expression '<<=' expression
-  ;
-
-modulo_assignment_expression
-  : expression '%=' expression
-  ;
-
-multiply_assignment_expression
-  : expression '*=' expression
-  ;
-
-or_assignment_expression
-  : expression '|=' expression
-  ;
-
-right_shift_assignment_expression
-  : expression '>>=' expression
-  ;
-
-simple_assignment_expression
-  : expression '=' expression
-  ;
-
-subtract_assignment_expression
-  : expression '-=' expression
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '??=') expression
   ;
 
 await_expression
@@ -787,111 +704,7 @@ await_expression
   ;
 
 binary_expression
-  : add_expression
-  | as_expression
-  | bitwise_and_expression
-  | bitwise_or_expression
-  | coalesce_expression
-  | divide_expression
-  | equals_expression
-  | exclusive_or_expression
-  | greater_than_expression
-  | greater_than_or_equal_expression
-  | is_expression
-  | left_shift_expression
-  | less_than_expression
-  | less_than_or_equal_expression
-  | logical_and_expression
-  | logical_or_expression
-  | modulo_expression
-  | multiply_expression
-  | not_equals_expression
-  | right_shift_expression
-  | subtract_expression
-  ;
-
-add_expression
-  : expression '+' expression
-  ;
-
-as_expression
-  : expression 'as' expression
-  ;
-
-bitwise_and_expression
-  : expression '&' expression
-  ;
-
-bitwise_or_expression
-  : expression '|' expression
-  ;
-
-coalesce_expression
-  : expression '??' expression
-  ;
-
-divide_expression
-  : expression '/' expression
-  ;
-
-equals_expression
-  : expression '==' expression
-  ;
-
-exclusive_or_expression
-  : expression '^' expression
-  ;
-
-greater_than_expression
-  : expression '>' expression
-  ;
-
-greater_than_or_equal_expression
-  : expression '>=' expression
-  ;
-
-is_expression
-  : expression 'is' expression
-  ;
-
-left_shift_expression
-  : expression '<<' expression
-  ;
-
-less_than_expression
-  : expression '<' expression
-  ;
-
-less_than_or_equal_expression
-  : expression '<=' expression
-  ;
-
-logical_and_expression
-  : expression '&&' expression
-  ;
-
-logical_or_expression
-  : expression '||' expression
-  ;
-
-modulo_expression
-  : expression '%' expression
-  ;
-
-multiply_expression
-  : expression '*' expression
-  ;
-
-not_equals_expression
-  : expression '!=' expression
-  ;
-
-right_shift_expression
-  : expression '>>' expression
-  ;
-
-subtract_expression
-  : expression '-' expression
+  : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
   ;
 
 cast_expression
@@ -1002,16 +815,7 @@ make_ref_expression
   ;
 
 member_access_expression
-  : pointer_member_access_expression
-  | simple_member_access_expression
-  ;
-
-pointer_member_access_expression
-  : expression '->' simple_name
-  ;
-
-simple_member_access_expression
-  : expression '.' simple_name
+  : expression ('.' | '->') simple_name
   ;
 
 member_binding_expression
@@ -1031,21 +835,7 @@ parenthesized_expression
   ;
 
 postfix_unary_expression
-  : post_decrement_expression
-  | post_increment_expression
-  | suppress_nullable_warning_expression
-  ;
-
-post_decrement_expression
-  : expression '--'
-  ;
-
-post_increment_expression
-  : expression '++'
-  ;
-
-suppress_nullable_warning_expression
-  : expression '!'
+  : expression ('++' | '--' | '!')
   ;
 
 prefix_unary_expression
@@ -1097,16 +887,7 @@ order_by_clause
   ;
 
 ordering
-  : ascending_ordering
-  | descending_ordering
-  ;
-
-ascending_ordering
-  : expression 'ascending'?
-  ;
-
-descending_ordering
-  : expression 'descending'?
+  : expression ('ascending' | 'descending')?
   ;
 
 where_clause

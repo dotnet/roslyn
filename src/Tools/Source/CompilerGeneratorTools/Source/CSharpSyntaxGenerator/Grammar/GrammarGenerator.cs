@@ -26,17 +26,23 @@ namespace CSharpSyntaxGenerator.Grammar
                 if (type.Base != null && rules.TryGetValue(type.Base, out var productions))
                     productions.Add(RuleReference(type.Name));
 
-                if (type is Node node && type.Children.Count > 0)
+                if (type is Node && type.Children.Count > 0)
                 {
-                    // special rules to produce better grammar output.
-                    if (trySplitTopLevelUnion(node) ||
-                        trySplitCompoundNodes(node))
+                    // Convert rules like `a: (x | y) ...` into:
+                    // a: x ...
+                    //  | y ...;
+                    if (type.Children[0] is Field field && field.Kinds.Count > 0)
                     {
-                        continue;
+                        foreach (var kind in field.Kinds)
+                        {
+                            field.Kinds = new List<Kind> { kind };
+                            rules[type.Name].Add(HandleChildren(type.Children));
+                        }
                     }
-
-                    // normal rule.
-                    rules[node.Name].Add(HandleChildren(node.Children));
+                    else
+                    {
+                        rules[type.Name].Add(HandleChildren(type.Children));
+                    }
                 }
             }
 
@@ -76,57 +82,6 @@ namespace CSharpSyntaxGenerator.Grammar
                             if (!majorRules.Concat(lexicalRules).Contains(referencedRule))
                                 processRule(referencedRule, ref result);
                 }
-            }
-
-            // Convert rules like `a: (x | y) ...` into:
-            //    a: x ...
-            //     | y ...;
-            bool trySplitTopLevelUnion(Node node)
-            {
-                if (node.Children[0] is Field field && field.Kinds.Count > 0)
-                {
-                    foreach (var kind in field.Kinds)
-                    {
-                        field.Kinds = new List<Kind> { kind };
-                        rules[node.Name].Add(HandleChildren(node.Children));
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            // For nodes that have many subkinds (i.e. BinaryExpression) use the correspondance
-            // between node-kinds and child-kinds to generate N different productions corresponding
-            // to each kind.
-            bool trySplitCompoundNodes(Node node)
-            {
-                if (node.Kinds.Count >= 2)
-                {
-                    var childKinds = node.Children.OfType<Field>().Where(f => f.Kinds.Count == node.Kinds.Count)
-                                                    .ToDictionary(c => c, c => c.Kinds);
-                    if (childKinds.Count > 0)
-                    {
-                        for (int i = 0; i < node.Kinds.Count; i++)
-                        {
-                            foreach (var child in node.Children)
-                            {
-                                if (child is Field f && childKinds.ContainsKey(f))
-                                {
-                                    f.Kinds = new List<Kind> { childKinds[f][i] };
-                                }
-                            }
-
-                            rules.Add(node.Kinds[i].Name, new List<Production> { HandleChildren(node.Children) });
-                            rules[node.Name].Add(RuleReference(node.Kinds[i].Name));
-                        }
-
-                        return true;
-                    }
-                }
-
-                return false;
             }
         }
 
