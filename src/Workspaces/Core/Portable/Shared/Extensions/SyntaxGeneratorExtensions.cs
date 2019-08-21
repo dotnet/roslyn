@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
-                parameters: overriddenProperty.Parameters.WithAttributesToBeCopied(containingType),
+                parameters: overriddenProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(containingType).Parameters,
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -525,10 +525,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    method: overriddenMethod,
+                    method: overriddenMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(newContainingType),
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    parameters: overriddenMethod.Parameters.WithAttributesToBeCopied(newContainingType),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
     public abstract partial class BooleanCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest
     {
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider(performExperimentCheck: false));
+                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
         public class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests

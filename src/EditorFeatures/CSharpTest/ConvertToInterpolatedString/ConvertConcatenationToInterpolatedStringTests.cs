@@ -55,6 +55,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnConcatenatedStrings3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = ""string"" + '.' + [||]""string"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnLeft()
         {
             await TestInRegularAndScriptAsync(
@@ -266,6 +279,19 @@ public class C
     void M()
     {
         var v = 1 + @""string"" + 2 + [||]""string"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingWithMixedStringTypes3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 1 + @""string"" + 2 + [||]'\n';
     }
 }");
         }
@@ -727,6 +753,77 @@ public class C
     void M()
     {
         var v = $""{1}{(""string"")}"";
+    }
+}");
+        }
+
+        [WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithChar()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var hello = ""hello"";
+        var world = ""world"";
+        var str = hello [||]+ ' ' + world;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var hello = ""hello"";
+        var world = ""world"";
+        var str = $""{hello} {world}"";
+    }
+}");
+        }
+
+        [WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithCharAfterStringLiteral()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var world = ""world"";
+        var str = ""hello"" [||]+ ' ' + world;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var world = ""world"";
+        var str = $""hello {world}"";
+    }
+}");
+        }
+
+        [WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithCharBeforeStringLiteral()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var hello = ""hello"";
+        var str = hello [||]+ ' ' + ""world"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var hello = ""hello"";
+        var str = $""{hello} world"";
     }
 }");
         }

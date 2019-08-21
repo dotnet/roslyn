@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -898,6 +899,59 @@ class C
     }
 
     private void C_MyEvent()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            testState.AssertCodeIs(expectedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task EventHookupRemovesInaccessibleAttributes()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""A"" CommonReferences=""true"">
+        <Document>
+using System;
+
+public static class C
+{
+    public static event DelegateType E;
+
+    public delegate void DelegateType([ShouldBeRemovedInternalAttribute] object o);
+}
+
+internal class ShouldBeRemovedInternalAttribute : Attribute { }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <ProjectReference>A</ProjectReference>
+        <Document>
+class D
+{
+    void M()
+    {
+        C.E +$$
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            using var testState = new EventHookupTestState(XElement.Parse(workspaceXml), options: null);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+
+            var expectedCode = @"
+class D
+{
+    void M()
+    {
+        C.E += C_E;
+    }
+
+    private void C_E(object o)
     {
         throw new System.NotImplementedException();
     }

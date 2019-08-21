@@ -333,12 +333,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             return false;
 
                         default:
-                            if (operationBlock.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                            foreach (var operation in operationBlock.Descendants())
                             {
-                                // Workaround for https://github.com/dotnet/roslyn/issues/32100
-                                // Bail out in presence of OperationKind.None - not implemented IOperation.
-                                hasOperationNoneDescendant = true;
-                                return false;
+                                switch (operation)
+                                {
+                                    // Workaround for https://github.com/dotnet/roslyn/issues/31007
+                                    // We cannot perform flow analysis correctly for a ref assignment operation or ref conditional operation until this compiler feature is implemented.
+                                    case IConditionalOperation conditional when conditional.IsRef:
+                                    case ISimpleAssignmentOperation assignment when assignment.IsRef:
+                                        return false;
+
+                                    default:
+                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                        // Bail out in presence of OperationKind.None - not implemented IOperation.
+                                        if (operation.Kind == OperationKind.None)
+                                        {
+                                            hasOperationNoneDescendant = true;
+                                            return false;
+                                        }
+
+                                        break;
+                                }
                             }
 
                             break;

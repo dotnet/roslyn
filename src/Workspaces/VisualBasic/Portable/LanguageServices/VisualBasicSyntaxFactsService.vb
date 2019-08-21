@@ -1362,6 +1362,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.StringLiteralExpression
         End Function
 
+        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return node.Kind() = SyntaxKind.CharacterLiteralExpression
+        End Function
+
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
             ' VB does not have verbatim strings
             Return False

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return IsValidSetMethod(setMethod) &&
                 setMethod.Parameters.Length == 1 &&
                 setMethod.Parameters[0].RefKind == RefKind.None &&
-                Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                Equals(setMethod.Parameters[0].GetTypeWithAnnotatedNullability(), getMethod.GetReturnTypeWithAnnotatedNullability()) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 

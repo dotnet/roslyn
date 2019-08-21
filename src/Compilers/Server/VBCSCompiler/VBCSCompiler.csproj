@@ -8,7 +8,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
