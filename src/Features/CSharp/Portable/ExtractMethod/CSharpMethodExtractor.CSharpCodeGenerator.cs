@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -677,6 +678,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var returnOperation in returnOperations)
                 {
+                    // If thereturn statement is located in a nested local function or lambda it
+                    // shouldn't contribute to the nullability of the extracted method's return type
                     if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
                     {
                         continue;

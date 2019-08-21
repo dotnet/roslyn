@@ -159,27 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
-                {
-                    foreach (var reference in references)
-                    {
-                        var typeInfo = semanticModel.GetTypeInfo(reference.Syntax);
-
-                        switch (typeInfo.Nullability.FlowState)
-                        {
-                            case NullableFlowState.MaybeNull:
-                            case NullableFlowState.None:
-                                return false;
-                        }
-                    }
-
-                    return true;
-                }
+                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
 
                 bool IsSymbolReferencedByOperation(IOperation operation)
                     => operation switch
                     {
-                        ILocalReferenceOperation localReference => localReference.Local == symbol,
-                        IParameterReferenceOperation parameterReference => parameterReference.Parameter == symbol,
+                        ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
+                        IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
                         IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
                         _ => false
                     };
