@@ -53,11 +53,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
         }
 
-        public static ImmutableArray<IParameterSymbol> WithAttributesToBeCopied(
-            this ImmutableArray<IParameterSymbol> parameters, INamedTypeSymbol containingType)
-            => parameters.SelectAsArray(
-                p => p.WithAttributes(p.GetAttributes().WhereAsArray(a => a.ShouldKeepAttribute(containingType))));
-
         public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, IList<string> parameterNames)
         {
             var result = ArrayBuilder<IParameterSymbol>.GetInstance();
@@ -68,8 +63,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return result.ToImmutableAndFree();
         }
-
-        private static bool ShouldKeepAttribute(this AttributeData attributeData, INamedTypeSymbol containingType)
-            => attributeData.AttributeClass.IsAccessibleWithin(containingType);
     }
 }

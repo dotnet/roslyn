@@ -398,7 +398,7 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>
                             DelaySign="True"
                         />
                     </Project>
