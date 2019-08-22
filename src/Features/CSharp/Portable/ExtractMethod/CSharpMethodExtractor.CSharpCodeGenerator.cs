@@ -676,11 +676,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
 
+                var syntaxFacts = originalDocument.Document.GetLanguageService<ISyntaxFactsService>();
+
                 foreach (var returnOperation in returnOperations)
                 {
-                    // If thereturn statement is located in a nested local function or lambda it
+                    // If the return statement is located in a nested local function or lambda it
                     // shouldn't contribute to the nullability of the extracted method's return type
-                    if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
+                    if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax, syntaxFacts))
                     {
                         continue;
                     }
@@ -703,15 +705,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
                 return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
-                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
+                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax, ISyntaxFactsService syntaxFacts)
                 {
-                    var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(n => n switch
-                    {
-                        BaseMethodDeclarationSyntax _ => true,
-                        AnonymousFunctionExpressionSyntax _ => true,
-                        LocalFunctionStatementSyntax _ => true,
-                        _ => false
-                    });
+                    var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(
+                        n => syntaxFacts.IsMethodLevelMember(n) || syntaxFacts.IsAnonymousFunction(n));
 
                     return enclosingMethod == methodSyntax;
                 }

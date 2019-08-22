@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
-            public async Task<AnalyzerResult> AnalyzeAsync()
+            public async Task<AnalyzerResult> AnalyzeAsync(CancellationToken cancellationToken = default)
             {
                 // do data flow analysis
                 var model = _semanticDocument.SemanticModel;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // gather initial local or parameter variable info
                 GenerateVariableInfoMap(
                     bestEffort: false, model, dataFlowAnalysisData, symbolMap,
-                    out var variableInfoMap, out var failedVariables);
+                    out var variableInfoMap, out var failedVariables, cancellationToken);
                 if (failedVariables.Count > 0)
                 {
                     // If we weren't able to figure something out, go back and regenerate the map
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // blocked just because we didn't understand something.
                     GenerateVariableInfoMap(
                         bestEffort: true, model, dataFlowAnalysisData, symbolMap,
-                        out variableInfoMap, out var unused);
+                        out variableInfoMap, out var unused, cancellationToken);
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
@@ -384,7 +384,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 DataFlowAnalysis dataFlowAnalysisData,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 out IDictionary<ISymbol, VariableInfo> variableInfoMap,
-                out List<ISymbol> failedVariables)
+                out List<ISymbol> failedVariables,
+                CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(model);
                 Contract.ThrowIfNull(dataFlowAnalysisData);
@@ -455,7 +456,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var type = GetSymbolType(model, symbol);
+                    var type = GetSymbolType(model, symbol, cancellationToken);
                     if (type == null)
                     {
                         continue;
@@ -606,7 +607,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
+            protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol, CancellationToken cancellationToken)
             => symbol switch
             {
                 IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),

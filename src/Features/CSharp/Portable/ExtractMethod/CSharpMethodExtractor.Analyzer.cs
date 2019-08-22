@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return scope == null;
             }
 
-            protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+            protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
             {
-                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope(), cancellationToken);
 
                 switch (symbol)
                 {
@@ -149,17 +149,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         if (AreAllReferencesNotNull(references))
                         {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullability(NullableAnnotation.NotAnnotated);
+                            return base.GetSymbolType(semanticModel, symbol, cancellationToken).WithNullability(NullableAnnotation.NotAnnotated);
                         }
 
-                        return base.GetSymbolType(semanticModel, symbol);
+                        return base.GetSymbolType(semanticModel, symbol, cancellationToken);
 
                     default:
-                        return base.GetSymbolType(semanticModel, symbol);
+                        return base.GetSymbolType(semanticModel, symbol, cancellationToken);
                 }
 
                 bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
-                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
+                => references.All(r => semanticModel.GetTypeInfo(r.Syntax, cancellationToken).Nullability.FlowState == NullableFlowState.NotNull);
 
                 bool IsSymbolReferencedByOperation(IOperation operation)
                     => operation switch

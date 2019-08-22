@@ -2098,9 +2098,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestAnnotatedNullableReturn()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestAnnotatedNullableReturn()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2112,7 +2113,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2130,12 +2131,13 @@ class C
         return x;
     }
 }");
-
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestAnnotatedNullableParameters1()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestAnnotatedNullableParameters1()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2148,7 +2150,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2166,11 +2168,13 @@ class C
         return a?.Contains(b).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestAnnotatedNullableParameters2()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestAnnotatedNullableParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2184,7 +2188,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2203,11 +2207,13 @@ class C
         return (a + b + c).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestAnnotatedNullableParameters3()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestAnnotatedNullableParameters3()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2219,7 +2225,7 @@ class C
         return [|(a + b + c).ToString()|];
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2236,11 +2242,13 @@ class C
         return (a + b + c).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestAnnotatedNullableParameters4()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestAnnotatedNullableParameters4()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2251,7 +2259,7 @@ class C
         return [|a?.Contains(b).ToString()|];
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2267,11 +2275,13 @@ class C
         return a?.Contains(b).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters1()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters1()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2282,7 +2292,7 @@ class C
         return [|(a + b + a).ToString()|];
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2298,11 +2308,13 @@ class C
         return (a + b + a).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters2()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2313,7 +2325,7 @@ class C
         return [|(a + b + a).ToString()|];
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2329,11 +2341,13 @@ class C
         return (a + b + a).ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters3()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters3()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2344,7 +2358,7 @@ class C
         return [|(a + b + a)?.ToString()|] ?? string.Empty;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2360,11 +2374,13 @@ class C
         return (a + b + a)?.ToString();
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters_MultipleStates()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters_MultipleStates()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2382,7 +2398,7 @@ class C
         return c ?? string.Empty;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2406,11 +2422,13 @@ class C
         return c;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2428,7 +2446,7 @@ class C
         return c ?? string.Empty;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2452,11 +2470,13 @@ class C
         return c;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2473,7 +2493,7 @@ class C
         return c ?? string.Empty;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2496,11 +2516,13 @@ class C
         return c;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowStateNullableParameters_RefNotNull()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowStateNullableParameters_RefNotNull()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2516,7 +2538,7 @@ class C
         return c;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2538,6 +2560,7 @@ class C
         return c;
     }
 }");
+        }
 
         // There's a case below where flow state correctly asseses that the variable
         // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
@@ -2546,9 +2569,10 @@ class C
         // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
         // that the value is indeed not null.
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowNullableReturn_NotNull1()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowNullableReturn_NotNull1()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2560,7 +2584,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2578,11 +2602,13 @@ class C
         return x;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowNullableReturn_NotNull2()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowNullableReturn_NotNull2()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 class C
 {
@@ -2595,7 +2621,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 class C
 {
@@ -2614,10 +2640,13 @@ class C
         return x;
     }
 }");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowNullable_Lambda()
-            => TestInRegularAndScriptAsync(
-@"#nullable enable
+        public async Task TestFlowNullable_Lambda()
+        {
+            await TestInRegularAndScriptAsync(
+           @"#nullable enable
 
 using System;
 
@@ -2636,7 +2665,7 @@ class C
         return x;
     }
 }",
-@"#nullable enable
+           @"#nullable enable
 
 using System;
 
@@ -2661,10 +2690,12 @@ class C
         return x;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public Task TestFlowNullable_LambdaWithReturn()
-            => TestInRegularAndScriptAsync(
+        public async Task TestFlowNullable_LambdaWithReturn()
+        {
+            await TestInRegularAndScriptAsync(
 @"#nullable enable
 
 using System;
@@ -2709,5 +2740,6 @@ class C
         return x;
     }
 }");
+        }
     }
 }
