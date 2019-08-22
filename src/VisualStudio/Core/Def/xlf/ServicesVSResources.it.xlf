@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Verrà creato un nuovo spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -84,7 +84,12 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Abilita le funzionalità IDE per l'analisi dei riferimenti nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="new">Evaluating ({0} tasks in queue)</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -127,11 +132,6 @@
         <target state="translated">Tipo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis">
-        <source>Live analysis</source>
-        <target state="new">Live analysis</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="new">Live analysis (VSIX extension)</target>
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Sposta nello spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Field">
         <source>field</source>
-        <target state="new">field</target>
+        <target state="translated">campo</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Interface">
@@ -204,17 +204,17 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Local">
         <source>local</source>
-        <target state="new">local</target>
+        <target state="translated">variabile locale</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_LocalFunction">
         <source>local function</source>
-        <target state="new">local function</target>
+        <target state="translated">funzione locale</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Method">
         <source>method</source>
-        <target state="new">method</target>
+        <target state="translated">metodo</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Namespace">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Parameter">
         <source>parameter</source>
-        <target state="new">parameter</target>
+        <target state="translated">parametro</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="new">property</target>
+        <target state="translated">proprietà</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_TypeParameter">
         <source>type parameter</source>
-        <target state="new">type parameter</target>
+        <target state="translated">parametro di tipo</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Field">
         <source>Field</source>
-        <target state="new">Field</target>
+        <target state="translated">Campo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Interface">
@@ -274,12 +274,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Local">
         <source>Local</source>
-        <target state="new">Local</target>
+        <target state="translated">Locale</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Method">
         <source>Method</source>
-        <target state="new">Method</target>
+        <target state="translated">metodo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Module">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Parameter">
         <source>Parameter</source>
-        <target state="new">Parameter</target>
+        <target state="translated">Parametro</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Property">
@@ -309,7 +309,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
         <source>Type Parameter</source>
-        <target state="new">Type Parameter</target>
+        <target state="translated">Parametro di tipo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -332,6 +332,11 @@
         <target state="translated">Preferenze per parentesi:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="new">Paused ({0} tasks in queue)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Preferisci assegnazioni composte</target>
@@ -349,7 +354,7 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Preferisci campi di sola lettura</target>
+        <target state="translated">Preferisci campi readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -390,6 +395,11 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Esamina modifiche</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="new">Running low priority background processes</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -439,12 +449,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Spazio dei nomi di destinazione:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Questo è uno spazio dei nomi non valido</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -455,6 +465,11 @@
       <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">Il valore inutilizzato viene assegnato in modo esplicito a discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
@@ -749,7 +764,7 @@
       </trans-unit>
       <trans-unit id="DocumentPath_is_illegal">
         <source>DocumentPath is illegal</source>
-        <target state="translated">Il percorso del documento non è valido</target>
+        <target state="translated">Il valore di DocumentPath non è valido</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_Path_is_illegal">
@@ -1960,7 +1975,7 @@ L'utente accetta le condizioni sopra riportate:</target>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="needs-review-translation">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
+        <target state="translated">Il file con estensione editorconfig potrebbe eseguire l'override delle impostazioni locali configurate in questa pagina che si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig. Altre informazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">

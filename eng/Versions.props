@@ -7,7 +7,7 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>3</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
     <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
@@ -16,6 +16,12 @@
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
+    <!--
+      Arcade overrides our VersionPrefix when MajorVersion and MinorVersion are specified. Clear them so that
+      we can keep the PatchVersion until we are using an SDK that includes https://github.com/dotnet/arcade/pull/3601
+    -->
+    <MajorVersion></MajorVersion>
+    <MinorVersion></MinorVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -24,6 +30,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.3.0-beta2-19376-02</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.1.101</VisualStudioEditorPackagesVersion>
+    <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
@@ -52,7 +59,7 @@
     <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.18</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
-    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4-beta2.19365.1+a6bc06eb</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
+    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
     <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
@@ -72,8 +79,6 @@
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
-    <MicrosoftNetCoreILAsmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNetCoreILDasmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILDasmVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
@@ -143,7 +148,7 @@
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>16.0.0</MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.0.102</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>15.8.209</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>16.0.102</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>16.1.28917.181</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.3.23</MicrosoftVisualStudioValidationVersion>
@@ -216,6 +221,9 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
+    <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
+    <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
+    <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
   </PropertyGroup>
   <!-- 
     The following packages are considered implementation details and will not be included 
@@ -245,6 +253,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification" />
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Client" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.CodeSchema" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common" />

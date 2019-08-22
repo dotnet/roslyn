@@ -134,15 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
-        private static LambdaExpressionSyntax UpdateWorker(
-            SemanticModel semanticModel, bool useExpressionBody,
-            LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
-        {
-            return useExpressionBody
-                ? WithExpressionBody(currentDeclaration)
-                : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
-        }
-
         private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
         {
             if (!TryConvertToExpressionBody(

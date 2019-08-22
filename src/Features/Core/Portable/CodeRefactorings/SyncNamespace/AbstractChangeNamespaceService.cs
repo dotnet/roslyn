@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static bool IsValidContainer(SyntaxNode container)
             => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
 
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
+
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             if (!IsValidContainer(container))
@@ -208,40 +211,32 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
             var documents = ids.SelectAsArray(id => solution.GetDocument(id));
-            var containers = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length);
-            var spanForContainers = PooledHashSet<TextSpan>.GetInstance();
+            using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
+            using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
-            try
+            foreach (var document in documents)
             {
-                foreach (var document in documents)
+                var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
+
+                if (container is TNamespaceDeclarationSyntax)
                 {
-                    var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
-
-                    if (container is TNamespaceDeclarationSyntax)
-                    {
-                        spanForContainers.Add(container.Span);
-                    }
-                    else if (container is TCompilationUnitSyntax)
-                    {
-                        // In case there's no namespace declaration in the document, we used an empty span as key, 
-                        // since a valid namespace declaration node can't have zero length.
-                        spanForContainers.Add(default);
-                    }
-                    else
-                    {
-                        return default;
-                    }
-
-                    containers.Add((document.Id, container));
+                    spanForContainers.Add(container.Span);
+                }
+                else if (container is TCompilationUnitSyntax)
+                {
+                    // In case there's no namespace declaration in the document, we used an empty span as key, 
+                    // since a valid namespace declaration node can't have zero length.
+                    spanForContainers.Add(default);
+                }
+                else
+                {
+                    return default;
                 }
 
-                return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
+                containers.Add((document.Id, container));
             }
-            finally
-            {
-                containers.Free();
-                spanForContainers.Free();
-            }
+
+            return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
         }
 
         /// <summary>
@@ -342,13 +337,13 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(names.Length);
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
             for (var i = 0; i < names.Length; ++i)
             {
                 builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)

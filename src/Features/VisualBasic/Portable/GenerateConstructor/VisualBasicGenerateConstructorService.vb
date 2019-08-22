@@ -238,12 +238,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                     If newArgumentList IsNot oldArgumentList Then
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList)
-                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                     End If
                 End If
 
                 Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel)
                 If speculativeModel IsNot Nothing Then
+                    ' Since the SpeculationAnalyzer will generate a new tree when speculating an AsNewClause, always find the newTypeName
+                    ' node from the tree the speculation model is generated from.
+                    newTypeName = speculativeModel.SyntaxTree.GetRoot().GetAnnotatedNodes(Of TypeSyntax)(s_annotation).Single()
+
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken)
                     Return GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)

@@ -4968,7 +4968,7 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSendCommitIfUniqueInDeletionSession(completionImplementation As CompletionImplementation) As Task
+        Public Async Function TestSendCommitIfUniqueInDeletionSession1(completionImplementation As CompletionImplementation) As Task
             ' We explicitly use a weak matching on Delete.
             ' It matches by the first letter. Therefore, if backspace in s.Length, it matches s.Length and s.LastIndexOf.
             ' In this case, CommitIfUnique is not applied.
@@ -4992,6 +4992,33 @@ class C
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(37231, "https://github.com/dotnet/roslyn/issues/37231")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInDeletionSession2(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+class C
+{
+    void Method()
+    {
+        AccessViolationException$$
+    }
+}
+                              </Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("AccessViolationException", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -5073,6 +5100,29 @@ class C
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAutomationTextPassedToEditor(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Len$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendInvokeCompletionList()
+                state.SendSelectCompletionItem("★ Length")
+                Await state.AssertSelectedCompletionItem(displayText:="★ Length", automationText:=provider.AutomationTextString)
             End Using
         End Function
 
@@ -5571,6 +5621,29 @@ class C
             End Using
         End Function
 
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        Public Async Function CompletionBeforeVarWithEnableNullableReferenceAnalysisIDEFeatures(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis">
+                         <Document><![CDATA[
+class C
+{
+    void M(string s)
+    {
+        s$$
+        var o = new object();
+    }
+}]]></Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Length"})
+            End Using
+        End Function
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
@@ -5611,8 +5684,13 @@ class C
         Private Class IntelliCodeMockProvider
             Inherits CompletionProvider
 
+            Public AutomationTextString As String = "Hello from IntelliCode: Length"
+
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
+                Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length")
+                intelliCodeItem.AutomationText = AutomationTextString
+
+                context.AddItem(intelliCodeItem)
                 context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize", displayTextSuffix:="()"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString", filterText:="ToString", displayTextSuffix:="()"))

@@ -9,8 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -92,11 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterText = session.ApplicableToSpan.GetText(data.Snapshot);
             var reason = data.Trigger.Reason;
-
-            if (!session.Properties.TryGetProperty(CompletionSource.InitialTriggerKind, out CompletionTriggerKind initialRoslynTriggerKind))
-            {
-                initialRoslynTriggerKind = CompletionTriggerKind.Invoke;
-            }
+            var initialRoslynTriggerKind = Helpers.GetRoslynTriggerKind(data.InitialTrigger);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
             // directly after a <dot>. That's because it is actually reasonable for completion
@@ -357,13 +351,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             ExtendedFilterResult? bestFilterResult = null;
+            bool moreThanOneMatchWithSamePriority = false;
             foreach (var currentFilterResult in matchingItems)
             {
-                if (bestFilterResult == null ||
-                    IsBetterDeletionMatch(currentFilterResult.FilterResult, bestFilterResult.Value.FilterResult))
+                if (bestFilterResult == null)
                 {
                     // We had no best result yet, so this is now our best result.
                     bestFilterResult = currentFilterResult;
+                }
+                else
+                {
+                    var match = currentFilterResult.FilterResult.CompareTo(bestFilterResult.Value.FilterResult);
+                    if (match > 0)
+                    {
+                        moreThanOneMatchWithSamePriority = false;
+                        bestFilterResult = currentFilterResult;
+                    }
+                    else if (match == 0)
+                    {
+                        moreThanOneMatchWithSamePriority = true;
+                    }
                 }
             }
 
@@ -391,13 +398,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 hardSelect = false;
             }
 
-            var deduplicatedListCount = matchingItems.Where(r => !r.VSCompletionItem.IsPreferredItem()).Count();
-
             return new FilteredCompletionModel(
                 highlightedList, index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                 centerSelection: true,
-                uniqueItem: deduplicatedListCount == 1 ? bestFilterResult.GetValueOrDefault().VSCompletionItem : default);
+                uniqueItem: moreThanOneMatchWithSamePriority ? default : bestFilterResult.GetValueOrDefault().VSCompletionItem);
         }
 
         private FilteredCompletionModel HandleAllItemsFilteredOut(
@@ -531,51 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         internal static bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
-        {
-            var item1 = result1.CompletionItem;
-            var item2 = result2.CompletionItem;
-
-            var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(result1.FilterText);
-            var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(result2.FilterText);
-
-            // Prefer the item that matches a longer prefix of the filter text.
-            if (prefixLength1 > prefixLength2)
-            {
-                return true;
-            }
-
-            if (prefixLength1 == prefixLength2)
-            {
-                // If the lengths are the same, prefer the one with the higher match priority.
-                // But only if it's an item that would have been hard selected.  We don't want
-                // to aggressively select an item that was only going to be softly offered.
-                var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item1.Rules.MatchPriority : MatchPriority.Default;
-                var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-                if (item1Priority > item2Priority)
-                {
-                    return true;
-                }
-
-                prefixLength1 = item1.FilterText.GetCaseSensitivePrefixLength(result1.FilterText);
-                prefixLength2 = item2.FilterText.GetCaseSensitivePrefixLength(result2.FilterText);
-
-                // If there are "Abc" vs "abc", we should prefer the case typed by user.
-                if (prefixLength1 > prefixLength2)
-                {
-                    return true;
-                }
-
-                if (result1.CompletionItem.IsPreferredItem() && !result2.CompletionItem.IsPreferredItem())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+            => result1.CompareTo(result2) > 0;
 
         internal static bool MatchesFilterText(
             CompletionHelper helper, RoslynCompletionItem item,
@@ -616,7 +577,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // against terms like "IList" and not IList<>
             return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
         }
-
 
         internal static bool IsHardSelection(
             string fullFilterText,
