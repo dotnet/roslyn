@@ -571,7 +571,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case ControlFlowBranchSemantics.Throw:
                 case ControlFlowBranchSemantics.Rethrow:
                     // Update the tracked merged analysis data at throw branches.
-                    if (branch.BranchValueOpt?.GetThrowExceptionType(CurrentBasicBlock) is INamedTypeSymbol exceptionType &&
+                    var thrownExceptionType = branch.BranchValueOpt?.Type ?? CurrentBasicBlock.GetEnclosingRegionExceptionType();
+                    if (thrownExceptionType is INamedTypeSymbol exceptionType &&
                         exceptionType.DerivesFrom(WellKnownTypeProvider.Exception, baseTypesOnly: true))
                     {
                         AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();

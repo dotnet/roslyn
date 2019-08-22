@@ -694,6 +694,20 @@ namespace Analyzer.Utilities.Extensions
 
             return operation;
         }
+
+        public static ITypeSymbol GetThrownExceptionType(this IThrowOperation operation)
+        {
+            var thrownObject = operation.Exception;
+
+            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            if (thrownObject is IConversionOperation conversion &&
+                conversion.IsImplicit)
+            {
+                thrownObject = conversion.Operand;
+            }
+
+            return thrownObject?.Type;
+        }
     }
 }
 
