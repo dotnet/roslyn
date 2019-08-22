@@ -1609,6 +1609,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
 
+        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineDocComment();
+
+        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineDocComment();
+
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();
 
