@@ -3853,7 +3853,7 @@ oneMoreTime:
         private IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
             Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable ||
-                iDisposable.Equals( _compilation.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(WellKnownType.System_IAsyncDisposable))));
+                iDisposable.Equals(_compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)));
             return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
                                            semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
@@ -4124,7 +4124,7 @@ oneMoreTime:
 
                 bool isAsynchronous = info.IsAsynchronous;
                 var iDisposable = isAsynchronous
-                    ? _compilation.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(WellKnownType.System_IAsyncDisposable))
+                    ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)
                     : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
