@@ -977,7 +977,7 @@ class Test
         #endregion
 
         // The object could be created inside the "using" statement 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ObjectCreateInsideUsing()
         {
             var source = @"
