@@ -39,16 +39,5 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
-
-        public static ITypeSymbol GetThrowExceptionType(this IOperation thrownOperation, BasicBlock currentBlock)
-        {
-            if (thrownOperation?.Type != null)
-            {
-                return thrownOperation.Type;
-            }
-
-            // rethrow or throw with no argument.
-            return currentBlock.GetEnclosingRegionExceptionType();
-        }
     }
 }
