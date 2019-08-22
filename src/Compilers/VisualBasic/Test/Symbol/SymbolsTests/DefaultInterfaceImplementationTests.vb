@@ -9699,10 +9699,10 @@ BC30456: 'P1' is not a member of 'I1'.
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
@@ -9834,10 +9834,10 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
