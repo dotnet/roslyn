@@ -10536,7 +10536,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
     IL_0006:  ret
   }
 }
-]]>.Value.Replace(vbLf, vbNewLine)
+]]>.Value.Replace(vbLf, vbCrLf)
 
         <WorkItem(528982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
         <Fact()>

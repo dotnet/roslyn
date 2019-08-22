@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 

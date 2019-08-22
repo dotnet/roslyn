@@ -4921,7 +4921,7 @@ class C
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
