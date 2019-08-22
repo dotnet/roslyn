@@ -257,14 +257,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
-        {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-            additionalProperties.Add(GetContainingTypeInfo(node, semanticModel, syntaxFacts));
-            additionalProperties.Add(GetContainingMemberInfo(node, semanticModel, syntaxFacts));
-            return additionalProperties.ToImmutable();
-        }
-
         private static IAliasSymbol GetAliasSymbol(
             Document document,
             SemanticModel semanticModel,
@@ -713,27 +705,50 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        protected static AdditionalProperty GetContainingTypeInfo(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
         {
-            var containingTypeDeclaration = syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart);
+            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel, syntaxFacts));
+            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName,  semanticModel, syntaxFacts));
+            return additionalProperties.ToImmutable();
+        }
 
-            if (containingTypeDeclaration != null)
+        internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISymbol definition)
+        {
+            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+
+            var containingType = definition.ContainingType;
+            if (containingType != null)
             {
-                return new AdditionalProperty(ContainingTypeInfoPropertyName, semanticModel.GetDeclaredSymbol(containingTypeDeclaration).Name);
+                additionalProperties.Add(GetAdditionalProperty(ContainingTypeInfoPropertyName, containingType));
+            }
+
+            var containingSymbol = definition.ContainingSymbol;
+            if (containingSymbol != null && containingSymbol.GetMemberType() != null)
+            {
+                additionalProperties.Add(GetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol));
+            }
+
+            return additionalProperties.ToImmutable();
+        }
+
+        protected static AdditionalProperty GetInfo(SyntaxNode node, string name, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        {
+            if (node != null)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(node);
+                if (symbol != null)
+                {
+                    return GetAdditionalProperty(name, symbol);
+                }
             }
 
             return default;
         }
 
-        protected static AdditionalProperty GetContainingMemberInfo(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        private static AdditionalProperty GetAdditionalProperty(string propertyName, ISymbol symbol)
         {
-            var containingMemberDeclaration = syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart);
-            if (containingMemberDeclaration != null)
-            {
-                return new AdditionalProperty(ContainingMemberInfoPropertyName, semanticModel.GetDeclaredSymbol(containingMemberDeclaration).Name);
-            }
-
-            return default;
+            return new AdditionalProperty(propertyName, symbol.Name);
         }
     }
 

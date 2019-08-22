@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
         {
             var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-            additionalProperties.Add(GetContainingTypeInfo(node, semanticModel, syntaxFacts));
-            additionalProperties.Add(GetContainingMemberInfo(node, semanticModel, syntaxFacts));
+            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel, syntaxFacts));
+            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel, syntaxFacts));
             return additionalProperties.ToImmutable();
         }
     }

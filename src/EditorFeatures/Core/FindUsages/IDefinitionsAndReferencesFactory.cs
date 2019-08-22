@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var properties = GetProperties(definition);
 
-            var displayableProperties = GetDisplayableProperties(definition);
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -173,25 +173,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             return properties;
-        }
-
-        private static ImmutableArray<AdditionalProperty> GetDisplayableProperties(ISymbol definition)
-        {
-            var displayableProperties = ImmutableArray<AdditionalProperty>.Empty;
-
-            var containingType = definition.ContainingType;
-            if (containingType != null)
-            {
-                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingType.Name));
-            }
-
-            var containingSymbol = definition.ContainingSymbol;
-            if (containingSymbol != null && containingSymbol.GetMemberType() != null)
-            {
-                displayableProperties = displayableProperties.Add(new AdditionalProperty(AbstractReferenceFinder.ContainingMemberInfoPropertyName, containingSymbol.Name));
-            }
-
-            return displayableProperties;
         }
 
         public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
