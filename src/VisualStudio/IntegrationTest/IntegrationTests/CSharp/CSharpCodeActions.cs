@@ -644,7 +644,7 @@ public class Program
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38198"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public void ConfigureCodeStyleOptionValueAndSeverity()
         {
             SetUpEditor(@"
