@@ -1,58 +1,75 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using PointsToChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>>;
+    using ValueContentChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>>;
+
     internal static class TaintedDataSymbolMapExtensions
     {
         /// <summary>
-        /// Determines if the given method is a potential tainted data source and get the related argument check methods.
+        /// Determines if the given method is a tainted data source and get the tainted target set.
         /// </summary>
         /// <param name="sourceSymbolMap"></param>
         /// <param name="method"></param>
-        /// <param name="evaluateWithPointsToAnalysis"></param>
-        /// <param name="evaluateWithValueContentAnalysis"></param>
+        /// <param name="arguments"></param>
+        /// <param name="argumentPointsTos"></param>
+        /// <param name="argumentValueContents"></param>
+        /// <param name="taintedTargets"></param>
         /// <returns></returns>
         public static bool IsSourceMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
-            out PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis,
-            out PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis)
+            ImmutableArray<IArgumentOperation> arguments,
+            IEnumerable<PointsToAbstractValue> argumentPointsTos,
+            IEnumerable<ValueContentAbstractValue> argumentValueContents,
+            out PooledHashSet<string> taintedTargets)
         {
-            evaluateWithPointsToAnalysis = null;
-            evaluateWithValueContentAnalysis = null;
+            taintedTargets = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                if (sourceInfo.TaintedMethodsNeedPointsToAnalysis.TryGetValue(method.MetadataName, out IsInvocationTaintedWithPointsToAnalysis pointsToAnalysisMethod))
+                if (sourceInfo.TaintedMethodsNeedsPointsToAnalysis.TryGetValue(method.MetadataName, out PointsToChecksAndTargets pointsToChecksAndTargets))
                 {
-                    if (evaluateWithPointsToAnalysis == null)
+                    foreach (KeyValuePair<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>> kvp in pointsToChecksAndTargets)
                     {
-                        evaluateWithPointsToAnalysis = PooledHashSet<IsInvocationTaintedWithPointsToAnalysis>.GetInstance();
-                    }
+                        if (kvp.Key(arguments, argumentPointsTos))
+                        {
+                            if (taintedTargets == null)
+                            {
+                                taintedTargets = PooledHashSet<string>.GetInstance();
+                            }
 
-                    evaluateWithPointsToAnalysis.Add(pointsToAnalysisMethod);
+                            taintedTargets.UnionWith(kvp.Value);
+                        }
+                    }
                 }
-                else if (sourceInfo.TaintedMethodsNeedsValueContentAnalysis.TryGetValue(method.MetadataName, out IsInvocationTaintedWithValueContentAnalysis valueContentAnalysisMethod))
+
+                if (sourceInfo.TaintedMethodsNeedsValueContentAnalysis.TryGetValue(method.MetadataName, out ValueContentChecksAndTargets valueContentChecksAndTargets))
                 {
-                    if (evaluateWithValueContentAnalysis == null)
+                    foreach (KeyValuePair<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>> kvp in valueContentChecksAndTargets)
                     {
-                        evaluateWithValueContentAnalysis = PooledHashSet<IsInvocationTaintedWithValueContentAnalysis>.GetInstance();
-                    }
+                        if (kvp.Key(arguments, argumentPointsTos, argumentValueContents))
+                        {
+                            if (taintedTargets == null)
+                            {
+                                taintedTargets = PooledHashSet<string>.GetInstance();
+                            }
 
-                    evaluateWithValueContentAnalysis.Add(valueContentAnalysisMethod);
+                            taintedTargets.UnionWith(kvp.Value);
+                        }
+                    }
                 }
             }
 
-            if (evaluateWithPointsToAnalysis == null && evaluateWithValueContentAnalysis == null)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return taintedTargets != null;
         }
 
         /// <summary>

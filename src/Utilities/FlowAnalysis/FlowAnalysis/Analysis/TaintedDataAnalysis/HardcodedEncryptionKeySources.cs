@@ -7,6 +7,7 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -28,16 +29,30 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemConvert,
                 isInterface: false,
                 taintedProperties: null,
-                taintedMethodsNeedPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: new (string, IsInvocationTaintedWithValueContentAnalysis)[]{
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: new (string, IsInvocationTaintedWithValueContentAnalysis[])[]{
                     ("FromBase64String",
-                    (IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents) => argumentValueContents.All(o => o.IsLiteralState)),
+                    new IsInvocationTaintedWithValueContentAnalysis[]{
+                        (IEnumerable<IArgumentOperation> arguments, IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents) => argumentValueContents.All(o => o.IsLiteralState),
+                    }),
+                });
+            builder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemTextEncoding,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: new (string, (IsInvocationTaintedWithValueContentAnalysis, string[])[])[]{
+                    ("GetBytes",
+                    new (IsInvocationTaintedWithValueContentAnalysis, string[])[]{
+                        ((IEnumerable<IArgumentOperation> arguments, IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents) => arguments.Count() == 5 && argumentValueContents.FirstOrDefault().IsLiteralState, new[] { "bytes", }),
+                        ((IEnumerable<IArgumentOperation> arguments, IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents) => arguments.Count() == 1 && argumentValueContents.FirstOrDefault().IsLiteralState, new[] { "RETURN", }),
+                    }),
                 });
             builder.AddSourceInfo(
                 WellKnownTypeNames.SystemByte,
                 isInterface: false,
                 taintedProperties: null,
-                taintedMethodsNeedPointsToAnalysis: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
                 taintedMethodsNeedsValueContentAnalysis: null,
                 taintConstantArray: true);
 

@@ -226,8 +226,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
-                PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis = null;
-                PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis = null;
+                PooledHashSet<string> taintedTargets = null;
                 try
                 {
                     if (this.IsSanitizingMethod(method))
@@ -245,32 +244,37 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     }
                     else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
-                        out evaluateWithPointsToAnalysis,
-                        out evaluateWithValueContentAnalysis))
+                        visitedArguments,
+                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetPointsToAbstractValue(o.Value)),
+                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetValueContentAbstractValue(o.Value)),
+                        out taintedTargets))
                     {
-                        ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
-                        IEnumerable<PointsToAbstractValue> pointsToAnalysisResult = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                        IEnumerable<ValueContentAbstractValue> valueContentAnalysisResult = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
-                        if ((evaluateWithPointsToAnalysis != null && evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResult)))
-                            || (evaluateWithValueContentAnalysis != null && evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResult, valueContentAnalysisResult))))
+                        foreach (var taintedTarget in taintedTargets)
+                        {
+                            if (taintedTarget != "RETURN")
+                            {
+                                IArgumentOperation argumentOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == taintedTarget);
+                                if (argumentOperation != null && AnalysisEntityFactory.TryCreate(argumentOperation, out AnalysisEntity analysisEntity))
+                                {
+                                    IParameterReferenceOperation argumentValue = argumentOperation.Value as IParameterReferenceOperation;
+                                    this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.CreateTainted(argumentValue.Parameter, argumentValue.Syntax, this.OwningSymbol));
+                                }
+                            }
+                        }
+
+                        if (taintedTargets.Contains("RETURN"))
                         {
                             return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                         }
-
-                        return TaintedDataAbstractValue.NotTainted;
+                        else
+                        {
+                            return TaintedDataAbstractValue.NotTainted;
+                        }
                     }
                 }
                 finally
                 {
-                    if (evaluateWithPointsToAnalysis != null)
-                    {
-                        evaluateWithPointsToAnalysis.Free();
-                    }
-
-                    if (evaluateWithValueContentAnalysis != null)
-                    {
-                        evaluateWithValueContentAnalysis.Free();
-                    }
+                    taintedTargets?.Free();
                 }
 
                 return baseVisit;
