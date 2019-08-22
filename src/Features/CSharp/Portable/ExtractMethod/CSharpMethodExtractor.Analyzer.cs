@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             {
                 var analyzer = new CSharpAnalyzer(selectionResult, cancellationToken);
-                return analyzer.AnalyzeAsync();
+                return analyzer.AnalyzeAsync(cancellationToken);
             }
 
             public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken)

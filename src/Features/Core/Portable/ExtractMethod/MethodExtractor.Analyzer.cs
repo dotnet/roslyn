@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
-            public async Task<AnalyzerResult> AnalyzeAsync(CancellationToken cancellationToken = default)
+            public async Task<AnalyzerResult> AnalyzeAsync(CancellationToken cancellationToken)
             {
                 // do data flow analysis
                 var model = _semanticDocument.SemanticModel;

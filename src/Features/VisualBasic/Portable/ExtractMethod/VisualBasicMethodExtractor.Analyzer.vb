@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Public Shared Function AnalyzeResultAsync(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
                 Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
-                Return analyzer.AnalyzeAsync()
+                Return analyzer.AnalyzeAsync(cancellationToken)
             End Function
 
             Public Sub New(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken)
