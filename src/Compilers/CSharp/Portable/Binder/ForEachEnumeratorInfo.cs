@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposal;
 
+        public readonly bool IsAsync;
+
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public AwaitableInfo DisposeAwaitableInfo;
-
-        public readonly bool IsAsync;
 
         // When using pattern-based Dispose, this stores the method to invoke to Dispose
         public readonly MethodSymbol DisposeMethod;

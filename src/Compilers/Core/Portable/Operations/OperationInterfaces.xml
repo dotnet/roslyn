@@ -476,7 +476,7 @@
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>
-          Whether this for using is asynchronous.
+          Whether this using is asynchronous.
           Always false for VB.
         </summary>
       </Comments>

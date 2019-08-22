@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
-        /// Whether this for using is asynchronous.
+        /// Whether this using is asynchronous.
         /// Always false for VB.
         /// </summary>
         bool IsAsynchronous { get; }

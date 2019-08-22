@@ -3642,7 +3642,7 @@ oneMoreTime:
             StartVisitingStatement(operation);
 
             ITypeSymbol iDisposable = operation.IsAsynchronous
-                ? _compilation.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(WellKnownType.System_IAsyncDisposable))
+                ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)
                 : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
