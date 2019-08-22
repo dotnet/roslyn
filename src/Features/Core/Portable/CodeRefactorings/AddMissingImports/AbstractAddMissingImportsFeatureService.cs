@@ -157,16 +157,34 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             newProject = newProject.AddMetadataReferences(allAddedMetaDataReferences);
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
-            // Only consider insertion changes to reduce the chance of producing a
-            // badly merged final document. Alphabetize the new imports, this will not
-            // change the insertion point but will give a more correct result. The user
-            // may still need to use organize imports afterwards.
-            var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
+
+            // The text changes produced by the AddImport code fixes with be inserts except in
+            // the case where there were multiple trailing newlines.
+
+            // Insertion case (zero or one trailing newline following the using directives):
+            // using System;  // Added using directives will all be insertion changes on the following line
+            //
+            // namespace Foo
+            // {
+
+            // Replacement case (two or more trailing newlines following the using directives):
+            // using System; // Added using directives will all be replacement changes that overwrite the following line
+            //
+            //
+            // namespace Foo
+            // {
+
+            // Covert text changes to be insertions and keep the new lines. This will keep them
+            // from stepping on each other. Alphabetize the new imports, this will not change
+            // the insertion point but will give a more correct result. The user may still need
+            // to use organize imports afterwards.
+            var orderedTextInserts = allTextChanges
+                .Select(change => change.Span.IsEmpty ? change : MakeChangeAnInsertion(change))
                 .OrderBy(change => change.NewText);
 
             // Capture each location where we are inserting imports as well as the total
             // length of the text we are inserting so that we can format the span afterwards.
-            var insertSpans = allTextChanges
+            var insertSpans = orderedTextInserts
                 .GroupBy(change => change.Span)
                 .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText.Length)));
 
@@ -179,6 +197,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // separate the imports from the rest of the code file. We need to format the
             // imports to remove these extra newlines.
             return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
+
+            static TextChange MakeChangeAnInsertion(TextChange change)
+                => new TextChange(new TextSpan(change.Span.Start, 0), change.NewText);
         }
 
         private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)

@@ -386,5 +386,45 @@ namespace B
 
             await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
+
+        [WpfFact]
+        [WorkItem(35982, "https://github.com/dotnet/roslyn/issues/35982")]
+        public async Task AddMissingImports_RetainsAdditionalNewLinesFollowingUsingDirectives()
+        {
+            var code = @"
+using System;
+
+
+
+class C
+{
+    [|public D Foo { get; }|]
+}
+
+namespace A
+{
+    public class D { }
+}
+";
+
+            var expected = @"
+using System;
+using A;
+
+
+
+class C
+{
+    public D Foo { get; }
+}
+
+namespace A
+{
+    public class D { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+        }
     }
 }
