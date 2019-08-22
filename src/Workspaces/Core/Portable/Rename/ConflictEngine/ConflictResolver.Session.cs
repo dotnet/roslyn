@@ -247,10 +247,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
 
                     // Step 6: Drop changes made in unchangeable documents
-                    var (containsDisallowedChange, purgedSolution) = await conflictResolution.NewSolution.ExcludeDisallowedDocumentTextChangesAsync(conflictResolution.OldSolution, _cancellationToken).ConfigureAwait(false);
+                    var (containsDisallowedChange, updatedSolution) = await conflictResolution.NewSolution.ExcludeDisallowedDocumentTextChangesAsync(conflictResolution.OldSolution, _cancellationToken).ConfigureAwait(false);
                     if (containsDisallowedChange)
                     {
-                        conflictResolution.UpdateCurrentSolution(purgedSolution);
+                        conflictResolution.UpdateCurrentSolution(updatedSolution);
                     }
 
                     return conflictResolution;

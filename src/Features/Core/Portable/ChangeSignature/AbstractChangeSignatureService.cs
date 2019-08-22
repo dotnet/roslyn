@@ -214,8 +214,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var symbol in symbols)
             {
-                if (symbol.Definition.Kind == SymbolKind.Method &&
-                    ((symbol.Definition as IMethodSymbol)!.MethodKind == MethodKind.PropertyGet || (symbol.Definition as IMethodSymbol)!.MethodKind == MethodKind.PropertySet))
+                var methodSymbol = symbol.Definition as IMethodSymbol;
+
+                if (methodSymbol != null &&
+                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
                 {
                     continue;
                 }
@@ -241,9 +243,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     includeDefinitionLocations = false;
                 }
 
-                if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
+                if (symbolWithSyntacticParameters is IEventSymbol eventSymbol)
                 {
-                    var eventSymbol = (symbolWithSyntacticParameters as IEventSymbol)!;
                     if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
@@ -254,9 +255,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                 }
 
-                if (symbolWithSyntacticParameters.Kind == SymbolKind.Method)
+                if (methodSymbol != null)
                 {
-                    var methodSymbol = (symbolWithSyntacticParameters as IMethodSymbol)!;
                     if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                     {
                         symbolWithSyntacticParameters = methodSymbol.ContainingType;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (hasLocationsInMetadata)
             {
-                var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>()!;
+                var notificationService = context.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                 if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
                 {
                     return null;
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var doc = originalSolution.GetDocument(docId)!;
-                var updater = doc.Project.LanguageServices.GetService<AbstractChangeSignatureService>()!;
+                var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
                 var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
 
                 var nodes = nodesToUpdate[docId];

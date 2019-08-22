@@ -90,7 +90,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static async Task<(bool containsDisallowedChange, Solution purgedSolution)> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
+        /// <summary>
+        /// Revert all textual change made in unchangeable documents.. 
+        /// </summary>
+        /// <remark>A document is unchangeable if `Document.CanApplyChange()` returns false</remark>
+        /// <param name="newSolution">New solution with changes</param>
+        /// <param name="oldSolution">Old solution the new solution is based on</param>
+        /// <returns>
+        /// A tuple indicates whether there's such disallowed change made in the <paramref name="newSolution"/>, 
+        /// as well as the updated solution with all disallowed change reverted (which would be identical to 
+        /// <paramref name="oldSolution"/> if `containsDisallowedChange` is false).
+        /// </returns>
+        public static async Task<(bool containsDisallowedChange, Solution updatedSolution)> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
         {
             var solutionChanges = newSolution.GetChanges(oldSolution);
             var containsDisallowedChange = false;

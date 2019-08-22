@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -700,7 +699,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
-                         _conflictResolutionTask.Result.NewSolution,
+                        _conflictResolutionTask.Result.NewSolution,
                         _triggerDocument.Project.Solution);
 
                     if (newSolution == null)
