@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
+        private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {
             if (nodes.IsDefault)
             {
@@ -895,6 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var node in nodes)
             {
                 Visit(node);
+                Unsplit();
             }
         }
 
@@ -1552,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldDisable = _disableDiagnostics;
             _disableDiagnostics = true;
             var currentState = State;
-            VisitAll(node.ArgumentsOpt);
+            VisitAndUnsplitAll(node.ArgumentsOpt);
             _disableDiagnostics = oldDisable;
             SetState(currentState);
             if (node.DeclaredTypeOpt != null)
@@ -6928,6 +6929,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
             SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull));
+
+            if (node.ConstantValue?.IsBoolean == true)
+            {
+                Split();
+                if (node.ConstantValue.BooleanValue)
+                {
+                    StateWhenFalse = UnreachableState();
+                }
+                else
+                {
+                    StateWhenTrue = UnreachableState();
+                }
+            }
 
             return result;
         }
