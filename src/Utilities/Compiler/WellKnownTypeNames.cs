@@ -344,5 +344,6 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
+        public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
     }
 }

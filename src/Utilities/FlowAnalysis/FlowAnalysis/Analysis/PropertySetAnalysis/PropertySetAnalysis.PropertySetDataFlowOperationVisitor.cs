@@ -454,6 +454,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
+                if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetArgumentHazardousUsageEvaluator(
+                            out HazardousUsageEvaluator argumentHazardousUsageEvaluator))
+                {
+                    foreach (IArgumentOperation visitedArgument in visitedArguments)
+                    {
+                        if (this.TrackedTypeSymbol.Equals(visitedArgument.Value.Type))
+                        {
+                            this.EvaluatePotentialHazardousUsage(
+                                visitedArgument.Value.Syntax,
+                                null,
+                                visitedArgument.Value,
+                                (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator(abstractValue));
+                        }
+                    }
+                }
+
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.
                 IOperation propertySetInstance = visitedInstance;

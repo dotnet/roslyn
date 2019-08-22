@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 throw new ArgumentNullException(nameof(analysisContext));
             }
 
-            if (!cacheResult)
+            // Don't add interprocedural analysis result to our static results cache.
+            if (!cacheResult || analysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 return Run(analysisContext);
             }
