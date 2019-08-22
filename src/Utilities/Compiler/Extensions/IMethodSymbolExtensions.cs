@@ -401,14 +401,10 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="method">The method to test.</param>
         /// <param name="genericTaskType">Generic task type.</param>
         public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, INamedTypeSymbol genericTaskType)
-        {
-            Debug.Assert(genericTaskType.IsGenericType);
-
-            return method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+            => method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
                method.Parameters.Length == 1 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
                method.ContainingType.OriginalDefinition.Equals(genericTaskType);
-        }
 
 #if HAS_IOPERATION
         /// <summary>

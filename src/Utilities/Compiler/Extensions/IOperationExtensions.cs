@@ -634,6 +634,66 @@ namespace Analyzer.Utilities.Extensions
                     return null;
             }
         }
+
+        /// <summary>
+        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkDownParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkUpParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
+            }
+
+            return operation;
+        }
     }
 }
 
