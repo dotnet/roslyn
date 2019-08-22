@@ -466,6 +466,62 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
+        [WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithReferencesInUnchangeableDocument()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    class Class1 
+    {{ 
+    }}
+    
+    class Class2 
+    {{ 
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"" CanApplyChange=""false""> 
+using Foo.Bar.Baz;
+
+namespace Foo
+{{
+    class RefClass
+    {{
+        private Class1 c1;
+
+        void M1()
+        {{
+            Bar.Baz.Class2 c2 = null;
+        }}
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    class Class1
+    {
+    }
+
+    class Class2
+    {
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
         {
