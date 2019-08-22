@@ -1220,27 +1220,17 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Any())
+            foreach (var changedDocumentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
             {
-                throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
-            }
-
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                var documentsWithTextChanges = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
-                if (!documentsWithTextChanges.IsEmpty)
+                if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument))
                 {
                     throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
                 }
 
-                foreach (var changedDocumentId in documentsWithTextChanges)
+                var changedDocument = projectChanges.OldProject.GetDocumentState(changedDocumentId) ?? projectChanges.NewProject.GetDocumentState(changedDocumentId)!;
+                if (!changedDocument.CanApplyChange())
                 {
-                    var document = projectChanges.OldProject.GetDocumentState(changedDocumentId) ?? projectChanges.NewProject.GetDocumentState(changedDocumentId)!;
-                    if (!document.CanApplyChange())
-                    {
-                        throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
-                    }
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, changedDocument.FilePath ?? changedDocument.Name));
                 }
             }
 
