@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
 
-            // The text changes produced by the AddImport code fixes with be inserts except in
+            // The text changes produced by the AddImport code fixes will be inserts except in
             // the case where there were multiple trailing newlines.
 
             // Insertion case (zero or one trailing newline following the using directives):
