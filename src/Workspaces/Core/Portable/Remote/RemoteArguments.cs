@@ -15,20 +15,18 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableFindReferencesSearchOptions
     {
         public bool AssociatePropertyReferencesWithSpecificAccessor;
-        public bool IgnoreUnchangeableDocuments;
 
         public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
         {
             return new SerializableFindReferencesSearchOptions
             {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
-                IgnoreUnchangeableDocuments = options.IgnoreUnchangeableDocuments
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
             };
         }
 
         public FindReferencesSearchOptions Rehydrate()
         {
-            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor, IgnoreUnchangeableDocuments);
+            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
         }
     }
 
