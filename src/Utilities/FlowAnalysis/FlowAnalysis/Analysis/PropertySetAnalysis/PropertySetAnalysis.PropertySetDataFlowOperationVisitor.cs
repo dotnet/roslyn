@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -455,6 +453,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+
+                if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetArgumentHazardousUsageEvaluator(
+                            out HazardousUsageEvaluator argumentHazardousUsageEvaluator))
+                {
+                    foreach (IArgumentOperation visitedArgument in visitedArguments)
+                    {
+                        if (this.TrackedTypeSymbol.Equals(visitedArgument.Value.Type))
+                        {
+                            this.EvaluatePotentialHazardousUsage(
+                                visitedArgument.Value.Syntax,
+                                null,
+                                visitedArgument.Value,
+                                (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator(abstractValue));
+                        }
+                    }
+                }
 
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.

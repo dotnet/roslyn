@@ -418,11 +418,20 @@ namespace Analyzer.Utilities.Extensions
         private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
             = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
 
-        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
+        public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, out ControlFlowGraph cfg)
         {
             operation = operation.GetRoot();
             var operationToCfgMap = s_operationToCfgCache.GetOrCreateValue(operation.SemanticModel.Compilation);
-            return operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
+            cfg = operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
+            return cfg != null;
+        }
+
+        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IBlockOperation blockOperation)
+        {
+            var success = blockOperation.TryGetEnclosingControlFlowGraph(out var cfg);
+            Debug.Assert(success);
+            Debug.Assert(cfg != null);
+            return cfg;
         }
 
         private static ControlFlowGraph CreateControlFlowGraph(IOperation operation)
@@ -448,7 +457,11 @@ namespace Analyzer.Utilities.Extensions
                     return ControlFlowGraph.Create(parameterInitializerOperation);
 
                 default:
-                    throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
+                    // have an overload for such operation roots.
+                    // Gracefully return null for this case and fire an assert for any other OperationKind.
+                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    return null;
             }
         }
 
@@ -620,6 +633,66 @@ namespace Analyzer.Utilities.Extensions
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkDownParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkUpParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
+            }
+
+            return operation;
         }
     }
 }

@@ -2,17 +2,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -49,6 +47,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             string typeToTrackMetadataName,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
@@ -82,6 +81,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
+                    analyzerOptions,
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt: null,
@@ -99,6 +99,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
+                    analyzerOptions,
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
@@ -116,6 +117,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 wellKnownTypeProvider,
                 cfg,
                 owningSymbol,
+                analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
@@ -145,6 +147,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            AnalyzerOptions analyzerOptions,
             string typeToTrackMetadataName,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
@@ -155,7 +158,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
-                ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
+                var success = Operation.TryGetEnclosingControlFlowGraph(out ControlFlowGraph enclosingControlFlowGraph);
+                Debug.Assert(success);
+                if (enclosingControlFlowGraph == null)
+                {
+                    Debug.Fail("Expected non-null CFG");
+                    continue;
+                }
+
                 PropertySetAnalysisResult enclosingResult = InvokeDfaAndAccumulateResults(
                     enclosingControlFlowGraph,
                     ContainingSymbol);
@@ -198,6 +208,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         cfg,
                         compilation,
                         owningSymbol,
+                        analyzerOptions,
                         typeToTrackMetadataName,
                         constructorMapper,
                         propertyMappers,

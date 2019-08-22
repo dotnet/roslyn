@@ -40,7 +40,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (KeyValuePair<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>> kvp in pointsToChecksAndTargets)
                     {
-                        if (kvp.Key(arguments, argumentPointsTos))
+                        if (argumentPointsTos != null && kvp.Key(arguments, argumentPointsTos))
                         {
                             if (taintedTargets == null)
                             {
@@ -56,7 +56,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (KeyValuePair<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>> kvp in valueContentChecksAndTargets)
                     {
-                        if (kvp.Key(arguments, argumentPointsTos, argumentValueContents))
+                        if (argumentPointsTos != null && argumentValueContents != null && kvp.Key(arguments, argumentPointsTos, argumentValueContents))
                         {
                             if (taintedTargets == null)
                             {

@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 
 #if HAS_IOPERATION
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
 
@@ -401,14 +400,10 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="method">The method to test.</param>
         /// <param name="genericTaskType">Generic task type.</param>
         public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, INamedTypeSymbol genericTaskType)
-        {
-            Debug.Assert(genericTaskType.IsGenericType);
-
-            return method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+            => method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
                method.Parameters.Length == 1 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
                method.ContainingType.OriginalDefinition.Equals(genericTaskType);
-        }
 
 #if HAS_IOPERATION
         /// <summary>

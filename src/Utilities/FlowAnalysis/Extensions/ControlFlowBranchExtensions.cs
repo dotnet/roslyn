@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    public static class ControlFlowBranchExtensions
+    internal static class ControlFlowBranchExtensions
     {
         public static bool IsBackEdge(this ControlFlowBranch controlFlowBranch)
             => controlFlowBranch != null &&

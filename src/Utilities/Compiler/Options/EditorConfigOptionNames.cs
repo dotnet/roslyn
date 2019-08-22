@@ -67,5 +67,11 @@ namespace Analyzer.Utilities
         ///      with an optional "T:" prefix.
         /// </summary>
         public const string ExcludedTypeNamesWithDerivedTypes = "excluded_type_names_with_derived_types";
+
+        /// <summary>
+        /// Enumeration option to configure unsafe DllImportSearchPath bits when using DefaultDllImportSearchPaths attribute.
+        /// Do not use the OR operator to represent the bitwise combination of its member values, use the integeral value directly.
+        /// </summary>
+        public const string UnsafeDllImportSearchPathBits = "unsafe_DllImportSearchPath_bits";
     }
 }

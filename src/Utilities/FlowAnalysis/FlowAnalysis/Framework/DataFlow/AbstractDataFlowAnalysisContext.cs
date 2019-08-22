@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool predicateAnalysis,
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph = controlFlowGraph;
             ParentControlFlowGraphOpt = parentControlFlowGraphOpt;
             OwningSymbol = owningSymbol;
+            AnalyzerOptions = analyzerOptions;
             InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public WellKnownTypeProvider WellKnownTypeProvider { get; }
         public ControlFlowGraph ControlFlowGraph { get; }
         public ISymbol OwningSymbol { get; }
+        public AnalyzerOptions AnalyzerOptions { get; }
         public InterproceduralAnalysisConfiguration InterproceduralAnalysisConfiguration { get; }
         public bool PessimisticAnalysis { get; }
         public bool PredicateAnalysis { get; }
@@ -145,23 +148,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder);
+        protected abstract void ComputeHashCodePartsSpecific(Action<int> builder);
 
-        protected sealed override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected sealed override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(ValueDomain.GetHashCode());
-            builder.Add(OwningSymbol.GetHashCode());
-            builder.Add(ControlFlowGraph.OriginalOperation.GetHashCode());
-            builder.Add(InterproceduralAnalysisConfiguration.GetHashCode());
-            builder.Add(PessimisticAnalysis.GetHashCode());
-            builder.Add(PredicateAnalysis.GetHashCode());
-            builder.Add(ExceptionPathsAnalysis.GetHashCode());
-            builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());
-            builder.Add(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
-            builder.Add(ValueContentAnalysisResultOpt.GetHashCodeOrDefault());
-            builder.Add(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());
-            builder.Add(InterproceduralAnalysisPredicateOpt.GetHashCodeOrDefault());
-            ComputeHashCodePartsSpecific(builder);
+            addPart(ValueDomain.GetHashCode());
+            addPart(OwningSymbol.GetHashCode());
+            addPart(ControlFlowGraph.OriginalOperation.GetHashCode());
+            addPart(AnalyzerOptions.GetHashCode());
+            addPart(InterproceduralAnalysisConfiguration.GetHashCode());
+            addPart(PessimisticAnalysis.GetHashCode());
+            addPart(PredicateAnalysis.GetHashCode());
+            addPart(ExceptionPathsAnalysis.GetHashCode());
+            addPart(CopyAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(ValueContentAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());
+            addPart(InterproceduralAnalysisPredicateOpt.GetHashCodeOrDefault());
+            ComputeHashCodePartsSpecific(addPart);
         }
     }
 }
