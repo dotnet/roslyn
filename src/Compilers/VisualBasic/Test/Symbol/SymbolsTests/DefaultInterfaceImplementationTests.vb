@@ -9699,10 +9699,10 @@ BC30456: 'P1' is not a member of 'I1'.
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
@@ -9834,10 +9834,10 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
@@ -10704,6 +10704,305 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+        End Sub
+
+        <Fact>
+        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        Public Sub Operators_01()
+            Dim csSource =
+"
+public interface I1
+{
+    public static I1 operator +(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator -(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator !(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ~(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ++(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator --(I1 x)
+    {
+        return x;
+    }
+
+    public static bool operator true(I1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(I1 x)
+    {
+        return false;
+    }
+
+    public static I1 operator +(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator -(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator *(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator /(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator %(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator &(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator |(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator ^(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <<(I1 x, int y)
+    {
+        return x;
+    }
+
+    public static I1 operator >>(I1 x, int y)
+    {
+        return x;
+    }
+
+    public static I1 operator >(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator >=(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <=(I1 x, I1 y)
+    {
+        return x;
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Test2 
+    Implements I1
+
+    Shared Sub Main()
+        Dim x As I1 = new Test2()
+        Dim y As I1 = new Test2()
+
+        x = +x
+        x = -x
+        x = Not x
+        'x = ~x;
+        'x = ++x;
+        'x = x--;
+
+        x = x + y
+        x = x - y
+        x = x * y
+        x = x / y
+        x = x \ y
+        x = x Mod y
+        x = x ^ y
+        if x AndAlso y
+        ENd If
+        x = x And y
+        x = x Or y
+        x = x Xor y
+        x = x << 1
+        x = x >> 2
+        x = x > y
+        x = x < y
+        x = x >= y
+        x = x <= y
+        x = x Like y
+        x = x & y
+        if x OrElse y
+        ENd If
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30487: Operator '+' is not defined for type 'I1'.
+        x = +x
+            ~~
+BC30487: Operator '-' is not defined for type 'I1'.
+        x = -x
+            ~~
+BC30487: Operator 'Not' is not defined for type 'I1'.
+        x = Not x
+            ~~~~~
+BC30452: Operator '+' is not defined for types 'I1' and 'I1'.
+        x = x + y
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'I1' and 'I1'.
+        x = x - y
+            ~~~~~
+BC30452: Operator '*' is not defined for types 'I1' and 'I1'.
+        x = x * y
+            ~~~~~
+BC30452: Operator '/' is not defined for types 'I1' and 'I1'.
+        x = x / y
+            ~~~~~
+BC30452: Operator '\' is not defined for types 'I1' and 'I1'.
+        x = x \ y
+            ~~~~~
+BC30452: Operator 'Mod' is not defined for types 'I1' and 'I1'.
+        x = x Mod y
+            ~~~~~~~
+BC30452: Operator '^' is not defined for types 'I1' and 'I1'.
+        x = x ^ y
+            ~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'I1' and 'I1'.
+        if x AndAlso y
+           ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'I1' and 'I1'.
+        x = x And y
+            ~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'I1' and 'I1'.
+        x = x Or y
+            ~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'I1' and 'I1'.
+        x = x Xor y
+            ~~~~~~~
+BC30452: Operator '<<' is not defined for types 'I1' and 'Integer'.
+        x = x << 1
+            ~~~~~~
+BC30452: Operator '>>' is not defined for types 'I1' and 'Integer'.
+        x = x >> 2
+            ~~~~~~
+BC30452: Operator '>' is not defined for types 'I1' and 'I1'.
+        x = x > y
+            ~~~~~
+BC30452: Operator '<' is not defined for types 'I1' and 'I1'.
+        x = x < y
+            ~~~~~
+BC30452: Operator '>=' is not defined for types 'I1' and 'I1'.
+        x = x >= y
+            ~~~~~~
+BC30452: Operator '<=' is not defined for types 'I1' and 'I1'.
+        x = x <= y
+            ~~~~~~
+BC30452: Operator 'Like' is not defined for types 'I1' and 'I1'.
+        x = x Like y
+            ~~~~~~~~
+BC30452: Operator '&' is not defined for types 'I1' and 'I1'.
+        x = x & y
+            ~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'I1' and 'I1'.
+        if x OrElse y
+           ~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        Public Sub Operators_02()
+            Dim csSource =
+"
+public class C1
+{}
+
+public interface I1
+{
+    public static I1 operator +(C1 x, I1 y)
+    {
+        return y;
+    }
+
+    public static I1 operator -(I1 x, C1 y)
+    {
+        return x;
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Test2 
+    Implements I1
+
+    Shared Sub Main()
+        Dim x As I1 = new Test2()
+        Dim y As C1 = new C1()
+
+        x = x + y
+        x = x - y
+        x = y + x
+        x = y - x
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30452: Operator '+' is not defined for types 'I1' and 'C1'.
+        x = x + y
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'I1' and 'C1'.
+        x = x - y
+            ~~~~~
+BC30452: Operator '+' is not defined for types 'C1' and 'I1'.
+        x = y + x
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'C1' and 'I1'.
+        x = y - x
+            ~~~~~
+</expected>)
         End Sub
 
     End Class
