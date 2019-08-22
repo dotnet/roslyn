@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureResult(succeeded: false);
             }
 
-            return ChangeSignatureWithContext(context, options, cancellationToken);
+            return ChangeSignatureWithContextAsync(context, options, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
-        internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
-            return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
+            var updatedSolution = await TryCreateUpdatedSolutionAsync(context, options, cancellationToken).ConfigureAwait(false);
+            return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
         internal ChangeSignatureOptionsResult GetChangeSignatureOptions(
@@ -195,10 +195,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private bool TryCreateUpdatedSolution(
-            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
+#nullable enable
+
+        private async Task<Solution?> TryCreateUpdatedSolutionAsync(
+            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            updatedSolution = context.Solution;
+            var originalSolution = context.Solution;
             var declaredSymbol = context.Symbol;
 
             var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var symbol in symbols)
             {
                 if (symbol.Definition.Kind == SymbolKind.Method &&
-                    ((symbol.Definition as IMethodSymbol).MethodKind == MethodKind.PropertyGet || (symbol.Definition as IMethodSymbol).MethodKind == MethodKind.PropertySet))
+                    ((symbol.Definition as IMethodSymbol)!.MethodKind == MethodKind.PropertyGet || (symbol.Definition as IMethodSymbol)!.MethodKind == MethodKind.PropertySet))
                 {
                     continue;
                 }
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
                 {
-                    var eventSymbol = symbolWithSyntacticParameters as IEventSymbol;
+                    var eventSymbol = (symbolWithSyntacticParameters as IEventSymbol)!;
                     if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
@@ -254,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (symbolWithSyntacticParameters.Kind == SymbolKind.Method)
                 {
-                    var methodSymbol = symbolWithSyntacticParameters as IMethodSymbol;
+                    var methodSymbol = (symbolWithSyntacticParameters as IMethodSymbol)!;
                     if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                     {
                         symbolWithSyntacticParameters = methodSymbol.ContainingType;
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out var nodeToUpdate, out var documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, originalSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out var nodeToUpdate2, out var documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, originalSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
                 if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
                 {
-                    return false;
+                    return null;
                 }
             }
 
@@ -326,7 +328,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var updatedRoots = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var docId in nodesToUpdate.Keys)
             {
-                var doc = updatedSolution.GetDocument(docId);
+                var doc = originalSolution.GetDocument(docId)!;
                 var updater = doc.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
                 var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
 
@@ -352,13 +354,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // Update the documents using the updated syntax trees
 
+            var updatedSolution = originalSolution;
             foreach (var docId in nodesToUpdate.Keys)
             {
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
             }
 
-            return true;
+            return await updatedSolution.ExcludeDisallowedDocumentTextChangesAsync(originalSolution, cancellationToken).ConfigureAwait(false);
         }
+
+#nullable restore
 
         private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
