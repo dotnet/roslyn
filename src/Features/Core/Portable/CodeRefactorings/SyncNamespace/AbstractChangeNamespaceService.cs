@@ -189,8 +189,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     cancellationToken).ConfigureAwait(false);
 
                 var mergedSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                (_, mergedSolution) = await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                return await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+                return mergedSolution;
             }
             finally
             {

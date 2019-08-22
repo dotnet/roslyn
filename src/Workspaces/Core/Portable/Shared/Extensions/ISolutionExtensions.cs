@@ -90,9 +90,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static async Task<Solution> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
+        public static async Task<(bool containsDisallowedChange, Solution purgedSolution)> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
         {
             var solutionChanges = newSolution.GetChanges(oldSolution);
+            var containsDisallowedChange = false;
 
             foreach (var projectChange in solutionChanges.GetProjectChanges())
             {
@@ -104,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         continue;
                     }
 
+                    containsDisallowedChange = true;
+
                     var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var newDocument = newSolution.GetDocument(changedDocumentId)!;
                     var revertedDocument = newDocument.WithSyntaxRoot(oldRoot);
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return newSolution;
+            return (containsDisallowedChange, newSolution);
         }
     }
 }

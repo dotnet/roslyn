@@ -360,7 +360,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
             }
 
-            return await updatedSolution.ExcludeDisallowedDocumentTextChangesAsync(originalSolution, cancellationToken).ConfigureAwait(false);
+            (_, updatedSolution) = await updatedSolution.ExcludeDisallowedDocumentTextChangesAsync(originalSolution, cancellationToken).ConfigureAwait(false);
+            return updatedSolution;
         }
 
 #nullable restore

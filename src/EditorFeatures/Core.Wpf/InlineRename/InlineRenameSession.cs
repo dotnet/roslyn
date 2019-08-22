@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 var excludeChangesTask = newSolution.ExcludeDisallowedDocumentTextChangesAsync(_workspace.CurrentSolution, waitContext.CancellationToken);
                 excludeChangesTask.Wait(waitContext.CancellationToken);
-                newSolution = excludeChangesTask.Result;
+                newSolution = excludeChangesTask.Result.purgedSolution;
 
                 waitContext.AllowCancel = false;
 
