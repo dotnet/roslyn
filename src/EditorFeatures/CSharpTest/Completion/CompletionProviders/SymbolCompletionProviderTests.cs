@@ -10320,5 +10320,23 @@ public class C
             await VerifyItemExistsAsync(markup, "Equals");
             await VerifyItemIsAbsentAsync(markup, "DoSomething", displayTextSuffix: "<>");
         }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionInStaticMethod()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    static void M()
+    {
+        void Local() { }
+
+        $$
+    }
+}", "Local");
+        }
     }
 }
