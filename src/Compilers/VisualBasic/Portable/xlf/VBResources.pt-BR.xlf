@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Use a versão de linguagem {0} ou posterior para usar comentários após o caractere de continuação de linha.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Não é possível que haja vários arquivos de configuração do analisador no mesmo diretório ('{0}').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">comentários após a continuação da linha</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -1680,7 +1680,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por "ReadyOnly" ou "WriteOnly".</target>
+        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por "ReadOnly" ou "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -2809,7 +2809,7 @@
       </trans-unit>
       <trans-unit id="ERR_GotoIntoSyncLock">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'SyncLock' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLok" que não contém essa instrução.</target>
+        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLock" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoWith">
@@ -3245,7 +3245,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">O caractere de continuação de linha '_' deve ser precedido por no mínimo um espaço em branco e deve ser o último caractere na linha.</target>
+        <target state="translated">O caractere de continuação de linha '_' precisa ser precedido por pelo menos um espaço em branco e seguido por um comentário ou ser o último caractere da linha.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -4005,7 +4005,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidSubsystemVersion">
         <source>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</source>
-        <target state="translated">O valor "{0}" não é uma versão de subsistema válido. A versão deve ser 6.02 ou mais recente para ARM ou AppContainer Exe e 4.00 ou mais recente caso contrário.</target>
+        <target state="translated">O valor "{0}" não é uma versão de subsistema válido. A versão deve ser 6.02 ou mais recente para ARM ou AppContainerExe e 4.00 ou mais recente caso contrário.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFileAlignment">

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,6 +38,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
         {
+            // Special case: if you are overriding object.ToString(), we will make the return value as non-nullable. The return was made nullable because
+            // are implementations out there that will return null, but that's not something we really want new implementations doing. We may need to consider
+            // expanding this behavior to other methods in the future; if that is the case then we would want there to be an attribute on the return type
+            // rather than updating this list, but for now there is no such attribute until we find more cases for it. See
+            // https://github.com/dotnet/roslyn/issues/30317 for some additional conversation about this design decision.
+            //
+            // We don't check if methodSymbol.ContainingType is object, in case you're overriding something that is itself an override
+            if (newOverriddenMember is IMethodSymbol methodSymbol &&
+                methodSymbol.Name == "ToString" &&
+                methodSymbol.Parameters.Length == 0)
+            {
+                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullability(NullableAnnotation.NotAnnotated));
+            }
+
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
 

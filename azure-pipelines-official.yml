@@ -151,23 +151,23 @@ stages:
       continueOnError: true
       condition: succeededOrFailed()
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Ngen Logs
-    inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
-      ArtifactName: 'NGen Logs'
-      publishLocation: Container
-    continueOnError: true
-    condition: succeeded()
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Ngen Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
+        ArtifactName: 'NGen Logs'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeeded()
 
-  - task: PublishTestResults@2
-    displayName: Publish xUnit Test Results
-    inputs:
-      testRunner: XUnit
-      testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
-      mergeTestResults: true
-      testRunTitle: 'Unit Tests'
-    condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Unit Tests'
+      condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
     # Publishes setup VSIXes to a drop.
     # Note: The insertion tool looks for the display name of this task in the logs.

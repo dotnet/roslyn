@@ -265,17 +265,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             }
 
             var syntaxFactory = semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(semanticDocument.SemanticModel.Compilation.Assembly);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
-                returnType: delegateType.DelegateInvokeMethod.ReturnType,
-                refKind: delegateType.DelegateInvokeMethod.RefKind,
+                returnType: delegateInvokeMethod.ReturnType,
+                refKind: delegateInvokeMethod.RefKind,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
                 typeParameters: default,
-                parameters: delegateType.DelegateInvokeMethod.Parameters,
+                parameters: delegateInvokeMethod.Parameters,
                 statements: ImmutableArray.Create(
                     CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")));
         }
