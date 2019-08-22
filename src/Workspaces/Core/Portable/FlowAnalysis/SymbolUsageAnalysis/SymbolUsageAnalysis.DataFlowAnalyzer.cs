@@ -108,10 +108,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 void AfterBlockAnalysis()
                 {
-                    // At end of entry block, handle ref/out parameter definitions from method declaration.
-                    if (basicBlock.Kind == BasicBlockKind.Exit)
+                    // If we are exiting the control flow graph, handle ref/out parameter definitions from method declaration.
+                    if (basicBlock.FallThroughSuccessor?.Destination == null &&
+                        basicBlock.ConditionalSuccessor?.Destination == null)
                     {
-                        _analysisData.SetAnalysisDataOnExitBlockEnd();
+                        _analysisData.SetAnalysisDataOnMethodExit();
                     }
                 }
             }
