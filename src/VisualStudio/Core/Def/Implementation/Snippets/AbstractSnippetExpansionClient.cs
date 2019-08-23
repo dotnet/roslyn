@@ -375,8 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
-            var expansion = buffer as IVsExpansion;
-            if (buffer == null || expansion == null)
+            if (buffer == null || !(buffer is IVsExpansion expansion))
             {
                 return false;
             }
@@ -526,7 +525,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var assemblyXmlName = XName.Get("Assembly", snippetNode.Name.NamespaceName);
             var failedReferenceAdditions = new List<string>();
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
 
             foreach (var reference in referencesNode.Elements(XName.Get("Reference", snippetNode.Name.NamespaceName)))
             {
@@ -540,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     continue;
                 }
 
-                if (visualStudioWorkspace == null ||
+                if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace) ||
                     !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
                 {
                     failedReferenceAdditions.Add(assemblyName);
@@ -560,8 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
+            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl vsWorkspace))
             {
                 return false;
             }

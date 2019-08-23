@@ -5331,7 +5331,7 @@
     <value>Unused import statement</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
@@ -5545,5 +5545,11 @@
   </data>
   <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
     <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
 </root>

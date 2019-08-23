@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ? FeaturesResources.Replace_0_with_method
                 : FeaturesResources.Replace_0_with_methods;
 
-            context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
-                string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
-                propertyName));
+            context.RegisterRefactoring(
+                new ReplacePropertyWithMethodsCodeAction(
+                    string.Format(resourceString, propertyName),
+                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
+                    propertyName),
+                propertyDeclaration.Span);
         }
 
         private async Task<Solution> ReplacePropertyWithMethodsAsync(

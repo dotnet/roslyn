@@ -178,16 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
-                using (var operation = _notificationService.Start("BuildDone"))
+                using var operation = _notificationService.Start("BuildDone");
+                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                 {
-                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    {
-                        await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
-                        await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
-                    }
-
-                    inProgressState.Done();
+                    await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
+                    await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
                 }
+
+                inProgressState.Done();
             }).CompletesAsyncOperation(asyncToken);
         }
 
@@ -662,15 +660,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public override bool Equals(object obj)
-            {
-                var other = obj as ArgumentKey;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                return base.Equals(obj);
-            }
+                => obj is ArgumentKey &&
+                   base.Equals(obj);
 
             public override int GetHashCode()
             {
@@ -704,7 +695,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public int GetHashCode(DiagnosticData obj)
             {
-                int result =
+                var result =
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,

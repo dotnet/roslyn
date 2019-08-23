@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             bool separateImportGroups = false,
             CSharpParseOptions options = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initial))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
+            using var workspace = TestWorkspace.CreateCSharp(initial);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
+            workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
 
-                var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
-                Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
-            }
+            var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]

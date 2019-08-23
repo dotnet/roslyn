@@ -90,8 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            int ignored = 0;
-            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, ref ignored);
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right);
             switch (comparison)
             {
                 case BoundLiteral _:

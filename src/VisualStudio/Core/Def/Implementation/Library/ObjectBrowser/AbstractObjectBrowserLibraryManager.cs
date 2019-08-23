@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
-        private object _classMemberGate = new object();
+        private readonly object _classMemberGate = new object();
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;

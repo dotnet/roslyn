@@ -147,34 +147,28 @@ namespace Microsoft.CodeAnalysis.Host
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
                 // tree will be always held alive in memory, but nodes come and go. serialize nodes to storage
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    root.SerializeTo(stream, cancellationToken);
-                    stream.Position = 0;
+                using var stream = SerializableBytes.CreateWritableStream();
+                root.SerializeTo(stream, cancellationToken);
+                stream.Position = 0;
 
-                    _storage = _service.LanguageServices.WorkspaceServices.GetService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
-                    await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
-                }
+                _storage = _service.LanguageServices.WorkspaceServices.GetService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
+                await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
             protected override async Task<TRoot> RecoverAsync(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    return RecoverRoot(stream, cancellationToken);
-                }
+                using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
+                return RecoverRoot(stream, cancellationToken);
             }
 
             protected override TRoot Recover(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (var stream = _storage.ReadStream(cancellationToken))
-                {
-                    return RecoverRoot(stream, cancellationToken);
-                }
+                using var stream = _storage.ReadStream(cancellationToken);
+                return RecoverRoot(stream, cancellationToken);
             }
 
             private TRoot RecoverRoot(Stream stream, CancellationToken cancellationToken)
