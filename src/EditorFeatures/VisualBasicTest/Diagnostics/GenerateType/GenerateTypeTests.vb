@@ -532,7 +532,9 @@ Class Program
         Call New [|Bar|]()
     End Sub
 End Class",
-"Friend Class Bar
+"''' I am a doc comment!
+
+Friend Class Bar
     Public Sub New()
     End Sub
 End Class

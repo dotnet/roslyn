@@ -1362,6 +1362,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.StringLiteralExpression
         End Function
 
+        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return node.Kind() = SyntaxKind.CharacterLiteralExpression
+        End Function
+
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
             ' VB does not have verbatim strings
             Return False
@@ -1696,6 +1700,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
+        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
             ' VB does not have multi-line comments.
             Return False
         End Function

@@ -1310,6 +1310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
 
+        public bool IsCharacterLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.CharacterLiteralExpression;
+
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
@@ -1604,6 +1607,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
+
+        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineDocComment();
+
+        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineDocComment();
 
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();

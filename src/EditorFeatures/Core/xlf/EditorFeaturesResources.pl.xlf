@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">Symbol nie ma wartości podstawowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">Wartości podstawowe „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1307,6 +1307,26 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Inteligentny element formatujący tokeny</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Trwa przełączanie komentarza blokowego...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Przełącz komentarz blokowy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Trwa przełączanie komentarza wiersza...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Przełącz komentarz wiersza</target>
         <note />
       </trans-unit>
     </body>

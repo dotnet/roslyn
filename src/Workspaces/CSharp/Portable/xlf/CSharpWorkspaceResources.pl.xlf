@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="using_directive_preferences">
         <source>'using' directive preferences</source>
-        <target state="new">'using' directive preferences</target>
+        <target state="translated">Preferencje dyrektywy „using”</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="var_preferences">

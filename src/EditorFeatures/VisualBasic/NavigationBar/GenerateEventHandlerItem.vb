@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 explicitInterfaceImplementations:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
-                parameters:=delegateInvokeMethod.Parameters.WithAttributesToBeCopied(destinationType),
+                parameters:=delegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType).Parameters,
                 handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
