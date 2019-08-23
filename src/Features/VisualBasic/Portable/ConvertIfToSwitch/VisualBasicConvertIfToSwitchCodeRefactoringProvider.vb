@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 9.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -37,6 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             Public Sub New(syntaxFacts As ISyntaxFactsService)
                 MyBase.New(syntaxFacts)
             End Sub
+
+            Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of SwitchSection)) As SyntaxNode
+                Throw ExceptionUtilities.Unreachable
+            End Function
 
             Public Overrides Function CreateSwitchStatement(ifStatement As SyntaxNode, expression As SyntaxNode, sectionList As IEnumerable(Of SyntaxNode)) As SyntaxNode
                 Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
@@ -137,6 +142,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     Return True
                 End Get
             End Property
+
+            Public Overrides ReadOnly Property SupportsSwitchExpression As Boolean
+                Get
+                    Return False
+                End Get
+             End Property
         End Class
     End Class
 End Namespace

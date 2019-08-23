@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -34,6 +35,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             public CSharpAnalyzer(ISyntaxFactsService syntaxFacts)
                 : base(syntaxFacts)
             {
+            }
+
+            public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<SwitchSection> sections)
+            {
+                return ReturnStatement(
+                    SwitchExpression((ExpressionSyntax)target, SeparatedList(sections.Select(AsSwitchExpressionArmSyntax))));
+            }
+
+            private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(SwitchSection section)
+            {
+                return SwitchExpressionArm(
+                    pattern: section.Labels.IsDefault
+                        ? DiscardPattern()
+                        : AsPatternSyntax(section.Labels[0].Pattern),
+                    whenClause: section.Labels.IsDefault
+                        ? null 
+                        : AsWhenClause(section.Labels[0]),
+                    expression: AsExpressionSyntax(section.Body));
+            }
+
+            private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
+            {
+                return operation switch
+                {
+                    IReturnOperation op => (ExpressionSyntax)op.ReturnedValue.Syntax,
+                    IThrowOperation op => ThrowExpression((ExpressionSyntax)op.Exception.Syntax),
+                    var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
+                };
             }
 
             public override SyntaxNode CreateSwitchStatement(SyntaxNode node, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList)
@@ -106,10 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
                 return CasePatternSwitchLabel(
                     AsPatternSyntax(label.Pattern),
-                    AsWhenClause(label.Guards
-                        .Cast<ExpressionSyntax>()
-                        .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current.WalkDownParentheses(), prev))),
+                    AsWhenClause(label),
                     Token(SyntaxKind.ColonToken));
+            }
+
+            private static WhenClauseSyntax? AsWhenClause(SwitchLabel label)
+            {
+                return AsWhenClause(label.Guards
+                    .Cast<ExpressionSyntax>()
+                    .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current.WalkDownParentheses(), prev)));
             }
 
             private static PatternSyntax AsPatternSyntax(Pattern pattern)
@@ -122,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     var v => throw ExceptionUtilities.UnexpectedValue(v.GetType())
                 };
             }
-            
+
             // We do not offer a fix if the if-statement contains a break-statement, e.g.
             //
             //      while (...)
@@ -137,7 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
 
             public override string Title => CSharpFeaturesResources.Convert_to_switch;
-            
+
+            public override bool SupportsSwitchExpression => true;
             public override bool SupportsCaseGuard => true;
             public override bool SupportsRangePattern => false;
             public override bool SupportsTypePattern => true;

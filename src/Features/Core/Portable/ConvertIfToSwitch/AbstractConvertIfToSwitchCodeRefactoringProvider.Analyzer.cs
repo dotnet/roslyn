@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         // Match the following pattern which can be safely converted to switch statement
         //
         //    <if-statement-sequence>
-        //        : if (<condition-expr>) { <unreachable-end-point> }, <if-statement-sequence>
-        //        : if (<condition-expr>) { <unreachable-end-point> }, ( return | throw )
+        //        : if (<section-expr>) { <unreachable-end-point> }, <if-statement-sequence>
+        //        : if (<section-expr>) { <unreachable-end-point> }, ( return | throw )
         //        | <if-statement>
 
         //    <if-statement>
-        //        : if (<condition-expr>) { _ } else <if-statement>
-        //        | if (<condition-expr>) { _ } else { _ }
-        //        | if (<condition-expr>) { _ }
+        //        : if (<section-expr>) { _ } else <if-statement>
+        //        | if (<section-expr>) { _ } else { _ }
+        //        | if (<section-expr>) { _ }
         //        | { <if-statement-sequence> }
 
         //    <pattern-expr>
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        | ( <expr0> <= <const> | <const> >= <expr0> )
         //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
         //
-        //    <condition-expr>
-        //        : <condition-expr> || <pattern-expr>
+        //    <section-expr>
+        //        : <section-expr> || <pattern-expr>
         //        | <pattern-expr>
         //
         internal abstract class Analyzer<TIfStatementSyntax> : IAnalyzer where TIfStatementSyntax : SyntaxNode
@@ -406,7 +406,36 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 context.RegisterRefactoring(new MyCodeAction(Title,
-                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections)));
+                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: false)));
+
+                if (SupportsSwitchExpression &&
+                    CanConvertToSwitchExpression(sections))
+                {
+                    context.RegisterRefactoring(new MyCodeAction("TODO",
+                        _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: true)));
+                }
+            }
+
+            private static bool CanConvertToSwitchExpression(ImmutableArray<SwitchSection> sections)
+            {
+                return
+                    sections.Any(section => section.Labels.IsDefault) &&
+                    sections.All(section => section.Labels.IsDefault || section.Labels.Length == 1) &&
+                    sections.Any(section => section.Body.Kind == OperationKind.Return) &&
+                    sections.All(section => CanConvertToSwitchArm(section.Body));
+
+                static bool CanConvertToSwitchArm(IOperation op)
+                {
+                    switch (op)
+                    {
+                        case IReturnOperation { ReturnedValue: { } }:
+                        case IThrowOperation { Exception: { } }:
+                        case IBlockOperation { Operations: { Length: 1 } statements } when CanConvertToSwitchArm(statements[0]):
+                            return true;
+                    }
+
+                    return false;
+                }
             }
 
             private Task<Document> UpdateDocumentAsync(
@@ -414,16 +443,26 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 Document document,
                 SyntaxNode target,
                 SyntaxNode ifStatement,
-                ImmutableArray<SwitchSection> sections)
+                ImmutableArray<SwitchSection> sections,
+                bool convertToSwitchExpression)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
 
                 var ifSpan = ifStatement.Span;
                 var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
-                var @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
-                    .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-                    .WithAdditionalAnnotations(Formatter.Annotation);
+
+                SyntaxNode @switch;
+                if (convertToSwitchExpression)
+                {
+                    @switch = CreateSwitchExpressionStatement(target, sections);
+                }
+                else
+                {
+                    @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
+                        .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                        .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                        .WithAdditionalAnnotations(Formatter.Annotation);
+                }
 
                 var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
@@ -439,7 +478,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
-            public abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList);
+            public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<SwitchSection> sections);
+            public abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
             public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
             public abstract SyntaxNode AsSwitchLabelSyntax(SwitchLabel label);
 
@@ -447,6 +487,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public abstract string Title { get; }
 
+            public abstract bool SupportsSwitchExpression { get; }
             public abstract bool SupportsRelationalPattern { get; }
             public abstract bool SupportsSourcePattern { get; }
             public abstract bool SupportsRangePattern { get; }

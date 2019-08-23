@@ -569,6 +569,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSwitchExpression_01()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) return 5;
+        if (i == 0) return 6;
+        return 7;
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        return i switch
+        {
+            null => 5,
+            0 => 6,
+            _ => 7
+        };
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_02()
         {
             await TestInRegularAndScriptAsync(
