@@ -55,6 +55,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

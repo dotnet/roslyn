@@ -884,6 +884,38 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var [|a = {|result:new object()|}|];
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        {|result:var [|a = new object()|];|}
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractInHeaderOfProperty()
         {
             var testText = @"

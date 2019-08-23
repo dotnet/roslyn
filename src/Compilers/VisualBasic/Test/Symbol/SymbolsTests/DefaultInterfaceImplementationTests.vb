@@ -327,19 +327,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
-            i2.M1()
-            ~~~~~
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
-    Sub M1() Implements I1.M1
-                        ~~~~~
-</error>)
-#End If
         End Sub
 
 
@@ -381,19 +369,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
-            i2.M1()
-            ~~~~~
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
-    Sub M1() Implements I1.M1
-                        ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -504,7 +480,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_13()
 
@@ -536,7 +512,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_14()
 
@@ -801,7 +777,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_21()
 
@@ -840,7 +816,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_22()
 
@@ -1149,12 +1125,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Function M1() As String' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(I1.M1())
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -1187,12 +1158,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Function M1() As String' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(I1.M1())
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -1267,15 +1233,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
-            i2.M1()
-            ~~~~~
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
-    Sub M1() Implements I1.M1
-                        ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -1317,15 +1275,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
-            i2.M1()
-            ~~~~~
-BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
-    Sub M1() Implements I1.M1
-                        ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -1395,7 +1345,7 @@ BC30389: 'I1.M1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub Field_03()
 
@@ -1424,7 +1374,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub Field_04()
 
@@ -1623,12 +1573,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.M1' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(I1.M1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -1658,12 +1603,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.M1' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(I1.M1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         Private Const NoPiaAttributes As String = "
@@ -1732,8 +1672,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Implements ITest33
+               ~~~~~~~
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub M1() Implements ITest33.M1
+                        ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1772,8 +1719,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1813,8 +1764,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1853,8 +1808,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest33)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1893,8 +1852,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+        ITest33.M1()
+        ~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1979,10 +1942,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics(
 <error>
-BC31542: Embedded interop structure 'ITest33' can contain only public instance fields.
+BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
         Dim x = ITest33.F1
                 ~~~~~~~~~~
 </error>
@@ -2032,12 +1994,16 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37307: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest44)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
+        <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
             Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
@@ -2079,8 +2045,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-            comp1.AssertTheseEmitDiagnostics()
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC37308: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
+    Sub Main(x as ITest44)
+                  ~~~~~~~
+</expected>)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
@@ -2235,7 +2205,7 @@ B
 I1+T5")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_02()
 
@@ -2271,14 +2241,13 @@ Public Class Test1
     Implements I1
 
     Shared Sub Main()
-        Dim a As I1.T1 = new Test1()
+        Dim a As I1.T1 = new Test2()
         a.M1()
         System.Console.WriteLine(new I1.T2())
         System.Console.WriteLine(new I1.T3())
         System.Console.WriteLine(I1.T4.B.ToString())
         System.Console.WriteLine(new I1.T5(AddressOf a.M1))
     End Sub
-
 
     Public Class Test2
         Implements I1.T1
@@ -2435,33 +2404,10 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
-        Dim a As I1.T1 = new Test1()
-                 ~~~~~
-BC30389: 'I1.T2' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(new I1.T2())
-                                     ~~~~~
-BC30389: 'I1.T3' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(new I1.T3())
-                                     ~~~~~
-BC30389: 'I1.T4' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(I1.T4.B.ToString())
-                                 ~~~~~
-BC30389: 'I1.T5' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(new I1.T5(AddressOf a.M1))
-                                     ~~~~~
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
-        Implements I1.T1
-                   ~~~~~
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
-        Sub M1() Implements I1.T1.M1
-                            ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_05()
 
@@ -2497,14 +2443,13 @@ Public Class Test1
     Implements I1
 
     Shared Sub Main()
-        Dim a As I1.T1 = new Test1()
+        Dim a As I1.T1 = new Test2()
         a.M1()
         System.Console.WriteLine(new I1.T2())
         System.Console.WriteLine(new I1.T3())
         System.Console.WriteLine(I1.T4.B.ToString())
         System.Console.WriteLine(new I1.T5(AddressOf a.M1))
     End Sub
-
 
     Public Class Test2
         Implements I1.T1
@@ -2662,30 +2607,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Friend'.
-        Dim a As I1.T1 = new Test1()
-                 ~~~~~
-BC30389: 'I1.T2' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(new I1.T2())
-                                     ~~~~~
-BC30389: 'I1.T3' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(new I1.T3())
-                                     ~~~~~
-BC30389: 'I1.T4' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(I1.T4.B.ToString())
-                                 ~~~~~
-BC30389: 'I1.T5' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(new I1.T5(AddressOf a.M1))
-                                     ~~~~~
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Friend'.
-        Implements I1.T1
-                   ~~~~~
-BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Friend'.
-        Sub M1() Implements I1.T1.M1
-                            ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -2929,6 +2851,276 @@ BC30389: 'I1.T1' is not accessible in this context because it is 'Private Protec
         Sub M1() Implements I1.T1.M1
                             ~~~~~
 </error>)
+        End Sub
+
+        <Fact>
+        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        Public Sub NestedTypes_11()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface T1
+    {
+        void M1();
+    }
+
+    protected class T2
+    {}
+
+    protected struct T3
+    {}
+
+    protected enum T4
+    {
+        B
+    }
+
+    protected delegate void T5();
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Interface Test1
+    Inherits I1
+
+    Class Test3
+        Shared Sub Main()
+            Dim a As I1.T1 = new Test2()
+            a.M1()
+            System.Console.WriteLine(new I1.T2())
+            System.Console.WriteLine(new I1.T3())
+            System.Console.WriteLine(I1.T4.B.ToString())
+            System.Console.WriteLine(new I1.T5(AddressOf a.M1))
+        End Sub
+    End Class
+
+    Class Test2
+        Implements I1.T1
+        Sub M1() Implements I1.T1.M1
+            System.Console.WriteLine("M1")
+        End Sub
+    End Class
+End Interface
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
+"M1
+I1+T2
+I1+T3
+B
+I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+        End Sub
+
+        <Fact>
+        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        Public Sub NestedTypes_12()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface T1
+    {
+        void M1();
+    }
+
+    protected class T2
+    {}
+
+    protected struct T3
+    {}
+
+    protected enum T4
+    {
+        B
+    }
+
+    protected delegate void T5();
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Interface Test1
+    Inherits I1
+
+    Class Test3
+        Shared Sub Main()
+            Dim a As I1.T1 = new Test2()
+            a.M1()
+            System.Console.WriteLine(new I1.T2())
+            System.Console.WriteLine(new I1.T3())
+            System.Console.WriteLine(I1.T4.B.ToString())
+            System.Console.WriteLine(new I1.T5(AddressOf a.M1))
+        End Sub
+
+        Private Interface I2
+            Inherits I1.T1
+        End Interface
+
+        Class Test2
+            Implements I2
+            Sub M1() Implements I1.T1.M1
+                System.Console.WriteLine("M1")
+            End Sub
+        End Class
+    End Class
+End Interface
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
+"M1
+I1+T2
+I1+T3
+B
+I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+        End Sub
+
+        <Fact>
+        Public Sub NestedTypes_13()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface T1
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Interface Test1
+    Inherits I1, I1.T1
+End Interface
+Interface Test2
+    Inherits I1.T1, I1
+End Interface
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error>
+BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
+    Inherits I1, I1.T1
+                 ~~~~~
+BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
+    Inherits I1.T1, I1
+             ~~~~~
+</error>)
+        End Sub
+
+        <Fact>
+        Public Sub NestedTypes_14()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface T1
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class Test1
+    Implements I1, I1.T1
+End Class
+Class Test2
+    Implements I1.T1, I1
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error>
+BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
+    Implements I1, I1.T1
+                   ~~~~~
+BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
+    Implements I1.T1, I1
+               ~~~~~
+</error>)
+        End Sub
+
+        <Fact>
+        Public Sub NestedTypes_15()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected class T1
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class Test1
+    Inherits I1.T1
+    Implements I1
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error>
+BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
+    Inherits I1.T1
+             ~~~~~
+</error>)
+        End Sub
+
+        <Fact>
+        Public Sub NestedTypes_16()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class C1
+    Protected Interface T1
+    End Interface
+End Class
+
+Class Test1
+    Inherits C1
+    Implements C1.T1
+End Class
+
+Class Test2
+    Inherits C1
+    Implements T1
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -3348,21 +3540,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            i2.P1 += 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -3409,18 +3589,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -3467,18 +3638,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -3525,21 +3687,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            i2.P1 += 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -3586,18 +3736,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -3644,18 +3785,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -4324,7 +4456,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_030()
 
@@ -4354,7 +4486,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_031()
 
@@ -4384,7 +4516,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_032()
 
@@ -4414,7 +4546,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_033()
 
@@ -4444,7 +4576,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_034()
 
@@ -4474,7 +4606,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_035()
 
@@ -5142,7 +5274,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_052()
 
@@ -5184,7 +5316,7 @@ End Class
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_053()
 
@@ -5226,7 +5358,7 @@ End Class
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_054()
 
@@ -5268,7 +5400,7 @@ End Class
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_055()
 
@@ -5310,7 +5442,7 @@ End Class
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_056()
 
@@ -5352,7 +5484,7 @@ End Class
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_057()
 
@@ -6118,15 +6250,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        I1.P1 = 100
-        ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6157,12 +6281,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-        I1.P1 = 100
-        ~~~~~~~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6193,12 +6312,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6229,15 +6343,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        I1.P1 = 100
-        ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6268,12 +6374,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-        I1.P1 = 100
-        ~~~~~~~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6304,12 +6405,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6383,15 +6479,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            i2.P1 += 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6431,12 +6519,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6476,12 +6559,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6521,15 +6599,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            i2.P1 += 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6569,12 +6639,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31102: 'Set' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6614,12 +6679,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC31103: 'Get' accessor of property 'P1' is not accessible.
-            i2.P1 += 1
-            ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -6937,19 +6997,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            Dim x = i2.P1
-                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Readonly Property P1 As Integer Implements I1.P1
-                                               ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -6993,19 +7041,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            Dim x = i2.P1
-                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Readonly Property P1 As Integer Implements I1.P1
-                                               ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -7121,7 +7157,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_101()
 
@@ -7150,7 +7186,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_102()
 
@@ -7404,7 +7440,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_109()
 
@@ -7443,7 +7479,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_110()
 
@@ -7741,12 +7777,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -7776,12 +7807,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        System.Console.WriteLine(I1.P1)
-                                 ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -7855,15 +7881,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            Dim x = i2.P1
-                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Readonly Property P1 As Integer Implements I1.P1
-                                               ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -7903,15 +7921,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            Dim x = i2.P1
-                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Readonly Property P1 As Integer Implements I1.P1
-                                               ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -8225,19 +8235,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            i2.P1 = 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Writeonly Property P1 As Integer Implements I1.P1
-                                                ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -8280,19 +8278,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            i2.P1 = 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Writeonly Property P1 As Integer Implements I1.P1
-                                                ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -8410,7 +8396,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_134()
 
@@ -8442,7 +8428,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_135()
 
@@ -8699,7 +8685,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_142()
 
@@ -8738,7 +8724,7 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_143()
 
@@ -9036,12 +9022,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        I1.P1 = 100
-        ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -9071,12 +9052,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        I1.P1 = 100
-        ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -9150,15 +9126,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            i2.P1 = 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -9198,15 +9166,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            i2.P1 = 1
-            ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Property P1 As Integer Implements I1.P1
-                                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -9553,24 +9513,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
 C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            AddHandler i2.P1, Nothing
-                       ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            RemoveHandler i2.P1, Nothing
-                          ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Custom Event P1 As System.Action Implements I1.P1
-                                                ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -9619,24 +9564,9 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-#If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
 C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
-#Else
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            AddHandler i2.P1, Nothing
-                       ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            RemoveHandler i2.P1, Nothing
-                          ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Custom Event P1 As System.Action Implements I1.P1
-                                                ~~~~~
-</error>)
-#End If
         End Sub
 
         <Fact>
@@ -9769,16 +9699,16 @@ BC30456: 'P1' is not a member of 'I1'.
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_13()
 
@@ -9821,7 +9751,7 @@ End Class
 M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_14()
 
@@ -9904,10 +9834,10 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
             Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         AddHandler I1.P1, Nothing
                    ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
+BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
         RemoveHandler I1.P1, Nothing
                       ~~~~~
 </error>)
@@ -10123,7 +10053,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
 </error>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_21()
 
@@ -10166,7 +10096,7 @@ End Class
 I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35827")>
+        <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_22()
 
@@ -10499,15 +10429,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        AddHandler I1.P1, Nothing
-                   ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-        RemoveHandler I1.P1, Nothing
-                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -10538,15 +10460,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        AddHandler I1.P1, Nothing
-                   ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-        RemoveHandler I1.P1, Nothing
-                      ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -10622,18 +10536,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            AddHandler i2.P1, Nothing
-                       ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-            RemoveHandler i2.P1, Nothing
-                          ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
-    Event P1 As System.Action Implements I1.P1
-                                         ~~~~~
-</error>)
+            comp1.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -10674,18 +10577,432 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+            comp1.AssertTheseDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        Public Sub ProtectedAccess_01()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected void M1();
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Interface I2
+    Inherits I1
+
+    Class C1
+        Shared Sub Main()
+            Test(new C())
+        End Sub
+
+        Shared Sub Test(Of T As I2)(i2 as T)
+            i2.M1()
+        End Sub
+    End Class
+End Interface
+
+Class C
+    Implements I2
+
+    Sub M1() Implements I1.M1
+        System.Console.WriteLine("C.M1")
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+        End Sub
+
+        <Fact>
+        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        Public Sub ProtectedAccess_02()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+    Public Class I1
+        Protected Sub M1()
+
+        End Sub
+    End Class
+
+    Class I2
+        Inherits I1
+
+        Class C1
+            Shared Sub Main()
+                Test(new I2())
+            End Sub
+
+            Shared Sub Test(Of T As I2)(i2 As T)
+                i2.M1()
+            End Sub
+        End Class
+    End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe)
+            comp1.AssertTheseDiagnostics()
+
+            Dim test = comp1.GetMember(Of MethodSymbol)("I2.C1.Test")
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(symbol:=comp1.GetMember("I1.M1"),
+                                                       within:=test.ContainingType,
+                                                       throughType:=test.TypeParameters(0)))
+        End Sub
+
+        <Fact>
+        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        Public Sub ProtectedAccess_03()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected void M1();
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Interface I2
+    Inherits I1
+
+    Class C1
+        Shared Sub Main()
+            Test(Of C, C)(new C())
+        End Sub
+
+        Shared Sub Test(Of T1 As I2, T2 As T1)(i2 as T2)
+            i2.M1()
+        End Sub
+    End Class
+End Interface
+
+Class C
+    Implements I2
+
+    Sub M1() Implements I1.M1
+        System.Console.WriteLine("C.M1")
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+        End Sub
+
+        <Fact>
+        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        Public Sub Operators_01()
+            Dim csSource =
+"
+public interface I1
+{
+    public static I1 operator +(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator -(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator !(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ~(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ++(I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator --(I1 x)
+    {
+        return x;
+    }
+
+    public static bool operator true(I1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(I1 x)
+    {
+        return false;
+    }
+
+    public static I1 operator +(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator -(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator *(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator /(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator %(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator &(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator |(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator ^(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <<(I1 x, int y)
+    {
+        return x;
+    }
+
+    public static I1 operator >>(I1 x, int y)
+    {
+        return x;
+    }
+
+    public static I1 operator >(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator >=(I1 x, I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator <=(I1 x, I1 y)
+    {
+        return x;
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Test2 
+    Implements I1
+
+    Shared Sub Main()
+        Dim x As I1 = new Test2()
+        Dim y As I1 = new Test2()
+
+        x = +x
+        x = -x
+        x = Not x
+        'x = ~x;
+        'x = ++x;
+        'x = x--;
+
+        x = x + y
+        x = x - y
+        x = x * y
+        x = x / y
+        x = x \ y
+        x = x Mod y
+        x = x ^ y
+        if x AndAlso y
+        ENd If
+        x = x And y
+        x = x Or y
+        x = x Xor y
+        x = x << 1
+        x = x >> 2
+        x = x > y
+        x = x < y
+        x = x >= y
+        x = x <= y
+        x = x Like y
+        x = x & y
+        if x OrElse y
+        ENd If
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
-<error>
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            AddHandler i2.P1, Nothing
-                       ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-            RemoveHandler i2.P1, Nothing
-                          ~~~~~
-BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
-    Event P1 As System.Action Implements I1.P1
-                                         ~~~~~
-</error>)
+<expected><![CDATA[
+BC30487: Operator '+' is not defined for type 'I1'.
+        x = +x
+            ~~
+BC30487: Operator '-' is not defined for type 'I1'.
+        x = -x
+            ~~
+BC30487: Operator 'Not' is not defined for type 'I1'.
+        x = Not x
+            ~~~~~
+BC30452: Operator '+' is not defined for types 'I1' and 'I1'.
+        x = x + y
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'I1' and 'I1'.
+        x = x - y
+            ~~~~~
+BC30452: Operator '*' is not defined for types 'I1' and 'I1'.
+        x = x * y
+            ~~~~~
+BC30452: Operator '/' is not defined for types 'I1' and 'I1'.
+        x = x / y
+            ~~~~~
+BC30452: Operator '\' is not defined for types 'I1' and 'I1'.
+        x = x \ y
+            ~~~~~
+BC30452: Operator 'Mod' is not defined for types 'I1' and 'I1'.
+        x = x Mod y
+            ~~~~~~~
+BC30452: Operator '^' is not defined for types 'I1' and 'I1'.
+        x = x ^ y
+            ~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'I1' and 'I1'.
+        if x AndAlso y
+           ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'I1' and 'I1'.
+        x = x And y
+            ~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'I1' and 'I1'.
+        x = x Or y
+            ~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'I1' and 'I1'.
+        x = x Xor y
+            ~~~~~~~
+BC30452: Operator '<<' is not defined for types 'I1' and 'Integer'.
+        x = x << 1
+            ~~~~~~
+BC30452: Operator '>>' is not defined for types 'I1' and 'Integer'.
+        x = x >> 2
+            ~~~~~~
+BC30452: Operator '>' is not defined for types 'I1' and 'I1'.
+        x = x > y
+            ~~~~~
+BC30452: Operator '<' is not defined for types 'I1' and 'I1'.
+        x = x < y
+            ~~~~~
+BC30452: Operator '>=' is not defined for types 'I1' and 'I1'.
+        x = x >= y
+            ~~~~~~
+BC30452: Operator '<=' is not defined for types 'I1' and 'I1'.
+        x = x <= y
+            ~~~~~~
+BC30452: Operator 'Like' is not defined for types 'I1' and 'I1'.
+        x = x Like y
+            ~~~~~~~~
+BC30452: Operator '&' is not defined for types 'I1' and 'I1'.
+        x = x & y
+            ~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'I1' and 'I1'.
+        if x OrElse y
+           ~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        Public Sub Operators_02()
+            Dim csSource =
+"
+public class C1
+{}
+
+public interface I1
+{
+    public static I1 operator +(C1 x, I1 y)
+    {
+        return y;
+    }
+
+    public static I1 operator -(I1 x, C1 y)
+    {
+        return x;
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Test2 
+    Implements I1
+
+    Shared Sub Main()
+        Dim x As I1 = new Test2()
+        Dim y As C1 = new C1()
+
+        x = x + y
+        x = x - y
+        x = y + x
+        x = y - x
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30452: Operator '+' is not defined for types 'I1' and 'C1'.
+        x = x + y
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'I1' and 'C1'.
+        x = x - y
+            ~~~~~
+BC30452: Operator '+' is not defined for types 'C1' and 'I1'.
+        x = y + x
+            ~~~~~
+BC30452: Operator '-' is not defined for types 'C1' and 'I1'.
+        x = y - x
+            ~~~~~
+</expected>)
         End Sub
 
     End Class

@@ -17,11 +17,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
-    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax, TArgumentListExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TArgumentSyntax : SyntaxNode
         where TLiteralExpressionSyntax : SyntaxNode
+        where TArgumentListExpressionSyntax : SyntaxNode
     {
         protected abstract SyntaxNode GetInterpolatedString(string text);
 
@@ -53,8 +54,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (TryFindInvocation(textSpan, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out var invocation, out var invocationSymbol) &&
+            var (invocation, invocationSymbol) = await TryFindInvocationAsync(textSpan, document, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken).ConfigureAwait(false);
+            if (invocation != null && invocationSymbol != null &&
                 IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, cancellationToken))
             {
                 context.RegisterRefactoring(
@@ -65,37 +66,67 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
         }
 
-        private bool TryFindInvocation(
+        private async Task<(TInvocationExpressionSyntax, ISymbol)> TryFindInvocationAsync(
             TextSpan span,
-            SyntaxNode root,
+            Document document,
             SemanticModel semanticModel,
             ImmutableArray<IMethodSymbol> formatMethods,
             ISyntaxFactsService syntaxFactsService,
-            CancellationToken cancellationToken,
-            out TInvocationExpressionSyntax invocation,
-            out ISymbol invocationSymbol)
+            CancellationToken cancellationToken)
         {
-            invocationSymbol = null;
-            invocation = root.FindNode(span, getInnermostNodeForTie: true)?.FirstAncestorOrSelf<TInvocationExpressionSyntax>();
-            while (invocation != null)
+            var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var invocation = possibleInvocations.FirstOrDefault(invocation => IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken));
+
+            // User selected the whole invocation of format.
+            if (invocation != null)
+            {
+                return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
+            }
+
+            // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
+            var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+            invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
+            if (invocation != null && IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken))
+            {
+                return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
+            }
+
+            // User selected the whole argument list: string format with placeholders plus all expressions
+            var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            invocation = argumentList?.Parent as TInvocationExpressionSyntax;
+            if (invocation != null && IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken))
+            {
+                return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
+            }
+
+            return (null, null);
+
+            static bool IsValidPlaceholderToInterpolatedString(TInvocationExpressionSyntax invocation,
+                                                               ISyntaxFactsService syntaxFactsService,
+                                                               SemanticModel semanticModel,
+                                                               ImmutableArray<IMethodSymbol> formatMethods,
+                                                               AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
+                                                                   TInvocationExpressionSyntax, TExpressionSyntax,
+                                                                   TArgumentSyntax, TLiteralExpressionSyntax,
+                                                                   TArgumentListExpressionSyntax> thisInstance,
+                                                               CancellationToken cancellationToken)
             {
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
+                    if (syntaxFactsService.GetExpressionOfArgument(thisInstance.GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
+                        syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
-                        invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+                        var invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
                         if (formatMethods.Contains(invocationSymbol))
                         {
-                            break;
+                            return true;
                         }
                     }
                 }
 
-                invocation = invocation.Parent?.FirstAncestorOrSelf<TInvocationExpressionSyntax>();
+                return false;
             }
-
-            return invocation != null;
         }
 
         private bool IsArgumentListCorrect(

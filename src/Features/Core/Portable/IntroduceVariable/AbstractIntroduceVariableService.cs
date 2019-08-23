@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
                     var (title, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);

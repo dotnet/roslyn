@@ -44138,7 +44138,7 @@ public interface ITest33
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35911")]
+        [Fact]
         [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
         public void NoPia_10()
         {
@@ -44187,9 +44187,9 @@ class UsePia
                 var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
 
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+                    // (4,29): error CS8750: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
                     //     public static void Main(ITest44 x)
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
+                    Diagnostic(ErrorCode.ERR_ReAbstractionInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
                     );
             }
         }

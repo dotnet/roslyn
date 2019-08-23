@@ -259,6 +259,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ref int projectId,
             ref int documentId)
         {
+            AssertNoChildText(projectElement);
+
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
@@ -802,6 +804,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
         {
+            AssertNoChildText(referencedSource);
+
             var languageName = GetLanguage(workspace, referencedSource);
 
             var assemblyName = "ReferencedAssembly";
@@ -946,6 +950,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public static bool IsWorkspaceElement(string text)
         {
             return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
+        }
+
+        private static void AssertNoChildText(XElement element)
+        {
+            foreach (var node in element.Nodes())
+            {
+                if (node is XText text && !string.IsNullOrWhiteSpace(text.Value))
+                {
+                    throw new Exception($"Element {element} has child text that isn't recognized. The XML syntax is invalid.");
+                }
+            }
         }
     }
 }

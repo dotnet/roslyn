@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
             Visit(node.DeclaredType);
-            VisitAll(node.Deconstruction);
-            VisitAll(node.Properties);
+            VisitAndUnsplitAll(node.Deconstruction);
+            VisitAndUnsplitAll(node.Properties);
             Visit(node.VariableAccess);
             return null;
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            VisitAll(node.Subpatterns);
+            VisitAndUnsplitAll(node.Subpatterns);
             return null;
         }
 

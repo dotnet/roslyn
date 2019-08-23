@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);

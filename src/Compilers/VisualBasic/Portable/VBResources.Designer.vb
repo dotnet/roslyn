@@ -2801,6 +2801,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_DefaultInterfaceImplementationInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_DefaultInterfaceImplementationInNoPIAType", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Default member of &apos;{0}&apos; is not a property..
         '''</summary>
         Friend ReadOnly Property ERR_DefaultMemberNotProperty1() As String
@@ -9581,6 +9590,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_RaiseEventShapeMismatch1() As String
             Get
                 Return ResourceManager.GetString("ERR_RaiseEventShapeMismatch1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_ReAbstractionInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture)
             End Get
         End Property
         

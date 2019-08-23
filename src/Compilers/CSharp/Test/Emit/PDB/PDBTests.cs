@@ -5915,7 +5915,7 @@ class C
                 System.IO.MemoryStream V_1) //n
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream()
+  // sequence point: using MemoryStream m = new MemoryStream()
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -5961,41 +5961,41 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
-   <files>
-     <file id=""1"" name="""" language=""C#"" />
-   </files>
-   <methods>
-     <method containingType=""C"" name=""Main"">
-       <customDebugInfo>
-         <using>
-           <namespace usingCount=""2"" />
-         </using>
-         <encLocalSlotMap>
-           <slot kind=""0"" offset=""30"" />
-           <slot kind=""0"" offset=""54"" />
-         </encLocalSlotMap>
-       </customDebugInfo>
-       <sequencePoints>
-         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""50"" document=""1"" />
-         <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
-         <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
-         <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x16"" hidden=""true"" document=""1"" />
-         <entry offset=""0x20"" hidden=""true"" document=""1"" />
-         <entry offset=""0x21"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2b"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-       </sequencePoints>
-       <scope startOffset=""0x0"" endOffset=""0x2d"">
-         <namespace name=""System"" />
-         <namespace name=""System.IO"" />
-         <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-         <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-       </scope>
-     </method>
-   </methods>
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""30"" />
+          <slot kind=""0"" offset=""54"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""50"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2d"">
+        <namespace name=""System"" />
+        <namespace name=""System.IO"" />
+        <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+        <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
  </symbols>");
         }
 
@@ -6030,7 +6030,7 @@ class C
                 int V_1)
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream();
+  // sequence point: using MemoryStream m = new MemoryStream();
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -6079,7 +6079,7 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""51"" document=""1"" />
         <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
         <entry offset=""0xe"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""18"" document=""1"" />
         <entry offset=""0x12"" hidden=""true"" document=""1"" />
@@ -6141,7 +6141,7 @@ class C
   IL_0008:  brfalse.s  IL_0026
   // sequence point: {
   IL_000a:  nop
-  // sequence point: var m = new MemoryStream();
+  // sequence point: using var m = new MemoryStream();
   IL_000b:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0010:  stloc.1
   .try
@@ -6175,7 +6175,7 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
+<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -6193,7 +6193,7 @@ class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""17"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb"" startLine=""12"" startColumn=""19"" endLine=""12"" endColumn=""46"" document=""1"" />
+        <entry offset=""0xb"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""46"" document=""1"" />
         <entry offset=""0x11"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""34"" document=""1"" />
         <entry offset=""0x1a"" hidden=""true"" document=""1"" />
         <entry offset=""0x24"" hidden=""true"" document=""1"" />
