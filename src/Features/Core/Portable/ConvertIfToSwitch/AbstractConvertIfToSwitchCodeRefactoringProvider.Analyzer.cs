@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<SwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 if (operations.Length > 1 &&
-                    operations[0] is IConditionalOperation {WhenFalse: null} op &&
+                    operations[0] is IConditionalOperation { WhenFalse: null } op &&
                     HasUnreachableEndPoint(op.WhenTrue))
                 {
                     if (!ParseIfStatement(op, sections, out defaultBodyOpt))
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     if (!ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt))
                     {
                         var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: {} } ||
-                            nextStatement is IThrowOperation { Exception: {} })
+                        if (nextStatement is IReturnOperation { ReturnedValue: { } } ||
+                            nextStatement is IThrowOperation { Exception: { } })
                         {
                             defaultBodyOpt = nextStatement;
                         }
@@ -257,16 +257,16 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private (IOperation Lower, IOperation Higher)? GetRangeBounds(IBinaryOperation op)
             {
-                if (!(op is {LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right}))
+                if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
                 {
                     return null;
                 }
 
                 return (GetRangeBound(left), GetRangeBound(right)) switch
                 {
-                    ({Kind: BoundKind.Lower} low, {Kind: BoundKind.Higher} high)
+                    ({ Kind: BoundKind.Lower } low, { Kind: BoundKind.Higher } high)
                         when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
-                    ({Kind: BoundKind.Higher} high, {Kind: BoundKind.Lower} low)
+                    ({ Kind: BoundKind.Higher } high, { Kind: BoundKind.Lower } low)
                         when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
                     _ => ((IOperation, IOperation)?)null
                 };
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>();
+                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
                 if (ifStatement == null || ifStatement.ContainsDiagnostics)
                 {
                     return;
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var ifOperation = semanticModel.GetOperation(ifStatement);
-                if (!(ifOperation is IConditionalOperation {Parent: IBlockOperation {Operations: var operations}}))
+                if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation { Operations: var operations } }))
                 {
                     return;
                 }
