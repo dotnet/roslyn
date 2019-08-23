@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private void AddNodesForTokenToLeft<TSyntaxNode>(ISyntaxFactsService syntaxFacts, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToLeft, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
-            while (tokenToLeft != null)
+            while (tokenToLeft != default)
             {
                 var leftNode = tokenToLeft.Parent;
                 do
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private void AddNodesForTokenToRightOrIn<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToRightOrIn, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            if (tokenToRightOrIn != null)
+            if (tokenToRightOrIn != default)
             {
                 var rightNode = tokenToRightOrIn.Parent;
                 do
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 // -> `b`
                 var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
-                if (initializer != null
+                if (initializer != null)
                 {
                     var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
                     if (value != null)
