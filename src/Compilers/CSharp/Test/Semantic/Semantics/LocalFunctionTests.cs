@@ -4923,5 +4923,89 @@ class C
                 //             F1();
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1()").WithArguments("F1").WithLocation(11, 13));
         }
+
+        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        public void StaticLocalFunctionLocalFunctionDelegateReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+using System;
+class C
+{
+    static void M()
+    {
+        void F1() {}
+
+        static void F2()
+        {
+            Action a = F1;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8421: A static local function cannot contain a reference to 'F1'.
+                //             Action a = F1;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1").WithArguments("F1").WithLocation(11, 24));
+        }
+
+        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        public void StaticLocalFunctionStaticFunctionsDelegateReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+using System;
+class C
+{
+    static void M()
+    {
+        static void F1() {}
+        
+        static void F2()
+        {
+            Action m = M;
+            Action f1 = F1;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        public void StaticLocalFunctionThisAndBaseDelegateReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+using System;
+class B
+{
+    public virtual void M() {}
+}
+
+class C : B
+{
+    public override void M()
+    {
+        static void F()
+        {
+            Action a1 = base.M;
+            Action a2 = this.M;
+            Action a3 = M;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,25): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //             Action a1 = base.M;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(14, 25),
+                // (15,25): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //             Action a2 = this.M;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(15, 25),
+                // (16,25): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //             Action a3 = M;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "M").WithLocation(16, 25));
+        }
     }
 }

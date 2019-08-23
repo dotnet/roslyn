@@ -586,7 +586,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    VisitMethodGroup((BoundMethodGroup)node.Operand, parentIsConversion: true);
+                    var methodGroup = (BoundMethodGroup)node.Operand;
+                    VisitMethodGroup(methodGroup, parentIsConversion: true);
+
+                    MethodSymbol method = node.Conversion.Method;
+                    if (method is LocalFunctionSymbol)
+                    {
+                        CheckReferenceToVariable(node, method);
+                    }
+
+                    if (method.RequiresInstanceReceiver)
+                    {
+                        Visit(methodGroup.ReceiverOpt);
+                    }
+
                     return node;
 
                 case ConversionKind.AnonymousFunction:
@@ -658,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
-            return base.VisitMethodGroup(node);
+            return null;
         }
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
