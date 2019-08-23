@@ -2073,6 +2073,17 @@ namespace System
                     return (T[])(object)arr;
                 }
 
+                if (typeof(T) == typeof(bool))
+                {
+                    var arr = new bool[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((bool*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
                 if (typeof(T) == typeof(Color))
                 {
                     var arr = new Color[count];

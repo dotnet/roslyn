@@ -351,7 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
         {
             ImmutableArray<byte> data = default;
-            int elementCount = -1;
+            bool success = false;
+            int elementCount = 0;
             TypeSymbol elementType = null;
 
             if (!_module.SupportsPrivateImplClass)
@@ -380,10 +381,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
-                elementCount = TryGetRawDataForArrayInit(ac.InitializerOpt, out data);
+                success = TryGetRawDataForArrayInit(ac.InitializerOpt, out elementCount, out data);
             }
 
-            if (elementCount < 0)
+            if (!success)
             {
                 return false;
             }
@@ -435,28 +436,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         ///  Returns a byte blob that matches serialized content of single array initializer.    
-        ///  returns -1 if the initializer is null or not an array of literals
+        ///  returns false if the initializer is null or not an array of literals
         /// </summary>
-        private int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
+        private bool TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out int elementCount, out ImmutableArray<byte> data)
         {
             data = default;
+            elementCount = default;
 
             if (initializer == null)
             {
-                return -1;
+                return false;
             }
 
             var initializers = initializer.Initializers;
             if (initializers.Any(init => init.ConstantValue == null))
             {
-                return -1;
+                return false;
             }
 
-            var elementCount = initializers.Length;
+            elementCount = initializers.Length;
             if (elementCount == 0)
             {
                 data = ImmutableArray<byte>.Empty;
-                return 0;
+                return true;
             }
 
             var writer = new BlobBuilder(initializers.Length * 4);
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             data = writer.ToImmutableArray();
-            return elementCount;
+            return true;
         }
     }
 }

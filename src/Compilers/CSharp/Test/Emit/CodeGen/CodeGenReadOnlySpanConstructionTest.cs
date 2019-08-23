@@ -646,7 +646,7 @@ public class X
 
         [Fact]
         [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
-        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_Verifiable()
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Byte_WithInitializer_Verifiable()
         {
             var csharp = @"
 using System;
@@ -687,7 +687,7 @@ public class Test
 
         [Fact]
         [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
-        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer()
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Byte_WithInitializer()
         {
             var csharp = @"
 using System;
@@ -713,6 +713,127 @@ public class Test
   IL_0005:  ldc.i4.2
   IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsUsedForSpanCreatedFromArray_Bool_WithInitializer()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<bool> StaticData => new [] { true, false };
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "True;False;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.0E356BA505631FBF715758BED27D503F8B260E3A""
+  IL_0005:  ldc.i4.2
+  IL_0006:  newobj     ""System.ReadOnlySpan<bool>..ctor(void*, int)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromArray_Int_WithInitializer()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<int> StaticData => new [] { 2, 1 };
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2;1;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       20 (0x14)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldc.i4.1
+  IL_000d:  stelem.i4
+  IL_000e:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromArray_CustomStruct_WithInitializer()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public struct OneByteStruct
+    {
+        public OneByteStruct(bool value)
+        {
+            Value = value;
+        }
+
+        public bool Value;
+    }
+
+    public static ReadOnlySpan<OneByteStruct> StaticData => new [] { new OneByteStruct(false), new OneByteStruct(true) };
+
+    public static void Main()
+    {
+        foreach (var item in StaticData)
+        {
+            Console.Write(item.Value + "";"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "False;True;", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       38 (0x26)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""Test.OneByteStruct""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  newobj     ""Test.OneByteStruct..ctor(bool)""
+  IL_000e:  stelem     ""Test.OneByteStruct""
+  IL_0013:  dup
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     ""Test.OneByteStruct..ctor(bool)""
+  IL_001b:  stelem     ""Test.OneByteStruct""
+  IL_0020:  call       ""System.ReadOnlySpan<Test.OneByteStruct> System.ReadOnlySpan<Test.OneByteStruct>.op_Implicit(Test.OneByteStruct[])""
+  IL_0025:  ret
 }");
         }
     }
