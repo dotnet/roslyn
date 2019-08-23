@@ -1456,7 +1456,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression" SkipInNullabilityRewriter="true">
+  <Node Name="BoundCall" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 

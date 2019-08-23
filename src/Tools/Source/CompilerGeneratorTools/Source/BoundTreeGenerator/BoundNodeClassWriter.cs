@@ -1411,20 +1411,28 @@ namespace BoundTreeGenerator
                         Brace();
 
                         var updatedNullabilities = "_updatedNullabilities";
-                        var updatedMethodSymbols = "_updatedMethodSymbols";
+                        var updatedMethodSymbols = "_updatedSymbols";
                         WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> {updatedNullabilities};");
-                        WriteLine($"private readonly ImmutableDictionary<BoundCall, MethodSymbol> {updatedMethodSymbols};");
+                        WriteLine($"private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> {updatedMethodSymbols};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedSymbols)");
                         Brace();
                         WriteLine($"{updatedNullabilities} = updatedNullabilities;");
-                        WriteLine($"{updatedMethodSymbols} = updatedMethodSymbols;");
+                        WriteLine($"{updatedMethodSymbols} = updatedSymbols;");
                         Unbrace();
 
-                        foreach (var node in _tree.Types.OfType<Node>().Where(n => IsDerivedType("BoundExpression", n.Name)))
+                        foreach (var node in _tree.Types.OfType<Node>())
                         {
                             if (SkipInNullabilityRewriter(node)) continue;
+
+                            var allSpecifiableFields = AllSpecifiableFields(node).ToList();
+                            var isExpression = IsDerivedType("BoundExpression", node.Name);
+
+                            if (!isExpression && !allSpecifiableFields.Any(f => symbolIsPotentiallyUpdated(f)))
+                            {
+                                continue;
+                            }
 
                             Blank();
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
@@ -1436,53 +1444,105 @@ namespace BoundTreeGenerator
                                 WriteNodeVisitCall(field, forceVisit: VisitFieldOnlyInNullabilityRewriter(field));
                             }
 
-                            if (hadField)
+                            if (isExpression)
                             {
-                                WriteLine($"{node.Name} updatedNode;");
-                                Blank();
-                                writeNullabilityCheck(inverted: false);
-                                Brace();
-                                writeUpdate(decl: false, updatedType: true);
-                                writeNullabilityUpdate();
-                                Unbrace();
-                                WriteLine("else");
-                                Brace();
-                                writeUpdate(decl: false, updatedType: false);
-                                Unbrace();
-                                WriteLine("return updatedNode;");
+                                if (hadField)
+                                {
+                                    WriteLine($"{node.Name} updatedNode;");
+                                    Blank();
+                                    writeNullabilityCheck(inverted: false);
+                                    Brace();
+                                    writeUpdateAndDecl(decl: false, updatedType: true);
+                                    writeNullabilityUpdate();
+                                    Unbrace();
+                                    WriteLine("else");
+                                    Brace();
+                                    writeUpdateAndDecl(decl: false, updatedType: false);
+                                    Unbrace();
+                                    WriteLine("return updatedNode;");
+                                }
+                                else
+                                {
+                                    writeNullabilityCheck(inverted: true);
+                                    Brace();
+                                    WriteLine("return node;");
+                                    Unbrace();
+                                    Blank();
+                                    writeUpdateAndDecl(decl: true, updatedType: true);
+                                    writeNullabilityUpdate();
+                                    WriteLine("return updatedNode;");
+                                }
                             }
                             else
                             {
-                                writeNullabilityCheck(inverted: true);
-                                Brace();
-                                WriteLine("return node;");
-                                Unbrace();
-                                Blank();
-                                writeUpdate(decl: true, updatedType: true);
-                                writeNullabilityUpdate();
-                                WriteLine("return updatedNode;");
+                                Write("return ");
+                                writeUpdate(updatedType: false);
+                                WriteLine(";");
                             }
+
                             Unbrace();
 
                             void writeNullabilityCheck(bool inverted) =>
                                 WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))");
 
-                            void writeUpdate(bool decl, bool updatedType)
+                            void writeUpdateAndDecl(bool decl, bool updatedType)
                             {
-                                Write($"{(decl ? $"{node.Name} " : "")}updatedNode = node.Update");
-                                ParenList(
-                                    AllSpecifiableFields(node),
-                                    field => IsDerivedOrListOfDerived("BoundNode", field.Type) ? ToCamelCase(field.Name)
-                                             : updatedType && field.Name == "Type" ? "infoAndType.Type"
-                                             : string.Format("node.{0}", field.Name));
+                                Write($"{(decl ? $"{node.Name} " : "")}updatedNode = ");
+                                writeUpdate(updatedType);
                                 WriteLine(";");
+                            }
+
+                            void writeUpdate(bool updatedType)
+                            {
+                                Write("node.Update");
+                                ParenList(
+                                    allSpecifiableFields,
+                                    field =>
+                                    {
+                                        if (IsDerivedOrListOfDerived("BoundNode", field.Type))
+                                        {
+                                            return ToCamelCase(field.Name);
+                                        }
+                                        else if (updatedType && field.Name == "Type")
+                                        {
+                                            return "infoAndType.Type";
+                                        }
+                                        else if (symbolIsPotentiallyUpdated(field))
+                                        {
+                                            return $"GetUpdatedSymbol(node, node.{field.Name})";
+                                        }
+                                        else
+                                        {
+                                            return $"node.{field.Name}";
+                                        }
+                                    });
                             }
 
                             void writeNullabilityUpdate()
                             {
                                 WriteLine($"updatedNode.TopLevelNullability = infoAndType.Info;");
                             }
+
+                            static bool symbolIsPotentiallyUpdated(Field f)
+                            {
+                                if (!TypeIsSymbol(f)) return false;
+
+                                switch (f.Type.TrimEnd('?'))
+                                {
+                                    case "LocalSymbol":
+                                    case "LabelSymbol":
+                                    case "GeneratedLabelSymbol":
+                                    case "TypeSymbol":
+                                    case "AliasSymbol":
+                                    case "NamespaceSymbol":
+                                        return false;
+
+                                    default:
+                                        return true;
+                                }
+                            }
                         }
+
                         Unbrace();
                         break;
                     }

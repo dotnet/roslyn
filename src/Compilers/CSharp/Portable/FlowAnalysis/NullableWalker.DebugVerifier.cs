@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class DebugVerifier : BoundTreeWalker
         {
             private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
-            private readonly ImmutableDictionary<BoundCall, MethodSymbol> _updatedMethodSymbols;
+            private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> _updatedMethodSymbols;
             private readonly SnapshotManager _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols, SnapshotManager snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
@@ -34,10 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols, SnapshotManager snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManagerOpt, BoundNode node)
             {
                 var verifier = new DebugVerifier(analyzedNullabilityMap, updatedMethodSymbols, snapshotManagerOpt);
                 verifier.Visit(node);
+
+                foreach (var ((_, originalSymbol), updatedSymbol) in updatedMethodSymbols)
+                {
+                    Debug.Assert(originalSymbol.Equals(updatedSymbol, TypeCompareKind.AllNullableIgnoreOptions));
+                }
+
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
             }
@@ -75,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCall(BoundCall node)
             {
-                Debug.Assert(_updatedMethodSymbols.ContainsKey(node), $"Did not find updated method symbol for {node} `{node.Syntax}`.");
+                Debug.Assert(_updatedMethodSymbols.ContainsKey((node, node.Method)), $"Did not find updated method symbol for {node} `{node.Syntax}`.");
                 return base.VisitCall(node);
             }
 
