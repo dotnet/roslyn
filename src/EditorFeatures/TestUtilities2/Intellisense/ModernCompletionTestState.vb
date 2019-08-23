@@ -139,21 +139,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Overrides Function AssertNoCompletionSession() As Task
+        Public Overrides Async Function AssertNoCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If session Is Nothing Then
-                Return Task.CompletedTask
+                Return
             End If
 
             If session.IsDismissed Then
-                Return Task.CompletedTask
+                Return
             End If
 
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
-            Return Task.CompletedTask
         End Function
 
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
@@ -183,30 +183,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Task.WaitAny(task1, task2)
         End Sub
 
-        Public Overrides Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
+        Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
 
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
             Assert.True(session IsNot Nothing, "AssertCompletionSession")
-            Return Task.CompletedTask
         End Function
 
-        Public Overrides Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
+        Public Overrides Async Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
-            Return Task.CompletedTask
         End Function
 
-        Public Overrides Function AssertCompletionItemsContainAll(displayText As String()) As Task
+        Public Overrides Async Function AssertCompletionItemsContainAll(displayText As String()) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
-            Return Task.CompletedTask
         End Function
 
-        Public Overrides Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+        Public Overrides Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
-            Return Task.CompletedTask
         End Function
 
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
@@ -214,9 +214,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await AssertCompletionSession()
         End Function
 
-        ' Void for the modern compleiton.
-        ' Remove with all its calls after removing the legacy compleiton.
-        Public Overrides Function WaitForAsynchronousOperationsAsyncLegacyCompletion() As Task
+        ' Void for the current implemntation of the modern compleiton.
+        Public Overrides Function WaitForAsynchronousOperationsAsync() As Task
             Return Task.CompletedTask
         End Function
 
@@ -240,6 +239,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional inlineDescription As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
 
+            Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
 
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
@@ -290,6 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overrides Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
                 Await AssertCompletionItemsDoNotContainAny({text})
@@ -357,6 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overrides Async Function WaitForUIRenderedAsync() As Task
+            Await WaitForAsynchronousOperationsAsync()
             Dim tcs = New TaskCompletionSource(Of Boolean)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(TextView), MockCompletionPresenter)
             Dim uiUpdated As EventHandler(Of Data.CompletionItemSelectedEventArgs)

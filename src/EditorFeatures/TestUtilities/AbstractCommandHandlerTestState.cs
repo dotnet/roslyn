@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
-        public async Task WaitForAsynchronousOperationsAsync()
+        public virtual async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);

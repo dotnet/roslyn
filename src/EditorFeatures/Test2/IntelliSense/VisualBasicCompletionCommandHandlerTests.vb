@@ -614,7 +614,7 @@ End Class
                 state.SendTypeChars(".A")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                Await state.WaitForAsynchronousOperationsAsync()
                 state.SendSelectCompletionItemThroughPresenterSession(state.GetCompletionItems().First(
                                                            Function(i) i.DisplayText = "B"))
                 state.SendTab()

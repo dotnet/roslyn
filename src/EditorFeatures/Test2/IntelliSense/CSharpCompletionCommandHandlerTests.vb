@@ -84,7 +84,7 @@ class C
                 state.SendTab()
                 For i = 1 To 7
                     state.SendBackspace()
-                    Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                    Await state.WaitForAsynchronousOperationsAsync()
                 Next
                 Await state.AssertCompletionSession()
 
@@ -3480,7 +3480,7 @@ class Program
 
                 For Each c In "Offset"
                     state.SendBackspace()
-                    Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                    Await state.WaitForAsynchronousOperationsAsync()
                 Next
 
                 Await state.AssertSelectedCompletionItem("DateTime")
@@ -3508,7 +3508,7 @@ class Program
 
                 For Each c In "Offset."
                     state.SendBackspace()
-                    Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                    Await state.WaitForAsynchronousOperationsAsync()
                 Next
 
                 Await state.AssertSelectedCompletionItem("DateTime")
@@ -3858,7 +3858,7 @@ class C
                 Next
                 state.SendEscape()
 
-                Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                Await state.WaitForAsynchronousOperationsAsync()
 
                 ' reset the task
                 tcs = New TaskCompletionSource(Of Boolean)
@@ -3879,7 +3879,7 @@ class C
                 Next
                 state.SendEscape()
 
-                Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                Await state.WaitForAsynchronousOperationsAsync()
 
                 ' reset the task
                 tcs = New TaskCompletionSource(Of Boolean)
@@ -4710,7 +4710,7 @@ class C
                               </Document>)
 
                 state.ToggleSuggestionMode()
-                Await state.WaitForAsynchronousOperationsAsyncLegacyCompletion()
+                Await state.WaitForAsynchronousOperationsAsync()
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())

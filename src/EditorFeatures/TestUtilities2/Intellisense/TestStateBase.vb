@@ -211,10 +211,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function AssertCompletionSessionAfterTypingHash() As Task
 
-        ' Remove this method with removing the lagacy completion.
-        ' Must be void for the modern completion.
-        Public MustOverride Function WaitForAsynchronousOperationsAsyncLegacyCompletion() As Task
-
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
         Public MustOverride Function AssertCompletionItemsContainAll(displayText As String()) As Task

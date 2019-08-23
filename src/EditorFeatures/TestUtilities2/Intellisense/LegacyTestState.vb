@@ -185,12 +185,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await AssertNoCompletionSession()
         End Function
 
-        ' Void for the modern compleiton.
-        ' Remove with all its calls after removing the legacy compleiton.
-        Public Overrides Async Function WaitForAsynchronousOperationsAsyncLegacyCompletion() As Task
-            Await WaitForAsynchronousOperationsAsync()
-        End Function
-
         Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation
             Await WaitForAsynchronousOperationsAsync()
