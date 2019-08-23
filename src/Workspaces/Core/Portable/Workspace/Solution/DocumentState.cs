@@ -111,12 +111,11 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             ValueSource<AnalyzerConfigSet> analyzerConfigSetValueSource,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
             PreservationMode mode = PreservationMode.PreserveValue)
         {
             return new AsyncLazy<TreeAndVersion>(
-                c => FullyParseTreeAsync(newTextSource, cacheKey, filePath, options, analyzerConfigSetValueSource, languageServices, solutionServices, mode, c),
-                c => FullyParseTree(newTextSource, cacheKey, filePath, options, analyzerConfigSetValueSource, languageServices, solutionServices, mode, c),
+                c => FullyParseTreeAsync(newTextSource, cacheKey, filePath, options, analyzerConfigSetValueSource, languageServices, mode, c),
+                c => FullyParseTree(newTextSource, cacheKey, filePath, options, analyzerConfigSetValueSource, languageServices, mode, c),
                 cacheResult: true);
         }
 
@@ -127,7 +126,6 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             ValueSource<AnalyzerConfigSet> analyzerConfigSetValueSource,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
@@ -146,7 +144,6 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             ValueSource<AnalyzerConfigSet> analyzerConfigSetValueSource,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
@@ -346,8 +343,7 @@ namespace Microsoft.CodeAnalysis
                 GetSyntaxTreeFilePath(this.Attributes),
                 options,
                 _analyzerConfigSetSource,
-                _languageServices,
-                this.solutionServices);
+                _languageServices);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -411,8 +407,7 @@ namespace Microsoft.CodeAnalysis
                 GetSyntaxTreeFilePath(newAttributes),
                 _options,
                 _analyzerConfigSetSource,
-                _languageServices,
-                this.solutionServices);
+                _languageServices);
 
             return new DocumentState(
                 _languageServices,
@@ -436,8 +431,7 @@ namespace Microsoft.CodeAnalysis
                 GetSyntaxTreeFilePath(this.Attributes),
                 _options,
                 newAnalyzerConfigSet,
-                _languageServices,
-                this.solutionServices);
+                _languageServices);
 
             return new DocumentState(
                 _languageServices,
@@ -482,7 +476,6 @@ namespace Microsoft.CodeAnalysis
                     _options,
                     _analyzerConfigSetSource,
                     _languageServices,
-                    this.solutionServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
             }
 
