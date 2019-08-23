@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             throw ExceptionUtilities.Unreachable;
         }
 
-
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespce to be changed.
         /// If this reference is the right side of a qualified name, the new node returned would be the entire qualified name. Depends on 
