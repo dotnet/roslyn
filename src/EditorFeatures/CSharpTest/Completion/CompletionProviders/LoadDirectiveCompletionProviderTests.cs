@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new LoadDirectiveCompletionProvider();
         }
 
-        protected override bool CompareItems(string actualItem, string expectedItem)
+        protected override IEqualityComparer<string> GetStringComparer()
         {
-            return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
+            return StringComparer.OrdinalIgnoreCase;
         }
 
         private protected override Task VerifyWorkerAsync(

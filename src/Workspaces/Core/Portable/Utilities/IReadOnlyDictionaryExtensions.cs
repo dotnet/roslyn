@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal static class IReadOnlyDictionaryExtensions
     {
+        [return: MaybeNull]
         public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
         {
             if (dictionary.TryGetValue(key, out var value))
@@ -14,7 +17,7 @@ namespace Roslyn.Utilities
                 return value;
             }
 
-            return default;
+            return default!;
         }
 
         public static IEnumerable<T> GetEnumerableMetadata<T>(this IReadOnlyDictionary<string, object> metadata, string name)
