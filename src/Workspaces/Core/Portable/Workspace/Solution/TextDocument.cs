@@ -17,11 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The project this document belongs to.
         /// </summary>
-        public Project Project { get; protected set; }
-
-        protected TextDocument()
-        {
-        }
+        public Project Project { get; }
 
         internal TextDocument(Project project, TextDocumentState state, TextDocumentKind kind)
         {
