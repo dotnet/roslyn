@@ -2329,7 +2329,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    return HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
+                    var hasImplicitInterfaceConversion = HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
+                    if (hasImplicitInterfaceConversion)
+                    {
+                        return hasImplicitInterfaceConversion;
+                    }
+
+                    bool isTaskType = source.OriginalDefinition is NamedTypeSymbol
+                    {
+                        TypeKind: TypeKind.Class,
+                        Name: "Task",
+                        ContainingNamespace: { Name: "Tasks", ContainingNamespace: { Name: "Threading", ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } } } },
+                        ContainingSymbol: { Kind: SymbolKind.Namespace },
+                        TypeParameters: { Length: 1 }
+                    };
+
+                    if (isTaskType
+                        && source.OriginalDefinition.Equals(destination.OriginalDefinition, TypeCompareKind.ConsiderEverything)
+                        && source is NamedTypeSymbol { Arity: 1 } sourceType
+                        && destination is NamedTypeSymbol { Arity: 1 } destinationType)
+                    {
+                        var sourceTypeArgument = sourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                        var destinationTypeArgument = destinationType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                        return HasImplicitReferenceConversion(sourceTypeArgument, destinationTypeArgument, ref useSiteDiagnostics);
+                    }
+
+                    return false;
 
                 case TypeKind.Interface:
                     // SPEC: From any interface-type S to any interface-type T, provided S is derived from T.
