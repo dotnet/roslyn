@@ -73,17 +73,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Private Shared Function AsCaseClauseSyntax(pattern As Pattern) As CaseClauseSyntax
                 Return pattern.TypeSwitch(
-                Function(p As ConstantPattern) SyntaxFactory.SimpleCaseClause(DirectCast(p.ExpressionSyntax, ExpressionSyntax)),
-                Function(p As RangePattern) SyntaxFactory.RangeCaseClause(DirectCast(p.LowerBound, ExpressionSyntax),
-                                                                          DirectCast(p.HigherBound, ExpressionSyntax)),
-                Function(p As RelationalPattern) As CaseClauseSyntax
-                    Dim relationalOperator = s_operatorMap(p.OperatorKind)
-                    Return SyntaxFactory.RelationalCaseClause(
-                        relationalOperator.CaseClauseKind,
-                        SyntaxFactory.Token(SyntaxKind.IsKeyword),
-                        SyntaxFactory.Token(relationalOperator.OperatorTokenKind),
-                        DirectCast(p.Value, ExpressionSyntax))
-                End Function)
+                    Function(p As ConstantPattern) SyntaxFactory.SimpleCaseClause(DirectCast(p.ExpressionSyntax, ExpressionSyntax)),
+                    Function(p As RangePattern) SyntaxFactory.RangeCaseClause(DirectCast(p.LowerBound, ExpressionSyntax),
+                                                                              DirectCast(p.HigherBound, ExpressionSyntax)),
+                    Function(p As RelationalPattern) As CaseClauseSyntax
+                        Dim relationalOperator = s_operatorMap(p.OperatorKind)
+                        Return SyntaxFactory.RelationalCaseClause(
+                            relationalOperator.CaseClauseKind,
+                            SyntaxFactory.Token(SyntaxKind.IsKeyword),
+                            SyntaxFactory.Token(relationalOperator.OperatorTokenKind),
+                            DirectCast(p.Value, ExpressionSyntax))
+                    End Function)
             End Function
 
             Public Overrides ReadOnly Property Title As String
