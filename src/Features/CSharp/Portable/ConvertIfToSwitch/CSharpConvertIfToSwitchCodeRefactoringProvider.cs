@@ -19,56 +19,76 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     using static SyntaxFactory;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertIfToSwitchCodeRefactoringProvider)), Shared]
-    internal sealed class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider<IfStatementSyntax>
+    internal sealed class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider
     {
         [ImportingConstructor]
         public CSharpConvertIfToSwitchCodeRefactoringProvider()
         {
         }
 
-        protected override SyntaxNode CreateSwitchStatement(SyntaxNode node, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList)
-        {
-            var ifStatement = (IfStatementSyntax)node;
-            var block = ifStatement.Statement as BlockSyntax;
-            return SwitchStatement(
-                switchKeyword: Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
-                openParenToken: ifStatement.OpenParenToken,
-                expression: (ExpressionSyntax)expression,
-                closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
-                openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
-                sections: List(sectionList.OfType<SwitchSectionSyntax>()),
-                closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
-        }
+        public override IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts)
+            => new CSharpAnalyzer(syntaxFacts);
 
-        protected override IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation)
+        private sealed class CSharpAnalyzer : Analyzer<IfStatementSyntax>
         {
-            var node = operation.Syntax;
-            var requiresBreak = operation.SemanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
-            var requiresBlock = !operation.SemanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
-
-            if (node is BlockSyntax block)
+            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts)
+                : base(syntaxFacts)
             {
-                if (block.Statements.Count == 0)
+            }
+
+            public override SyntaxNode CreateSwitchStatement(SyntaxNode node, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList)
+            {
+                var ifStatement = (IfStatementSyntax)node;
+                var block = ifStatement.Statement as BlockSyntax;
+                return SwitchStatement(
+                    switchKeyword: Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
+                    openParenToken: ifStatement.OpenParenToken,
+                    expression: (ExpressionSyntax)expression,
+                    closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
+                    openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
+                    sections: List(sectionList.OfType<SwitchSectionSyntax>()),
+                    closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
+            }
+
+            public override IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation)
+            {
+                var node = operation.Syntax;
+                var requiresBreak = operation.SemanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
+                var requiresBlock = !operation.SemanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
+
+                if (node is BlockSyntax block)
                 {
-                    yield return BreakStatement();
-                }
-                else if (requiresBlock)
-                {
-                    if (requiresBreak)
+                    if (block.Statements.Count == 0)
                     {
-                        yield return block.AddStatements(BreakStatement());
+                        yield return BreakStatement();
+                    }
+                    else if (requiresBlock)
+                    {
+                        if (requiresBreak)
+                        {
+                            yield return block.AddStatements(BreakStatement());
+                        }
+                        else
+                        {
+                            yield return block;
+                        }
                     }
                     else
                     {
-                        yield return block;
+                        foreach (var statement in block.Statements)
+                        {
+                            yield return statement;
+                        }
+
+                        if (requiresBreak)
+                        {
+                            yield return BreakStatement();
+                        }
                     }
                 }
                 else
                 {
-                    foreach (var statement in block.Statements)
-                    {
-                        yield return statement;
-                    }
+                    yield return node;
 
                     if (requiresBreak)
                     {
@@ -76,55 +96,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     }
                 }
             }
-            else
-            {
-                yield return node;
 
-                if (requiresBreak)
+            private static WhenClauseSyntax? AsWhenClause(ExpressionSyntax? expression)
+            {
+                return expression is null ? null : WhenClause(expression);
+            }
+
+            public override SyntaxNode AsSwitchLabelSyntax(SwitchLabel label)
+            {
+                return CasePatternSwitchLabel(
+                    AsPatternSyntax(label.Pattern),
+                    AsWhenClause(label.Guards
+                        .Cast<ExpressionSyntax>()
+                        .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current.WalkDownParentheses(), prev))),
+                    Token(SyntaxKind.ColonToken));
+            }
+
+            private static PatternSyntax AsPatternSyntax(Pattern pattern)
+            {
+                return pattern switch
                 {
-                    yield return BreakStatement();
-                }
+                    ConstantPattern p => ConstantPattern((ExpressionSyntax)p.ExpressionSyntax),
+                    SourcePattern p => (PatternSyntax)p.PatternSyntax,
+                    TypePattern p => DeclarationPattern((TypeSyntax)((BinaryExpressionSyntax)p.IsExpressionSyntax).Right, DiscardDesignation()),
+                    var v => throw ExceptionUtilities.UnexpectedValue(v.GetType())
+                };
             }
-        }
-
-        private static WhenClauseSyntax? AsWhenClause(ExpressionSyntax? expression)
-        {
-            return expression is null ? null : WhenClause(expression);
-        }
-
-        protected override SyntaxNode AsSwitchLabelSyntax(SwitchLabel label)
-        {
-            return CasePatternSwitchLabel(
-                AsPatternSyntax(label.Pattern),
-                AsWhenClause(label.Guards
-                    .Cast<ExpressionSyntax>()
-                    .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current.WalkDownParentheses(), prev))),
-                Token(SyntaxKind.ColonToken));
-        }
-
-        private static PatternSyntax AsPatternSyntax(Pattern pattern)
-        {
-            return pattern switch
-            {
-                ConstantPattern p => ConstantPattern((ExpressionSyntax)p.ExpressionSyntax),
-                SourcePattern p => (PatternSyntax)p.PatternSyntax,
-                TypePattern p => DeclarationPattern((TypeSyntax)((BinaryExpressionSyntax)p.IsExpressionSyntax).Right, DiscardDesignation()),
-                var v => throw ExceptionUtilities.UnexpectedValue(v.GetType())
-            };
-        }
-
-        protected override Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts)
-            => new CSharpAnalyzer(syntaxFacts);
-
-        protected override string Title => CSharpFeaturesResources.Convert_to_switch;
-
-        private sealed class CSharpAnalyzer : Analyzer
-        {
-            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts)
-                : base(syntaxFacts)
-            {
-            }
-
+            
             // We do not offer a fix if the if-statement contains a break-statement, e.g.
             //
             //      while (...)
@@ -138,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             public override bool CanConvert(IConditionalOperation operation)
                 => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
 
+            public override string Title => CSharpFeaturesResources.Convert_to_switch;
+            
             public override bool SupportsCaseGuard => true;
             public override bool SupportsRangePattern => false;
             public override bool SupportsTypePattern => true;

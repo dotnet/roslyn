@@ -3,8 +3,14 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -12,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
-    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<TIfStatementSyntax>
+    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     {
         // Match the following pattern which can be safely converted to switch statement
         //
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        : <condition-expr> || <pattern-expr>
         //        | <pattern-expr>
         //
-        internal abstract class Analyzer
+        internal abstract class Analyzer<TIfStatementSyntax> : IAnalyzer where TIfStatementSyntax : SyntaxNode
         {
             private SyntaxNode? _switchTargetExpression;
             private readonly ISyntaxFactsService _syntaxFacts;
@@ -194,11 +200,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             return new RangePattern(lower, higher);
                         }
                         break;
-                    
+
                     case IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } op when SupportsCaseGuard:
                         guards.Add(op.RightOperand.Syntax);
                         return ParsePattern(op.LeftOperand, guards);
-                    
+
                     case IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals } op:
                         return DetermineConstant(op) switch
                         {
@@ -206,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             ConstantResult.Right => new ConstantPattern(op.RightOperand),
                             _ => null
                         };
-                    
+
                     case IBinaryOperation op when SupportsRelationalPattern && IsComparisonOperator(op.OperatorKind):
                         return DetermineConstant(op) switch
                         {
@@ -214,17 +220,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             ConstantResult.Right => new RelationalPattern(op.OperatorKind, op.RightOperand),
                             _ => null
                         };
-                    
+
                     case IIsTypeOperation op when SupportsTypePattern && SetInitialOrIsEquivalentToTargetExpression(op.ValueOperand):
                         return new TypePattern(op);
-                    
+
                     case IIsPatternOperation op when SupportsSourcePattern && SetInitialOrIsEquivalentToTargetExpression(op.Value):
                         return new SourcePattern(op.Pattern);
-                    
+
                     case IParenthesizedOperation op:
                         return ParsePattern(op.Operand, guards);
                 }
-                
+
                 return null;
             }
 
@@ -242,6 +248,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return null;
                 }
 
+                
                 var left = AnalyzeRangeCheckOperand(leftOperand);
                 var right = AnalyzeRangeCheckOperand(rightOperand);
                 if (!AreEquivalent(left.Expression, right.Expression))
@@ -308,7 +315,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return operation.SemanticModel.GetConstantValue(operation.Syntax).HasValue;
             }
 
-            internal virtual bool HasUnreachableEndPoint(IOperation operation)
+            public virtual bool HasUnreachableEndPoint(IOperation operation)
             {
                 return !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
             }
@@ -333,7 +340,114 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
             }
 
+            public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+            {
+                var document = context.Document;
+                var cancellationToken = context.CancellationToken;
+
+                if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+                {
+                    return;
+                }
+
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>();
+                if (ifStatement == null || ifStatement.ContainsDiagnostics)
+                {
+                    return;
+                }
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var ifOperation = semanticModel.GetOperation(ifStatement);
+                if (!(ifOperation is IConditionalOperation {Parent: IBlockOperation {Operations: var operations}}))
+                {
+                    return;
+                }
+
+                var index = operations.IndexOf(ifOperation);
+                if (index == -1)
+                {
+                    return;
+                }
+
+                var (sections, target) = AnalyzeIfStatementSequence(operations.AsSpan().Slice(index), out var defaultBodyOpt);
+                if (sections.IsDefaultOrEmpty)
+                {
+                    return;
+                }
+
+                // To prevent noisiness we don't offer this unless we're going to generate at least
+                // two switch labels.  It can be quite annoying to basically have this offered
+                // on pretty much any simple 'if' like "if (a == 0)" or "if (x == null)".  In these
+                // cases, the converted code just looks and feels worse, and it ends up causing the
+                // lightbulb to appear too much.
+                //
+                // This does mean that if someone has a simple if, and is about to add a lot more
+                // cases, and says to themselves "let me convert this to a switch first!", then they'll
+                // be out of luck.  However, I believe the core value here is in taking existing large
+                // if-chains/checks and easily converting them over to a switch.  So not offering the
+                // feature on simple if-statements seems like an acceptable compromise to take to ensure
+                // the overall user experience isn't degraded.
+                var labelCount = sections.Sum(section => section.Labels.Length) + (defaultBodyOpt is object ? 1 : 0);
+                if (labelCount < 2)
+                {
+                    return;
+                }
+
+                context.RegisterRefactoring(new MyCodeAction(Title,
+                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, defaultBodyOpt)));
+            }
+
+            private Task<Document> UpdateDocumentAsync(
+                SyntaxNode root,
+                Document document,
+                SyntaxNode target,
+                SyntaxNode ifStatement,
+                ImmutableArray<SwitchSection> sections,
+                IOperation? defaultBodyOpt)
+            {
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var sectionList = sections
+                    .Select(section => generator.SwitchSectionFromLabels(
+                        labels: section.Labels.Select(AsSwitchLabelSyntax),
+                        statements: AsSwitchSectionStatements(section.Body)))
+                    .ToList();
+
+                if (defaultBodyOpt is object)
+                {
+                    sectionList.Add(generator.DefaultSwitchSection(AsSwitchSectionStatements(defaultBodyOpt)));
+                }
+
+                var ifSpan = ifStatement.Span;
+                var @switch = CreateSwitchStatement(ifStatement, target, sectionList);
+
+                foreach (var section in sections.AsSpan().Slice(1))
+                {
+                    if (section.IfStatementSyntax.Parent != ifStatement.Parent)
+                    {
+                        break;
+                    }
+
+                    root = root.RemoveNode(section.IfStatementSyntax, SyntaxRemoveOptions.KeepNoTrivia);
+                }
+
+                var lastNode = sections.LastOrDefault()?.IfStatementSyntax ?? ifStatement;
+                @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                    .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+
+                root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
+                return Task.FromResult(document.WithSyntaxRoot(root));
+            }
+
+            public abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList);
+            public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
+            public abstract SyntaxNode AsSwitchLabelSyntax(SwitchLabel label);
+
             public abstract bool CanConvert(IConditionalOperation operation);
+
+            public abstract string Title { get; }
 
             public abstract bool SupportsRelationalPattern { get; }
             public abstract bool SupportsSourcePattern { get; }

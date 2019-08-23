@@ -3,131 +3,117 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
-    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<TIfStatementSyntax> : CodeRefactoringProvider
-        where TIfStatementSyntax : SyntaxNode
+    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>();
-            if (ifStatement == null || ifStatement.ContainsDiagnostics)
-            {
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = semanticModel.GetOperation(ifStatement);
-            if (!(ifOperation is IConditionalOperation {Parent: IBlockOperation {Operations: var operations}}))
-            {
-                return;
-            }
-
-            var index = operations.IndexOf(ifOperation);
-            if (index == -1)
-            {
-                return;
-            }
-
-            var analyzer = CreateAnalyzer(document.GetLanguageService<ISyntaxFactsService>());
-            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index), out var defaultBodyOpt);
-            if (sections.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            // To prevent noisiness we don't offer this unless we're going to generate at least
-            // two switch labels.  It can be quite annoying to basically have this offered
-            // on pretty much any simple 'if' like "if (a == 0)" or "if (x == null)".  In these
-            // cases, the converted code just looks and feels worse, and it ends up causing the
-            // lightbulb to appear too much.
-            //
-            // This does mean that if someone has a simple if, and is about to add a lot more
-            // cases, and says to themselves "let me convert this to a switch first!", then they'll
-            // be out of luck.  However, I believe the core value here is in taking existing large
-            // if-chains/checks and easily converting them over to a switch.  So not offering the
-            // feature on simple if-statements seems like an acceptable compromise to take to ensure
-            // the overall user experience isn't degraded.
-            var labelCount = sections.Sum(section => section.Labels.Length) + (defaultBodyOpt is object ? 1 : 0);
-            if (labelCount < 2)
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(new MyCodeAction(Title,
-                _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, defaultBodyOpt)));
+            var analyzer = CreateAnalyzer(context.Document.GetLanguageService<ISyntaxFactsService>());
+            return analyzer.ComputeRefactoringsAsync(context);
         }
 
-        private Task<Document> UpdateDocumentAsync(
-            SyntaxNode root,
-            Document document,
-            SyntaxNode target,
-            SyntaxNode ifStatement,
-            ImmutableArray<SwitchSection> sections,
-            IOperation? defaultBodyOpt)
+        public abstract IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts);
+
+        public interface IAnalyzer
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var sectionList = sections
-                .Select(section => generator.SwitchSectionFromLabels(
-                    labels: section.Labels.Select(AsSwitchLabelSyntax),
-                    statements: AsSwitchSectionStatements(section.Body)))
-                .ToList();
-
-            if (defaultBodyOpt is object)
-            {
-                sectionList.Add(generator.DefaultSwitchSection(AsSwitchSectionStatements(defaultBodyOpt)));
-            }
-
-            var ifSpan = ifStatement.Span;
-            var @switch = CreateSwitchStatement(ifStatement, target, sectionList);
-
-            foreach (var section in sections.AsSpan().Slice(1))
-            {
-                if (section.IfStatementSyntax.Parent != ifStatement.Parent)
-                {
-                    break;
-                }
-
-                root = root.RemoveNode(section.IfStatementSyntax, SyntaxRemoveOptions.KeepNoTrivia);
-            }
-
-            var lastNode = sections.LastOrDefault()?.IfStatementSyntax ?? ifStatement;
-            @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation);
-
-            root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
-            return Task.FromResult(document.WithSyntaxRoot(root));
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context);
         }
 
-        protected abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList);
-        protected abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
-        protected abstract SyntaxNode AsSwitchLabelSyntax(SwitchLabel label);
-        protected abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts);
-        protected abstract string Title { get; }
+        public abstract class Pattern
+        {
+        }
 
-        protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        public sealed class SwitchLabel
+        {
+            public readonly Pattern Pattern;
+            public readonly ImmutableArray<SyntaxNode> Guards;
+
+            public SwitchLabel(Pattern pattern, ImmutableArray<SyntaxNode> guards)
+            {
+                Pattern = pattern;
+                Guards = guards;
+            }
+        }
+
+        public sealed class SwitchSection
+        {
+            public readonly ImmutableArray<SwitchLabel> Labels;
+            public readonly IOperation Body;
+            public readonly SyntaxNode IfStatementSyntax;
+
+            public SwitchSection(ImmutableArray<SwitchLabel> labels, IOperation body, SyntaxNode syntax)
+            {
+                Labels = labels;
+                Body = body;
+                IfStatementSyntax = syntax;
+            }
+        }
+
+        public sealed class TypePattern : Pattern
+        {
+            public readonly SyntaxNode IsExpressionSyntax;
+
+            public TypePattern(IIsTypeOperation operation)
+            {
+                IsExpressionSyntax = operation.Syntax;
+            }
+        }
+
+        public sealed class SourcePattern : Pattern
+        {
+            public readonly SyntaxNode PatternSyntax;
+
+            public SourcePattern(IPatternOperation operation)
+            {
+                PatternSyntax = operation.Syntax;
+            }
+        }
+
+        public sealed class ConstantPattern : Pattern
+        {
+            public readonly SyntaxNode ExpressionSyntax;
+
+            public ConstantPattern(IOperation operation)
+            {
+                ExpressionSyntax = operation.Syntax;
+            }
+        }
+
+        public sealed class RelationalPattern : Pattern
+        {
+            public readonly BinaryOperatorKind OperatorKind;
+            public readonly SyntaxNode Value;
+
+            public RelationalPattern(BinaryOperatorKind operatorKind, IOperation value)
+            {
+                OperatorKind = operatorKind;
+                Value = value.Syntax;
+            }
+        }
+
+        public sealed class RangePattern : Pattern
+        {
+            public readonly SyntaxNode LowerBound;
+            public readonly SyntaxNode HigherBound;
+
+            public RangePattern(IOperation lowerBound, IOperation higherBound)
+            {
+                LowerBound = lowerBound.Syntax;
+                HigherBound = higherBound.Syntax;
+            }
+        }
+
+        public sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

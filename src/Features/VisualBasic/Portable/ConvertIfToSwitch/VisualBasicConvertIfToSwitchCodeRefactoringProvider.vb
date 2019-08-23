@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
-        Inherits AbstractConvertIfToSwitchCodeRefactoringProvider(Of ExecutableStatementSyntax)
+        Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
 
         Private Shared ReadOnly s_operatorMap As Dictionary(Of BinaryOperatorKind, (CaseClauseKind As SyntaxKind, OperatorTokenKind As SyntaxKind)) =
             New Dictionary(Of BinaryOperatorKind, (SyntaxKind, SyntaxKind))() From
@@ -27,38 +27,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateSwitchStatement(ifStatement As SyntaxNode, expression As SyntaxNode, sectionList As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
+        Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService) As IAnalyzer
+            Return New VisualBasicAnalyzer(syntaxFacts)
         End Function
 
-        Protected Overrides Function AsSwitchSectionStatements(operation As IOperation) As IEnumerable(Of SyntaxNode)
-            Return GetStatements(operation.Syntax)
-        End Function
+        Private NotInheritable Class VisualBasicAnalyzer
+            Inherits Analyzer(Of ExecutableStatementSyntax)
 
-        Private Shared Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Select Case node.Kind
-                Case SyntaxKind.MultiLineIfBlock
-                    Return DirectCast(node, MultiLineIfBlockSyntax).Statements
-                Case SyntaxKind.SingleLineIfStatement
-                    Return DirectCast(node, SingleLineIfStatementSyntax).Statements
-                Case SyntaxKind.SingleLineElseClause
-                    Return DirectCast(node, SingleLineElseClauseSyntax).Statements
-                Case SyntaxKind.ElseIfBlock
-                    Return DirectCast(node, ElseIfBlockSyntax).Statements
-                Case SyntaxKind.ElseBlock
-                    Return DirectCast(node, ElseBlockSyntax).Statements
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-            End Select
-        End Function
+            Public Sub New(syntaxFacts As ISyntaxFactsService)
+                MyBase.New(syntaxFacts)
+            End Sub
 
-        Protected Overrides Function AsSwitchLabelSyntax(label As SwitchLabel) As SyntaxNode
-            Debug.Assert(label.Guards.IsDefaultOrEmpty)
-            Return AsCaseClauseSyntax(label.Pattern).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
-        End Function
+            Public Overrides Function CreateSwitchStatement(ifStatement As SyntaxNode, expression As SyntaxNode, sectionList As IEnumerable(Of SyntaxNode)) As SyntaxNode
+                Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
+            End Function
 
-        Private Shared Function AsCaseClauseSyntax(pattern As Pattern) As CaseClauseSyntax
-            Return pattern.TypeSwitch(
+            Public Overrides Function AsSwitchSectionStatements(operation As IOperation) As IEnumerable(Of SyntaxNode)
+                Return GetStatements(operation.Syntax)
+            End Function
+
+            Private Shared Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
+                Select Case node.Kind
+                    Case SyntaxKind.MultiLineIfBlock
+                        Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.SingleLineIfStatement
+                        Return DirectCast(node, SingleLineIfStatementSyntax).Statements
+                    Case SyntaxKind.SingleLineElseClause
+                        Return DirectCast(node, SingleLineElseClauseSyntax).Statements
+                    Case SyntaxKind.ElseIfBlock
+                        Return DirectCast(node, ElseIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseBlock
+                        Return DirectCast(node, ElseBlockSyntax).Statements
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(node.Kind())
+                End Select
+            End Function
+
+            Public Overrides Function AsSwitchLabelSyntax(label As SwitchLabel) As SyntaxNode
+                Debug.Assert(label.Guards.IsDefaultOrEmpty)
+                Return AsCaseClauseSyntax(label.Pattern).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
+            End Function
+
+            Private Shared Function AsCaseClauseSyntax(pattern As Pattern) As CaseClauseSyntax
+                Return pattern.TypeSwitch(
                 Function(p As ConstantPattern) SyntaxFactory.SimpleCaseClause(DirectCast(p.ExpressionSyntax, ExpressionSyntax)),
                 Function(p As RangePattern) SyntaxFactory.RangeCaseClause(DirectCast(p.LowerBound, ExpressionSyntax),
                                                                           DirectCast(p.HigherBound, ExpressionSyntax)),
@@ -70,26 +81,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                         SyntaxFactory.Token(relationalOperator.OperatorTokenKind),
                         DirectCast(p.Value, ExpressionSyntax))
                 End Function)
-        End Function
+            End Function
 
-        Protected Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService) As Analyzer
-            Return New VisualBasicAnalyzer(syntaxFacts)
-        End Function
+            Public Overrides ReadOnly Property Title As String
+                Get
+                    Return VBFeaturesResources.Convert_to_Select_Case
+                End Get
+            End Property
 
-        Protected Overrides ReadOnly Property Title As String
-            Get
-                Return VBFeaturesResources.Convert_to_Select_Case
-            End Get
-        End Property
-
-        Private NotInheritable Class VisualBasicAnalyzer
-            Inherits Analyzer
-
-            Public Sub New(syntaxFacts As ISyntaxFactsService)
-                MyBase.New(syntaxFacts)
-            End Sub
-
-            Friend Overrides Function HasUnreachableEndPoint(operation As IOperation) As Boolean
+            Public Overrides Function HasUnreachableEndPoint(operation As IOperation) As Boolean
                 Dim statements = GetStatements(operation.Syntax)
                 Return Not (statements.Count = 0 OrElse operation.SemanticModel.AnalyzeControlFlow(statements.First(), statements.Last()).EndPointIsReachable)
             End Function
@@ -137,3 +137,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         End Class
     End Class
 End Namespace
+
