@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 if (defaultBodyOpt is object)
                 {
-                    sections.Add(new SwitchSection(default, defaultBodyOpt, defaultBodyOpt.Syntax));
+                    sections.Add(new SwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
                 Debug.Assert(_switchTargetExpression is object);
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
-                var (sections, target) = AnalyzeIfStatementSequence(operations.AsSpan().Slice(index), out var defaultBodyOpt);
+                var (sections, target) = AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
                 if (sections.IsDefaultOrEmpty)
                 {
                     return;
@@ -399,14 +399,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 // if-chains/checks and easily converting them over to a switch.  So not offering the
                 // feature on simple if-statements seems like an acceptable compromise to take to ensure
                 // the overall user experience isn't degraded.
-                var labelCount = sections.Sum(section => section.Labels.Length) + (defaultBodyOpt is object ? 1 : 0);
+                var labelCount = sections.Sum(section => section.Labels.IsDefault ? 1 : section.Labels.Length);
                 if (labelCount < 2)
                 {
                     return;
                 }
 
                 context.RegisterRefactoring(new MyCodeAction(Title,
-                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, defaultBodyOpt)));
+                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections)));
             }
 
             private Task<Document> UpdateDocumentAsync(
@@ -414,41 +414,29 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 Document document,
                 SyntaxNode target,
                 SyntaxNode ifStatement,
-                ImmutableArray<SwitchSection> sections,
-                IOperation? defaultBodyOpt)
+                ImmutableArray<SwitchSection> sections)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var sectionList = sections
-                    .Select(section => generator.SwitchSectionFromLabels(
-                        labels: section.Labels.Select(AsSwitchLabelSyntax),
-                        statements: AsSwitchSectionStatements(section.Body)))
-                    .ToList();
-
-                if (defaultBodyOpt is object)
-                {
-                    sectionList.Add(generator.DefaultSwitchSection(AsSwitchSectionStatements(defaultBodyOpt)));
-                }
 
                 var ifSpan = ifStatement.Span;
-                var @switch = CreateSwitchStatement(ifStatement, target, sectionList);
-
-                foreach (var section in sections.AsSpan().Slice(1))
-                {
-                    if (section.IfStatementSyntax.Parent != ifStatement.Parent)
-                    {
-                        break;
-                    }
-
-                    root = root.RemoveNode(section.IfStatementSyntax, SyntaxRemoveOptions.KeepNoTrivia);
-                }
-
-                var lastNode = sections.LastOrDefault()?.IfStatementSyntax ?? ifStatement;
-                @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
+                var @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
+                    .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
                     .WithTrailingTrivia(lastNode.GetTrailingTrivia())
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
+                var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
+                root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
+
+                SyntaxNode AsSwitchSectionSyntax(SwitchSection section)
+                {
+                    var statements = AsSwitchSectionStatements(section.Body);
+                    return section.Labels.IsDefault
+                        ? generator.DefaultSwitchSection(statements)
+                        : generator.SwitchSectionFromLabels(section.Labels.Select(AsSwitchLabelSyntax), statements);
+                }
             }
 
             public abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList);

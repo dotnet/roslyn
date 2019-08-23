@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         {
             public readonly ImmutableArray<SwitchLabel> Labels;
             public readonly IOperation Body;
-            public readonly SyntaxNode IfStatementSyntax;
+            public readonly SyntaxNode SyntaxToRemove;
 
             public SwitchSection(ImmutableArray<SwitchLabel> labels, IOperation body, SyntaxNode syntax)
             {
                 Labels = labels;
                 Body = body;
-                IfStatementSyntax = syntax;
+                SyntaxToRemove = syntax;
             }
         }
 
