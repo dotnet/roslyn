@@ -3,7 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <RootNamespace></RootNamespace>
 
     <!-- https://github.com/dotnet/roslyn/issues/31412 -->
@@ -14,9 +15,28 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTests.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\RemoveUnusedMembers\RemoveUnusedMembersTests.vb" Link="RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Utils.vb" Link="Utils.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
+    <Import Include="Roslyn.Test.Utilities" />
+    <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="Xunit" />
   </ItemGroup>
 </Project>

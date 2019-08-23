@@ -4,13 +4,13 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- https://github.com/dotnet/roslyn/issues/31412 -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -18,5 +18,11 @@
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTests.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\CSharpTest\RemoveUnusedMembers\RemoveUnusedMembersTests.cs" Link="RemoveUnusedMembers\RemoveUnusedMembersTests.cs" />
+    <Compile Include="..\..\..\EditorFeatures\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
   </ItemGroup>
 </Project>

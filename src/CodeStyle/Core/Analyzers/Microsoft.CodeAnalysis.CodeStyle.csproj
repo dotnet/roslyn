@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -22,9 +22,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="Formatting\EnumerableExtensions.cs" />
@@ -48,15 +45,20 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs" Link="InternalUtilities\ISetExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="InternalUtilities\SyntaxTreeExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Shared\Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="IDEDiagnosticIds.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="DiagnosticCustomTags.cs" />
+    <Compile Include="..\..\..\Features\Core\Portable\RemoveUnusedMembers\AbstractRemoveUnusedMembersDiagnosticAnalyzer.cs" Link="RemoveUnusedMembers\AbstractRemoveUnusedMembersDiagnosticAnalyzer.cs" />
+    <Compile Include="..\..\..\Features\Core\Portable\Shared\Utilities\DeserializationConstructorCheck.cs" Link="Shared\Utilities\DeserializationConstructorCheck.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleHelpers.cs" Link="Options\CodeStyleHelpers.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="Options\CodeStyleOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="Options\NotificationOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\UnusedValuePreference.cs" Link="Options\UnusedValuePreference.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Diagnostics\Extensions_SharedWithCodeStyle.cs" Link="Options\Extensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\NotificationOptionExtensions.cs" Link="Options\NotificationOptionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ValueUsageInfo.cs" Link="ValueUsageInfo.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\AbstractSyntaxFormattingService.cs" Link="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
@@ -163,8 +165,13 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaListExtensions.cs" Link="Formatting\SyntaxTriviaListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\TextLineExtensions.cs" Link="Formatting\TextLineExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ICompilationExtensions.cs" Link="Shared\Extensions\ICompilationExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SymbolInfoExtensions.cs" Link="Shared\Extensions\SymbolInfoExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LocationExtensions.cs" Link="Shared\Extensions\LocationExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\OperationExtensions.cs" Link="Shared\Extensions\OperationExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\BasicBlockExtensions.cs" Link="Shared\Extensions\BasicBlockExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="Shared\Utilities\AliasSymbolCache.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Formatting\CommonFormattingHelpers.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Formatting\AnnotationTable.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="InternalUtilities\BidirectionalMap.cs" />

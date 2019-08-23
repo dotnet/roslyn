@@ -13,10 +13,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
+#if CODE_STYLE
+using FeaturesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
+#if CODE_STYLE
         : AbstractCodeQualityDiagnosticAnalyzer
+#else
+        : AbstractBuiltInCodeQualityDiagnosticAnalyzer
+#endif
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
@@ -34,18 +42,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             new LocalizableResourceString(nameof(FeaturesResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
+        private static readonly DiagnosticDescriptor s_removeUnreadMethodsRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            isUnneccessary: true);
+
+        private static readonly DiagnosticDescriptor s_removeUnreadPropertiesRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            isUnneccessary: true);
+
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
 
+#if !CODE_STYLE
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
         // For example, if we had an unused field with no references, then editing any single method body
         // to reference this field should clear the unused field diagnostic.
         // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+#endif
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
@@ -422,29 +444,43 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             }
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
-                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
-                                ? s_removeUnusedMembersRule
-                                : s_removeUnreadMembersRule;
-
-                            // Do not flag write-only properties that are not read.
-                            // Write-only properties are assumed to have side effects
-                            // visible through other means than a property getter.
-                            if (rule == s_removeUnreadMembersRule &&
-                                member is IPropertySymbol property &&
-                                property.IsWriteOnly)
+                            DiagnosticDescriptor rule;
+                            if (!valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member))
                             {
-                                continue;
+                                rule = s_removeUnusedMembersRule;
                             }
+                            else
+                            {
+                                rule = s_removeUnreadMembersRule;
+                                switch (member)
+                                {
+                                    case IMethodSymbol _:
+                                        rule = s_removeUnreadMethodsRule;
+                                        break;
+
+                                    case IPropertySymbol property:
+                                        // Do not flag write-only properties that are not read.
+                                        // Write-only properties are assumed to have side effects
+                                        // visible through other means than a property getter.
+                                        if (property.IsWriteOnly)
+                                        {
+                                            continue;
+                                        }
+
+                                        if (property.GetMethod != null && property.SetMethod != null)
+                                        {
+                                            rule = s_removeUnreadPropertiesRule;
+                                        }
+
+                                        break;
+                                }
+                            }
+
+                            var memberName = $"{member.ContainingType.Name}.{member.Name}";
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = DiagnosticHelper.CreateWithMessage(
-                                rule,
-                                member.Locations[0],
-                                rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
-                                additionalLocations: null,
-                                properties: null,
-                                GetMessage(rule, member));
+                            var diagnostic = Diagnostic.Create(rule, member.Locations[0], memberName);
                             symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -456,34 +492,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return;
-            }
-
-            private static LocalizableString GetMessage(
-               DiagnosticDescriptor rule,
-               ISymbol member)
-            {
-                var messageFormat = rule.MessageFormat;
-                if (rule == s_removeUnreadMembersRule)
-                {
-                    // IDE0052 has a different message for method and property symbols.
-                    switch (member)
-                    {
-                        case IMethodSymbol _:
-                            messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
-                            break;
-
-                        case IPropertySymbol property:
-                            if (property.GetMethod != null && property.SetMethod != null)
-                            {
-                                messageFormat = FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
-                            }
-
-                            break;
-                    }
-                }
-
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -661,7 +669,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // as lot of ASP.NET types have many special event handlers
                                     // that are invoked with reflection (e.g. Application_XXX, Page_XXX,
                                     // OnTransactionXXX, etc).
-                                    if (methodSymbol.HasEventHandlerSignature(_eventArgsType))
+                                    if (HasEventHandlerSignature(methodSymbol))
                                     {
                                         return false;
                                     }
@@ -684,6 +692,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return false;
+
+                // Local functions.
+                bool HasEventHandlerSignature(IMethodSymbol method)
+                    => _eventArgsType != null &&
+                       method.Parameters.Length == 2 &&
+                       method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                       method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsType);
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)

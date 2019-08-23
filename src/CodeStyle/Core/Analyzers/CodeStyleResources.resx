@@ -123,6 +123,9 @@
   <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
   </data>
+  <data name="Code_Quality" xml:space="preserve">
+    <value>Code Quality</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
@@ -149,5 +152,26 @@
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
+  </data>
+  <data name="Remove_unused_member" xml:space="preserve">
+    <value>Remove unused member</value>
+  </data>
+  <data name="Private_member_0_is_unused" xml:space="preserve">
+    <value>Private member '{0}' is unused.</value>
+  </data>
+  <data name="Remove_unused_private_members" xml:space="preserve">
+    <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_unread_private_members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
+    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
+  </data>
+  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
+    <value>Private method '{0}' can be removed as it is never invoked.</value>
+  </data>
+  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
+    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
 </root>

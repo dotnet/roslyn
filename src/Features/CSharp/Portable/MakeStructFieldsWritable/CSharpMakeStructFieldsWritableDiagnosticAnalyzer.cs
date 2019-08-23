@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : AbstractCodeQualityDiagnosticAnalyzer
+    internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : AbstractBuiltInCodeQualityDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,

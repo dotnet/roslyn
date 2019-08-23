@@ -347,16 +347,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return PredefinedOperator.None;
             }
         }
-
-        /// <summary>
-        /// Returns true for void returning methods with two parameters, where
-        /// the first parameter is of <see cref="object"/> type and the second
-        /// parameter inherits from or equals <see cref="EventArgs"/> type.
-        /// </summary>
-        public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
-            => eventArgsType != null &&
-               method.Parameters.Length == 2 &&
-               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
     }
 }

@@ -12,6 +12,11 @@
         <target state="translated">Um nome de idioma deve ser especificado para esta opção.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_Quality">
+        <source>Code Quality</source>
+        <target state="new">Code Quality</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Erro</target>
@@ -37,9 +42,44 @@
         <target state="translated">NENHUM</target>
         <note />
       </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="new">Private member '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Somente Refatoração</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
         <note />
       </trans-unit>
       <trans-unit id="Style">

@@ -10,6 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
     internal class CSharpSymbolDeclarationService : ISymbolDeclarationService
     {
+#if CODE_STYLE
+        public static readonly ISymbolDeclarationService Instance = new CSharpSymbolDeclarationService();   
+#endif
+
         [ImportingConstructor]
         public CSharpSymbolDeclarationService()
         {

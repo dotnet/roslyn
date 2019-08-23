@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+
+#if !CODE_STYLE
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis
         public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & ValueUsageInfo.Name) != 0;
 
+#if !CODE_STYLE
         public static string ToLocalizableString(this ValueUsageInfo value)
         {
             // We don't support localizing value combinations.
@@ -122,5 +126,6 @@ namespace Microsoft.CodeAnalysis
 
             return builder.ToImmutableAndFree();
         }
+#endif
     }
 }

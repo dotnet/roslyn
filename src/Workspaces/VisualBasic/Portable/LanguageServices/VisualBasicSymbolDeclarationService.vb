@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSymbolDeclarationService
         Implements ISymbolDeclarationService
 
+#If CODE_STYLE Then
+        Public Shared ReadOnly Instance As ISymbolDeclarationService = New VisualBasicSymbolDeclarationService()
+#End If
+
         <ImportingConstructor>
         Public Sub New()
         End Sub

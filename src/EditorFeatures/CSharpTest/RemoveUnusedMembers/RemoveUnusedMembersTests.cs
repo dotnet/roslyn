@@ -12,7 +12,11 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests.RemoveUnusedMembers
+#else
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
+#endif
 {
     public class RemoveUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -1094,7 +1098,7 @@ class C
             using var workspace = CreateWorkspaceFromOptions(source, testParameters);
             var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
             diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
-            var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+            var expectedMessage = "Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.";
             Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
         }
 

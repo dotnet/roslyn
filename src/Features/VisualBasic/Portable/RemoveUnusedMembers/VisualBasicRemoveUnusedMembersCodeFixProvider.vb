@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -35,5 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                     declarators:=declarators)
             Next
         End Sub
+
+#If CODE_STYLE Then
+        Protected Overrides Function GetSymbolDeclarationService(document As Document) As ISymbolDeclarationService
+            Return VisualBasicSymbolDeclarationService.Instance
+        End Function
+#End If
+
     End Class
 End Namespace

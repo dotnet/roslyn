@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
@@ -35,6 +35,7 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingService.vb" Link="Formatting\VisualBasicSyntaxFormattingService.vb" />
+    <Compile Include="..\..\..\Features\VisualBasic\Portable\RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" Link="RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

@@ -26,7 +26,7 @@
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>2.9.3</RoslynDiagnosticsNugetPackageVersion>
-    <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
+    <CodeStyleLayerCodeAnalysisVersion>3.0.0</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.3.0-beta2-19376-02</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.1.101</VisualStudioEditorPackagesVersion>

@@ -4,14 +4,16 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
 </Project>

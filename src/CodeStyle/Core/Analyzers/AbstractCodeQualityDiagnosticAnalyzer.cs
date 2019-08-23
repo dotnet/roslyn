@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeQuality
 {
-    internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         private readonly GeneratedCodeAnalysisFlags _generatedCodeAnalysisFlags;
 
@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis.CodeQuality
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
-
-        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
-        public bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,

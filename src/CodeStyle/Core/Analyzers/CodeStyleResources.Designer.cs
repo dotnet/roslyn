@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeStyleResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleResources", typeof(CodeStyleResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleResources", typeof(CodeStyleResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -76,6 +75,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string A_language_name_must_be_specified_for_this_option {
             get {
                 return ResourceManager.GetString("A_language_name_must_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code Quality.
+        /// </summary>
+        internal static string Code_Quality {
+            get {
+                return ResourceManager.GetString("Code_Quality", resourceCulture);
             }
         }
         
@@ -125,11 +133,75 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private member &apos;{0}&apos; can be removed as the value assigned to it is never read..
+        /// </summary>
+        internal static string Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read {
+            get {
+                return ResourceManager.GetString("Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private member &apos;{0}&apos; is unused..
+        /// </summary>
+        internal static string Private_member_0_is_unused {
+            get {
+                return ResourceManager.GetString("Private_member_0_is_unused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private method &apos;{0}&apos; can be removed as it is never invoked..
+        /// </summary>
+        internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private property &apos;{0}&apos; can be converted to a method as its get accessor is never invoked..
+        /// </summary>
+        internal static string Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invo" +
+                        "ked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refactoring Only.
         /// </summary>
         internal static string Refactoring_Only {
             get {
                 return ResourceManager.GetString("Refactoring_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unread private members.
+        /// </summary>
+        internal static string Remove_unread_private_members {
+            get {
+                return ResourceManager.GetString("Remove_unread_private_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused member.
+        /// </summary>
+        internal static string Remove_unused_member {
+            get {
+                return ResourceManager.GetString("Remove_unused_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused private members.
+        /// </summary>
+        internal static string Remove_unused_private_members {
+            get {
+                return ResourceManager.GetString("Remove_unused_private_members", resourceCulture);
             }
         }
         

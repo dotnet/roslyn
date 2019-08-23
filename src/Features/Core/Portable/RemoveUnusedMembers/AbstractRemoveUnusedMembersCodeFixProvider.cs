@@ -15,6 +15,10 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using FeaturesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
@@ -23,7 +27,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId);
 
+#if !CODE_STYLE
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
+        private ISymbolDeclarationService GetSymbolDeclarationService(Document document)
+            => document.GetLanguageService<ISymbolDeclarationService>();
+#else
+        protected abstract ISymbolDeclarationService GetSymbolDeclarationService(Document document);
+#endif
 
         /// <summary>
         /// This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
@@ -50,7 +61,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+            var declarationService = GetSymbolDeclarationService(document);
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
@@ -121,7 +132,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction
+#if CODE_STYLE
+            : CustomCodeActions.DocumentChangeAction
+#else
+            : CodeAction.DocumentChangeAction
+#endif
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Remove_unused_member, createChangedDocument)

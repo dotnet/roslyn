@@ -65,15 +65,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessageFormat,
-                isUnneccessary: true);
+                isUnneccessary: true,
+                isConfigurable: _configurable);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags: customTags);
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isConfigurable: _configurable, customTags: customTags);
 
         protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, title, title, customTags: customTags);
+            => CreateDescriptorWithId(DescriptorId, title, title, isConfigurable: _configurable, customTags: customTags);
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,

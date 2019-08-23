@@ -5,7 +5,11 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 
+#If CODE_STYLE Then
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests.RemoveUnusedMembers
+#Else
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMembers
+#End If
     Public Class RemoveUnusedMembersTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)

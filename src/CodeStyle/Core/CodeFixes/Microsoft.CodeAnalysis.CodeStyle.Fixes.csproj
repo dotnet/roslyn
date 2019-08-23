@@ -4,12 +4,15 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Features\Core\Portable\CodeFixes\PredefinedCodeFixProviderNames.cs" Link="PredefinedCodeFixProviderNames.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IProgressTracker.cs" Link="IProgressTracker.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" Link="SyntaxEditorBasedCodeFixProvider.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SymbolDeclarationService\ISymbolDeclarationService.cs" Link="LanguageServices\SymbolDeclarationService\ISymbolDeclarationService.cs" />
+    <Compile Include="..\..\..\Features\Core\Portable\RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" Link="RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonFixedVersion)" />

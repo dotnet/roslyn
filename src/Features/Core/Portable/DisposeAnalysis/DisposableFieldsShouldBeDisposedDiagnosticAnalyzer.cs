@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class DisposableFieldsShouldBeDisposedDiagnosticAnalyzer
-        : AbstractCodeQualityDiagnosticAnalyzer
+        : AbstractBuiltInCodeQualityDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_disposableFieldsShouldBeDisposedRule = CreateDescriptor(
             IDEDiagnosticIds.DisposableFieldsShouldBeDisposedDiagnosticId,

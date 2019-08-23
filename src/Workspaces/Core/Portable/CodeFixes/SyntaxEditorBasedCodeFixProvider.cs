@@ -48,10 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
-        internal abstract CodeFixCategory CodeFixCategory { get; }
-
         protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
+
+#if !CODE_STYLE
+        internal abstract CodeFixCategory CodeFixCategory { get; }
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is
@@ -89,5 +90,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => true;
+#endif
     }
 }

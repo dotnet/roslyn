@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal static class FixAllContextHelper
     {

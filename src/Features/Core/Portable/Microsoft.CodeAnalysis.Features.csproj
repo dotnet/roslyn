@@ -107,7 +107,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\AbstractCodeStyleDiagnosticAnalyzer.cs" Link="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
-    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
+    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\AbstractCodeQualityDiagnosticAnalyzer.cs" Link="CodeQuality\AbstractCodeQualityDiagnosticAnalyzer.cs" />
+    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\Formatting\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">

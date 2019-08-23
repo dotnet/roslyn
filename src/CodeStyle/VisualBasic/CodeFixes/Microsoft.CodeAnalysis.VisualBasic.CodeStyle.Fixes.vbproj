@@ -3,7 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <RootNamespace></RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
@@ -59,6 +60,10 @@
       <LastGenOutput>VBCodeStyleFixesResources.Designer.vb</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\LanguageServices\VisualBasicSymbolDeclarationService.vb" Link="LanguageServices\VisualBasicSymbolDeclarationService.vb" />
+    <Compile Include="..\..\..\Features\VisualBasic\Portable\RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" Link="RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

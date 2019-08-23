@@ -5,6 +5,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
 {
@@ -29,5 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
                 AdjustAndAddAppropriateDeclaratorsToRemove(fieldDeclarator, fieldDeclarator.Declaration.Variables, declarators);
             }
         }
+
+#if CODE_STYLE
+        protected override ISymbolDeclarationService GetSymbolDeclarationService(Document document) => CSharpSymbolDeclarationService.Instance;
+#endif
     }
 }

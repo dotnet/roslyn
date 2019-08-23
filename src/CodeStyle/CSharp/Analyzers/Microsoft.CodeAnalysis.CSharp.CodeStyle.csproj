@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <PackageId>Microsoft.CodeAnalysis.CSharp.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
   </PropertyGroup>
@@ -57,6 +57,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\TokenBasedFormattingRule.cs" Link="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\WrappingFormattingRule.cs" Link="Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
+    <Compile Include="..\..\..\Features\CSharp\Portable\RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" Link="RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CSharpCodeStyleResources.Designer.cs">
