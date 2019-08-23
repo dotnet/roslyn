@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             TypeWithAnnotations inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             TypeWithAnnotations inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out TypeWithAnnotations inferredType);
             return inferredType;
         }
@@ -626,6 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool GetEnumeratorInfo(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, DiagnosticBag diagnostics)
         {
             bool isAsync = IsAsync;
+            builder.IsAsync = isAsync;
+
             EnumeratorResult found = GetEnumeratorInfo(ref builder, collectionExpr, isAsync, diagnostics);
             switch (found)
             {

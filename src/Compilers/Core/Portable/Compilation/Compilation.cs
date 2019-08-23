@@ -824,6 +824,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract ISymbol CommonGetWellKnownTypeMember(WellKnownMember member);
 
         /// <summary>
+        /// Lookup well-known type used by this Compilation.
+        /// </summary>
+        internal abstract ITypeSymbol CommonGetWellKnownType(WellKnownType wellknownType);
+
+        /// <summary>
         /// Returns true if the specified type is equal to or derives from System.Attribute well-known type.
         /// </summary>
         internal abstract bool IsAttributeType(ITypeSymbol type);

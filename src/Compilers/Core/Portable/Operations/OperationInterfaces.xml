@@ -180,6 +180,14 @@
       </Comments>
     </Property>
     <Property Name="Info" Type="ForEachLoopOperationInfo" Internal="true" SkipGeneration="true" />
+    <Property Name="IsAsynchronous" Type="bool">
+      <Comments>
+        <summary>
+          Whether this for each loop is asynchronous.
+          Always false for VB.
+        </summary>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="IForLoopOperation" Base="ILoopOperation" ChildrenOrder="Before,Condition,Body,AtLoopBottom">
     <OperationKind Include="false" />
@@ -462,6 +470,14 @@
       <Comments>
         <summary>
           Locals declared within the <see cref="Resources" /> with scope spanning across this entire <see cref="IUsingOperation" />.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="IsAsynchronous" Type="bool">
+      <Comments>
+        <summary>
+          Whether this using is asynchronous.
+          Always false for VB.
         </summary>
       </Comments>
     </Property>

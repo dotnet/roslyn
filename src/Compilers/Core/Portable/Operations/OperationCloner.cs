@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
             return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable),
-                                            Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
+                                            Visit(operation.Collection), VisitArray(operation.NextVariables), operation.IsAsynchronous, Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitUsing(IUsingOperation operation, object argument)
         {
-            return new UsingOperation(Visit(operation.Resources), Visit(operation.Body), operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new UsingOperation(Visit(operation.Resources), Visit(operation.Body), operation.Locals, operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
