@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -76,14 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 throw new InvalidOperationException(EditorFeaturesResources.Can_t_compare_positions_from_different_text_snapshots);
             }
 
-            return IComparableHelper.CompareTo(this, other, GetComparisonComponents);
+            return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private static IEnumerable<IComparable> GetComparisonComponents(VirtualTreePoint p)
-        {
-            yield return p.Position;
-            yield return p.VirtualSpaces;
-        }
+        private readonly static ImmutableArray<ComparerWithState<VirtualTreePoint>> s_comparers =
+            ComparerWithState.CreateComparers<VirtualTreePoint>(p => p.Position, prop => prop.VirtualSpaces);
 
         public bool Equals(VirtualTreePoint other)
         {

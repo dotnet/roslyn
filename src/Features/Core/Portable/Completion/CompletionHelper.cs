@@ -7,7 +7,6 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -224,14 +223,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return match1.CompareTo(match2, ignoreCase: false);
         }
 
+        // If they both seemed just as good, but they differ on preselection, then
+        // item1 is better if it is preselected, otherwise it is worse.
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
-            => IComparableHelper.CompareTo(item1, item2, GetPreselectionComparisonComponents);
-
-        private static IEnumerable<IComparable> GetPreselectionComparisonComponents(CompletionItem item)
-        {
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            yield return item.Rules.MatchPriority != MatchPriority.Preselect;
-        }
+            => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
     }
 }

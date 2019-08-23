@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
@@ -25,16 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     return 0;
                 }
 
-                return IComparableHelper.CompareTo(x, y, GetComparisonComponents);
+                return ComparerWithState.CompareTo(x, y, s_comparers);
             }
 
-            private static IEnumerable<IComparable> GetComparisonComponents(SyntaxToken t)
-            {
-                // partial always goes last.
-                yield return t.Kind() == SyntaxKind.PartialKeyword;
-
-                yield return GetOrdering(t);
-            }
+            private readonly static ImmutableArray<ComparerWithState<SyntaxToken>> s_comparers =
+                ComparerWithState.CreateComparers<SyntaxToken>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
 
             private static Ordering GetOrdering(SyntaxToken token)
             {

@@ -53,8 +53,5 @@ namespace Roslyn.Utilities
                 return items.ToImmutableArrayOrEmpty();
             }
         }
-
-        internal static ImmutableArray<T> Sort<T>(this ImmutableArray<T> items, Func<T, IEnumerable<IComparable>> getComparisonComponentsMethod)
-            => items.Sort((i1, i2) => IComparableHelper.CompareTo(i1, i2, getComparisonComponentsMethod));
     }
 }

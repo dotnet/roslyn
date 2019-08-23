@@ -30,28 +30,36 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public int CompareTo(Document document, Reference other)
-                => IComparableHelper.CompareTo(this, other, r => GetComparisonComponents(r, document));
-
-            private static IEnumerable<IComparable> GetComparisonComponents(Reference reference, Document document)
             {
-                var searchResult = reference.SearchResult;
-                // If references have different weights, order by the ones with lower weight (i.e.
-                // they are better matches).
-                yield return searchResult.Weight;
+                int diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+                if (diff != 0)
+                {
+                    return diff;
+                }
 
-                // Prefer the name doesn't need to change.
-                yield return !searchResult.DesiredNameMatchesSourceName(document);
-
-                // Sort by the name we're  changing to.
-                yield return searchResult.DesiredName;
+                // Both our names need to change.  Sort by the name we're 
+                // changing to.
+                diff = StringComparer.OrdinalIgnoreCase.Compare(
+                    SearchResult.DesiredName, other.SearchResult.DesiredName);
+                if (diff != 0)
+                {
+                    return diff;
+                }
 
                 // If the weights are the same and no names changed, just order 
                 // them based on the namespace we're adding an import for.
-                foreach (var c in INamespaceOrTypeSymbolExtensions.GetComparisonComponents(searchResult.NameParts, placeSystemNamespaceFirst: true))
-                {
-                    yield return c;
-                }
+                return INamespaceOrTypeSymbolExtensions.CompareNameParts(
+                        SearchResult.NameParts, other.SearchResult.NameParts,
+                        placeSystemNamespaceFirst: true);
             }
+
+            private readonly static ImmutableArray<ComparerWithState<Reference, Document>> s_comparers
+                = ComparerWithState.CreateComparers<Reference, Document>(
+                    // If references have different weights, order by the ones with lower weight (i.e.
+                    // they are better matches).
+                    (r, d) => r.SearchResult.Weight,
+                    // Prefer the name doesn't need to change.
+                    (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d));
 
             public override bool Equals(object obj)
             {

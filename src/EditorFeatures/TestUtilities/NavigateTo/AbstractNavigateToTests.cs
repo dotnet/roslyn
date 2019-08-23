@@ -209,15 +209,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         // For ordering of NavigateToItems, see
         // http://msdn.microsoft.com/en-us/library/microsoft.visualstudio.language.navigateto.interfaces.navigatetoitem.aspx
         protected static int CompareNavigateToItems(NavigateToItem a, NavigateToItem b)
-            => IComparableHelper.CompareTo(a, b, GetComparisonComponents);
+            => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
-        private static IEnumerable<IComparable> GetComparisonComponents(NavigateToItem item)
-        {
-            yield return (int)item.PatternMatch.Kind;
-            yield return item.Name;
-            yield return item.Kind;
-            yield return item.SecondarySort;
-        }
+        private readonly static ImmutableArray<ComparerWithState<NavigateToItem>> s_comparisonComponents =
+            ComparerWithState.CreateComparers<NavigateToItem>(
+                item => (int)item.PatternMatch.Kind,
+                item => item.Name,
+                item => item.Kind,
+                item => item.SecondarySort);
 
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {

@@ -58,22 +58,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             => CompareTo(other, ignoreCase: false);
 
         public int CompareTo(PatternMatch other, bool ignoreCase)
-            => IComparableHelper.CompareTo(this, other, patternMatch => GetComparisonComponents(patternMatch, ignoreCase));
+            => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
 
-        private static IEnumerable<IComparable> GetComparisonComponents(PatternMatch patternMatch, bool ignoreCase)
-        {
-            // Compare types
-            yield return patternMatch.Kind;
-
-            // Compare cases
-            if (!ignoreCase)
-            {
-                yield return !patternMatch.IsCaseSensitive;
-            }
-
-            // Consider a match to be better if it was successful without stripping punctuation
-            // versus a match that had to strip punctuation to succeed.
-            yield return patternMatch._punctuationStripped;
-        }
+        private readonly static ImmutableArray<ComparerWithState<PatternMatch, bool>> s_comparers =
+            ComparerWithState.CreateComparers<PatternMatch, bool>(
+                // Compare types
+                (p, b) => p.Kind,
+                // Compare cases
+                (p, b) => !b && !p.IsCaseSensitive,
+                // Consider a match to be better if it was successful without stripping punctuation
+                // versus a match that had to strip punctuation to succeed.
+                (p, b) => p._punctuationStripped);
     }
 }

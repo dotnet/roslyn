@@ -42,9 +42,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => s_namespaceOrTypeToNameMap.GetValue(symbol, s_getNamePartsCallBack);
 
         public static int CompareNameParts(
-            IReadOnlyList<string> names1, IReadOnlyList<string> names2,
-            bool placeSystemNamespaceFirst)
-            => IComparableHelper.CompareTo(names1, names2, names => GetComparisonComponents(names, placeSystemNamespaceFirst));
+           IReadOnlyList<string> names1, IReadOnlyList<string> names2,
+           bool placeSystemNamespaceFirst)
+        {
+            for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
+            {
+                var name1 = names1[i];
+                var name2 = names2[i];
+
+                if (i == 0 && placeSystemNamespaceFirst)
+                {
+                    var name1IsSystem = name1 == nameof(System);
+                    var name2IsSystem = name2 == nameof(System);
+
+                    if (name1IsSystem && !name2IsSystem)
+                    {
+                        return -1;
+                    }
+                    else if (!name1IsSystem && name2IsSystem)
+                    {
+                        return 1;
+                    }
+                }
+
+                var comp = name1.CompareTo(name2);
+                if (comp != 0)
+                {
+                    return comp;
+                }
+            }
+
+            return names1.Count - names2.Count;
+        }
 
         public static IEnumerable<IComparable> GetComparisonComponents(IReadOnlyList<string> names, bool placeSystemNamespaceFirst)
         {

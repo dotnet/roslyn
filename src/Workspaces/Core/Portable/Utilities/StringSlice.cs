@@ -101,33 +101,43 @@ namespace Microsoft.CodeAnalysis.Utilities
         }
 
         internal int CompareToOrdinal(StringSlice other)
-            => IComparableHelper.CompareTo(this, other, GetComparablesToOrdinal);
-
-        private static IEnumerable<IComparable> GetComparablesToOrdinal(StringSlice slice)
         {
-            for (int i = slice._span.Start; i < slice._span.End; i++)
+            var thisEnd = this._span.End;
+            var otherEnd = other._span.End;
+            for (int i = this._span.Start, j = other._span.Start;
+                 i < thisEnd && j < otherEnd;
+                 i++, j++)
             {
-                yield return true;
-                yield return slice._underlyingString[i];
+                var diff = this._underlyingString[i] - other._underlyingString[j];
+                if (diff != 0)
+                {
+                    return diff;
+                }
             }
 
             // Choose the one that is shorter if their prefixes match so far.
-            yield return false;
+            return this.Length - other.Length;
         }
 
         internal int CompareToOrdinalIgnoreCase(StringSlice other)
-            => IComparableHelper.CompareTo(this, other, GetComparablesToOrdinalIgnoreCase);
-
-        private static IEnumerable<IComparable> GetComparablesToOrdinalIgnoreCase(StringSlice slice)
         {
-            for (int i = slice._span.Start; i < slice._span.End; i++)
+            var thisEnd = this._span.End;
+            var otherEnd = other._span.End;
+            for (int i = this._span.Start, j = other._span.Start;
+                 i < thisEnd && j < otherEnd;
+                 i++, j++)
             {
-                yield return true;
-                yield return CaseInsensitiveComparison.ToLower(slice._underlyingString[i]);
+                var diff =
+                    CaseInsensitiveComparison.ToLower(this._underlyingString[i]) -
+                    CaseInsensitiveComparison.ToLower(other._underlyingString[j]);
+                if (diff != 0)
+                {
+                    return diff;
+                }
             }
 
             // Choose the one that is shorter if their prefixes match so far.
-            yield return false;
+            return this.Length - other.Length;
         }
 
         public struct Enumerator

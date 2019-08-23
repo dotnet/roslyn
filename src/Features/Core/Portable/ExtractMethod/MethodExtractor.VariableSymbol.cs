@@ -50,21 +50,25 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableSymbol right,
                 INamedTypeSymbol cancellationTokenType)
             {
-                var diff = IComparableHelper.CompareTo(left, right, variable => GetComparisonComponents(variable, cancellationTokenType));
-                if (diff != 0)
+                // CancellationTokens always go at the end of method signature.
+                var leftIsCancellationToken = left.OriginalType.Equals(cancellationTokenType);
+                var rightIsCancellationToken = right.OriginalType.Equals(cancellationTokenType);
+
+                if (leftIsCancellationToken && !rightIsCancellationToken)
                 {
-                    return diff;
+                    return 1;
+                }
+                else if (!leftIsCancellationToken && rightIsCancellationToken)
+                {
+                    return -1;
                 }
 
-                return left.CompareTo(right);
-
-                static IEnumerable<IComparable> GetComparisonComponents(VariableSymbol variable, INamedTypeSymbol cancellationTokenType)
+                if (left.DisplayOrder == right.DisplayOrder)
                 {
-                    // CancellationTokens always go at the end of method signature.
-                    yield return variable.OriginalType.Equals(cancellationTokenType);
-
-                    yield return variable.DisplayOrder;
+                    return left.CompareTo(right);
                 }
+
+                return left.DisplayOrder - right.DisplayOrder;
             }
         }
 

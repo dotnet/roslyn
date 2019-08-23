@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static int CompareTo(this INamespaceSymbol n1, INamespaceSymbol n2)
-            => IComparableHelper.CompareTo(n1, n2, GetComparables);
-
-        private static IEnumerable<IComparable> GetComparables(INamespaceSymbol namespaceSymbol)
         {
-            var names = s_namespaceToNameMap.GetValue(namespaceSymbol, GetNameParts);
+            var names1 = s_namespaceToNameMap.GetValue(n1, GetNameParts);
+            var names2 = s_namespaceToNameMap.GetValue(n2, GetNameParts);
 
-            for (var i = 0; i < names.Count; i++)
+            for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {
-                yield return true;
-                yield return names[i];
+                var comp = names1[i].CompareTo(names2[i]);
+                if (comp != 0)
+                {
+                    return comp;
+                }
             }
 
-            // the shorter list wins.
-            yield return false;
+            return names1.Count - names2.Count;
         }
 
         public static IEnumerable<INamespaceOrTypeSymbol> GetAllNamespacesAndTypes(

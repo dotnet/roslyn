@@ -65,25 +65,19 @@ namespace Microsoft.CodeAnalysis.Wrapping
         {
             // make a local so this array can't change out from under us.
             var mruTitles = s_mruTitles;
-            return codeActions.Sort(GetComparisonComponents);
+            return codeActions.Sort((d1, d2) => ComparerWithState.CompareTo(d1, d2, (mruTitles, codeActions), s_comparers));
+        }
 
-            IEnumerable<IComparable> GetComparisonComponents(CodeAction ca)
-            {
-                var titleIndex = mruTitles.IndexOf(GetSortTitle(ca));
-
+        private static readonly ImmutableArray<ComparerWithState<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>)>> s_comparers =
+            ComparerWithState.CreateComparers<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>)>(
                 // one of these has never been invoked.  It's always after an item that has been
                 // invoked.
-                yield return titleIndex >= 0;
-
                 // we've invoked both of these before.  Order by how recently it was invoked.
-                yield return titleIndex;
-
+                (ca, tuple) => tuple.Item1.IndexOf(GetSortTitle(ca)),
                 // Neither of these has been invoked.   Keep it in the same order we found it in the
                 // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
                 // to sort stably.
-                yield return codeActions.IndexOf(ca);
-            }
-        }
+                (ca, tuple) => tuple.Item2.IndexOf(ca));
 
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;

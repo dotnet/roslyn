@@ -178,21 +178,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // sort the result to the order defined by the fixers
                 var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
-                result.Sort((d1, d2) => IComparableHelper.CompareTo(d1, d2, GetComparisonComponents));
+                result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
-                IEnumerable<IComparable> GetComparisonComponents(CodeFixCollection c)
-                {
-                    var containsKey = priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value);
-
-                    // Compare if the map contains one provider but not another.
-                    yield return containsKey;
-
-                    // If contains both, compare values.
-                    if (containsKey)
-                    {
-                        yield return value;
-                    }
-                }
+                int GetValue(CodeFixCollection c)
+                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
