@@ -47,9 +47,10 @@ namespace Microsoft.CodeAnalysis
             {
                 return true;
             }
-            else if (x is ISymbolInternal sx)
+            else if (x is ISymbolInternal sx &&
+                     y is ISymbolInternal sy)
             {
-                return sx.Equals(y, CompareKind);
+                return sx.Equals(sy, CompareKind);
             }
             else
             {

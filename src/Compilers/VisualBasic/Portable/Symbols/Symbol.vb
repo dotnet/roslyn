@@ -769,7 +769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return equalityComparer.Equals(Me, other)
         End Function
 
-        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
             Return Me.Equals(TryCast(other, Symbol), compareKind)
         End Function
 

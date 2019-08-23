@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return equalityComparer.Equals(this, other);
         }
 
-        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
         }
