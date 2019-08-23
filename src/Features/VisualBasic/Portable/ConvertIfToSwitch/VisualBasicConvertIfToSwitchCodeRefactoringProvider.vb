@@ -58,6 +58,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                         Return DirectCast(node, ElseIfBlockSyntax).Statements
                     Case SyntaxKind.ElseBlock
                         Return DirectCast(node, ElseBlockSyntax).Statements
+                    Case SyntaxKind.ReturnStatement,
+                         SyntaxKind.ThrowStatement
+                        Return SyntaxFactory.SingletonList(DirectCast(node, StatementSyntax))
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind())
                 End Select

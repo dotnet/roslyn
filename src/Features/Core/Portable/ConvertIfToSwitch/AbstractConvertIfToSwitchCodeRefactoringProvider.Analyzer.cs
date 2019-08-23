@@ -19,13 +19,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
     using static BinaryOperatorKind;
-    
+
     internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     {
         // Match the following pattern which can be safely converted to switch statement
         //
         //    <if-statement-sequence>
-        //        : if (<condition-expr>) { <unreachable-end-point> } <if-statement-sequence>
+        //        : if (<condition-expr>) { <unreachable-end-point> }, <if-statement-sequence>
+        //        : if (<condition-expr>) { <unreachable-end-point> }, ( return | throw )
         //        | <if-statement>
 
         //    <if-statement>
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        | <expr0> <comparison-op> <const>                  //     VB
         //        | ( <expr0> >= <const> | <const> <= <expr0> )
         //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
-        //        | ...
+        //        | ( <expr0> <= <const> | <const> >= <expr0> )
+        //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
         //
         //    <condition-expr>
         //        : <condition-expr> || <pattern-expr>
@@ -58,13 +60,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 _syntaxFacts = syntaxFacts;
             }
 
-            public (ImmutableArray<SwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations, out IOperation? defaultBodyOpt)
+            public (ImmutableArray<SwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
                 var sections = ArrayBuilder<SwitchSection>.GetInstance();
-                if (!ParseIfStatementSequence(operations, sections, out defaultBodyOpt))
+                if (!ParseIfStatementSequence(operations, sections, out var defaultBodyOpt))
                 {
                     sections.Free();
                     return default;
+                }
+
+                if (defaultBodyOpt is object)
+                {
+                    sections.Add(new SwitchSection(default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
                 Debug.Assert(_switchTargetExpression is object);
@@ -82,7 +89,16 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         return false;
                     }
 
-                    _ = ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt);
+                    if (!ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt))
+                    {
+                        var nextStatement = operations[1];
+                        if (nextStatement is IReturnOperation { ReturnedValue: {} } ||
+                            nextStatement is IThrowOperation { Exception: {} })
+                        {
+                            defaultBodyOpt = nextStatement;
+                        }
+                    }
+
                     return true;
                 }
 
@@ -186,8 +202,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return (op.LeftOperand, op.RightOperand) switch
                 {
-                    var (_, v) when IsConstant(v) && CheckTargetExpression(v) => ConstantResult.Right,
-                    var (v, _) when IsConstant(v) && CheckTargetExpression(v) => ConstantResult.Left,
+                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
+                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -196,12 +212,12 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 switch (operation)
                 {
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsRangePattern && GetRangeBounds(op) is var (lower, higher):
-                        return new RangePattern(lower, higher);
-
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsCaseGuard:
                         guards.Add(op.RightOperand.Syntax);
                         return ParsePattern(op.LeftOperand, guards);
+
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsRangePattern && GetRangeBounds(op) is var (lower, higher):
+                        return new RangePattern(lower, higher);
 
                     case IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals } op:
                         return DetermineConstant(op) switch
@@ -246,21 +262,20 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return null;
                 }
 
-                switch (GetRangeBoundKind(left), GetRangeBoundKind(right))
+                return (GetRangeBound(left), GetRangeBound(right)) switch
                 {
-                    case ({Kind: BoundKind.Lower} low, {Kind: BoundKind.Higher} high) when CheckTargetExpression(low.Expression, high.Expression):
-                        return (low.Value, high.Value);
-                    case ({Kind: BoundKind.Higher} high, {Kind: BoundKind.Lower} low) when CheckTargetExpression(low.Expression, high.Expression):
-                        return (low.Value, high.Value);
-                    default:
-                        return null;
-                }
+                    ({Kind: BoundKind.Lower} low, {Kind: BoundKind.Higher} high)
+                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
+                    ({Kind: BoundKind.Higher} high, {Kind: BoundKind.Lower} low)
+                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
+                    _ => ((IOperation, IOperation)?)null
+                };
 
                 bool CheckTargetExpression(IOperation left, IOperation right)
                     => _syntaxFacts.AreEquivalent(left.Syntax, right.Syntax) && this.CheckTargetExpression(left);
             }
 
-            private static (BoundKind Kind, IOperation Expression, IOperation Value) GetRangeBoundKind(IBinaryOperation op)
+            private static (BoundKind Kind, IOperation Expression, IOperation Value) GetRangeBound(IBinaryOperation op)
             {
                 return op.OperatorKind switch
                 {
@@ -314,7 +329,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
             }
-            
+
             private bool CheckTargetExpression(IOperation operation)
             {
                 if (operation is IConversionOperation { IsImplicit: false } op)

@@ -561,8 +561,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return 5;
             case 0:
                 return 6;
+            default:
+                return 7;
         }
-        return 7;
     }
 }");
         }
