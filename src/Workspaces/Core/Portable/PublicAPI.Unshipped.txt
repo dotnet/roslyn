@@ -39,6 +39,7 @@ Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentOpened(Microsoft.CodeAn
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText newText, Microsoft.CodeAnalysis.PreservationMode mode) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void
+Microsoft.CodeAnalysis.Workspace.OnDocumentRenamed(Microsoft.CodeAnalysis.DocumentId documentId, string newName) -> void
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentAdded = 18 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentChanged = 21 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentReloaded = 20 -> Microsoft.CodeAnalysis.WorkspaceChangeKind

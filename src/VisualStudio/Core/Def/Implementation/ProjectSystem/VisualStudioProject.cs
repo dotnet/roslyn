@@ -133,18 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
                 documentAddAction: (w, d) => w.OnDocumentAdded(d),
                 documentRemoveAction: (w, documentId) => w.OnDocumentRemoved(documentId),
+                documentRenameAction: (w, documentId, newFileName) => w.OnDocumentRenamed(documentId, newFileName),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnDocumentTextLoaderChanged(d, loader));
 
             _additionalFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAdditionalDocument(d),
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
+                (w, documentId, newFileName) => w.OnAdditionalDocumentRenamed(documentId, newFileName),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
 
             _analyzerConfigFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAnalyzerConfigDocument(d),
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
+                (w, documentId, newFileName) => w.OnAnalyzerConfigDocumentRenamed(documentId, newFileName),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
         }
 
@@ -581,6 +584,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _sourceFiles.RemoveFile(fullPath);
         }
 
+        public void RenameSourceFile(string originalFilePath, string newFilePath)
+        {
+            // TODO
+        }
+
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
         {
             _sourceFiles.RemoveTextContainer(textContainer);
@@ -604,6 +612,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveAdditionalFile(string fullPath)
         {
             _additionalFiles.RemoveFile(fullPath);
+        }
+
+        public void RenameAdditionalFile(string originalFilePath, string newFilePath)
+        {
+            // TODO
         }
 
         #endregion
@@ -686,6 +699,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
                 projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
+        }
+
+        public void RenameDynamicSourceFile(string originalFilePath, string newFilePath)
+        {
+            // TODO
         }
 
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
@@ -1102,6 +1120,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
 
             /// <summary>
+            /// The current list of documents that are to be renamed in this batch.
+            /// </summary>
+            private readonly ImmutableDictionary<DocumentId, string>.Builder _documentsRenamedInbatch = ImmutableDictionary.CreateBuilder<DocumentId, string>();
+
+            /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
             /// </summary>
             private ImmutableList<DocumentId> _orderedDocumentsInBatch = null;
@@ -1109,18 +1132,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
             private readonly Action<Workspace, DocumentId> _documentRemoveAction;
+            private readonly Action<Workspace, DocumentId, string> _documentRenameAction;
             private readonly Action<Workspace, DocumentId, TextLoader> _documentTextLoaderChangedAction;
 
             public BatchingDocumentCollection(VisualStudioProject project,
                 Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
                 Action<Workspace, DocumentInfo> documentAddAction,
                 Action<Workspace, DocumentId> documentRemoveAction,
+                Action<Workspace, DocumentId, string> documentRenameAction,
                 Action<Workspace, DocumentId, TextLoader> documentTextLoaderChangedAction)
             {
                 _project = project;
                 _documentAlreadyInWorkspace = documentAlreadyInWorkspace;
                 _documentAddAction = documentAddAction;
                 _documentRemoveAction = documentRemoveAction;
+                _documentRenameAction = documentRenameAction;
                 _documentTextLoaderChangedAction = documentTextLoaderChangedAction;
             }
 
@@ -1167,6 +1193,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return documentId;
+            }
+
+            public void RenameFile(string originalFilePath, string newFilePath)
+            {
+                if (string.IsNullOrEmpty(originalFilePath))
+                {
+                    throw new ArgumentException($"{nameof(originalFilePath)} isn't a valid path.", nameof(originalFilePath));
+                }
+
+                if (string.IsNullOrEmpty(newFilePath))
+                {
+                    throw new ArgumentException($"{nameof(newFilePath)} isn't a valid path.", nameof(newFilePath));
+                }
+
+                lock (_project._gate)
+                {
+                    if (!_documentPathsToDocumentIds.TryGetValue(originalFilePath, out var documentId))
+                    {
+                        throw new ArgumentException($"'{originalFilePath}' is not a source file of this project.");
+                    }
+
+                    _documentPathsToDocumentIds.Remove(originalFilePath);
+                    _documentPathsToDocumentIds.Add(newFilePath, documentId);
+
+                    documentId.DebugName = newFilePath;
+
+                    // Document is already in the workspace and needs to be renamed
+                    if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))
+                    {
+                        if (_project._activeBatchScopes > 0)
+                        {
+                            _documentsRenamedInbatch.Add(documentId, newFilePath);
+                        }
+                        else
+                        {
+                            _project._workspace.ApplyChangeToWorkspace(w => _documentRenameAction(w, documentId, newFilePath));
+                        }
+                    }
+                    else
+                    {
+                        // Document could be in a batch to add
+                        for (var i = 0; i < _documentsAddedInBatch.Count; i++)
+                        {
+                            var documentInfo = _documentsAddedInBatch[i];
+                            if (documentInfo.Id == documentId)
+                            {
+                                var newInfo = documentInfo.WithFilePath(newFilePath);
+                                _documentsAddedInBatch.RemoveAt(i);
+                                _documentsAddedInBatch.Add(newInfo);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
             public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider documentServiceProvider)

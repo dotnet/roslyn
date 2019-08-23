@@ -207,6 +207,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _projectCodeModel.OnSourceFileRemoved(filePath);
         }
 
+        public void RenameSourceFile(string originalFilePath, string newFilePath)
+        {
+            _visualStudioProject.RenameSourceFile(originalFilePath, newFilePath);
+            _projectCodeModel.OnSourceFileRenaming(originalFilePath, newFilePath);
+        }
+
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
         {
             _visualStudioProject.AddAdditionalFile(filePath);
@@ -233,6 +239,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _visualStudioProject.RemoveAdditionalFile(filePath);
         }
 
+        public void RenameAdditionalFile(string originalFilePath, string newFilePath)
+        {
+            _visualStudioProject.RenameAdditionalFile(originalFilePath, newFilePath);
+        }
+
         public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
         {
             _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
@@ -241,6 +252,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveDynamicFile(string filePath)
         {
             _visualStudioProject.RemoveDynamicSourceFile(filePath);
+        }
+
+        public void RenameDynamicFile(string originalFilePath, string newFilePath)
+        {
+            _visualStudioProject.RenameDynamicSourceFile(originalFilePath, newFilePath);
         }
 
         public void SetRuleSetFile(string filePath)

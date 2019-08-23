@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectId ProjectId { get; }
         public Guid Id { get; }
 
-        private readonly string _debugName;
-
         private DocumentId(ProjectId projectId, Guid guid, string debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
-            _debugName = debugName;
+            DebugName = debugName;
         }
 
         /// <summary>
@@ -57,11 +55,11 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, id, debugName);
         }
 
-        internal string DebugName => _debugName;
+        internal string DebugName { get; set; }
 
         internal string GetDebuggerDisplay()
         {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
         }
 
         public override string ToString()

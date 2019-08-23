@@ -676,6 +676,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Call this method when a document is renamed in the host environment
+        /// </summary>
+        protected internal void OnDocumentRenamed(DocumentId documentId, string newFilePath)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentFilePath(documentId, newFilePath));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
         }
@@ -953,6 +969,17 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        protected internal void OnAdditionalDocumentRenamed(DocumentId documentId, string newName)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentFilePath(documentId, newName))
             }
         }
 

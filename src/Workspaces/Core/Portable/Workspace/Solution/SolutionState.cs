@@ -1342,6 +1342,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified file path.
+        /// </summary>
+        public SolutionState WithAdditionalDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            // TODO: why? we support nullable file paths
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            // TODO: huh?
+            //var oldDocument = this.GetAdditionalDocumentState(documentId)!;
+            //var newDocument = oldDocument.UpdateFilePath(filePath);
+
+            //return this.WithDocumentState(newDocument);
+
+            return this;
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
