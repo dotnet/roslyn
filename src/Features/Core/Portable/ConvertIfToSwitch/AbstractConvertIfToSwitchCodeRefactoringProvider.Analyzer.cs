@@ -405,14 +405,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
-                context.RegisterRefactoring(new MyCodeAction(Title,
-                    _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: false)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(Title,
+                        _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: false)),
+                    ifStatement.Span);
 
                 if (SupportsSwitchExpression &&
                     CanConvertToSwitchExpression(sections))
                 {
-                    context.RegisterRefactoring(new MyCodeAction("TODO",
-                        _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: true)));
+                    context.RegisterRefactoring(
+                        new MyCodeAction("TODO",
+                            _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: true)),
+                        ifStatement.Span);
                 }
             }
 
