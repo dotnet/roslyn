@@ -215,7 +215,7 @@ function ValidateSourceLinkLinks {
     }
 
   $ValidationFailures = 0
-  foreach ($Job in $Jobs) {
+  foreach ($Job in @(Get-Job)) {
     $jobResult = Wait-Job -Id $Job.Id | Receive-Job
     if ($jobResult -ne "0") {
       $ValidationFailures++
