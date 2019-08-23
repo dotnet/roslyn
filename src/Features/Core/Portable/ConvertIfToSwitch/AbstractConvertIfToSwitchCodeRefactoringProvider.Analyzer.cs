@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
+    using static BinaryOperatorKind;
+    
     internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     {
         // Match the following pattern which can be safely converted to switch statement
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private bool ParseSwitchLabels(IOperation operation, ArrayBuilder<SwitchLabel> labels)
             {
-                if (operation is IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalOr } op)
+                if (operation is IBinaryOperation { OperatorKind: ConditionalOr } op)
                 {
                     if (!ParseSwitchLabels(op.LeftOperand, labels))
                     {
@@ -182,10 +184,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private ConstantResult DetermineConstant(IBinaryOperation op)
             {
-                return (IsConstant(op.LeftOperand), IsConstant(op.RightOperand)) switch
+                return (op.LeftOperand, op.RightOperand) switch
                 {
-                    (true, false) when SetInitialOrIsEquivalentToTargetExpression(op.RightOperand) => ConstantResult.Left,
-                    (false, true) when SetInitialOrIsEquivalentToTargetExpression(op.LeftOperand) => ConstantResult.Right,
+                    var (_, v) when IsConstant(v) && CheckTargetExpression(v) => ConstantResult.Right,
+                    var (v, _) when IsConstant(v) && CheckTargetExpression(v) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -194,14 +196,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 switch (operation)
                 {
-                    case IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } op when SupportsRangePattern && AnalyzeRangeCheck(op) is var (lower, higher, e):
-                        if (SetInitialOrIsEquivalentToTargetExpression(e))
-                        {
-                            return new RangePattern(lower, higher);
-                        }
-                        break;
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsRangePattern && GetRangeBounds(op) is var (lower, higher):
+                        return new RangePattern(lower, higher);
 
-                    case IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } op when SupportsCaseGuard:
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsCaseGuard:
                         guards.Add(op.RightOperand.Syntax);
                         return ParsePattern(op.LeftOperand, guards);
 
@@ -221,10 +219,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
-                    case IIsTypeOperation op when SupportsTypePattern && SetInitialOrIsEquivalentToTargetExpression(op.ValueOperand):
+                    case IIsTypeOperation op when SupportsTypePattern && CheckTargetExpression(op.ValueOperand):
                         return new TypePattern(op);
 
-                    case IIsPatternOperation op when SupportsSourcePattern && SetInitialOrIsEquivalentToTargetExpression(op.Value):
+                    case IIsPatternOperation op when SupportsSourcePattern && CheckTargetExpression(op.Value):
                         return new SourcePattern(op.Pattern);
 
                     case IParenthesizedOperation op:
@@ -234,49 +232,46 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return null;
             }
 
-            private enum RangeBoundKind
+            private enum BoundKind
             {
                 None,
                 Lower,
                 Higher,
             }
 
-            private (IOperation Lower, IOperation Higher, IOperation Expression)? AnalyzeRangeCheck(IBinaryOperation op)
+            private (IOperation Lower, IOperation Higher)? GetRangeBounds(IBinaryOperation op)
             {
-                if (!(op is {LeftOperand: IBinaryOperation leftOperand, RightOperand: IBinaryOperation rightOperand}))
+                if (!(op is {LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right}))
                 {
                     return null;
                 }
 
-                
-                var left = AnalyzeRangeCheckOperand(leftOperand);
-                var right = AnalyzeRangeCheckOperand(rightOperand);
-                if (!AreEquivalent(left.Expression, right.Expression))
+                switch (GetRangeBoundKind(left), GetRangeBoundKind(right))
                 {
-                    return null;
+                    case ({Kind: BoundKind.Lower} low, {Kind: BoundKind.Higher} high) when CheckTargetExpression(low.Expression, high.Expression):
+                        return (low.Value, high.Value);
+                    case ({Kind: BoundKind.Higher} high, {Kind: BoundKind.Lower} low) when CheckTargetExpression(low.Expression, high.Expression):
+                        return (low.Value, high.Value);
+                    default:
+                        return null;
                 }
 
-                return (left.Kind, right.Kind) switch
-                {
-                    (RangeBoundKind.Lower, RangeBoundKind.Higher) => (left.Constant, right.Constant, left.Expression),
-                    (RangeBoundKind.Higher, RangeBoundKind.Lower) => (right.Constant, left.Constant, left.Expression),
-                    _ => ((IOperation, IOperation, IOperation)?)null
-                };
-
-                bool AreEquivalent(IOperation left, IOperation right)
-                {
-                    return left is object && right is object && _syntaxFacts.AreEquivalent(left.Syntax, right.Syntax);
-                }
+                bool CheckTargetExpression(IOperation left, IOperation right)
+                    => _syntaxFacts.AreEquivalent(left.Syntax, right.Syntax) && this.CheckTargetExpression(left);
             }
 
-            private static (RangeBoundKind Kind, IOperation Expression, IOperation Constant) AnalyzeRangeCheckOperand(IBinaryOperation op)
+            private static (BoundKind Kind, IOperation Expression, IOperation Value) GetRangeBoundKind(IBinaryOperation op)
             {
                 return op.OperatorKind switch
                 {
-                    BinaryOperatorKind.LessThanOrEqual when IsConstant(op.LeftOperand) => (RangeBoundKind.Lower, op.RightOperand, op.LeftOperand),      // 5 <= i
-                    BinaryOperatorKind.LessThanOrEqual when IsConstant(op.RightOperand) => (RangeBoundKind.Higher, op.LeftOperand, op.RightOperand),    // i <= 5
-                    BinaryOperatorKind.GreaterThanOrEqual when IsConstant(op.LeftOperand) => (RangeBoundKind.Higher, op.RightOperand, op.LeftOperand),  // 5 >= i
-                    BinaryOperatorKind.GreaterThanOrEqual when IsConstant(op.RightOperand) => (RangeBoundKind.Lower, op.LeftOperand, op.RightOperand),  // i >= 5
+                    // 5 <= i
+                    LessThanOrEqual when IsConstant(op.LeftOperand) => (BoundKind.Lower, op.RightOperand, op.LeftOperand),
+                    // i <= 5
+                    LessThanOrEqual when IsConstant(op.RightOperand) => (BoundKind.Higher, op.LeftOperand, op.RightOperand),
+                    // 5 >= i
+                    GreaterThanOrEqual when IsConstant(op.LeftOperand) => (BoundKind.Higher, op.RightOperand, op.LeftOperand),
+                    // i >= 5
+                    GreaterThanOrEqual when IsConstant(op.RightOperand) => (BoundKind.Lower, op.LeftOperand, op.RightOperand),
                     _ => default
                 };
             }
@@ -285,11 +280,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return operatorKind switch
                 {
-                    BinaryOperatorKind.LessThan => BinaryOperatorKind.GreaterThan,
-                    BinaryOperatorKind.LessThanOrEqual => BinaryOperatorKind.GreaterThanOrEqual,
-                    BinaryOperatorKind.GreaterThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
-                    BinaryOperatorKind.GreaterThan => BinaryOperatorKind.LessThan,
-                    BinaryOperatorKind.NotEquals => BinaryOperatorKind.NotEquals,
+                    LessThan => GreaterThan,
+                    LessThanOrEqual => GreaterThanOrEqual,
+                    GreaterThanOrEqual => LessThanOrEqual,
+                    GreaterThan => LessThan,
+                    NotEquals => NotEquals,
                     var v => throw ExceptionUtilities.UnexpectedValue(v)
                 };
             }
@@ -298,11 +293,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 switch (operatorKind)
                 {
-                    case BinaryOperatorKind.LessThan:
-                    case BinaryOperatorKind.LessThanOrEqual:
-                    case BinaryOperatorKind.GreaterThanOrEqual:
-                    case BinaryOperatorKind.GreaterThan:
-                    case BinaryOperatorKind.NotEquals:
+                    case LessThan:
+                    case LessThanOrEqual:
+                    case GreaterThanOrEqual:
+                    case GreaterThan:
+                    case NotEquals:
                         return true;
                     default:
                         return false;
@@ -319,8 +314,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
             }
-
-            private bool SetInitialOrIsEquivalentToTargetExpression(IOperation operation)
+            
+            private bool CheckTargetExpression(IOperation operation)
             {
                 if (operation is IConversionOperation { IsImplicit: false } op)
                 {
