@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.UnitTests;
 using Nerdbank;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
