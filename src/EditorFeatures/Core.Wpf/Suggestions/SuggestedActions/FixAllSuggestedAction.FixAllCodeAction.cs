@@ -15,22 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             public override string Title
-            {
-                get
+                => this.FixAllState.Scope switch
                 {
-                    switch (this.FixAllState.Scope)
-                    {
-                        case FixAllScope.Document:
-                            return FeaturesResources.Document;
-                        case FixAllScope.Project:
-                            return FeaturesResources.Project;
-                        case FixAllScope.Solution:
-                            return FeaturesResources.Solution;
-                        default:
-                            throw new NotSupportedException();
-                    }
-                }
-            }
+                    FixAllScope.Document => FeaturesResources.Document,
+                    FixAllScope.Project => FeaturesResources.Project,
+                    FixAllScope.Solution => FeaturesResources.Solution,
+                    _ => throw new NotSupportedException(),
+                };
 
             internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
         }

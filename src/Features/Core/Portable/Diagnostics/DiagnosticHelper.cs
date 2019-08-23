@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             protected override bool AreEqual(object other)
             {
-                var otherResourceString = other as LocalizableStringWithArguments;
-                return otherResourceString != null &&
+                return other is LocalizableStringWithArguments otherResourceString &&
                     _messageFormat.Equals(otherResourceString._messageFormat) &&
                     _formatArguments.SequenceEqual(otherResourceString._formatArguments, (a, b) => a == b);
             }

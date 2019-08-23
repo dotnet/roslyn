@@ -558,8 +558,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         arg.Kind == TypedConstantKind.Primitive &&
                         arg.Type.SpecialType == SpecialType.System_String)
                     {
-                        var value = arg.Value as string;
-                        if (value != null)
+                        if (arg.Value is string value)
                         {
                             builder.Add(value);
                         }

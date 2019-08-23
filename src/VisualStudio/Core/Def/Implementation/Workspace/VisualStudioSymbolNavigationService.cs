@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            options = options ?? project.Solution.Workspace.Options;
+            options ??= project.Solution.Workspace.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.

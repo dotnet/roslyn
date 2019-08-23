@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
@@ -51,8 +51,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, ifNode, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => InvertIfAsync(root, document, ifNode, c)),
+                ifNode.Span);
         }
 
         private InvertIfStyle GetInvertIfStyle(
