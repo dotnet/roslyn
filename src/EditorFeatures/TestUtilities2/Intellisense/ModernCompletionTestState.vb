@@ -214,11 +214,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await AssertCompletionSession()
         End Function
 
-        ' Void for the current implemntation of the modern compleiton.
-        Public Overrides Function WaitForAsynchronousOperationsAsync() As Task
-            Return Task.CompletedTask
-        End Function
-
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)

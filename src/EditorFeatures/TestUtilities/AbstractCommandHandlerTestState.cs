@@ -310,7 +310,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
-        public virtual async Task WaitForAsynchronousOperationsAsync()
+        // Cannot make it void even for the modern completion for now
+        // because it is used by SignatureHelp for both Modern and Legacy completions.
+        public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
