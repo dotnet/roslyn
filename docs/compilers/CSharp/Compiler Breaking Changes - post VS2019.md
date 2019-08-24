@@ -15,12 +15,28 @@ Each entry should include a short description of the break, followed by either a
     void M()
     {
         void Local() {}
-        
+
         static void StaticLocal()
         {
             Local();
         }
     }
     ```
-    
+
+    Such code will produce an error in version 16.4.
+
+3. https://github.com/dotnet/roslyn/issues/38240 Visual Studio 2019 version 16.3 incorrectly allowed for a `static` local function to create a delegate using a delegate creation expression whose target requires capturing state. For example:
+
+    ```c#
+    void M()
+    {
+        object local;
+
+        static void F()
+        {
+            _ = new Func<int>(local.GetHashCode);
+        }
+    }
+    ```
+
     Such code will produce an error in version 16.4.
