@@ -6424,7 +6424,7 @@ class C
 
                 testData = new CompilationTestData();
                 context.CompileExpression("default", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);
-                Assert.Equal(error, "error CS8716: No target type was found found for the default literal.");
+                Assert.Equal(error, "error CS8716: No target type was found for the default literal.");
 
                 testData = new CompilationTestData();
                 context.CompileExpression("null", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);
