@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Get the initial set of action sets, with refactorings and fixes appropriately
                     // ordered against each other.
-                    var result = GetInitiallyOrderedActionSets(selectionOpt, fixes, refactorings);
+                    var result = refactorings.Concat(fixes);
                     if (result.IsEmpty)
                     {
                         return null;
@@ -205,37 +205,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
                     return filteredSets;
-                }
-            }
-
-            private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
-                TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
-            {
-                // First, order refactorings based on the order the providers actually gave for their actions.
-                // This way, a low pri refactoring always shows after a medium pri refactoring, no matter what
-                // we do below.
-                refactorings = OrderActionSets(refactorings, selectionOpt);
-
-                // If there's a selection, it's likely the user is trying to perform some operation
-                // directly on that operation (like 'extract method').  Prioritize refactorings over
-                // fixes in that case.  Otherwise, it's likely that the user is just on some error
-                // and wants to fix it (in which case, prioritize fixes).
-
-                if (selectionOpt?.Length > 0)
-                {
-                    // There was a selection.  Treat refactorings as more important than 
-                    // fixes.  Note: we still will sort after this.  So any high pri fixes
-                    // will come to the front.  Any low-pri refactorings will go to the end.
-                    return refactorings.Concat(fixes);
-                }
-                else
-                {
-                    // No selection.  Treat all refactorings as low priority, and place
-                    // after fixes.  Even a low pri fixes will be above what was *originally*
-                    // a medium pri refactoring.
-                    refactorings = refactorings.SelectAsArray(r => new SuggestedActionSet(
-                        r.CategoryName, r.Actions, r.Title, SuggestedActionSetPriority.Low, r.ApplicableToSpan));
-                    return fixes.Concat(refactorings);
                 }
             }
 
@@ -294,12 +263,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // If we only have a single set of items, and that set only has three max suggestion 
                 // offered.  Then we can consider inlining any nested actions into the top level list.
                 // (but we only do this if the parent of the nested actions isn't invokable itself).
-                if (allActionSets.Sum(a => a.Actions.Count()) > 3)
+                if (allActionSets.Sum(a => a.Actions.Count()) <= 3)
                 {
-                    return allActionSets;
+                    return allActionSets.SelectAsArray(InlineActions);
                 }
 
-                return allActionSets.SelectAsArray(InlineActions);
+                return allActionSets;
             }
 
             private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
