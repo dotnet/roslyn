@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -35,7 +34,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+        }
+
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
-                        parameter.Type, uniqueName);
+                        parameter.GetTypeWithAnnotatedNullability(), uniqueName);
                 }
             }
 
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         new DeclarationModifiers(),
-                        parameter.Type,
+                        parameter.GetTypeWithAnnotatedNullability(),
                         RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,

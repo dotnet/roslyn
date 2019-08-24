@@ -270,6 +270,10 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
@@ -283,6 +287,10 @@
     <Field Name="OperandConversion" Type="Conversion"/>
     <Field Name="ResultConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!-- Not really an operator since overload resolution is never required. -->
@@ -362,6 +370,10 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
@@ -379,6 +391,10 @@
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
@@ -417,6 +433,10 @@
     <Field Name="LeftConversion" Type="Conversion"/>
     <Field Name="FinalConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
   
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
@@ -640,6 +660,10 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
+    <!--The set of method symbols from which this conversion's method was chosen.
+        Only kept in the tree if the conversion was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!--
@@ -1446,6 +1470,10 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this call's method was chosen.
+        Only kept in the tree if the call was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
     
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder?"/>
@@ -1765,6 +1793,10 @@
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder?"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
+    <!--The set of indexer symbols from which this call's indexer was chosen.
+        Only kept in the tree if the call was an error and overload resolution
+        was unable to choose a best indexer.-->
+    <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow"/>
   </Node>
 
   <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
@@ -1812,8 +1844,15 @@
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <!-- The query variable introduced by this query clause, if any. -->
     <Field Name="DefinedSymbol" Type="RangeVariableSymbol?"/>
+    <!-- The bound expression that invokes the operation of the query clause. -->
+    <Field Name="Operation" Type="BoundExpression?" SkipInVisitor="true"/>
+    <!-- The bound expression that is the invocation of a "Cast" method specified by the query translation. -->
+    <Field Name="Cast" Type="BoundExpression?" SkipInVisitor="true"/>
     <!-- The enclosing binder in which the query clause was evaluated. -->
     <Field Name="Binder" Type="Binder" Null="disallow" />
+    <!-- The bound expression that is the query expression in "unoptimized" form.  Specifically, a final ".Select"
+         invocation that is omitted by the specification is included here. -->
+    <Field Name="UnoptimizedForm" Type="BoundExpression?" SkipInVisitor="true"/>
   </Node>
 
   <!-- 

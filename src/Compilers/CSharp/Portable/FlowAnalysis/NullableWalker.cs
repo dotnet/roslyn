@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
+        private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {
             if (nodes.IsDefault)
             {
@@ -895,6 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var node in nodes)
             {
                 Visit(node);
+                Unsplit();
             }
         }
 
@@ -1552,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldDisable = _disableDiagnostics;
             _disableDiagnostics = true;
             var currentState = State;
-            VisitAll(node.ArgumentsOpt);
+            VisitAndUnsplitAll(node.ArgumentsOpt);
             _disableDiagnostics = oldDisable;
             SetState(currentState);
             if (node.DeclaredTypeOpt != null)
@@ -2961,7 +2962,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // easy out
             var parameterCount = method.ParameterCount;
+            var arguments = node.Arguments;
             if ((parameterCount != 1 && parameterCount != 2)
+                || parameterCount != arguments.Length
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
@@ -2970,7 +2973,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var arguments = node.Arguments;
 
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
@@ -3064,6 +3066,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var arguments = node.Arguments;
+            if (arguments.Length != method.ParameterCount)
+            {
+                return;
+            }
+
             // In general a call to CompareExchange of the form:
             //
             // Interlocked.CompareExchange(ref location, value, comparand);
@@ -3075,7 +3083,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var arguments = node.Arguments;
             var locationSlot = MakeSlot(arguments[0]);
             if (locationSlot != -1)
             {
@@ -5325,6 +5332,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundExpression arg when arg.Type is { TypeKind: TypeKind.Delegate } argType:
+                    {
+                        var argTypeWithAnnotations = TypeWithAnnotations.Create(argType, NullableAnnotation.NotAnnotated);
+                        var argState = VisitRvalueWithState(arg);
+                        ReportNullableAssignmentIfNecessary(arg, argTypeWithAnnotations, argState, useLegacyWarnings: false);
+                        if (!arg.IsSuppressed)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(arg.Syntax.Location, delegateType, argType.DelegateInvokeMethod(), invokedAsExtensionMethod: false);
+                        }
+                    }
+                    break;
                 default:
                     VisitRvalue(node.Argument);
                     break;
@@ -6911,6 +6929,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
             SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull));
+
+            if (node.ConstantValue?.IsBoolean == true)
+            {
+                Split();
+                if (node.ConstantValue.BooleanValue)
+                {
+                    StateWhenFalse = UnreachableState();
+                }
+                else
+                {
+                    StateWhenTrue = UnreachableState();
+                }
+            }
 
             return result;
         }

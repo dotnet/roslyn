@@ -144,27 +144,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
-
-            // Fade out the rest of the if that surrounds the 'throw' exception.
-
-            var tokenBeforeThrow = throwStatementSyntax.GetFirstToken().GetPreviousToken();
-            var tokenAfterThrow = throwStatementSyntax.GetLastToken().GetNextToken();
-            context.ReportDiagnostic(
-                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                    Location.Create(syntaxTree, TextSpan.FromBounds(
-                        ifOperation.Syntax.SpanStart,
-                        tokenBeforeThrow.Span.End)),
-                    additionalLocations: allLocations));
-
-            if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            tokenAfterThrow.Span.Start,
-                            ifOperation.Syntax.Span.End)),
-                        additionalLocations: allLocations));
-            }
         }
 
         private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)

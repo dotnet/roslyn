@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public Task Running => _running;
-
+                    public int WorkItemCount => _workItemQueue.WorkItemCount;
                     public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     protected override async Task ExecuteAsync()

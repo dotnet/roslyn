@@ -252,9 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual bool CompareItems(string actualItem, string expectedItem)
+        protected bool CompareItems(string actualItem, string expectedItem)
         {
-            return actualItem.Equals(expectedItem);
+            return GetStringComparer().Equals(actualItem, expectedItem);
+        }
+
+        protected virtual IEqualityComparer<string> GetStringComparer()
+        {
+            return StringComparer.Ordinal;
         }
 
         private protected async Task VerifyItemExistsAsync(
@@ -404,6 +409,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var service = GetCompletionService(workspace);
             var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionLlist.Items;
+
+            Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)

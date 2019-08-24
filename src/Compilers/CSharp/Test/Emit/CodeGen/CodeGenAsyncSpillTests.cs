@@ -3596,5 +3596,118 @@ public class P
                     );
             }
         }
+
+        [Fact]
+        public void SpillStateMachineTemps()
+        {
+            var source = @"using System;
+using System.Threading.Tasks;
+
+public class C {
+    public static void Main()
+    {
+        Console.WriteLine(M1(new Q(), SF()).Result);
+    }
+    public static async Task<int> M1(object o, Task<bool> c)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => 1, // cached Q.F is alive
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    public static async Task<bool> SF()
+    {
+        await Task.Delay(10);
+        return false;
+    }
+}
+
+class Q
+{
+    public F F => new F(true);
+}
+
+struct F
+{
+    bool _result;
+    public F(bool result)
+    {
+        _result = result;
+    }
+    public bool P1 => _result;
+    public bool P2 => _result;
+}
+";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "2");
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(37713, "https://github.com/dotnet/roslyn/issues/37713")]
+        public void RefStructInAsyncStateMachineWithWhenClause()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> M1(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M2(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // ok: only Q.P1 is live
+            Q { F: { P1: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M3(object o, bool c, Task<int> r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when c => await r, // ok: nothing alive at await
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M4(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // ok: no switch state is alive
+            _ => 3,
+        };
+    }
+}
+public class Q
+{
+    public S F => throw null!;
+}
+public ref struct S
+{
+    public bool P1 => true;
+    public bool P2 => true;
+}
+";
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                );
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                );
+        }
     }
 }

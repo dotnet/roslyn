@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote
             EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
-            WatsonReporter.SetTelemetrySession(session);
+            RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 

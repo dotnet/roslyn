@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplaceMethodWithPropertyService>();
             if (service == null)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return IsValidSetMethod(setMethod) &&
                 setMethod.Parameters.Length == 1 &&
                 setMethod.Parameters[0].RefKind == RefKind.None &&
-                Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                Equals(setMethod.Parameters[0].GetTypeWithAnnotatedNullability(), getMethod.GetReturnTypeWithAnnotatedNullability()) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 

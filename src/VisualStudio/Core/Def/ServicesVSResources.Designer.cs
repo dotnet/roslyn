@@ -951,6 +951,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Evaluating ({0} tasks in queue).
+        /// </summary>
+        internal static string Evaluating_0_tasks_in_queue {
+            get {
+                return ResourceManager.GetString("Evaluating_0_tasks_in_queue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event type is invalid.
         /// </summary>
         internal static string Event_type_is_invalid {
@@ -1402,15 +1411,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Learn_more {
             get {
                 return ResourceManager.GetString("Learn_more", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Live analysis.
-        /// </summary>
-        internal static string Live_analysis {
-            get {
-                return ResourceManager.GetString("Live_analysis", resourceCulture);
             }
         }
         
@@ -2190,6 +2190,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Paused ({0} tasks in queue).
+        /// </summary>
+        internal static string Paused_0_tasks_in_queue {
+            get {
+                return ResourceManager.GetString("Paused_0_tasks_in_queue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pick members.
         /// </summary>
         internal static string Pick_members {
@@ -2750,6 +2759,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running low priority background processes.
+        /// </summary>
+        internal static string Running_low_priority_background_processes {
+            get {
+                return ResourceManager.GetString("Running_low_priority_background_processes", resourceCulture);
             }
         }
         

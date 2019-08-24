@@ -2,8 +2,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -22,6 +25,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private TaskCompletionSource<VoidResult> _currentTask;
         private DateTimeOffset _lastTimeReported;
 
+        private int _lastPendingItemCount;
+        private ProgressStatus _lastProgressStatus;
+        private ProgressStatus _lastShownProgressStatus;
+
+        // _resettableDelay makes sure that we at the end update status to correct value.
+        // in contrast to _lastTimeReported makes sure that we only update at least s_minimumInterval interval.
+        //
+        // for example, when an event stream comes in as below (assuming 200ms minimum interval)
+        // e1 -> (100ms)-> e2 -> (300ms)-> e3 -> (100ms) -> e4
+        //
+        // actual status shown to users without _resettableDelay will be 
+        // e1 -> e3.
+        //
+        // e2 and e4 will be skipped since interval was smaller than min interval.
+        // losing e2 is fine, but e4 is problematic since the user now could see the wrong status 
+        // until the next event comes in. 
+        // for example, it could show "Evaluating" when it is actually "Paused" until the next event
+        // which could be long time later.
+        // what _resettableDelay does is making sure that if the next event doesn't come in 
+        // within certain delay, it updates status to e4 (current).
+        private ResettableDelay _resettableDelay;
+
         // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
         // and can be called concurrently.
         private volatile ITaskHandler _taskHandler;
@@ -33,12 +58,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             VisualStudioWorkspace workspace)
         {
             _lastTimeReported = DateTimeOffset.UtcNow;
+            _resettableDelay = null;
+
+            ResetProgressStatus();
 
             _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
 
             _options = new TaskHandlerOptions()
             {
-                Title = ServicesVSResources.Live_analysis,
+                Title = ServicesVSResources.Running_low_priority_background_processes,
                 ActionsAfterCompletion = CompletionActions.None
             };
 
@@ -60,36 +88,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 case ProgressStatus.Started:
                     StartedOrStopped(started: true);
                     break;
-                case ProgressStatus.Updated:
-                    ProgressUpdated(progressData.FilePathOpt);
+                case ProgressStatus.PendingItemCountUpdated:
+                    _lastPendingItemCount = progressData.PendingItemCount.Value;
+                    ProgressUpdated();
                     break;
                 case ProgressStatus.Stoped:
                     StartedOrStopped(started: false);
+                    break;
+                case ProgressStatus.Evaluating:
+                case ProgressStatus.Paused:
+                    _lastProgressStatus = progressData.Status;
+                    ProgressUpdated();
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(progressData.Status);
             }
         }
 
-        private void ProgressUpdated(string filePathOpt)
+        private void ProgressUpdated()
         {
+            // we prefer showing evaluating if progress is flipping between evaluate and pause
+            // in short period of time.
+            var forceUpdate = _lastShownProgressStatus == ProgressStatus.Paused &&
+                              _lastProgressStatus == ProgressStatus.Evaluating;
+
             var current = DateTimeOffset.UtcNow;
-            if (current - _lastTimeReported < s_minimumInterval)
+            if (!forceUpdate && current - _lastTimeReported < s_minimumInterval)
             {
                 // make sure we are not flooding UI. 
-                // this is just presentation, fine to not updating UI especially since
+                // this is just presentation, fine to not updating UI right away especially since
                 // at the end, this notification will go away automatically
+                // but to make UI to be updated to right status eventually if task takes long time to finish
+                // we enqueue refresh task.
+                EnqueueRefresh();
                 return;
             }
 
+            _lastShownProgressStatus = _lastProgressStatus;
             _lastTimeReported = current;
-            ChangeProgress(_taskHandler, filePathOpt != null ? string.Format(ServicesVSResources.Analyzing_0, FileNameUtilities.GetFileName(filePathOpt)) : null);
+
+            ChangeProgress(_taskHandler, GetMessage());
+
+            string GetMessage()
+            {
+                var statusMessage = (_lastProgressStatus == ProgressStatus.Paused) ? ServicesVSResources.Paused_0_tasks_in_queue : ServicesVSResources.Evaluating_0_tasks_in_queue;
+                return string.Format(statusMessage, _lastPendingItemCount);
+            }
+
+            void EnqueueRefresh()
+            {
+                if (_resettableDelay != null)
+                {
+                    _resettableDelay.Reset();
+                    return;
+                }
+
+                _resettableDelay = new ResettableDelay((int)s_minimumInterval.TotalMilliseconds, AsynchronousOperationListenerProvider.NullListener);
+                _resettableDelay.Task.SafeContinueWith(_ =>
+                {
+                    _resettableDelay = null;
+                    ProgressUpdated();
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
         }
 
         private void StartedOrStopped(bool started)
         {
             if (started)
             {
+                ResetProgressStatus();
+
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(default);
 
@@ -114,7 +182,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _currentTask = null;
 
                 _taskHandler = null;
+
+                ResetProgressStatus();
             }
+        }
+
+        private void ResetProgressStatus()
+        {
+            _lastPendingItemCount = 0;
+            _lastProgressStatus = ProgressStatus.Paused;
+            _lastShownProgressStatus = ProgressStatus.Paused;
         }
 
         private static void ChangeProgress(ITaskHandler taskHandler, string message)

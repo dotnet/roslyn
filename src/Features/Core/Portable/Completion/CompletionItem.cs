@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.

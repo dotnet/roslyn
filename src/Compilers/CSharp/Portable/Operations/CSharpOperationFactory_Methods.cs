@@ -402,8 +402,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
                         property,
-                        instance,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        instance,
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
                         type: property.Type,
@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 else
                 {
                     target = new PropertyReferenceOperation(anonymousProperty.Property,
-                                                            instance,
                                                             ImmutableArray<IArgumentOperation>.Empty,
+                                                            instance,
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
                                                             anonymousProperty.Type,
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ITypeSymbol assignmentType = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
                 bool isRef = false;
-                var assignment = new SimpleAssignmentOperation(target, isRef, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
+                var assignment = new SimpleAssignmentOperation(isRef, target, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
                 builder.Add(assignment);
             }
 
