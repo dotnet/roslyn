@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExpression.Syntax, _diagnostics);
+                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
                 _builder.EmitIntConstant(elementCount);
 
                 if (inPlace)
