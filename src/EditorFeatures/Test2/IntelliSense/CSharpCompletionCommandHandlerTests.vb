@@ -5644,6 +5644,49 @@ class C
                 state.AssertCompletionItemsContainAll({"Length"})
             End Using
         End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        Public Async Function CompletingWithColonInMethodParametersWithNoInstanceToInsert(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+<Document><![CDATA[class C
+{
+    void M(string s)
+    {
+        N(10, $$);
+    }
+
+    void N(int id, string serviceName) {}
+}]]></Document>)
+
+                state.SendTypeChars("serviceN")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars(":")
+                Assert.Contains("N(10, serviceName:);", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        Public Async Function CompletingWithSpaceInMethodParametersWithNoInstanceToInsert(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+<Document><![CDATA[class C
+{
+    void M(string s)
+    {
+        N(10, $$);
+    }
+
+    void N(int id, string serviceName) {}
+}]]></Document>)
+
+                state.SendTypeChars("serviceN")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars(" ")
+                Assert.Contains("N(10, serviceName );", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
