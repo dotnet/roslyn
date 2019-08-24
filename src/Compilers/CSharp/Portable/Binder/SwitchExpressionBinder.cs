@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
             typesInOrder.Free();
 
+            // We've found a candidate common type among those arms that have a type.  Also check that every arm's
+            // expression (even those without a type) can be converted to that type.
             if (commonType is object)
             {
                 foreach (var @case in switchCases)
