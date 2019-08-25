@@ -144,14 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 if (edits.ResultOperation == Operation.Uncomment)
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
-                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+                    
+                    var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
+                    if (formattedDocument != null)
                     {
-                        var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
-                        if (formattedDocument != null)
-                        {
-                            formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, CancellationToken.None);
-                            transaction.Complete();
-                        }
+                        formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, CancellationToken.None);
+                        transaction.Complete();
                     }
                 }
 

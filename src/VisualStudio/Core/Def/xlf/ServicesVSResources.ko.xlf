@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="translated">새 네임스페이스가 만들어집니다.</target>
+        <target state="new">A new namespace will be created</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">nullable 참조 분석 IDE 기능 사용</target>
+        <target state="new">Enable nullable reference analysis IDE features</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="translated">네임스페이스로 이동</target>
+        <target state="new">Move to Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="translated">네임스페이스</target>
+        <target state="new">Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Field">
         <source>field</source>
-        <target state="translated">필드</target>
+        <target state="new">field</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Interface">
@@ -204,17 +204,17 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Local">
         <source>local</source>
-        <target state="translated">로컬</target>
+        <target state="new">local</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_LocalFunction">
         <source>local function</source>
-        <target state="translated">로컬 함수</target>
+        <target state="new">local function</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Method">
         <source>method</source>
-        <target state="translated">메서드</target>
+        <target state="new">method</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Namespace">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Parameter">
         <source>parameter</source>
-        <target state="translated">매개 변수</target>
+        <target state="new">parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="translated">속성</target>
+        <target state="new">property</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_TypeParameter">
         <source>type parameter</source>
-        <target state="translated">형식 매개 변수</target>
+        <target state="new">type parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Field">
         <source>Field</source>
-        <target state="translated">필드</target>
+        <target state="new">Field</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Interface">
@@ -274,12 +274,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Local">
         <source>Local</source>
-        <target state="translated">로컬</target>
+        <target state="new">Local</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Method">
         <source>Method</source>
-        <target state="translated">메서드</target>
+        <target state="new">Method</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Module">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Parameter">
         <source>Parameter</source>
-        <target state="translated">매개 변수</target>
+        <target state="new">Parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Property">
@@ -309,7 +309,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
         <source>Type Parameter</source>
-        <target state="translated">형식 매개 변수</target>
+        <target state="new">Type Parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -449,12 +449,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="translated">대상 네임스페이스:</target>
+        <target state="new">Target Namespace:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="translated">잘못된 네임스페이스입니다.</target>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">C# 및 Basic용 향상된 색 사용</target>
+        <target state="translated">C# 및 Basic에 향상된 색 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1116,7 +1116,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="SuppressionNotSupportedToolTip">
         <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">비표시 오류(Suppression) 상태는 현재 솔루션 스냅샷인 intellisense 진단에 대해서만 지원됩니다. 비표시 오류(Suppression)에 대해 'Intellisense' 진단으로 전환하세요.</target>
+        <target state="translated">비표시 오류(Suppression) 상태는 현재 솔루션 스냅숏인 intellisense 진단에 대해서만 지원됩니다. 비표시 오류(Suppression)에 대해 'Intellisense' 진단으로 전환하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -1941,7 +1941,7 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="translated">.editorconfig 파일이 이 페이지에서 구성된 로컬 설정을 재정의할 수 있으며 해당 내용은 사용자의 머신에만 적용됩니다. 솔루션과 함께 이동하도록 해당 설정을 구성하려면 EditorConfig 파일을 사용하세요. 추가 정보 </target>
+        <target state="needs-review-translation">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
