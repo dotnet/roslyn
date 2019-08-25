@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadConstructedParameterFailedConstraintCheck(
             ConversionsBase conversions,
-            Compilation compilation,
+            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             Location location)
         {
