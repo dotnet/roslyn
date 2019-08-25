@@ -3020,7 +3020,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -3031,13 +3030,11 @@ Block[B0] - Entry
               Value: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (DefaultOrNullLiteral)
+                    (NullLiteral)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B2] - Block
@@ -3056,7 +3053,6 @@ Block[B0] - Entry
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
                   Operand: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
-
             Next (Regular) Block[B4]
         Block[B4] - Block [UnReachable]
             Predecessors: [B3]
@@ -3065,7 +3061,6 @@ Block[B0] - Entry
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
                   Arguments(0)
-
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B3] [B4]
@@ -3073,7 +3068,6 @@ Block[B0] - Entry
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)

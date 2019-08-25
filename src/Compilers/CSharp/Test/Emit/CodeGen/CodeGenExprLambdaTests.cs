@@ -5072,7 +5072,7 @@ namespace ConsoleApplication1
     }
 
 }";
-            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(null Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
             CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput,

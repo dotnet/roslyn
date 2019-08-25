@@ -1501,15 +1501,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
-        /// </summary>
-        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
-            get {
-                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type..
         /// </summary>
         internal static string ERR_BadDynamicMethodArgLambda {
@@ -3454,15 +3445,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a case constant. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. If you intended to write the default label, use &apos;default:&apos; without &apos;case&apos;..
-        /// </summary>
-        internal static string ERR_DefaultInSwitch {
-            get {
-                return ResourceManager.GetString("ERR_DefaultInSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
         /// </summary>
         internal static string ERR_DefaultInterfaceImplementationInNoPIAType {
@@ -3477,6 +3459,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultInterfaceImplementationModifier {
             get {
                 return ResourceManager.GetString("ERR_DefaultInterfaceImplementationModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no target type for the default literal..
+        /// </summary>
+        internal static string ERR_DefaultLiteralNoTargetType {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNoTargetType", resourceCulture);
             }
         }
         

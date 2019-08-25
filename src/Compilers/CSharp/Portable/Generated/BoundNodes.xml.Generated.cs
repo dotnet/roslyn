@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SourceDocumentIndex,
         MethodInfo,
         FieldInfo,
+        DefaultLiteral,
         DefaultExpression,
         IsOperator,
         AsOperator,
@@ -2049,17 +2050,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDefaultLiteral : BoundExpression
+    {
+        public BoundDefaultLiteral(SyntaxNode syntax, bool hasErrors)
+            : base(BoundKind.DefaultLiteral, syntax, null, hasErrors)
+        {
+        }
+
+        public BoundDefaultLiteral(SyntaxNode syntax)
+            : base(BoundKind.DefaultLiteral, syntax, null)
+        {
+        }
+
+
+        public new TypeSymbol? Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultLiteral(this);
+
+        public BoundDefaultLiteral Update()
+        {
+            return this;
+        }
+    }
+
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DefaultExpression, syntax, type, hasErrors || targetType.HasErrors())
         {
+
+            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
             this.TargetType = targetType;
             this.ConstantValueOpt = constantValueOpt;
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol Type => base.Type!;
 
         public BoundTypeExpression? TargetType { get; }
 
@@ -2067,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
 
-        public BoundDefaultExpression Update(BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol? type)
+        public BoundDefaultExpression Update(BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type)
         {
             if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -7376,6 +7403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitMethodInfo((BoundMethodInfo)node, arg);
                 case BoundKind.FieldInfo: 
                     return VisitFieldInfo((BoundFieldInfo)node, arg);
+                case BoundKind.DefaultLiteral: 
+                    return VisitDefaultLiteral((BoundDefaultLiteral)node, arg);
                 case BoundKind.DefaultExpression: 
                     return VisitDefaultExpression((BoundDefaultExpression)node, arg);
                 case BoundKind.IsOperator: 
@@ -7705,6 +7734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitSourceDocumentIndex(BoundSourceDocumentIndex node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMethodInfo(BoundMethodInfo node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitFieldInfo(BoundFieldInfo node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDefaultLiteral(BoundDefaultLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDefaultExpression(BoundDefaultExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIsOperator(BoundIsOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAsOperator(BoundAsOperator node, A arg) => this.DefaultVisit(node, arg);
@@ -7893,6 +7923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMethodInfo(BoundMethodInfo node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitFieldInfo(BoundFieldInfo node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDefaultExpression(BoundDefaultExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIsOperator(BoundIsOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAsOperator(BoundAsOperator node) => this.DefaultVisit(node);
@@ -8223,6 +8254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => null;
         public override BoundNode? VisitMethodInfo(BoundMethodInfo node) => null;
         public override BoundNode? VisitFieldInfo(BoundFieldInfo node) => null;
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node) => null;
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node) => null;
         public override BoundNode? VisitIsOperator(BoundIsOperator node)
         {
@@ -9148,6 +9180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Field, node.GetFieldFromHandle, type);
+        }
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update();
         }
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node)
         {
@@ -10565,6 +10602,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundFieldInfo updatedNode = node.Update(node.Field, node.GetFieldFromHandle, infoAndType.Type);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundDefaultLiteral updatedNode = node.Update();
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -12202,6 +12251,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("getFieldFromHandle", node.GetFieldFromHandle, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDefaultLiteral(BoundDefaultLiteral node, object? arg) => new TreeDumperNode("defaultLiteral", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

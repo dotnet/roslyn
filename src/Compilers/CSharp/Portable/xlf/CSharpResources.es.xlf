@@ -107,6 +107,11 @@
         <target state="translated">El tipo "{0}" no se puede incrustar porque tiene un miembro no abstracto. Puede establecer la propiedad "Incrustar tipos de interoperabilidad" en false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Un literal predeterminado "default" no es válido como patrón. Use otro literal (por ejemplo, "0" o "null") según corresponda. Para hacer coincidir todo, use un patrón de descarte "_".</target>
@@ -9460,11 +9465,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">No se puede utilizar el tipo "dynamic" en un patrón.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">No se puede utilizar un literal predeterminado como argumento para una operación distribuida dinámicamente.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">El modo de documentación proporcionado no se admite o no es válido: "{0}".</target>
@@ -9663,11 +9663,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Una expresión condicional no se puede utilizar directamente en una interpolación de cadenas porque ":" finaliza la interpolación. Ponga la expresión condicional entre paréntesis.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Un literal predeterminado "default" no es válido como constante de caso. Use otro literal (como "0" o "null") según corresponda. Si pretendía escribir la etiqueta predeterminada, use "default:" sin "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
