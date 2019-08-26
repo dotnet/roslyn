@@ -5552,4 +5552,10 @@
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</value>
+  </data>
 </root>
