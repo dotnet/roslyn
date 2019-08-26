@@ -1868,30 +1868,6 @@ Additional information: {1}</source>
         <target state="translated">フェード</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">アセンブリが読み込まれていない場合、変更は許可されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">デバッグを開始したときにプロジェクトがビルドされていない場合、変更は許可されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">デバッグを開始したときにプロジェクトが読み込みおよびビルドされていない場合、変更は許可されません。
-
-現在のソリューションで 'ライトウェイト ソリューション ロード' が有効になっています。無効にして、デバッグの開始時にすべてのプロジェクトが読み込まれていることを確認します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">コードの実行中は変更が許可されません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">匿名関数よりローカル関数を優先します</target>
@@ -1927,19 +1903,9 @@ Additional information: {1}</source>
         <target state="translated">自動プロパティを優先する</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">モジュールがアンロードされました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">変更を適用できません -- モジュール '{0}' がアンロードされています。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1981,11 +1947,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">クラス ビューの同期</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

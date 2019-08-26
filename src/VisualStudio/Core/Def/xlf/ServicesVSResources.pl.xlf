@@ -1868,30 +1868,6 @@ Dodatkowe informacje: {1}</target>
         <target state="translated">Zanikanie</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">Zmiany są niedozwolone, jeśli zestaw nie został załadowany.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Zmiany są niedozwolone, jeśli projekt nie był skompilowany podczas uruchamiania debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Zmiany są niedozwolone, jeśli projekt nie był załadowany i skompilowany podczas uruchamiania debugowania.
-
-Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżącego rozwiązania. Wyłącz ją, aby zapewnić załadowanie wszystkich projektów podczas uruchamiania debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">Zmiany są niedozwolone, gdy kod jest uruchomiony.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferuj funkcję lokalną zamiast funkcji anonimowej</target>
@@ -1927,19 +1903,9 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <target state="translated">preferuj właściwości automatyczne</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Błąd podczas odczytywania pliku „{0}”: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">Moduł został zwolniony.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Nie można zastosować zmian — moduł „{0}” został zwolniony.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1981,11 +1947,6 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Synchronizuj widok klasy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Nie można zastosować zmian — nieoczekiwany błąd: „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

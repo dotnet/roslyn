@@ -1868,30 +1868,6 @@ Additional information: {1}</source>
         <target state="translated">페이딩</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">어셈블리가 로드되지 않은 경우에는 변경할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">디버깅을 시작할 때 프로젝트가 작성되지 않은 경우에는 변경할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">디버깅을 시작할 때 프로젝트가 로드 및 작성되지 않은 경우에는 변경할 수 없습니다.
-
-현재 솔루션에 대해 '경량 솔루션 로드'가 사용되었습니다. 이 기능을 사용하지 않도록 설정하여 디버깅을 시작할 때 모든 프로젝트가 로드되도록 하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">코드가 실행되고 있을 때는 변경할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">익명 함수보다 로컬 함수 선호</target>
@@ -1927,19 +1903,9 @@ Additional information: {1}</source>
         <target state="translated">자동 속성 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">모듈이 언로드되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">변경 내용을 적용할 수 없습니다. '{0}' 모듈이 언로드되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1981,11 +1947,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">클래스 뷰 동기화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">변경 내용을 적용할 수 없음 - 예기치 않은 오류: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

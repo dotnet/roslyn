@@ -4,8 +4,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -30,9 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         VSCommanding.ICommandHandler<SortImportsCommandArgs>,
         VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
-        public OrganizeDocumentCommandHandler()
+        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
@@ -47,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context.OperationContext)
-                    .WaitAndGetResult(cancellationToken);
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
                 if (document != null)
                 {
                     var newDocument = OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -144,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
+            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                operationContext, _threadingContext);
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
