@@ -1527,12 +1527,13 @@ namespace BoundTreeGenerator
                             {
                                 if (!TypeIsSymbol(f)) return false;
 
+                                if (f.Name == "Type") return false;
+
                                 switch (f.Type.TrimEnd('?'))
                                 {
                                     case "LocalSymbol":
                                     case "LabelSymbol":
                                     case "GeneratedLabelSymbol":
-                                    case "TypeSymbol":
                                     case "AliasSymbol":
                                     case "NamespaceSymbol":
                                         return false;

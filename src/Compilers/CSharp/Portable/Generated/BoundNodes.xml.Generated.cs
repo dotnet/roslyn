@@ -10727,12 +10727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ElementPointerType, node.ElementPointerTypeConversion, expression, GetUpdatedSymbol(node, node.GetPinnableOpt), infoAndType.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementPointerType), node.ElementPointerTypeConversion, expression, GetUpdatedSymbol(node, node.GetPinnableOpt), infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ElementPointerType, node.ElementPointerTypeConversion, expression, GetUpdatedSymbol(node, node.GetPinnableOpt), node.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementPointerType), node.ElementPointerTypeConversion, expression, GetUpdatedSymbol(node, node.GetPinnableOpt), node.Type);
             }
             return updatedNode;
         }
@@ -10762,6 +10762,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? expressionOpt = (BoundExpression?)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             return node.Update(node.Locals, declarationsOpt, expressionOpt, node.IDisposableConversion, body, node.AwaitOpt, GetUpdatedSymbol(node, node.DisposeMethodOpt));
+        }
+
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
+        {
+            BoundExpression? exceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundExpression? exceptionFilterOpt = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
+            BoundBlock body = (BoundBlock)this.Visit(node.Body);
+            return node.Update(node.Locals, exceptionSourceOpt, GetUpdatedSymbol(node, node.ExceptionTypeOpt), exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
 
         public override BoundNode? VisitLiteral(BoundLiteral node)
@@ -10917,12 +10925,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.NaturalTypeOpt), expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.NaturalTypeOpt), expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
         }
@@ -11306,12 +11314,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(GetUpdatedSymbol(node, node.MemberSymbol), arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.ReceiverType, node.BinderOpt, infoAndType.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.MemberSymbol), arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, GetUpdatedSymbol(node, node.ReceiverType), node.BinderOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(GetUpdatedSymbol(node, node.MemberSymbol), arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.ReceiverType, node.BinderOpt, node.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.MemberSymbol), arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, GetUpdatedSymbol(node, node.ReceiverType), node.BinderOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11323,7 +11331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundDynamicObjectInitializerMember updatedNode = node.Update(node.MemberName, node.ReceiverType, infoAndType.Type);
+            BoundDynamicObjectInitializerMember updatedNode = node.Update(node.MemberName, GetUpdatedSymbol(node, node.ReceiverType), infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -11500,12 +11508,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ElementType, count, initializerOpt, infoAndType.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementType), count, initializerOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ElementType, count, initializerOpt, node.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementType), count, initializerOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11518,12 +11526,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ElementType, count, initializerOpt, infoAndType.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementType), count, initializerOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ElementType, count, initializerOpt, node.Type);
+                updatedNode = node.Update(GetUpdatedSymbol(node, node.ElementType), count, initializerOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11767,11 +11775,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
+        {
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(value, node.ConstantValue, GetUpdatedSymbol(node, node.InputType));
+        }
+
+        public override BoundNode? VisitDiscardPattern(BoundDiscardPattern node)
+        {
+            return node.Update(GetUpdatedSymbol(node, node.InputType));
+        }
+
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
         {
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
             BoundTypeExpression? declaredType = (BoundTypeExpression?)this.Visit(node.DeclaredType);
-            return node.Update(GetUpdatedSymbol(node, node.Variable), variableAccess, declaredType, node.IsVar, node.InputType);
+            return node.Update(GetUpdatedSymbol(node, node.Variable), variableAccess, declaredType, node.IsVar, GetUpdatedSymbol(node, node.InputType));
         }
 
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
@@ -11780,13 +11799,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSubpattern> deconstruction = this.VisitList(node.Deconstruction);
             ImmutableArray<BoundSubpattern> properties = this.VisitList(node.Properties);
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            return node.Update(declaredType, GetUpdatedSymbol(node, node.DeconstructMethod), deconstruction, properties, GetUpdatedSymbol(node, node.Variable), variableAccess, node.InputType);
+            return node.Update(declaredType, GetUpdatedSymbol(node, node.DeconstructMethod), deconstruction, properties, GetUpdatedSymbol(node, node.Variable), variableAccess, GetUpdatedSymbol(node, node.InputType));
         }
 
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
         {
             ImmutableArray<BoundSubpattern> subpatterns = this.VisitList(node.Subpatterns);
-            return node.Update(GetUpdatedSymbol(node, node.GetLengthMethod), GetUpdatedSymbol(node, node.GetItemMethod), subpatterns, node.InputType);
+            return node.Update(GetUpdatedSymbol(node, node.GetLengthMethod), GetUpdatedSymbol(node, node.GetItemMethod), subpatterns, GetUpdatedSymbol(node, node.InputType));
         }
 
         public override BoundNode? VisitSubpattern(BoundSubpattern node)

@@ -7421,14 +7421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class ExpressionAndSymbolEqualityComparer : IEqualityComparer<(BoundNode expr, Symbol sym)>
         {
-            internal static ExpressionAndSymbolEqualityComparer Instance = new ExpressionAndSymbolEqualityComparer();
+            internal static readonly ExpressionAndSymbolEqualityComparer Instance = new ExpressionAndSymbolEqualityComparer();
 
             public bool Equals((BoundNode expr, Symbol sym) x, (BoundNode expr, Symbol sym) y)
             {
                 Debug.Assert(x is ({ }, { }) && y is ({ }, { }));
 
                 // We specifically use reference equality for the symbols here because the BoundNode should be immutable.
-                // We should be storing and retreiving the exact same instance of the symbol, not just an "equivalent"
+                // We should be storing and retrieving the exact same instance of the symbol, not just an "equivalent"
                 // symbol.
                 return x.expr == y.expr && (object)x.sym == y.sym;
             }
