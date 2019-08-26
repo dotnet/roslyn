@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var verifier = new DebugVerifier(analyzedNullabilityMap, updatedMethodSymbols, snapshotManagerOpt);
                 verifier.Visit(node);
 
-                foreach (var ((_, originalSymbol), updatedSymbol) in updatedMethodSymbols)
+                foreach (var ((expr, originalSymbol), updatedSymbol) in updatedMethodSymbols)
                 {
-                    Debug.Assert(originalSymbol.Equals(updatedSymbol, TypeCompareKind.AllNullableIgnoreOptions));
+                    Debug.Assert(originalSymbol.Equals(updatedSymbol, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames), @$"Symbol for `{expr.Syntax}` changed:
+Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
+Now {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 }
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
