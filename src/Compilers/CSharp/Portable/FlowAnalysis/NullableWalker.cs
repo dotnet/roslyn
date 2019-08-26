@@ -5583,8 +5583,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
                 if (left is BoundDiscardExpression)
                 {
-                    SetResult(left, rightState, rightState.ToTypeWithAnnotations(), isLvalue: true);
-                    SetResult(node, rightState, rightState.ToTypeWithAnnotations());
+                    var lvalueType = rightState.ToTypeWithAnnotations();
+                    SetResult(left, rightState, lvalueType, isLvalue: true);
+                    SetResult(node, rightState, lvalueType);
                 }
                 else
                 {
