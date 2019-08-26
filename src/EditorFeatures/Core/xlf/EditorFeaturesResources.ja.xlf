@@ -124,7 +124,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="translated">シンボルにベースがありません。</target>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="new">Toggle Block Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="new">Toggle Line Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="new">Toggling block comment...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="new">Toggling line comment...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -349,7 +369,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="translated">'{0}' ベース</target>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1317,26 +1337,6 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">スマート トークン フォーマッタ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggling_block_comment">
-        <source>Toggling block comment...</source>
-        <target state="translated">ブロック コメントを切り替えています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggle_Block_Comment">
-        <source>Toggle Block Comment</source>
-        <target state="translated">ブロック コメントの切り替え</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggling_line_comment">
-        <source>Toggling line comment...</source>
-        <target state="translated">行コメントを切り替えています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggle_Line_Comment">
-        <source>Toggle Line Comment</source>
-        <target state="translated">行コメントの切り替え</target>
         <note />
       </trans-unit>
     </body>

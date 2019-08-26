@@ -231,8 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = type.GetEnumUnderlyingType();
             }
 
-            bool hasGenerics = type.TupleUnderlyingTypeOrSelf().GetArity() > 0;
-
             // Short-circuit common cases.
             switch (type.SpecialType)
             {
@@ -255,12 +253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_TypedReference:
                 case SpecialType.System_ArgIterator:
                 case SpecialType.System_RuntimeArgumentHandle:
-                    return (ThreeState.False, hasGenerics);
+                    return (ThreeState.False, false);
                 case SpecialType.None:
                 default:
                     // CONSIDER: could provide cases for other common special types.
                     break; // Proceed with additional checks.
             }
+
+            bool hasGenerics = type.TupleUnderlyingTypeOrSelf().GetArity() > 0;
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:

@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol containingType = (TypeSymbol)container;
                     foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType);
+                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
                         if ((object)reduced != null)
                         {
                             results.Add(reduced);
@@ -3186,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call));
+                            symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
                             resultKind = call.ResultKind;
                         }
                     }
@@ -3973,7 +3973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 resultKind = call.ResultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
-                                symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call));
+                                symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
                             }
                         }
                         break;
@@ -4274,7 +4274,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new SingleLookupResult(node.ResultKind, method, node.LookupError),
                         typeArguments,
                         null,
-                        ref resultKind);
+                        ref resultKind,
+                        binder.Compilation);
                 }
             }
             else
@@ -4288,7 +4289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new SingleLookupResult(node.ResultKind, otherSymbol, node.LookupError),
                         typeArguments,
                         null,
-                        ref resultKind);
+                        ref resultKind,
+                        binder.Compilation);
                 }
             }
 
@@ -4333,7 +4335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
                             typeArguments,
                             receiver.Type,
-                            ref resultKind);
+                            ref resultKind,
+                            binder.Compilation);
                     }
 
                     extensionMethods.Free();
@@ -4354,7 +4357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> filteredMethods,
             MethodSymbol method,
             ImmutableArray<TypeWithAnnotations> typeArguments,
-            TypeSymbol receiverType)
+            TypeSymbol receiverType,
+            CSharpCompilation compilation)
         {
             MethodSymbol constructedMethod;
             if (!typeArguments.IsDefaultOrEmpty && method.Arity == typeArguments.Length)
@@ -4369,7 +4373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)receiverType != null)
             {
-                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType);
+                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType, compilation);
                 if ((object)constructedMethod == null)
                 {
                     return false;
@@ -4393,7 +4397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SingleLookupResult singleResult,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
-            ref LookupResultKind resultKind)
+            ref LookupResultKind resultKind,
+            CSharpCompilation compilation)
         {
             Debug.Assert(singleResult.Kind != LookupResultKind.Empty);
             Debug.Assert((object)singleResult.Symbol != null);
@@ -4412,7 +4417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = (MethodSymbol)singleResult.Symbol;
-            if (AddReducedAndFilteredMethodGroupSymbol(methods, filteredMethods, method, typeArguments, receiverType))
+            if (AddReducedAndFilteredMethodGroupSymbol(methods, filteredMethods, method, typeArguments, receiverType, compilation))
             {
                 Debug.Assert(methods.Count > 0);
                 if (resultKind < singleKind)
@@ -4429,7 +4434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the call represents an extension method invocation with an explicit receiver, return the original
         /// methods as ReducedExtensionMethodSymbols. Otherwise, return the original methods unchanged.
         /// </summary>
-        private static ImmutableArray<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call)
+        private static ImmutableArray<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call, CSharpCompilation compilation)
         {
             var methods = call.OriginalMethodsOpt;
             TypeSymbol extensionThisType = null;
@@ -4455,7 +4460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType);
+                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType, compilation);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToImmutableAndFree();
@@ -4466,7 +4471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// ReducedExtensionMethodSymbol if it can be constructed. Otherwise, return the 
         /// original call method.
         /// </summary>
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
+        private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
         {
             var method = call.Method;
             Debug.Assert((object)method != null);
@@ -4475,7 +4480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(call.Arguments.Length > 0);
                 BoundExpression receiver = call.Arguments[0];
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type);
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type, Compilation);
                 // If the extension method can't be applied to the receiver of the given
                 // type, we should also return the original call method.
                 method = reduced ?? method;
@@ -4483,14 +4488,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<Symbol>(method);
         }
 
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
+        private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
         {
             var method = delegateCreation.MethodOpt;
             Debug.Assert((object)method != null);
 
             if (delegateCreation.IsExtensionMethod && method.IsExtensionMethod && (receiverOpt != null))
             {
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type);
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type, Compilation);
                 method = reduced ?? method;
             }
             return ImmutableArray.Create<Symbol>(method);
