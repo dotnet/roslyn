@@ -33,6 +33,22 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> DataFlowsOut { get; }
 
         /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// entered.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnEntry { get; }
+
+        /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// exited.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnExit { get; }
+
+        /// <summary>
         /// The set of local variables for which a value is always assigned inside
         /// a region.
         /// </summary>

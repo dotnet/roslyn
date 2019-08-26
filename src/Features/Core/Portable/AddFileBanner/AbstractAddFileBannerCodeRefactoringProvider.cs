@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingDocument, siblingBanner, c)));
+                        new MyCodeAction(_ => AddBannerAsync(document, root, siblingDocument, siblingBanner)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
@@ -77,8 +78,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         private Task<Document> AddBannerAsync(
             Document document, SyntaxNode root,
-            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner,
-            CancellationToken cancellationToken)
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
             banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
 

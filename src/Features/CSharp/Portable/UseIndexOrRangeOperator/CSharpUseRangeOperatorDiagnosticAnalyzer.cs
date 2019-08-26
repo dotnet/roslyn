@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             // Validate we're on a piece of syntax we expect.  While not necessary for analysis, we
             // want to make sure we're on something the fixer will know how to actually fix.
-            var invocationSyntax = invocation.Syntax as InvocationExpressionSyntax;
-            if (invocationSyntax is null ||
+            if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
                 invocationSyntax.ArgumentList is null)
             {
                 return default;

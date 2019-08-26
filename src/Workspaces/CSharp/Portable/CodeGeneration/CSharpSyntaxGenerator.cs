@@ -1929,8 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.Attribute:
-                    var parentList = declaration.Parent as AttributeListSyntax;
-                    if (parentList == null || parentList.Attributes.Count > 1)
+                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
                     {
                         return DeclarationKind.Attribute;
                     }
@@ -2295,7 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var list = GetParameterList(declaration);
             return list != null
                 ? list.Parameters
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                : declaration is SimpleLambdaExpressionSyntax simpleLambda
+                    ? new[] { simpleLambda.Parameter }
+                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2385,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.SimpleLambdaExpression => SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter)),
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
                 _ => (BaseParameterListSyntax)null,
             };
 
@@ -3138,8 +3139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)declaration;
-                    var attrList = attr.Parent as AttributeListSyntax;
-                    if (attrList != null && attrList.Attributes.Count == 1)
+                    if (attr.Parent is AttributeListSyntax attrList && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
                         return this.RemoveNodeInternal(root, attrList, options);
@@ -3164,8 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.SimpleBaseType:
-                    var baseList = declaration.Parent as BaseListSyntax;
-                    if (baseList != null && baseList.Types.Count == 1)
+                    if (declaration.Parent is BaseListSyntax baseList && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
                         return this.RemoveNodeInternal(root, baseList, options);

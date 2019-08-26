@@ -16211,32 +16211,33 @@ class Test
 }");
             comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       54 (0x36)
-  .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                System.Span<int> V_1)
-  IL_0000:  nop
-  IL_0001:  ldc.i4     0x84
-  IL_0006:  conv.u
-  IL_0007:  localloc
-  IL_0009:  ldc.i4.s   33
-  IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0010:  stloc.1
-  IL_0011:  ldloc.1
-  IL_0012:  stloc.0
-  IL_0013:  ldloca.s   V_0
-  IL_0015:  call       ""int System.Span<int>.Length.get""
-  IL_001a:  call       ""void System.Console.Write(int)""
-  IL_001f:  nop
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  initobj    ""System.Span<int>""
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""int System.Span<int>.Length.get""
-  IL_002f:  call       ""void System.Console.Write(int)""
-  IL_0034:  nop
-  IL_0035:  ret
-}");
+    {
+      // Code size       54 (0x36)
+      .maxstack  2
+      .locals init (System.Span<int> V_0, //x
+                    System.Span<int> V_1)
+      IL_0000:  nop
+      IL_0001:  ldc.i4     0x84
+      IL_0006:  conv.u
+      IL_0007:  localloc
+      IL_0009:  ldc.i4.s   33
+      IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0010:  stloc.1
+      IL_0011:  ldloc.1
+      IL_0012:  stloc.0
+      IL_0013:  ldloca.s   V_0
+      IL_0015:  call       ""int System.Span<int>.Length.get""
+      IL_001a:  call       ""void System.Console.Write(int)""
+      IL_001f:  nop
+      IL_0020:  ldloca.s   V_0
+      IL_0022:  initobj    ""System.Span<int>""
+      IL_0028:  ldloca.s   V_0
+      IL_002a:  call       ""int System.Span<int>.Length.get""
+      IL_002f:  call       ""void System.Console.Write(int)""
+      IL_0034:  nop
+      IL_0035:  ret
+    }
+");
         }
 
         [Fact]
@@ -16297,48 +16298,49 @@ class Test
 }");
             comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       56 (0x38)
-  .maxstack  2
-  .locals init (int V_0, //i
-                System.Span<int> V_1, //x
-                int V_2,
-                System.Span<int> V_3,
-                bool V_4)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  br.s       IL_002d
-  IL_0005:  nop
-  IL_0006:  call       ""int Test.GetLength()""
-  IL_000b:  stloc.2
-  IL_000c:  ldloc.2
-  IL_000d:  conv.u
-  IL_000e:  ldc.i4.4
-  IL_000f:  mul.ovf.un
-  IL_0010:  localloc
-  IL_0012:  ldloc.2
-  IL_0013:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0018:  stloc.3
-  IL_0019:  ldloc.3
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  call       ""int System.Span<int>.Length.get""
-  IL_0022:  call       ""void System.Console.Write(int)""
-  IL_0027:  nop
-  IL_0028:  nop
-  IL_0029:  ldloc.0
-  IL_002a:  ldc.i4.1
-  IL_002b:  add
-  IL_002c:  stloc.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldc.i4.5
-  IL_002f:  clt
-  IL_0031:  stloc.s    V_4
-  IL_0033:  ldloc.s    V_4
-  IL_0035:  brtrue.s   IL_0005
-  IL_0037:  ret
-}");
+    {
+      // Code size       56 (0x38)
+      .maxstack  2
+      .locals init (int V_0, //i
+                    System.Span<int> V_1, //x
+                    int V_2,
+                    System.Span<int> V_3,
+                    bool V_4)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.0
+      IL_0002:  stloc.0
+      IL_0003:  br.s       IL_002d
+      IL_0005:  nop
+      IL_0006:  call       ""int Test.GetLength()""
+      IL_000b:  stloc.2
+      IL_000c:  ldloc.2
+      IL_000d:  conv.u
+      IL_000e:  ldc.i4.4
+      IL_000f:  mul.ovf.un
+      IL_0010:  localloc
+      IL_0012:  ldloc.2
+      IL_0013:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0018:  stloc.3
+      IL_0019:  ldloc.3
+      IL_001a:  stloc.1
+      IL_001b:  ldloca.s   V_1
+      IL_001d:  call       ""int System.Span<int>.Length.get""
+      IL_0022:  call       ""void System.Console.Write(int)""
+      IL_0027:  nop
+      IL_0028:  nop
+      IL_0029:  ldloc.0
+      IL_002a:  ldc.i4.1
+      IL_002b:  add
+      IL_002c:  stloc.0
+      IL_002d:  ldloc.0
+      IL_002e:  ldc.i4.5
+      IL_002f:  clt
+      IL_0031:  stloc.s    V_4
+      IL_0033:  ldloc.s    V_4
+      IL_0035:  brtrue.s   IL_0005
+      IL_0037:  ret
+    }
+");
         }
 
         [Fact]
@@ -16356,42 +16358,44 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       25 (0x19)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
-  IL_0000:  ldc.i4.s   12
-  IL_0002:  conv.u
-  IL_0003:  localloc
-  IL_0005:  ldc.i4.3
-  IL_0006:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000b:  stloc.0
-  IL_000c:  ldc.i4.2
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""int Test.M(int, System.Span<int>)""
-  IL_0013:  call       ""void System.Console.WriteLine(int)""
-  IL_0018:  ret
-}");
+    {
+      // Code size       25 (0x19)
+      .maxstack  2
+      .locals init (System.Span<int> V_0)
+      IL_0000:  ldc.i4.s   12
+      IL_0002:  conv.u
+      IL_0003:  localloc
+      IL_0005:  ldc.i4.3
+      IL_0006:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000b:  stloc.0
+      IL_000c:  ldc.i4.2
+      IL_000d:  ldloc.0
+      IL_000e:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0013:  call       ""void System.Console.WriteLine(int)""
+      IL_0018:  ret
+    }
+");
             comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       27 (0x1b)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   12
-  IL_0003:  conv.u
-  IL_0004:  localloc
-  IL_0006:  ldc.i4.3
-  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000c:  stloc.0
-  IL_000d:  ldc.i4.2
-  IL_000e:  ldloc.0
-  IL_000f:  call       ""int Test.M(int, System.Span<int>)""
-  IL_0014:  call       ""void System.Console.WriteLine(int)""
-  IL_0019:  nop
-  IL_001a:  ret
-}");
+    {
+      // Code size       27 (0x1b)
+      .maxstack  2
+      .locals init (System.Span<int> V_0)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.s   12
+      IL_0003:  conv.u
+      IL_0004:  localloc
+      IL_0006:  ldc.i4.3
+      IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000c:  stloc.0
+      IL_000d:  ldc.i4.2
+      IL_000e:  ldloc.0
+      IL_000f:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0014:  call       ""void System.Console.WriteLine(int)""
+      IL_0019:  nop
+      IL_001a:  ret
+    }
+");
         }
 
         [Fact]
@@ -16410,51 +16414,53 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       27 (0x1b)
-  .maxstack  2
-  .locals init (int V_0,
-                System.Span<int> V_1)
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.s   12
-  IL_0004:  conv.u
-  IL_0005:  localloc
-  IL_0007:  ldc.i4.3
-  IL_0008:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.0
-  IL_000f:  ldloc.1
-  IL_0010:  call       ""int Test.M(int, System.Span<int>)""
-  IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  ret
-}");
+    {
+      // Code size       27 (0x1b)
+      .maxstack  2
+      .locals init (int V_0,
+                    System.Span<int> V_1)
+      IL_0000:  ldc.i4.2
+      IL_0001:  stloc.0
+      IL_0002:  ldc.i4.s   12
+      IL_0004:  conv.u
+      IL_0005:  localloc
+      IL_0007:  ldc.i4.3
+      IL_0008:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000d:  stloc.1
+      IL_000e:  ldloc.0
+      IL_000f:  ldloc.1
+      IL_0010:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0015:  call       ""void System.Console.WriteLine(int)""
+      IL_001a:  ret
+    }
+");
             comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       31 (0x1f)
-  .maxstack  2
-  .locals init (int V_0, //z
-                int V_1,
-                System.Span<int> V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  stloc.1
-  IL_0005:  ldc.i4.s   12
-  IL_0007:  conv.u
-  IL_0008:  localloc
-  IL_000a:  ldc.i4.3
-  IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0010:  stloc.2
-  IL_0011:  ldloc.1
-  IL_0012:  ldloc.2
-  IL_0013:  call       ""int Test.M(int, System.Span<int>)""
-  IL_0018:  call       ""void System.Console.WriteLine(int)""
-  IL_001d:  nop
-  IL_001e:  ret
-}");
+    {
+      // Code size       31 (0x1f)
+      .maxstack  2
+      .locals init (int V_0, //z
+                    int V_1,
+                    System.Span<int> V_2)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.2
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  stloc.1
+      IL_0005:  ldc.i4.s   12
+      IL_0007:  conv.u
+      IL_0008:  localloc
+      IL_000a:  ldc.i4.3
+      IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0010:  stloc.2
+      IL_0011:  ldloc.1
+      IL_0012:  ldloc.2
+      IL_0013:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0018:  call       ""void System.Console.WriteLine(int)""
+      IL_001d:  nop
+      IL_001e:  ret
+    }
+");
         }
 
         [Fact]
@@ -16473,117 +16479,119 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       70 (0x46)
-  .maxstack  4
-  .locals init (int V_0,
-                System.Span<int> V_1,
-                System.Span<int> V_2)
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.8
-  IL_0003:  conv.u
-  IL_0004:  localloc
-  IL_0006:  dup
-  IL_0007:  ldc.i4.4
-  IL_0008:  stind.i4
-  IL_0009:  dup
-  IL_000a:  ldc.i4.4
-  IL_000b:  add
-  IL_000c:  ldc.i4.5
-  IL_000d:  stind.i4
-  IL_000e:  ldc.i4.2
-  IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0014:  stloc.1
-  IL_0015:  ldc.i4.s   12
-  IL_0017:  conv.u
-  IL_0018:  localloc
-  IL_001a:  dup
-  IL_001b:  ldc.i4.1
-  IL_001c:  stind.i4
-  IL_001d:  dup
-  IL_001e:  ldc.i4.4
-  IL_001f:  add
-  IL_0020:  ldloca.s   V_1
-  IL_0022:  call       ""int System.Span<int>.Length.get""
-  IL_0027:  stind.i4
-  IL_0028:  dup
-  IL_0029:  ldc.i4.2
-  IL_002a:  conv.i
-  IL_002b:  ldc.i4.4
-  IL_002c:  mul
-  IL_002d:  add
-  IL_002e:  ldc.i4.3
-  IL_002f:  stind.i4
-  IL_0030:  ldc.i4.3
-  IL_0031:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0036:  stloc.2
-  IL_0037:  ldloc.0
-  IL_0038:  ldloca.s   V_2
-  IL_003a:  call       ""int System.Span<int>.Length.get""
-  IL_003f:  mul
-  IL_0040:  call       ""void System.Console.WriteLine(int)""
-  IL_0045:  ret
-}");
+    {
+      // Code size       70 (0x46)
+      .maxstack  4
+      .locals init (int V_0,
+                    System.Span<int> V_1,
+                    System.Span<int> V_2)
+      IL_0000:  ldc.i4.2
+      IL_0001:  stloc.0
+      IL_0002:  ldc.i4.8
+      IL_0003:  conv.u
+      IL_0004:  localloc
+      IL_0006:  dup
+      IL_0007:  ldc.i4.4
+      IL_0008:  stind.i4
+      IL_0009:  dup
+      IL_000a:  ldc.i4.4
+      IL_000b:  add
+      IL_000c:  ldc.i4.5
+      IL_000d:  stind.i4
+      IL_000e:  ldc.i4.2
+      IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0014:  stloc.2
+      IL_0015:  ldc.i4.s   12
+      IL_0017:  conv.u
+      IL_0018:  localloc
+      IL_001a:  dup
+      IL_001b:  ldc.i4.1
+      IL_001c:  stind.i4
+      IL_001d:  dup
+      IL_001e:  ldc.i4.4
+      IL_001f:  add
+      IL_0020:  ldloca.s   V_2
+      IL_0022:  call       ""int System.Span<int>.Length.get""
+      IL_0027:  stind.i4
+      IL_0028:  dup
+      IL_0029:  ldc.i4.2
+      IL_002a:  conv.i
+      IL_002b:  ldc.i4.4
+      IL_002c:  mul
+      IL_002d:  add
+      IL_002e:  ldc.i4.3
+      IL_002f:  stind.i4
+      IL_0030:  ldc.i4.3
+      IL_0031:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0036:  stloc.1
+      IL_0037:  ldloc.0
+      IL_0038:  ldloca.s   V_1
+      IL_003a:  call       ""int System.Span<int>.Length.get""
+      IL_003f:  mul
+      IL_0040:  call       ""void System.Console.WriteLine(int)""
+      IL_0045:  ret
+    }
+");
             comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
-{
-  // Code size       74 (0x4a)
-  .maxstack  4
-  .locals init (int V_0, //z
-                int V_1,
-                System.Span<int> V_2,
-                System.Span<int> V_3)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  stloc.1
-  IL_0005:  ldc.i4.8
-  IL_0006:  conv.u
-  IL_0007:  localloc
-  IL_0009:  dup
-  IL_000a:  ldc.i4.4
-  IL_000b:  stind.i4
-  IL_000c:  dup
-  IL_000d:  ldc.i4.4
-  IL_000e:  add
-  IL_000f:  ldc.i4.5
-  IL_0010:  stind.i4
-  IL_0011:  ldc.i4.2
-  IL_0012:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0017:  stloc.2
-  IL_0018:  ldc.i4.s   12
-  IL_001a:  conv.u
-  IL_001b:  localloc
-  IL_001d:  dup
-  IL_001e:  ldc.i4.1
-  IL_001f:  stind.i4
-  IL_0020:  dup
-  IL_0021:  ldc.i4.4
-  IL_0022:  add
-  IL_0023:  ldloca.s   V_2
-  IL_0025:  call       ""int System.Span<int>.Length.get""
-  IL_002a:  stind.i4
-  IL_002b:  dup
-  IL_002c:  ldc.i4.2
-  IL_002d:  conv.i
-  IL_002e:  ldc.i4.4
-  IL_002f:  mul
-  IL_0030:  add
-  IL_0031:  ldc.i4.3
-  IL_0032:  stind.i4
-  IL_0033:  ldc.i4.3
-  IL_0034:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0039:  stloc.3
-  IL_003a:  ldloc.1
-  IL_003b:  ldloca.s   V_3
-  IL_003d:  call       ""int System.Span<int>.Length.get""
-  IL_0042:  mul
-  IL_0043:  call       ""void System.Console.WriteLine(int)""
-  IL_0048:  nop
-  IL_0049:  ret
-}");
+    {
+      // Code size       74 (0x4a)
+      .maxstack  4
+      .locals init (int V_0, //z
+                    int V_1,
+                    System.Span<int> V_2,
+                    System.Span<int> V_3)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.2
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  stloc.1
+      IL_0005:  ldc.i4.8
+      IL_0006:  conv.u
+      IL_0007:  localloc
+      IL_0009:  dup
+      IL_000a:  ldc.i4.4
+      IL_000b:  stind.i4
+      IL_000c:  dup
+      IL_000d:  ldc.i4.4
+      IL_000e:  add
+      IL_000f:  ldc.i4.5
+      IL_0010:  stind.i4
+      IL_0011:  ldc.i4.2
+      IL_0012:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0017:  stloc.3
+      IL_0018:  ldc.i4.s   12
+      IL_001a:  conv.u
+      IL_001b:  localloc
+      IL_001d:  dup
+      IL_001e:  ldc.i4.1
+      IL_001f:  stind.i4
+      IL_0020:  dup
+      IL_0021:  ldc.i4.4
+      IL_0022:  add
+      IL_0023:  ldloca.s   V_3
+      IL_0025:  call       ""int System.Span<int>.Length.get""
+      IL_002a:  stind.i4
+      IL_002b:  dup
+      IL_002c:  ldc.i4.2
+      IL_002d:  conv.i
+      IL_002e:  ldc.i4.4
+      IL_002f:  mul
+      IL_0030:  add
+      IL_0031:  ldc.i4.3
+      IL_0032:  stind.i4
+      IL_0033:  ldc.i4.3
+      IL_0034:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0039:  stloc.2
+      IL_003a:  ldloc.1
+      IL_003b:  ldloca.s   V_2
+      IL_003d:  call       ""int System.Span<int>.Length.get""
+      IL_0042:  mul
+      IL_0043:  call       ""void System.Console.WriteLine(int)""
+      IL_0048:  nop
+      IL_0049:  ret
+    }
+");
         }
 
         [Fact]

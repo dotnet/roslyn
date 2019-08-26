@@ -2092,7 +2092,11 @@ public struct S2
   IL_000b:  ret
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,8): warning CS0649: Field 'S2.s1' is never assigned to, and will always have its default value
+                //     S1 s1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s1").WithArguments("S2.s1", "").WithLocation(9, 8)
+);
         }
 
         [Fact]

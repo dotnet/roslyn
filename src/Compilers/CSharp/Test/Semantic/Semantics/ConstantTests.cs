@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2346,11 +2347,13 @@ b --> False
 
             // Confirm that both branches are evaluated, even if the value is Bad
             // Duplicate "(byte)2" is because there's an implicit conversion to uint.
+            // Duplicate "b ? (uint)1 : (byte)2" is because there's an implicit conversion to int.
             var expected =
 @"true ? 1 + i : (int)4u --> BAD
 1 + i --> BAD
 i --> BAD
 (int)4u --> 4
+b ? (uint)1 : (byte)2 --> BAD
 b ? (uint)1 : (byte)2 --> BAD
 b --> BAD
 (uint)1 --> 1
@@ -3023,6 +3026,35 @@ class C
                 //         const int F = c.Sum(o => F);
                 Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("F").WithLocation(8, 34)
                 );
+        }
+
+        [Fact]
+        public void TestLargeStringConcatenation()
+        {
+            // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
+            // compiled within ordinary memory bounds.  However, when the compiler uses an O(n) algorithm, it can.
+            string source0 = @"
+class C
+{
+    static void Main()
+    {
+        string s =
+""BEGIN "" +
+";
+            string source1 = @"
+""END"";
+        System.Console.WriteLine(System.Linq.Enumerable.Sum(s, c => (int)c));
+    }
+}
+";
+            StringBuilder source = new StringBuilder();
+            source.Append(source0);
+            for (int i = 0; i < 5000; i++)
+            {
+                source.Append(@"""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + "\n");
+            }
+            source.Append(source1);
+            CompileAndVerify(source.ToString(), expectedOutput: "58430604");
         }
     }
 

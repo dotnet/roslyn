@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                         CreateCodeAction(
                             c => RefactorAsync(document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
                             direction,
-                            syntaxFacts.GetText(syntaxKinds.IfKeyword)));
+                            syntaxFacts.GetText(syntaxKinds.IfKeyword)),
+                        new TextSpan(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
                 }
             }
         }

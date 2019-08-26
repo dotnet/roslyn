@@ -178,11 +178,9 @@ namespace Microsoft.CodeAnalysis
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
-                {
-                    var text = CreateText(readStream, workspace);
-                    textAndVersion = TextAndVersion.Create(text, version, _path);
-                }
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var text = CreateText(readStream, workspace);
+                textAndVersion = TextAndVersion.Create(text, version, _path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
