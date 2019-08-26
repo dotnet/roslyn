@@ -3024,7 +3024,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedMethod);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedMethod, ref useSiteDiagnostics);
                 return method.Equals(implementationMethod);
             }
 
