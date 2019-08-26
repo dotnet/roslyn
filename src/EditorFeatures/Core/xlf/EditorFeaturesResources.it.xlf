@@ -37,6 +37,16 @@
         <target state="translated">Procedere comunque? Il codice ottenuto potrebbe essere danneggiato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="new">items from unimported namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="new">Expander</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
         <target state="translated">Il metodo di estrazione ha rilevato i problemi seguenti:</target>

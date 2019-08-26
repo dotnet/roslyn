@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
-
-            return CompletionItem.Create(
+            
+            var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
+
+            item.Flags = CompletionItemFlags.CachedAndExpanded;
+            return item;
         }
 
         public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
