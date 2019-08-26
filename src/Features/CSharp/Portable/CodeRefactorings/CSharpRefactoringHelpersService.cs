@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -26,6 +25,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
             {
                 yield return localDeclaration.Declaration;
             }
+
+            // var `a = b`;
+            if (node is VariableDeclaratorSyntax declarator)
+            {
+                var localDeclarationStatement = declarator.Parent?.Parent as LocalDeclarationStatementSyntax;
+                if (localDeclarationStatement != null)
+                {
+                    var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
+                    if (variables.Count == 1)
+                    {
+                        // -> `var a = b`;
+                        yield return declarator.Parent;
+
+                        // -> `var a = b;`
+                        yield return localDeclarationStatement;
+                    }
+                }
+
+            }
+
         }
     }
 }

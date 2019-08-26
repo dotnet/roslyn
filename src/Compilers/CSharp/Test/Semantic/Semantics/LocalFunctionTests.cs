@@ -4897,5 +4897,31 @@ class Program
 @"42
 13");
         }
+
+        [Fact, WorkItem(38129, "https://github.com/dotnet/roslyn/issues/38129")]
+        public void StaticLocalFunctionLocalFunctionReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M()
+    {
+        void F1() {}
+        static void F2() {}
+
+        static void F3()
+        {
+            F1();
+            F2();
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8421: A static local function cannot contain a reference to 'F1'.
+                //             F1();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1()").WithArguments("F1").WithLocation(11, 13));
+        }
     }
 }

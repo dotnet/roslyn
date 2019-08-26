@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
-                var highlightBrush = properties["Background"] as Brush;
 
                 // Remove additive classified spans before creating classified text.
                 // Otherwise the text will be repeated since there are two classifications
@@ -83,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
-                        if (highlightBrush != null)
+                        if (properties["Background"] is Brush highlightBrush)
                         {
                             if (position == _excerptResult.MappedSpan.Start)
                             {

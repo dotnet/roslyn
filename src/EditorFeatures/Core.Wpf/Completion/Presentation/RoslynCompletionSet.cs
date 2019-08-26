@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionPresenterSession.AssertIsForeground();
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            CompletionItemMap = CompletionItemMap ?? new Dictionary<RoslynCompletionItem, VSCompletion>(completionItems.Count + 1);
+            CompletionItemMap ??= new Dictionary<RoslynCompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
             SuggestionModeItem = suggestionModeItem;
 

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
+            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start);
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
                 return;
@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutableAndFree()));
+                    pickMemberOptions.ToImmutableAndFree()),
+                textSpan);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(

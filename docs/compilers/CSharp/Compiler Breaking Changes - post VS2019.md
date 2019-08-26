@@ -7,4 +7,20 @@ Each entry should include a short description of the break, followed by either a
     ``` c#
     bool M<T>(T t) => t is null;
     ```
-However, in *Visual Studio 2019* we improperly permitted this to compile in language versions `7.0`, `7.1`, `7.2`, and `7.3`.  In *Visual Studio 2019 Update 1* we will make it an error (as it was in *Visual Studio 2017*), and suggest updating to `preview` or `8.0`.
+    However, in *Visual Studio 2019* we improperly permitted this to compile in language versions `7.0`, `7.1`, `7.2`, and `7.3`.  In *Visual Studio 2019 Update 1* we will make it an error (as it was in *Visual Studio 2017*), and suggest updating to `preview` or `8.0`.
+
+2. https://github.com/dotnet/roslyn/issues/38129 Visual Studio 2019 version 16.3 incorrectly allowed for a `static` local function to call a non-`static` local function. For example:
+
+    ```c#
+    void M()
+    {
+        void Local() {}
+        
+        static void StaticLocal()
+        {
+            Local();
+        }
+    }
+    ```
+    
+    Such code will produce an error in version 16.4.

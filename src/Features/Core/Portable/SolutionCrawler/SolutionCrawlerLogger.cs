@@ -228,9 +228,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         continue;
                     }
 
-                    if (kv.Key is ValueTuple<string, Guid>)
+                    if (kv.Key is ValueTuple<string, Guid> tuple)
                     {
-                        var tuple = (ValueTuple<string, Guid>)kv.Key;
                         var list = statMap.GetOrAdd(tuple.Item1, _ => new List<int>());
                         list.Add(kv.Value.GetCount());
                         continue;

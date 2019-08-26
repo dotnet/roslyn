@@ -4856,7 +4856,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
@@ -5747,6 +5747,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
     <value>Expected 'warnings', 'annotations', or end of directive</value>
   </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
   </data>
@@ -5923,5 +5929,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
 </root>

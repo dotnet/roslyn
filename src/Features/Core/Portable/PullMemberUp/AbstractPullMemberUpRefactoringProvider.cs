@@ -5,10 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var nestedCodeAction = new CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
                 allActions, isInlinable: true);
-            context.RegisterRefactoring(nestedCodeAction);
+            context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
         private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(

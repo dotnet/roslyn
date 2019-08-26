@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var initializedType = typeAndLocation.Item1 as INamedTypeSymbol;
             var initializerLocation = typeAndLocation.Item2;
-            if (initializedType == null)
+            if (!(typeAndLocation.Item1 is INamedTypeSymbol initializedType))
             {
                 return;
             }

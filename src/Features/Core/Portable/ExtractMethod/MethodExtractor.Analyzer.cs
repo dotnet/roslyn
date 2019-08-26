@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,8 +88,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                // check whether instance member is used inside of the selection
-                var instanceMemberIsUsed = IsInstanceMemberUsedInSelectedCode(dataFlowAnalysisData);
+                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
+                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
+                var shouldBeReadOnly = !isThisParameterWritten
+                    && thisParameterBeingRead != null
+                    && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
@@ -100,9 +107,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var returnTypeTuple = AdjustReturnType(model, returnType);
 
-                returnType = returnTypeTuple.Item1;
-                var returnTypeHasAnonymousType = returnTypeTuple.Item2;
-                var awaitTaskReturn = returnTypeTuple.Item3;
+                returnType = returnTypeTuple.typeSymbol;
+                var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymousType;
+                var awaitTaskReturn = returnTypeTuple.awaitTaskReturn;
 
                 // create new document
                 var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
@@ -118,12 +125,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return new AnalyzerResult(
                     newDocument,
-                    typeParametersInDeclaration, typeParametersInConstraintList,
-                    parameters, variableToUseAsReturnValue, returnType, awaitTaskReturn,
-                    instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
+                    typeParametersInDeclaration,
+                    typeParametersInConstraintList,
+                    parameters,
+                    variableToUseAsReturnValue,
+                    returnType,
+                    awaitTaskReturn,
+                    instanceMemberIsUsed,
+                    shouldBeReadOnly,
+                    endOfSelectionReachable,
+                    operationStatus);
             }
 
-            private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
+            private (ITypeSymbol typeSymbol, bool hasAnonymousType, bool awaitTaskReturn) AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
             {
                 // check whether return type contains anonymous type and if it does, fix it up by making it object
                 var returnTypeHasAnonymousType = returnType.ContainsAnonymousType();
@@ -136,12 +150,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
 
-                    return Tuple.Create(returnType, returnTypeHasAnonymousType, awaitTaskReturn);
+                    return (returnType, returnTypeHasAnonymousType, awaitTaskReturn);
                 }
 
                 // unwrap task if needed
                 UnwrapTaskIfNeeded(model, ref returnType);
-                return Tuple.Create(returnType, returnTypeHasAnonymousType, false);
+                return (returnType, returnTypeHasAnonymousType, false);
             }
 
             private void UnwrapTaskIfNeeded(SemanticModel model, ref ITypeSymbol returnType)
@@ -181,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var genericTaskType = model.Compilation.TaskOfTType();
                 var taskType = model.Compilation.TaskType();
 
-                if (returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
+                if (taskType is object && returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
                 {
                     // convert void to Task type
                     awaitTaskReturn = true;
@@ -191,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 if (SelectionResult.SelectionInExpression)
                 {
-                    returnType = genericTaskType.Construct(returnType);
+                    returnType = genericTaskType.ConstructWithNullability(returnType);
                     return;
                 }
 
@@ -203,10 +217,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // okay, wrap the return type in Task<T>
-                returnType = genericTaskType.Construct(returnType);
+                returnType = genericTaskType.ConstructWithNullability(returnType);
             }
 
-            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -322,7 +336,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
-
                 return symbolMap;
             }
 
@@ -410,7 +423,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 foreach (var symbol in candidates)
                 {
-                    if (IsThisParameter(symbol) ||
+                    if (symbol.IsThisParameter() ||
                         IsInteractiveSynthesizedParameter(symbol))
                     {
                         continue;
@@ -605,20 +618,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            private ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+            protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+            => symbol switch
             {
-                switch (symbol)
-                {
-                    case ILocalSymbol local:
-                        return local.Type;
-                    case IParameterSymbol parameter:
-                        return parameter.Type;
-                    case IRangeVariableSymbol rangeVariable:
-                        return GetRangeVariableType(model, rangeVariable);
-                }
-
-                return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
-            }
+                ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
+                IParameterSymbol parameter => parameter.GetTypeWithAnnotatedNullability(),
+                IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
+            };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
             {
@@ -647,8 +654,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsParameterUsedOutside(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -659,8 +665,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private bool IsParameterAssigned(ISymbol localOrParameter)
             {
                 // hack for now.
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -668,10 +673,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return parameter.RefKind != RefKind.Out;
             }
 
-            private bool IsThisParameter(ISymbol localOrParameter)
+            private static bool IsThisParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -681,8 +685,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -782,7 +785,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
                 {
-                    var typeParameter = pair.Key as ITypeParameterSymbol;
+                    var typeParameter = (ITypeParameterSymbol)pair.Key;
                     if (typeParameter.DeclaringMethod == null ||
                         sortedMap.ContainsKey(typeParameter.Ordinal))
                     {
@@ -851,8 +854,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
 
-                var constructedType = type as INamedTypeSymbol;
-                if (constructedType == null)
+                if (!(type is INamedTypeSymbol constructedType))
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
@@ -882,8 +884,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var candidate = arguments[i] as INamedTypeSymbol;
-                    if (candidate == null)
+                    if (!(arguments[i] is INamedTypeSymbol candidate))
                     {
                         continue;
                     }
@@ -911,7 +912,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return OperationStatus.Succeeded;
                 }
 
-                List<string> names = null;
+                List<string>? names = null;
                 var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
@@ -944,8 +945,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(dataFlowAnalysisData);
 
                 // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => IsThisParameter(s)) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+                return dataFlowAnalysisData.ReadInside.Any(s => s.IsThisParameter()) ||
+                       dataFlowAnalysisData.WrittenInside.Any(s => s.IsThisParameter());
             }
 
             protected VariableInfo CreateFromSymbolCommon<T>(
@@ -955,19 +956,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                switch (symbol)
+                return symbol switch
                 {
-                    case ILocalSymbol local:
-                        return new VariableInfo(
-                            new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
-                            style);
-                    case IParameterSymbol parameter:
-                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
-                    case IRangeVariableSymbol rangeVariable:
-                        return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
-                }
-
-                return Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown);
+                    ILocalSymbol local => new VariableInfo(
+                        new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                        style),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
+                    _ => Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown),
+                };
             }
         }
     }
