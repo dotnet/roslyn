@@ -114,7 +114,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="translated">기호에 베이스가 없습니다.</target>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="new">Toggle Block Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="new">Toggle Line Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="new">Toggling block comment...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="new">Toggling line comment...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -339,7 +359,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="translated">'{0}' 기본</target>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -919,7 +939,7 @@
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
         <source>Can't compare positions from different text snapshots</source>
-        <target state="translated">다른 텍스트 스냅샷에서 위치를 비교할 수 없습니다.</target>
+        <target state="translated">다른 텍스트 스냅숏에서 위치를 비교할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Entity_Reference">
@@ -1121,7 +1141,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="IntelliSense_Commit_Formatting">
         <source>IntelliSense Commit Formatting</source>
-        <target state="translated">IntelliSense 커밋 서식</target>
+        <target state="translated">Intellisense 커밋 서식</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking">
@@ -1307,26 +1327,6 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">스마트 토큰 포맷터</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggling_block_comment">
-        <source>Toggling block comment...</source>
-        <target state="translated">블록 주석을 토글하는 중...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggle_Block_Comment">
-        <source>Toggle Block Comment</source>
-        <target state="translated">블록 주석 토글</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggling_line_comment">
-        <source>Toggling line comment...</source>
-        <target state="translated">줄 주석을 토글하는 중...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggle_Line_Comment">
-        <source>Toggle Line Comment</source>
-        <target state="translated">줄 주석 토글</target>
         <note />
       </trans-unit>
     </body>

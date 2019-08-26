@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="translated">Будет создано пространство имен</target>
+        <target state="new">A new namespace will be created</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">Включить функции IDE для анализа ссылок, допускающих значение NULL</target>
+        <target state="new">Enable nullable reference analysis IDE features</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -149,22 +149,22 @@
       </trans-unit>
       <trans-unit id="Members">
         <source>Members</source>
-        <target state="translated">Члены</target>
+        <target state="translated">Элементы</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">Предпочтения модификатора:</target>
+        <target state="translated">Предпочтения для модификатора:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="translated">Переместить в пространство имен</target>
+        <target state="new">Move to Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="translated">Пространство имен</target>
+        <target state="new">Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Field">
         <source>field</source>
-        <target state="translated">Поле</target>
+        <target state="new">field</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Interface">
@@ -204,17 +204,17 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Local">
         <source>local</source>
-        <target state="translated">локальный</target>
+        <target state="new">local</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_LocalFunction">
         <source>local function</source>
-        <target state="translated">локальная функция</target>
+        <target state="new">local function</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Method">
         <source>method</source>
-        <target state="translated">метод</target>
+        <target state="new">method</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Namespace">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Parameter">
         <source>parameter</source>
-        <target state="translated">параметр</target>
+        <target state="new">parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="translated">свойство</target>
+        <target state="new">property</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_TypeParameter">
         <source>type parameter</source>
-        <target state="translated">параметр типа</target>
+        <target state="new">type parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Field">
         <source>Field</source>
-        <target state="translated">Поле</target>
+        <target state="new">Field</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Interface">
@@ -274,12 +274,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Local">
         <source>Local</source>
-        <target state="translated">Локальные</target>
+        <target state="new">Local</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Method">
         <source>Method</source>
-        <target state="translated">метод</target>
+        <target state="new">Method</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Module">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Parameter">
         <source>Parameter</source>
-        <target state="translated">Параметр</target>
+        <target state="new">Parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Property">
@@ -309,7 +309,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
         <source>Type Parameter</source>
-        <target state="translated">Параметр типа</target>
+        <target state="new">Type Parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
-        <target state="translated">Повышение элементов</target>
+        <target state="translated">Поиск элементов</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -379,7 +379,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="translated">Переименовать {0} в {1}</target>
+        <target state="translated">Переименовать "{0}" в "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="translated">Выбрать _зависимости</target>
+        <target state="translated">Выбрать _зависимые</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
@@ -449,12 +449,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="translated">Целевое пространство имен:</target>
+        <target state="new">Target Namespace:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="translated">Это недопустимое пространство имен.</target>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="translated">Эта рабочая область не поддерживает обновление параметров компиляции Visual Basic.</target>
+        <target state="translated">Эта рабочая область не поддерживает изменение параметров компиляции Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1975,7 +1975,7 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="translated">Файл EditorConfig может переопределять локальные параметры, настроенные на этой странице, только для этого компьютера. Чтобы эти параметры были привязаны к решению, используйте файлы EditorConfig. Дополнительные сведения.</target>
+        <target state="needs-review-translation">Заданные здесь параметры применяются только на вашем компьютере. Чтобы привязать параметры к решению, используйте EDITORCONFIG-файлы.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
