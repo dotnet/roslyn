@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             context.RegisterRefactoring(
                 new MyCodeAction(
                     Title,
-                    c => UpdateDocumentAsync(document, declaredType, c)));
+                    c => UpdateDocumentAsync(document, declaredType, c)),
+                declaredType.Span);
         }
 
         private static async Task<SyntaxNode> GetDeclarationAsync(CodeRefactoringContext context)

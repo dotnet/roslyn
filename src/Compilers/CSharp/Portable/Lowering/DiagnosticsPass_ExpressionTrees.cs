@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter);
+            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
 
             if (_staticLocalFunction is object && Symbol.IsCaptured(symbol, _staticLocalFunction))
             {
@@ -349,6 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             CheckReceiverIfField(node.ReceiverOpt);
+            if (node.Method is LocalFunctionSymbol)
+            {
+                CheckReferenceToVariable(node, node.Method);
+            }
             return base.VisitCall(node);
         }
 

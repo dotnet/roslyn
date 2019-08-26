@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))));
+                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))),
+                    queryExpression.Span);
             }
         }
 

@@ -2816,12 +2816,12 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
 ", new DiagnosticDescription[] {
-                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                // file.cs(9,31): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
-                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Cast<GC>").WithArguments("System.GC").WithLocation(9, 31),
+                // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             });
         }
 

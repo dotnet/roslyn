@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            var view = field.GetValue(intellisenseHost) as IVsTextView;
-            if (view == null)
+            if (!(field.GetValue(intellisenseHost) is IVsTextView view))
             {
                 return null;
             }
