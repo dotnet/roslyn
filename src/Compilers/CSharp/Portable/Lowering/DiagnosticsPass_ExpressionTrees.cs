@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckReferenceToVariable(node, method);
             }
 
-            if (method?.RequiresInstanceReceiver == true)
+            if (method == null || method.RequiresInstanceReceiver)
             {
                 Visit(node.ReceiverOpt);
             }
