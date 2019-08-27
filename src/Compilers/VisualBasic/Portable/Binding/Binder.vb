@@ -904,7 +904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol.Kind <> SymbolKind.Property AndAlso
                Compilation.SourceModule IsNot symbol.ContainingModule AndAlso
-               symbol.ContainingType?.IsInterface AndAlso
+               (symbol.ContainingType?.IsInterface).GetValueOrDefault() AndAlso
                Not Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation Then
 
                 If Not symbol.IsShared AndAlso
