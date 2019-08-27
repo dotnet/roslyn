@@ -383,8 +383,6 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles();
 
-        protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module);
-
         protected abstract void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef);
 
         /// <summary>
@@ -513,7 +511,7 @@ namespace Microsoft.Cci
         {
             var nestedTypes = new Queue<INestedTypeDefinition>();
 
-            foreach (INamespaceTypeDefinition typeDef in this.GetTopLevelTypes(this.module))
+            foreach (INamespaceTypeDefinition typeDef in module.GetTopLevelTypeDefinitions(Context))
             {
                 this.CreateIndicesFor(typeDef, nestedTypes);
             }

@@ -85,6 +85,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            internal override Rope RopeValue
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
             // all instances of this class are singletons
             public override bool Equals(ConstantValue other)
             {
@@ -112,9 +120,16 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueString : ConstantValue
         {
-            private readonly string _value;
+            private readonly Rope _value;
 
             public ConstantValueString(string value)
+            {
+                // we should have just one Null regardless string or object.
+                System.Diagnostics.Debug.Assert(value != null, "null strings should be represented as Null constant.");
+                _value = Rope.ForString(value);
+            }
+
+            public ConstantValueString(Rope value)
             {
                 // we should have just one Null regardless string or object.
                 System.Diagnostics.Debug.Assert(value != null, "null strings should be represented as Null constant.");
@@ -138,6 +153,14 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
+                    return _value.ToString();
+                }
+            }
+
+            internal override Rope RopeValue
+            {
+                get
+                {
                     return _value;
                 }
             }
@@ -149,7 +172,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && _value == other.StringValue;
+                return base.Equals(other) && _value.Equals(other.RopeValue);
             }
 
             internal override string GetValueToDisplay()

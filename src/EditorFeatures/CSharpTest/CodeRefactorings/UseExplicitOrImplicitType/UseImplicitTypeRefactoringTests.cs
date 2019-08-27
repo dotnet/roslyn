@@ -40,6 +40,72 @@ class C
         }
 
         [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestSelection1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        [|int i = 0;|]
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestSelection2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        [|int|] i = 0;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingSelectionNotType()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+       int [|i|] = 0;
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact]
         public async Task TestForeachInsideLocalDeclaration()
         {
             var code = @"
@@ -243,6 +309,25 @@ class C
         {
 
         }
+    }
+}";
+
+            // We never want to get offered here under any circumstances.
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task NoSuggestionWithinAnExpression()
+        {
+            var code = @"using System;
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int a = 40 [||]+ 2;
     }
 }";
 

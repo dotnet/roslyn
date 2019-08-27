@@ -288,19 +288,19 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
-            var list = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count);
+            using var listDisposer = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                var spans = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count);
+                using var spansDisposer = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
                 foreach (var span in kvp.Value)
                 {
                     spans.Add(span);
                 }
 
-                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndFree()));
+                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutable()));
             }
 
-            return list.ToImmutableAndFree();
+            return list.ToImmutable();
         }
 
         private static bool ShouldIncludeDefinition(ISymbol symbol)
@@ -314,11 +314,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-
                     // If it's an indexer parameter, we will have also cascaded to the accessor
                     // one that actually receives the references
-                    var containingProperty = symbol.ContainingSymbol as IPropertySymbol;
-                    if (containingProperty != null && containingProperty.IsIndexer)
+                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
                     {
                         return false;
                     }

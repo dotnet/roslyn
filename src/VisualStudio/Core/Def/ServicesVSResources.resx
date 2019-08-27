@@ -702,6 +702,12 @@ Additional information: {1}</value>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="Build_plus_live_analysis_NuGet_package" xml:space="preserve">
+    <value>Build + live analysis (NuGet package)</value>
+  </data>
+  <data name="Live_analysis_VSIX_extension" xml:space="preserve">
+    <value>Live analysis (VSIX extension)</value>
+  </data>
   <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
   </data>
@@ -924,8 +930,8 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
-    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  <data name="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues" xml:space="preserve">
+    <value>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</value>
   </data>
   <data name="Never_show_this_again" xml:space="preserve">
     <value>Never show this again</value>
@@ -1053,9 +1059,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
-  </data>
-  <data name="Live_analysis" xml:space="preserve">
-    <value>Live analysis</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1333,5 +1336,17 @@ I agree to all of the foregoing:</value>
   <data name="NamingSpecification_VisualBasic_TypeParameter" xml:space="preserve">
     <value>Type Parameter</value>
     <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
+  </data>
+  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
+    <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
+  <data name="Running_low_priority_background_processes" xml:space="preserve">
+    <value>Running low priority background processes</value>
+  </data>
+  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
+    <value>Evaluating ({0} tasks in queue)</value>
+  </data>
+  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
+    <value>Paused ({0} tasks in queue)</value>
   </data>
 </root>

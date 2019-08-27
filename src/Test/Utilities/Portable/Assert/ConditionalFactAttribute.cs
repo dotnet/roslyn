@@ -43,11 +43,6 @@ namespace Roslyn.Test.Utilities
         public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
 
         /// <summary>
-        /// Edit and continue is only supported on desktop at the moment.
-        /// </summary>
-        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
-
-        /// <summary>
         /// Mono issues around Default Interface Methods
         /// </summary>
         public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
@@ -159,6 +154,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
         public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;

@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -34,12 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(runningDocumentTable);
             Contract.ThrowIfNull(listener);
 
-            // Advise / Unadvise for the RDT is free threaded past 16.0
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;
 
+            // Advise / Unadvise for the RDT is free threaded past 16.0
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
         }
 
@@ -195,12 +195,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // hold onto as a field
             var runningDocumentTable = (IVsRunningDocumentTable)_runningDocumentTable;
             ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-            uint[] cookies = new uint[16];
+            var cookies = new uint[16];
 
             while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
                    && cookiesFetched > 0)
             {
-                for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
                 {
                     var cookie = cookies[cookieIndex];
 

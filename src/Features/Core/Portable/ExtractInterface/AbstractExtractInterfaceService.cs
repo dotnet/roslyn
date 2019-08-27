@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).SingleOrDefault();
 
-                if (typeDeclaration == default)
+                if (typeDeclaration == null)
                 {
                     continue;
                 }
@@ -616,7 +616,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return false;
             }
 
-            if (type == typeParameter ||
+            // We want to ignore nullability when comparing as T and T? both are references to the type parameter
+            if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
                 type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
             {
                 return true;

@@ -9,17 +9,27 @@
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Use la versión de lenguaje {0} o superior para usar los comentarios después del carácter de continuación de línea.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">No es posible que un mismo directorio ("{0}") contenga varios archivos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">comentarios después de la continuación de línea</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -3243,7 +3253,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">El carácter de continuación de línea '_' debe ir precedido de al menos un espacio en blanco y debe ser el último carácter de la línea.</target>
+        <target state="translated">El carácter de continuación de línea "_ " debe ir precedido de al menos un espacio en blanco y debe ir seguido de un comentario o " _" debe ser el último carácter de la línea.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3298,7 +3308,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3">
         <source>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</source>
-        <target state="translated">La interfaz '{0}' solo se puede heredar una vez por esta interfaz, pero ya aparece con diferentes nombres de elementos de tupla, como '{1}' }' (a través de '{2}').</target>
+        <target state="translated">La interfaz '{0}' solo se puede heredar una vez por esta interfaz, pero ya aparece con diferentes nombres de elementos de tupla, como '{1}' (a través de '{2}').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3">
@@ -7201,7 +7211,7 @@
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyCantBeWriteOnly">
         <source>Auto-implemented properties cannot be WriteOnly.</source>
-        <target state="translated">Las propiedades implementadas automáticamente no pueden ser de solo escritura.</target>
+        <target state="translated">Las propiedades implementadas automáticamente no pueden ser WriteOnly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFCount">
@@ -8767,8 +8777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La longitud de la constante de cadena supera el límite de memoria actual. Pruebe dividiendo la cadena en varias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">La longitud de la constante de cadena supera el límite de memoria actual. Pruebe dividiendo la cadena en varias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9113,7 +9123,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
         <note />
       </trans-unit>
     </body>

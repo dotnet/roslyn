@@ -2,12 +2,14 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -21,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(SplitStringLiteralCommandHandler))]
+    [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class SplitStringLiteralCommandHandler : VSCommanding.ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -80,32 +84,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             {
                 var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                 var enabled = options.GetOption(SplitStringLiteralOptions.Enabled);
-                var indentStyle = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
                 if (enabled)
                 {
-                    using (var transaction = CaretPreservingEditTransaction.TryCreate(
-                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    using var transaction = CaretPreservingEditTransaction.TryCreate(
+                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                    var cursorPosition = SplitStringLiteral(document, options, caret, CancellationToken.None);
+                    if (cursorPosition != null)
                     {
-                        var cursorPosition = SplitStringLiteral(
-                            document, options, caret, CancellationToken.None);
+                        var snapshotPoint = new SnapshotPoint(
+                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                            textView.TextBuffer);
 
-                        if (cursorPosition != null)
+                        if (newCaretPoint != null)
                         {
-                            var snapshotPoint = new SnapshotPoint(
-                                subjectBuffer.CurrentSnapshot, cursorPosition.Value);
-                            var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                                snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                                textView.TextBuffer);
-
-                            if (newCaretPoint != null)
-                            {
-                                textView.Caret.MoveTo(newCaretPoint.Value);
-                            }
-
-                            transaction.Complete();
-                            return true;
+                            textView.Caret.MoveTo(newCaretPoint.Value);
                         }
+
+                        transaction.Complete();
+                        return true;
                     }
                 }
             }

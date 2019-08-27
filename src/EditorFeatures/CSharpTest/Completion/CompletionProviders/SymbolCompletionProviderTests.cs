@@ -10253,7 +10253,6 @@ class AnotherBuilder
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter });
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
@@ -10292,6 +10291,52 @@ class AnotherBuilder
             await VerifyItemExistsAsync(
                 markup, "C",
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionShouldNotProvideExtensionMethodsIfTypeConstraintDoesNotMatch()
+        {
+            var markup = @"
+public static class Ext
+{
+    public static void DoSomething<T>(this T thing, string s) where T : class, I
+    { 
+    }
+}
+
+public interface I 
+{
+}
+
+public class C
+{
+    public void M(string s)
+    {
+        this.$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "M");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemIsAbsentAsync(markup, "DoSomething", displayTextSuffix: "<>");
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionInStaticMethod()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    static void M()
+    {
+        void Local() { }
+
+        $$
+    }
+}", "Local");
         }
     }
 }

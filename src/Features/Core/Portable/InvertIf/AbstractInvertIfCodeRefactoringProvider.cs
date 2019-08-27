@@ -37,30 +37,11 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var textSpan = context.Span;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
 
-            var ifNode = token.GetAncestor<TIfStatementSyntax>();
+            var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
             if (ifNode == null)
-            {
-                return;
-            }
-
-            if (ifNode.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            var headerSpan = GetHeaderSpan(ifNode);
-            if (!headerSpan.IntersectsWith(textSpan))
             {
                 return;
             }
@@ -70,8 +51,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, ifNode, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => InvertIfAsync(root, document, ifNode, c)),
+                ifNode.Span);
         }
 
         private InvertIfStyle GetInvertIfStyle(
@@ -417,7 +400,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
-        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
 
         protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
         protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);

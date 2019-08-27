@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                                   SymbolDisplayParameterOptions.IncludeName |
                                   SymbolDisplayParameterOptions.IncludeDefaultValue |
                                   SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                                      SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
+                                      SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         [ImportingConstructor]
         public CSharpNavigationBarItemService()

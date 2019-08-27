@@ -2215,9 +2215,9 @@ moreArguments:
             foreach (var element in expr.Arguments)
             {
                 uint valEscape;
-                if (element.Kind == BoundKind.TupleLiteral)
+                if (element is BoundTupleExpression te)
                 {
-                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                    valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
                 }
                 else
                 {
@@ -2259,6 +2259,7 @@ moreArguments:
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2266,12 +2267,9 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2578,6 +2576,7 @@ moreArguments:
 
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2585,12 +2584,9 @@ moreArguments:
                     return true;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2845,7 +2841,8 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
-                case BoundKind.SwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
                     foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
                     {
                         var result = arm.Value;
@@ -3077,7 +3074,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             switch (expression.Kind)
             {
@@ -3204,7 +3201,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             FieldSymbol field = fieldAccess.FieldSymbol;
 

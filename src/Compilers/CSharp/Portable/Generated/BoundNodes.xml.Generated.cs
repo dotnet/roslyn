@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SourceDocumentIndex,
         MethodInfo,
         FieldInfo,
+        DefaultLiteral,
         DefaultExpression,
         IsOperator,
         AsOperator,
@@ -122,8 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         Label,
         StatementList,
         ConditionalGoto,
-        SwitchExpression,
         SwitchExpressionArm,
+        UnconvertedSwitchExpression,
+        ConvertedSwitchExpression,
         DecisionDag,
         EvaluationDecisionDagNode,
         TestDecisionDagNode,
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFieldEqualsValue Update(FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value)
         {
-            if (field != this.Field || locals != this.Locals || value != this.Value)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || locals != this.Locals || value != this.Value)
             {
                 var result = new BoundFieldEqualsValue(this.Syntax, field, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPropertyEqualsValue Update(PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value)
         {
-            if (property != this.Property || locals != this.Locals || value != this.Value)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || locals != this.Locals || value != this.Value)
             {
                 var result = new BoundPropertyEqualsValue(this.Syntax, property, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
@@ -330,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundParameterEqualsValue Update(ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value)
         {
-            if (parameter != this.Parameter || locals != this.Locals || value != this.Value)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(parameter, this.Parameter) || locals != this.Locals || value != this.Value)
             {
                 var result = new BoundParameterEqualsValue(this.Syntax, parameter, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
@@ -443,13 +445,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.ValEscape, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleOperandPlaceholder : BoundValuePlaceholderBase
@@ -485,13 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleOperandPlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAwaitableValuePlaceholder : BoundValuePlaceholderBase
@@ -524,13 +512,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -565,13 +546,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDisposableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDup : BoundExpression
@@ -603,13 +577,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDup(this.Syntax, this.RefKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPassByCopy : BoundExpression
@@ -637,13 +604,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPassByCopy(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -680,13 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBadExpression(this.Syntax, this.ResultKind, this.Symbols, this.ChildBoundNodes, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -770,20 +723,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type)
         {
-            if (aliasOpt != this.AliasOpt || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTypeExpression(this.Syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.BoundContainingTypeOpt, this.BoundDimensionsOpt, this.TypeWithAnnotations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -824,13 +770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOrValueExpression(this.Syntax, this.Data, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNamespaceExpression : BoundExpression
@@ -866,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundNamespaceExpression Update(NamespaceSymbol namespaceSymbol, AliasSymbol? aliasOpt)
         {
-            if (namespaceSymbol != this.NamespaceSymbol || aliasOpt != this.AliasOpt)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(namespaceSymbol, this.NamespaceSymbol) || !SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt))
             {
                 var result = new BoundNamespaceExpression(this.Syntax, namespaceSymbol, aliasOpt, this.HasErrors);
                 result.CopyAttributes(this);
@@ -874,18 +813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNamespaceExpression(this.Syntax, this.NamespaceSymbol, this.AliasOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundUnaryOperator : BoundExpression
     {
-        public BoundUnaryOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundUnaryOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.UnaryOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -897,6 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
             this.MethodOpt = methodOpt;
             this._ResultKind = resultKind;
+            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
@@ -912,31 +845,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnaryOperator(this);
 
-        public BoundUnaryOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, TypeSymbol type)
+        public BoundUnaryOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || methodOpt != this.MethodOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnaryOperator(this.Syntax, operatorKind, operand, constantValueOpt, methodOpt, resultKind, type, this.HasErrors);
+                var result = new BoundUnaryOperator(this.Syntax, operatorKind, operand, constantValueOpt, methodOpt, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUnaryOperator(this.Syntax, this.OperatorKind, this.Operand, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundIncrementOperator : BoundExpression
     {
-        public BoundIncrementOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundIncrementOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IncrementOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -949,6 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OperandConversion = operandConversion;
             this.ResultConversion = resultConversion;
             this._ResultKind = resultKind;
+            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
@@ -966,25 +895,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIncrementOperator(this);
 
-        public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, TypeSymbol type)
+        public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || operand != this.Operand || methodOpt != this.MethodOpt || operandConversion != this.OperandConversion || resultConversion != this.ResultConversion || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operatorKind != this.OperatorKind || operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || operandConversion != this.OperandConversion || resultConversion != this.ResultConversion || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIncrementOperator(this.Syntax, operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, type, this.HasErrors);
+                var result = new BoundIncrementOperator(this.Syntax, operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIncrementOperator(this.Syntax, this.OperatorKind, this.Operand, this.MethodOpt, this.OperandConversion, this.ResultConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1020,13 +944,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAddressOfOperator(this.Syntax, this.Operand, this.IsManaged, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPointerIndirectionOperator : BoundExpression
@@ -1057,13 +974,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerIndirectionOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1103,13 +1013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerElementAccess(this.Syntax, this.Expression, this.Index, this.Checked, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundRefTypeOperator : BoundExpression
@@ -1136,20 +1039,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRefTypeOperator Update(BoundExpression operand, MethodSymbol? getTypeFromHandle, TypeSymbol type)
         {
-            if (operand != this.Operand || getTypeFromHandle != this.GetTypeFromHandle || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRefTypeOperator(this.Syntax, operand, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefTypeOperator(this.Syntax, this.Operand, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1181,13 +1077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMakeRefOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1223,13 +1112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefValueOperator(this.Syntax, this.NullableAnnotation, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundFromEndIndexExpression : BoundExpression
@@ -1256,20 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFromEndIndexExpression Update(BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || methodOpt != this.MethodOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFromEndIndexExpression(this.Syntax, operand, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFromEndIndexExpression(this.Syntax, this.Operand, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1299,20 +1174,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRangeExpression Update(BoundExpression? leftOperandOpt, BoundExpression? rightOperandOpt, MethodSymbol? methodOpt, TypeSymbol type)
         {
-            if (leftOperandOpt != this.LeftOperandOpt || rightOperandOpt != this.RightOperandOpt || methodOpt != this.MethodOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (leftOperandOpt != this.LeftOperandOpt || rightOperandOpt != this.RightOperandOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRangeExpression(this.Syntax, leftOperandOpt, rightOperandOpt, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeExpression(this.Syntax, this.LeftOperandOpt, this.RightOperandOpt, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1340,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBinaryOperator : BoundBinaryOperatorBase
     {
-        public BoundBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+        public BoundBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.BinaryOperator, syntax, left, right, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1352,6 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
             this.MethodOpt = methodOpt;
             this._ResultKind = resultKind;
+            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
@@ -1363,45 +1232,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBinaryOperator(this);
 
-        public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
+        public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || constantValueOpt != this.ConstantValueOpt || methodOpt != this.MethodOpt || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operatorKind != this.OperatorKind || constantValueOpt != this.ConstantValueOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBinaryOperator(this.Syntax, operatorKind, constantValueOpt, methodOpt, resultKind, left, right, type, this.HasErrors);
+                var result = new BoundBinaryOperator(this.Syntax, operatorKind, constantValueOpt, methodOpt, resultKind, originalUserDefinedOperatorsOpt, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBinaryOperator(this.Syntax, this.OperatorKind, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
     {
-        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors() || convertedLeft.HasErrors() || convertedRight.HasErrors())
+        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             Debug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(right is object, "Field 'right' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            Debug.Assert(convertedLeft is object, "Field 'convertedLeft' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            Debug.Assert(convertedRight is object, "Field 'convertedRight' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(operators is object, "Field 'operators' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Left = left;
             this.Right = right;
-            this.ConvertedLeft = convertedLeft;
-            this.ConvertedRight = convertedRight;
             this.OperatorKind = operatorKind;
             this.Operators = operators;
         }
@@ -1413,38 +1273,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Right { get; }
 
-        public BoundExpression ConvertedLeft { get; }
-
-        public BoundExpression ConvertedRight { get; }
-
         public BinaryOperatorKind OperatorKind { get; }
 
         public TupleBinaryOperatorInfo.Multiple Operators { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleBinaryOperator(this);
 
-        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
+        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || convertedLeft != this.ConvertedLeft || convertedRight != this.ConvertedRight || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, convertedLeft, convertedRight, operatorKind, operators, type, this.HasErrors);
+                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, operatorKind, operators, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleBinaryOperator(this.Syntax, this.Left, this.Right, this.ConvertedLeft, this.ConvertedRight, this.OperatorKind, this.Operators, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator : BoundBinaryOperatorBase
     {
-        public BoundUserDefinedConditionalLogicalOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+        public BoundUserDefinedConditionalLogicalOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.UserDefinedConditionalLogicalOperator, syntax, left, right, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1460,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.TrueOperator = trueOperator;
             this.FalseOperator = falseOperator;
             this._ResultKind = resultKind;
+            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
@@ -1473,31 +1323,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUserDefinedConditionalLogicalOperator(this);
 
-        public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
+        public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || logicalOperator != this.LogicalOperator || trueOperator != this.TrueOperator || falseOperator != this.FalseOperator || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operatorKind != this.OperatorKind || !SymbolEqualityComparer.ConsiderEverything.Equals(logicalOperator, this.LogicalOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(trueOperator, this.TrueOperator) || !SymbolEqualityComparer.ConsiderEverything.Equals(falseOperator, this.FalseOperator) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, operatorKind, logicalOperator, trueOperator, falseOperator, resultKind, left, right, type, this.HasErrors);
+                var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, operatorKind, logicalOperator, trueOperator, falseOperator, resultKind, originalUserDefinedOperatorsOpt, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.OperatorKind, this.LogicalOperator, this.TrueOperator, this.FalseOperator, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCompoundAssignmentOperator : BoundExpression
     {
-        public BoundCompoundAssignmentOperator(SyntaxNode syntax, BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundCompoundAssignmentOperator(SyntaxNode syntax, BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CompoundAssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1511,6 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LeftConversion = leftConversion;
             this.FinalConversion = finalConversion;
             this._ResultKind = resultKind;
+            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
@@ -1528,25 +1374,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCompoundAssignmentOperator(this);
 
-        public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, TypeSymbol type)
+        public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type)
         {
-            if (@operator != this.Operator || left != this.Left || right != this.Right || leftConversion != this.LeftConversion || finalConversion != this.FinalConversion || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (@operator != this.Operator || left != this.Left || right != this.Right || leftConversion != this.LeftConversion || finalConversion != this.FinalConversion || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCompoundAssignmentOperator(this.Syntax, @operator, left, right, leftConversion, finalConversion, resultKind, type, this.HasErrors);
+                var result = new BoundCompoundAssignmentOperator(this.Syntax, @operator, left, right, leftConversion, finalConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCompoundAssignmentOperator(this.Syntax, this.Operator, this.Left, this.Right, this.LeftConversion, this.FinalConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1581,13 +1422,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsRef, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1627,13 +1461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsUsed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNullCoalescingOperator : BoundExpression
@@ -1672,13 +1499,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.LeftConversion, this.OperatorResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
@@ -1710,13 +1530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1763,13 +1576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalOperator(this.Syntax, this.IsRef, this.Condition, this.Consequence, this.Alternative, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayAccess : BoundExpression
@@ -1805,13 +1611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayAccess(this.Syntax, this.Expression, this.Indices, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayLength : BoundExpression
@@ -1842,13 +1641,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayLength(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1884,13 +1676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitExpression(this.Syntax, this.Expression, this.AwaitableInfo, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1939,20 +1724,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeOfOperator Update(BoundTypeExpression sourceType, MethodSymbol? getTypeFromHandle, TypeSymbol type)
         {
-            if (sourceType != this.SourceType || getTypeFromHandle != this.GetTypeFromHandle || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (sourceType != this.SourceType || !SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundTypeOfOperator(this.Syntax, sourceType, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOfOperator(this.Syntax, this.SourceType, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1987,20 +1765,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodDefIndex Update(MethodSymbol method, TypeSymbol type)
         {
-            if (method != this.Method || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMethodDefIndex(this.Syntax, method, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodDefIndex(this.Syntax, this.Method, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2036,13 +1807,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMaximumMethodDefIndex(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2083,13 +1847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.AnalysisKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionId : BoundExpression
@@ -2125,13 +1882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionId(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionIdString : BoundExpression
@@ -2166,13 +1916,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionIdString(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2215,13 +1958,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSourceDocumentIndex(this.Syntax, this.Document, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMethodInfo : BoundExpression
@@ -2259,20 +1995,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodInfo Update(MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type)
         {
-            if (method != this.Method || getMethodFromHandle != this.GetMethodFromHandle || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !SymbolEqualityComparer.ConsiderEverything.Equals(getMethodFromHandle, this.GetMethodFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMethodInfo(this.Syntax, method, getMethodFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodInfo(this.Syntax, this.Method, this.GetMethodFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2311,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFieldInfo Update(FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type)
         {
-            if (field != this.Field || getFieldFromHandle != this.GetFieldFromHandle || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || !SymbolEqualityComparer.ConsiderEverything.Equals(getFieldFromHandle, this.GetFieldFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFieldInfo(this.Syntax, field, getFieldFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2319,26 +2048,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
+    }
 
-        protected override BoundExpression ShallowClone()
+    internal sealed partial class BoundDefaultLiteral : BoundExpression
+    {
+        public BoundDefaultLiteral(SyntaxNode syntax, bool hasErrors)
+            : base(BoundKind.DefaultLiteral, syntax, null, hasErrors)
         {
-            var result = new BoundFieldInfo(this.Syntax, this.Field, this.GetFieldFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
+        }
+
+        public BoundDefaultLiteral(SyntaxNode syntax)
+            : base(BoundKind.DefaultLiteral, syntax, null)
+        {
+        }
+
+
+        public new TypeSymbol? Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultLiteral(this);
+
+        public BoundDefaultLiteral Update()
+        {
+            return this;
         }
     }
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DefaultExpression, syntax, type, hasErrors || targetType.HasErrors())
         {
+
+            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
             this.TargetType = targetType;
             this.ConstantValueOpt = constantValueOpt;
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol Type => base.Type!;
 
         public BoundTypeExpression? TargetType { get; }
 
@@ -2346,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
 
-        public BoundDefaultExpression Update(BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol? type)
+        public BoundDefaultExpression Update(BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type)
         {
             if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -2355,13 +2103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDefaultExpression(this.Syntax, this.TargetType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2401,13 +2142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAsOperator : BoundExpression
@@ -2446,13 +2180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSizeOfOperator : BoundExpression
@@ -2487,18 +2214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSizeOfOperator(this.Syntax, this.SourceType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, ImmutableArray<MethodSymbol> originalUserDefinedConversionsOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -2512,6 +2232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ExplicitCastInCode = explicitCastInCode;
             this.ConstantValueOpt = constantValueOpt;
             this.ConversionGroupOpt = conversionGroupOpt;
+            this.OriginalUserDefinedConversionsOpt = originalUserDefinedConversionsOpt;
         }
 
 
@@ -2530,25 +2251,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ConstantValue? ConstantValueOpt { get; }
 
         public ConversionGroup? ConversionGroupOpt { get; }
+
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConversion(this);
 
-        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, TypeSymbol type)
+        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, ImmutableArray<MethodSymbol> originalUserDefinedConversionsOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || originalUserDefinedConversionsOpt != this.OriginalUserDefinedConversionsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, type, this.HasErrors);
+                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, originalUserDefinedConversionsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2577,20 +2293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundReadOnlySpanFromArray Update(BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type)
         {
-            if (operand != this.Operand || conversionMethod != this.ConversionMethod || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || !SymbolEqualityComparer.ConsiderEverything.Equals(conversionMethod, this.ConversionMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundReadOnlySpanFromArray(this.Syntax, operand, conversionMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundReadOnlySpanFromArray(this.Syntax, this.Operand, this.ConversionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2627,13 +2336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgList(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArgListOperator : BoundExpression
@@ -2666,13 +2368,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgListOperator(this.Syntax, this.Arguments, this.ArgumentRefKindsOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2707,20 +2402,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol? getPinnableOpt, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(elementPointerType, this.ElementPointerType, TypeCompareKind.ConsiderEverything) || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || getPinnableOpt != this.GetPinnableOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(elementPointerType, this.ElementPointerType, TypeCompareKind.ConsiderEverything) || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || !SymbolEqualityComparer.ConsiderEverything.Equals(getPinnableOpt, this.GetPinnableOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, getPinnableOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.ElementPointerType, this.ElementPointerTypeConversion, this.Expression, this.GetPinnableOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2915,7 +2603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression? declaredTypeOpt, BoundExpression? initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool inferredType)
         {
-            if (localSymbol != this.LocalSymbol || declaredTypeOpt != this.DeclaredTypeOpt || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt || inferredType != this.InferredType)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || declaredTypeOpt != this.DeclaredTypeOpt || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt || inferredType != this.InferredType)
             {
                 var result = new BoundLocalDeclaration(this.Syntax, localSymbol, declaredTypeOpt, initializerOpt, argumentsOpt, inferredType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2986,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
         {
-            if (disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion || awaitOpt != this.AwaitOpt || localDeclarations != this.LocalDeclarations)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(disposeMethodOpt, this.DisposeMethodOpt) || iDisposableConversion != this.IDisposableConversion || awaitOpt != this.AwaitOpt || localDeclarations != this.LocalDeclarations)
             {
                 var result = new BoundUsingLocalDeclarations(this.Syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, localDeclarations, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3020,7 +2708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody)
         {
-            if (symbol != this.Symbol || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
             {
                 var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3213,7 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBreakStatement Update(GeneratedLabelSymbol label)
         {
-            if (label != this.Label)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundBreakStatement(this.Syntax, label, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3250,7 +2938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundContinueStatement Update(GeneratedLabelSymbol label)
         {
-            if (label != this.Label)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundContinueStatement(this.Syntax, label, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3301,7 +2989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundSwitchLabel? defaultLabel, GeneratedLabelSymbol breakLabel)
         {
-            if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel)
+            if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || !SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel))
             {
                 var result = new BoundSwitchStatement(this.Syntax, expression, innerLocals, innerLocalFunctions, switchSections, decisionDag, defaultLabel, breakLabel, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3340,7 +3028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol? equalityMethod)
         {
-            if (expression != this.Expression || cases != this.Cases || defaultLabel != this.DefaultLabel || equalityMethod != this.EqualityMethod)
+            if (expression != this.Expression || cases != this.Cases || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(equalityMethod, this.EqualityMethod))
             {
                 var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, equalityMethod, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3459,7 +3147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDoStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (locals != this.Locals || condition != this.Condition || body != this.Body || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (locals != this.Locals || condition != this.Condition || body != this.Body || !SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
                 var result = new BoundDoStatement(this.Syntax, locals, condition, body, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3488,7 +3176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundWhileStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (locals != this.Locals || condition != this.Condition || body != this.Body || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (locals != this.Locals || condition != this.Condition || body != this.Body || !SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
                 var result = new BoundWhileStatement(this.Syntax, locals, condition, body, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3535,7 +3223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (outerLocals != this.OuterLocals || initializer != this.Initializer || innerLocals != this.InnerLocals || condition != this.Condition || increment != this.Increment || body != this.Body || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (outerLocals != this.OuterLocals || initializer != this.Initializer || innerLocals != this.InnerLocals || condition != this.Condition || increment != this.Increment || body != this.Body || !SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
                 var result = new BoundForStatement(this.Syntax, outerLocals, initializer, innerLocals, condition, increment, body, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3595,7 +3283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundForEachStatement Update(ForEachEnumeratorInfo? enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, AwaitableInfo? awaitOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || @checked != this.Checked || !SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
                 var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3674,7 +3362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations? declarationsOpt, BoundExpression? expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo? awaitOpt, MethodSymbol? disposeMethodOpt)
         {
-            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body || awaitOpt != this.AwaitOpt || disposeMethodOpt != this.DisposeMethodOpt)
+            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body || awaitOpt != this.AwaitOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(disposeMethodOpt, this.DisposeMethodOpt))
             {
                 var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, iDisposableConversion, body, awaitOpt, disposeMethodOpt, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3783,7 +3471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock? finallyBlockOpt, LabelSymbol? finallyLabelOpt, bool preferFaultHandler)
         {
-            if (tryBlock != this.TryBlock || catchBlocks != this.CatchBlocks || finallyBlockOpt != this.FinallyBlockOpt || finallyLabelOpt != this.FinallyLabelOpt || preferFaultHandler != this.PreferFaultHandler)
+            if (tryBlock != this.TryBlock || catchBlocks != this.CatchBlocks || finallyBlockOpt != this.FinallyBlockOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(finallyLabelOpt, this.FinallyLabelOpt) || preferFaultHandler != this.PreferFaultHandler)
             {
                 var result = new BoundTryStatement(this.Syntax, tryBlock, catchBlocks, finallyBlockOpt, finallyLabelOpt, preferFaultHandler, this.HasErrors);
                 result.CopyAttributes(this);
@@ -3866,13 +3554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLiteral(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThisReference : BoundExpression
@@ -3907,13 +3588,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThisReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3950,13 +3624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPreviousSubmissionReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundHostObjectMemberReference : BoundExpression
@@ -3992,13 +3659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHostObjectMemberReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundBaseReference : BoundExpression
@@ -4027,13 +3687,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4080,20 +3733,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocal Update(LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type)
         {
-            if (localSymbol != this.LocalSymbol || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLocal(this.Syntax, localSymbol, declarationKind, constantValueOpt, isNullableUnknown, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLocal(this.Syntax, this.LocalSymbol, this.DeclarationKind, this.ConstantValueOpt, this.IsNullableUnknown, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4134,20 +3780,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPseudoVariable Update(LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type)
         {
-            if (localSymbol != this.LocalSymbol || emitExpressions != this.EmitExpressions || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || emitExpressions != this.EmitExpressions || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPseudoVariable(this.Syntax, localSymbol, emitExpressions, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPseudoVariable(this.Syntax, this.LocalSymbol, this.EmitExpressions, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4176,20 +3815,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRangeVariable Update(RangeVariableSymbol rangeVariableSymbol, BoundExpression value, TypeSymbol type)
         {
-            if (rangeVariableSymbol != this.RangeVariableSymbol || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(rangeVariableSymbol, this.RangeVariableSymbol) || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRangeVariable(this.Syntax, rangeVariableSymbol, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeVariable(this.Syntax, this.RangeVariableSymbol, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4224,20 +3856,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundParameter Update(ParameterSymbol parameterSymbol, TypeSymbol type)
         {
-            if (parameterSymbol != this.ParameterSymbol || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(parameterSymbol, this.ParameterSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundParameter(this.Syntax, parameterSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundParameter(this.Syntax, this.ParameterSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4268,7 +3893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLabelStatement Update(LabelSymbol label)
         {
-            if (label != this.Label)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundLabelStatement(this.Syntax, label, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4302,7 +3927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundGotoStatement Update(LabelSymbol label, BoundExpression? caseExpressionOpt, BoundLabel? labelExpressionOpt)
         {
-            if (label != this.Label || caseExpressionOpt != this.CaseExpressionOpt || labelExpressionOpt != this.LabelExpressionOpt)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || caseExpressionOpt != this.CaseExpressionOpt || labelExpressionOpt != this.LabelExpressionOpt)
             {
                 var result = new BoundGotoStatement(this.Syntax, label, caseExpressionOpt, labelExpressionOpt, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4334,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLabeledStatement Update(LabelSymbol label, BoundStatement body)
         {
-            if (label != this.Label || body != this.Body)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || body != this.Body)
             {
                 var result = new BoundLabeledStatement(this.Syntax, label, body, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4371,20 +3996,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLabel Update(LabelSymbol label, TypeSymbol? type)
         {
-            if (label != this.Label || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLabel(this.Syntax, label, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLabel(this.Syntax, this.Label, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4450,7 +4068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConditionalGoto Update(BoundExpression condition, bool jumpIfTrue, LabelSymbol label)
         {
-            if (condition != this.Condition || jumpIfTrue != this.JumpIfTrue || label != this.Label)
+            if (condition != this.Condition || jumpIfTrue != this.JumpIfTrue || !SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundConditionalGoto(this.Syntax, condition, jumpIfTrue, label, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4460,10 +4078,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSwitchExpression : BoundExpression
+    internal abstract partial class BoundSwitchExpression : BoundExpression
     {
-        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.SwitchExpression, syntax, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4487,26 +4105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol? DefaultLabel { get; }
 
         public bool ReportedNotExhaustive { get; }
-        [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchExpression(this);
-
-        public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
-        {
-            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
-            {
-                var result = new BoundSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
-                result.CopyAttributes(this);
-                return result;
-            }
-            return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSwitchExpression(this.Syntax, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSwitchExpressionArm : BoundNode
@@ -4542,9 +4140,69 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression? whenClause, BoundExpression value, LabelSymbol label)
         {
-            if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || label != this.Label)
+            if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, whenClause, value, label, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedSwitchExpression : BoundSwitchExpression
+    {
+        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(decisionDag is object, "Field 'decisionDag' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedSwitchExpression(this);
+
+        public BoundUnconvertedSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
+        {
+            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
+    {
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(decisionDag is object, "Field 'decisionDag' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.NaturalTypeOpt = naturalTypeOpt;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public TypeSymbol NaturalTypeOpt { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedSwitchExpression(this);
+
+        public BoundConvertedSwitchExpression Update(TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4736,7 +4394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLeafDecisionDagNode Update(LabelSymbol label)
         {
-            if (label != this.Label)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
                 var result = new BoundLeafDecisionDagNode(this.Syntax, label, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4934,7 +4592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagDeconstructEvaluation Update(MethodSymbol deconstructMethod, BoundDagTemp input)
         {
-            if (deconstructMethod != this.DeconstructMethod || input != this.Input)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || input != this.Input)
             {
                 var result = new BoundDagDeconstructEvaluation(this.Syntax, deconstructMethod, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -4992,7 +4650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagFieldEvaluation Update(FieldSymbol field, BoundDagTemp input)
         {
-            if (field != this.Field || input != this.Input)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || input != this.Input)
             {
                 var result = new BoundDagFieldEvaluation(this.Syntax, field, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5021,7 +4679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagPropertyEvaluation Update(PropertySymbol property, BoundDagTemp input)
         {
-            if (property != this.Property || input != this.Input)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || input != this.Input)
             {
                 var result = new BoundDagPropertyEvaluation(this.Syntax, property, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5053,7 +4711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagIndexEvaluation Update(PropertySymbol property, int index, BoundDagTemp input)
         {
-            if (property != this.Property || index != this.Index || input != this.Input)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || index != this.Index || input != this.Input)
             {
                 var result = new BoundDagIndexEvaluation(this.Syntax, property, index, input, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5121,7 +4779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression? whenClause)
         {
-            if (label != this.Label || pattern != this.Pattern || whenClause != this.WhenClause)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || pattern != this.Pattern || whenClause != this.WhenClause)
             {
                 var result = new BoundSwitchLabel(this.Syntax, label, pattern, whenClause, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5175,13 +4833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequencePointExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSequence : BoundExpression
@@ -5221,13 +4872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSpillSequence : BoundExpression
@@ -5266,13 +4910,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSpillSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5317,13 +4954,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicMemberAccess(this.Syntax, this.Receiver, this.TypeArgumentsOpt, this.Name, this.Invoked, this.Indexed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5383,13 +5013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicInvocation(this.Syntax, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConditionalAccess : BoundExpression
@@ -5424,13 +5047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalAccess(this.Syntax, this.Receiver, this.AccessExpression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5468,20 +5084,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLoweredConditionalAccess Update(BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, TypeSymbol type)
         {
-            if (receiver != this.Receiver || hasValueMethodOpt != this.HasValueMethodOpt || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLoweredConditionalAccess(this.Syntax, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLoweredConditionalAccess(this.Syntax, this.Receiver, this.HasValueMethodOpt, this.WhenNotNull, this.WhenNullOpt, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5522,13 +5131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalReceiver(this.Syntax, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundComplexConditionalReceiver : BoundExpression
@@ -5563,13 +5165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundComplexConditionalReceiver(this.Syntax, this.ValueTypeReceiver, this.ReferenceTypeReceiver, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5607,20 +5202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, BoundExpression? receiverOpt, LookupResultKind resultKind)
         {
-            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || lookupSymbolOpt != this.LookupSymbolOpt || lookupError != this.LookupError || flags != this.Flags || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
+            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
                 var result = new BoundMethodGroup(this.Syntax, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, receiverOpt, resultKind, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodGroup(this.Syntax, this.TypeArgumentsOpt, this.Name, this.Methods, this.LookupSymbolOpt, this.LookupError, this.Flags, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5650,18 +5238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyGroup(this.Syntax, this.Properties, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCall : BoundExpression
     {
-        public BoundCall(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder? binderOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundCall(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalMethodsOpt, Binder? binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Call, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -5679,6 +5260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.InvokedAsExtensionMethod = invokedAsExtensionMethod;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this._ResultKind = resultKind;
+            this.OriginalMethodsOpt = originalMethodsOpt;
             this.BinderOpt = binderOpt;
         }
 
@@ -5706,26 +5288,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public ImmutableArray<MethodSymbol> OriginalMethodsOpt { get; }
+
         public Binder? BinderOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCall(this);
 
-        public BoundCall Update(BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder? binderOpt, TypeSymbol type)
+        public BoundCall Update(BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalMethodsOpt, Binder? binderOpt, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || method != this.Method || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || originalMethodsOpt != this.OriginalMethodsOpt || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCall(this.Syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, resultKind, binderOpt, type, this.HasErrors);
+                var result = new BoundCall(this.Syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, resultKind, originalMethodsOpt, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCall(this.Syntax, this.ReceiverOpt, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.IsDelegateCall, this.Expanded, this.InvokedAsExtensionMethod, this.ArgsToParamsOpt, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5763,20 +5340,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundEventAssignmentOperator Update(EventSymbol @event, bool isAddition, bool isDynamic, BoundExpression? receiverOpt, BoundExpression argument, TypeSymbol type)
         {
-            if (@event != this.Event || isAddition != this.IsAddition || isDynamic != this.IsDynamic || receiverOpt != this.ReceiverOpt || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(@event, this.Event) || isAddition != this.IsAddition || isDynamic != this.IsDynamic || receiverOpt != this.ReceiverOpt || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundEventAssignmentOperator(this.Syntax, @event, isAddition, isDynamic, receiverOpt, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAssignmentOperator(this.Syntax, this.Event, this.IsAddition, this.IsDynamic, this.ReceiverOpt, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5821,20 +5391,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundExpression> namedArguments, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (constructor != this.Constructor || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, namedArguments, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAttribute(this.Syntax, this.Constructor, this.ConstructorArguments, this.ConstructorArgumentNamesOpt, this.ConstructorArgumentsToParamsOpt, this.ConstructorExpanded, this.NamedArguments, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5888,7 +5451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue? constantValueOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, Binder? binderOpt, TypeSymbol type)
         {
-            if (constructor != this.Constructor || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectCreationExpression(this.Syntax, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, constantValueOpt, initializerExpressionOpt, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -5896,106 +5459,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectCreationExpression(this.Syntax, this.Constructor, this.ConstructorsGroup, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ConstantValueOpt, this.InitializerExpressionOpt, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
-        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
+        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
-        }
-
-
-        public ImmutableArray<BoundExpression> Arguments { get; }
-    }
-
-    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
-    {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
-        {
-
-            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.InferredNamesOpt = inferredNamesOpt;
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public ImmutableArray<BoundExpression> Arguments { get; }
 
         public ImmutableArray<string> ArgumentNamesOpt { get; }
 
         public ImmutableArray<bool> InferredNamesOpt { get; }
+    }
+
+    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
+    {
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
+        {
+
+            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
-        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol? type)
+        public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, inferredNamesOpt, arguments, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleLiteral(this.Syntax, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
         {
 
-            Debug.Assert(sourceTuple is object, "Field 'sourceTuple' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.SourceTuple = sourceTuple;
         }
 
 
-        public new TypeSymbol Type => base.Type!;
-
         public BoundTupleLiteral SourceTuple { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
-        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
         {
-            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, type, this.HasErrors);
+                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedTupleLiteral(this.Syntax, this.SourceTuple, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6045,13 +5583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.Name, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.InitializerExpressionOpt, this.ApplicableMethods, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNoPiaObjectCreationExpression : BoundExpression
@@ -6084,13 +5615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.GuidString, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6135,13 +5659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6192,20 +5709,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectInitializerMember Update(Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol receiverType, Binder? binderOpt, TypeSymbol type)
         {
-            if (memberSymbol != this.MemberSymbol || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, receiverType, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerMember(this.Syntax, this.MemberSymbol, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ResultKind, this.ReceiverType, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6254,13 +5764,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.MemberName, this.ReceiverType, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
@@ -6286,13 +5789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6340,20 +5836,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder? binderOpt, TypeSymbol type)
         {
-            if (addMethod != this.AddMethod || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionElementInitializer(this.Syntax, this.AddMethod, this.Arguments, this.ImplicitReceiverOpt, this.Expanded, this.ArgsToParamsOpt, this.InvokedAsExtensionMethod, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6387,13 +5876,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6430,13 +5912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundImplicitReceiver(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAnonymousObjectCreationExpression : BoundExpression
@@ -6468,20 +5943,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAnonymousObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, TypeSymbol type)
         {
-            if (constructor != this.Constructor || arguments != this.Arguments || declarations != this.Declarations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || arguments != this.Arguments || declarations != this.Declarations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAnonymousObjectCreationExpression(this.Syntax, constructor, arguments, declarations, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.Constructor, this.Arguments, this.Declarations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6516,20 +5984,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAnonymousPropertyDeclaration Update(PropertySymbol property, TypeSymbol type)
         {
-            if (property != this.Property || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAnonymousPropertyDeclaration(this.Syntax, property, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.Property, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6561,13 +6022,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNewT(this.Syntax, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDelegateCreationExpression : BoundExpression
@@ -6597,20 +6051,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDelegateCreationExpression Update(BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, TypeSymbol type)
         {
-            if (argument != this.Argument || methodOpt != this.MethodOpt || isExtensionMethod != this.IsExtensionMethod || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (argument != this.Argument || !SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDelegateCreationExpression(this.Syntax, argument, methodOpt, isExtensionMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDelegateCreationExpression(this.Syntax, this.Argument, this.MethodOpt, this.IsExtensionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6646,13 +6093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayCreation(this.Syntax, this.Bounds, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayInitialization : BoundExpression
@@ -6682,13 +6122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayInitialization(this.Syntax, this.Initializers, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6737,13 +6170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStackAllocArrayCreation(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
@@ -6772,13 +6198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedStackAllocExpression(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6819,20 +6238,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundFieldAccess Update(BoundExpression? receiverOpt, FieldSymbol fieldSymbol, ConstantValue? constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || fieldSymbol != this.FieldSymbol || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundFieldAccess(this.Syntax, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, isDeclaration, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFieldAccess(this.Syntax, this.ReceiverOpt, this.FieldSymbol, this.ConstantValueOpt, this.ResultKind, this.IsByValue, this.IsDeclaration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6867,20 +6279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHoistedFieldAccess Update(FieldSymbol fieldSymbol, TypeSymbol type)
         {
-            if (fieldSymbol != this.FieldSymbol || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundHoistedFieldAccess(this.Syntax, fieldSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHoistedFieldAccess(this.Syntax, this.FieldSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6912,20 +6317,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPropertyAccess Update(BoundExpression? receiverOpt, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || propertySymbol != this.PropertySymbol || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPropertyAccess(this.Syntax, receiverOpt, propertySymbol, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyAccess(this.Syntax, this.ReceiverOpt, this.PropertySymbol, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6960,7 +6358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundEventAccess Update(BoundExpression? receiverOpt, EventSymbol eventSymbol, bool isUsableAsField, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || eventSymbol != this.EventSymbol || isUsableAsField != this.IsUsableAsField || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(eventSymbol, this.EventSymbol) || isUsableAsField != this.IsUsableAsField || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundEventAccess(this.Syntax, receiverOpt, eventSymbol, isUsableAsField, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -6968,18 +6366,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAccess(this.Syntax, this.ReceiverOpt, this.EventSymbol, this.IsUsableAsField, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundIndexerAccess : BoundExpression
     {
-        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression? receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder? binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type, bool hasErrors = false)
+        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression? receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder? binderOpt, bool useSetterForDefaultArgumentGeneration, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IndexerAccess, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -6996,6 +6387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.BinderOpt = binderOpt;
             this.UseSetterForDefaultArgumentGeneration = useSetterForDefaultArgumentGeneration;
+            this.OriginalIndexersOpt = originalIndexersOpt;
         }
 
 
@@ -7018,25 +6410,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Binder? BinderOpt { get; }
 
         public bool UseSetterForDefaultArgumentGeneration { get; }
+
+        public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexerAccess(this);
 
-        public BoundIndexerAccess Update(BoundExpression? receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder? binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type)
+        public BoundIndexerAccess Update(BoundExpression? receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder? binderOpt, bool useSetterForDefaultArgumentGeneration, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || indexer != this.Indexer || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || !SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration || originalIndexersOpt != this.OriginalIndexersOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, useSetterForDefaultArgumentGeneration, type, this.HasErrors);
+                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, useSetterForDefaultArgumentGeneration, originalIndexersOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexerAccess(this.Syntax, this.ReceiverOpt, this.Indexer, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.BinderOpt, this.UseSetterForDefaultArgumentGeneration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7073,20 +6460,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, Symbol patternSymbol, BoundExpression argument, TypeSymbol type)
         {
-            if (receiver != this.Receiver || lengthOrCountProperty != this.LengthOrCountProperty || patternSymbol != this.PatternSymbol || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !SymbolEqualityComparer.ConsiderEverything.Equals(lengthOrCountProperty, this.LengthOrCountProperty) || !SymbolEqualityComparer.ConsiderEverything.Equals(patternSymbol, this.PatternSymbol) || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, receiver, lengthOrCountProperty, patternSymbol, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternSymbol, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7132,13 +6512,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicIndexerAccess(this.Syntax, this.ReceiverOpt, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableIndexers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundLambda : BoundExpression
@@ -7177,7 +6550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda Update(UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol? type)
         {
-            if (unboundLambda != this.UnboundLambda || symbol != this.Symbol || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (unboundLambda != this.UnboundLambda || !SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLambda(this.Syntax, unboundLambda, symbol, body, diagnostics, binder, type, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7224,19 +6597,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new UnboundLambda(this.Syntax, this.Data, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundQueryClause : BoundExpression
     {
-        public BoundQueryClause(SyntaxNode syntax, BoundExpression value, RangeVariableSymbol? definedSymbol, Binder binder, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.QueryClause, syntax, type, hasErrors || value.HasErrors())
+        public BoundQueryClause(SyntaxNode syntax, BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.QueryClause, syntax, type, hasErrors || value.HasErrors() || operation.HasErrors() || cast.HasErrors() || unoptimizedForm.HasErrors())
         {
 
             Debug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7245,7 +6611,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Value = value;
             this.DefinedSymbol = definedSymbol;
+            this.Operation = operation;
+            this.Cast = cast;
             this.Binder = binder;
+            this.UnoptimizedForm = unoptimizedForm;
         }
 
 
@@ -7255,15 +6624,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public RangeVariableSymbol? DefinedSymbol { get; }
 
+        public BoundExpression? Operation { get; }
+
+        public BoundExpression? Cast { get; }
+
         public Binder Binder { get; }
+
+        public BoundExpression? UnoptimizedForm { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitQueryClause(this);
 
-        public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol? definedSymbol, Binder binder, TypeSymbol type)
+        public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type)
         {
-            if (value != this.Value || definedSymbol != this.DefinedSymbol || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (value != this.Value || !SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || operation != this.Operation || cast != this.Cast || binder != this.Binder || unoptimizedForm != this.UnoptimizedForm || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundQueryClause(this.Syntax, value, definedSymbol, binder, type, this.HasErrors);
+                var result = new BoundQueryClause(this.Syntax, value, definedSymbol, operation, cast, binder, unoptimizedForm, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7329,13 +6704,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNameOfOperator(this.Syntax, this.Argument, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundInterpolatedString : BoundExpression
@@ -7363,13 +6731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInterpolatedString(this.Syntax, this.Parts, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7404,13 +6765,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStringInsert(this.Syntax, this.Value, this.Alignment, this.Format, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7448,20 +6802,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIsPatternExpression Update(BoundExpression expression, BoundPattern pattern, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type)
         {
-            if (expression != this.Expression || pattern != this.Pattern || decisionDag != this.DecisionDag || whenTrueLabel != this.WhenTrueLabel || whenFalseLabel != this.WhenFalseLabel || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || pattern != this.Pattern || decisionDag != this.DecisionDag || !SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundIsPatternExpression(this.Syntax, expression, pattern, decisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsPatternExpression(this.Syntax, this.Expression, this.Pattern, this.DecisionDag, this.WhenTrueLabel, this.WhenFalseLabel, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7582,7 +6929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType)
         {
-            if (variable != this.Variable || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundDeclarationPattern(this.Syntax, variable, variableAccess, declaredType, isVar, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7625,7 +6972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundRecursivePattern Update(BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || deconstructMethod != this.DeconstructMethod || deconstruction != this.Deconstruction || properties != this.Properties || variable != this.Variable || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (declaredType != this.DeclaredType || !SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7662,7 +7009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> subpatterns, TypeSymbol inputType)
         {
-            if (getLengthMethod != this.GetLengthMethod || getItemMethod != this.GetItemMethod || subpatterns != this.Subpatterns || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(getLengthMethod, this.GetLengthMethod) || !SymbolEqualityComparer.ConsiderEverything.Equals(getItemMethod, this.GetItemMethod) || subpatterns != this.Subpatterns || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundITuplePattern(this.Syntax, getLengthMethod, getItemMethod, subpatterns, inputType, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7693,7 +7040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSubpattern Update(Symbol? symbol, BoundPattern pattern)
         {
-            if (symbol != this.Symbol || pattern != this.Pattern)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || pattern != this.Pattern)
             {
                 var result = new BoundSubpattern(this.Syntax, symbol, pattern, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7730,13 +7077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDiscardExpression(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThrowExpression : BoundExpression
@@ -7764,13 +7104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThrowExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7809,20 +7142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public OutVariablePendingInference Update(Symbol variableSymbol, BoundExpression? receiverOpt)
         {
-            if (variableSymbol != this.VariableSymbol || receiverOpt != this.ReceiverOpt)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || receiverOpt != this.ReceiverOpt)
             {
                 var result = new OutVariablePendingInference(this.Syntax, variableSymbol, receiverOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new OutVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7841,20 +7167,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public DeconstructionVariablePendingInference Update(Symbol variableSymbol, BoundExpression? receiverOpt)
         {
-            if (variableSymbol != this.VariableSymbol || receiverOpt != this.ReceiverOpt)
+            if (!SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || receiverOpt != this.ReceiverOpt)
             {
                 var result = new DeconstructionVariablePendingInference(this.Syntax, variableSymbol, receiverOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new DeconstructionVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7980,13 +7299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundExpressionWithNullability(this.Syntax, this.Expression, this.NullableAnnotation, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal abstract partial class BoundTreeVisitor<A,R>
@@ -8091,6 +7403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitMethodInfo((BoundMethodInfo)node, arg);
                 case BoundKind.FieldInfo: 
                     return VisitFieldInfo((BoundFieldInfo)node, arg);
+                case BoundKind.DefaultLiteral: 
+                    return VisitDefaultLiteral((BoundDefaultLiteral)node, arg);
                 case BoundKind.DefaultExpression: 
                     return VisitDefaultExpression((BoundDefaultExpression)node, arg);
                 case BoundKind.IsOperator: 
@@ -8199,10 +7513,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitStatementList((BoundStatementList)node, arg);
                 case BoundKind.ConditionalGoto: 
                     return VisitConditionalGoto((BoundConditionalGoto)node, arg);
-                case BoundKind.SwitchExpression: 
-                    return VisitSwitchExpression((BoundSwitchExpression)node, arg);
                 case BoundKind.SwitchExpressionArm: 
                     return VisitSwitchExpressionArm((BoundSwitchExpressionArm)node, arg);
+                case BoundKind.UnconvertedSwitchExpression: 
+                    return VisitUnconvertedSwitchExpression((BoundUnconvertedSwitchExpression)node, arg);
+                case BoundKind.ConvertedSwitchExpression: 
+                    return VisitConvertedSwitchExpression((BoundConvertedSwitchExpression)node, arg);
                 case BoundKind.DecisionDag: 
                     return VisitDecisionDag((BoundDecisionDag)node, arg);
                 case BoundKind.EvaluationDecisionDagNode: 
@@ -8418,6 +7734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitSourceDocumentIndex(BoundSourceDocumentIndex node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMethodInfo(BoundMethodInfo node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitFieldInfo(BoundFieldInfo node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDefaultLiteral(BoundDefaultLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDefaultExpression(BoundDefaultExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIsOperator(BoundIsOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAsOperator(BoundAsOperator node, A arg) => this.DefaultVisit(node, arg);
@@ -8472,8 +7789,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitLabel(BoundLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitStatementList(BoundStatementList node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalGoto(BoundConditionalGoto node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitSwitchExpression(BoundSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchExpressionArm(BoundSwitchExpressionArm node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDecisionDag(BoundDecisionDag node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTestDecisionDagNode(BoundTestDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
@@ -8605,6 +7923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMethodInfo(BoundMethodInfo node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitFieldInfo(BoundFieldInfo node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDefaultExpression(BoundDefaultExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIsOperator(BoundIsOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAsOperator(BoundAsOperator node) => this.DefaultVisit(node);
@@ -8659,8 +7978,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitLabel(BoundLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitStatementList(BoundStatementList node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalGoto(BoundConditionalGoto node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitSwitchExpression(BoundSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDecisionDag(BoundDecisionDag node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTestDecisionDagNode(BoundTestDecisionDagNode node) => this.DefaultVisit(node);
@@ -8934,6 +8254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => null;
         public override BoundNode? VisitMethodInfo(BoundMethodInfo node) => null;
         public override BoundNode? VisitFieldInfo(BoundFieldInfo node) => null;
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node) => null;
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node) => null;
         public override BoundNode? VisitIsOperator(BoundIsOperator node)
         {
@@ -9168,17 +8489,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Condition);
             return null;
         }
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
-        {
-            this.Visit(node.Expression);
-            this.VisitList(node.SwitchArms);
-            return null;
-        }
         public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             this.Visit(node.Pattern);
             this.Visit(node.WhenClause);
             this.Visit(node.Value);
+            return null;
+        }
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchArms);
+            return null;
+        }
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchArms);
             return null;
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => null;
@@ -9667,13 +8994,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, type);
+            return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitIncrementOperator(BoundIncrementOperator node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, type);
+            return node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitAddressOfOperator(BoundAddressOfOperator node)
         {
@@ -9730,30 +9057,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, type);
+            return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, left, right, type);
         }
         public override BoundNode? VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundExpression convertedLeft = node.ConvertedLeft;
-            BoundExpression convertedRight = node.ConvertedRight;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
+            return node.Update(left, right, node.OperatorKind, node.Operators, type);
         }
         public override BoundNode? VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, type);
+            return node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, left, right, type);
         }
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, type);
+            return node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
         {
@@ -9856,6 +9181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Field, node.GetFieldFromHandle, type);
         }
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update();
+        }
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node)
         {
             BoundTypeExpression? targetType = node.TargetType;
@@ -9886,7 +9216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
+            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.OriginalUserDefinedConversionsOpt, type);
         }
         public override BoundNode? VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
         {
@@ -10146,7 +9476,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             return node.Update(condition, node.JumpIfTrue, node.Label);
         }
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        {
+            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
+            BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+        }
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
@@ -10154,12 +9491,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
-        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
-            BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            TypeSymbol naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(naturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => node;
         public override BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
@@ -10325,7 +9664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
+            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.OriginalMethodsOpt, node.BinderOpt, type);
         }
         public override BoundNode? VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
@@ -10352,14 +9691,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
             BoundTupleLiteral sourceTuple = node.SourceTuple;
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(sourceTuple, arguments, type);
+            return node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
@@ -10499,7 +9838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, type);
+            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, node.OriginalIndexersOpt, type);
         }
         public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
@@ -10530,8 +9869,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundExpression? operation = node.Operation;
+            BoundExpression? cast = node.Cast;
+            BoundExpression? unoptimizedForm = node.UnoptimizedForm;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(value, node.DefinedSymbol, node.Binder, type);
+            return node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, type);
         }
         public override BoundNode? VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
@@ -10656,10 +9998,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
     {
         private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _updatedNullabilities;
+        private readonly ImmutableDictionary<BoundCall, MethodSymbol> _updatedMethodSymbols;
 
-        public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities)
+        public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols)
         {
             _updatedNullabilities = updatedNullabilities;
+            _updatedMethodSymbols = updatedMethodSymbols;
         }
 
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
@@ -10805,12 +10149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, infoAndType.Type);
+                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
+                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -10822,12 +10166,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, infoAndType.Type);
+                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, node.Type);
+                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -10974,18 +10318,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundExpression convertedLeft = node.ConvertedLeft;
-            BoundExpression convertedRight = node.ConvertedRight;
             BoundTupleBinaryOperator updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, infoAndType.Type);
+                updatedNode = node.Update(left, right, node.OperatorKind, node.Operators, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, node.Type);
+                updatedNode = node.Update(left, right, node.OperatorKind, node.Operators, node.Type);
             }
             return updatedNode;
         }
@@ -10998,12 +10340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, infoAndType.Type);
+                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, node.Type);
+                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11264,6 +10606,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundDefaultLiteral updatedNode = node.Update();
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node)
         {
             BoundTypeExpression? targetType = node.TargetType;
@@ -11341,12 +10695,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, infoAndType.Type);
+                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.OriginalUserDefinedConversionsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.Type);
+                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.OriginalUserDefinedConversionsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11539,12 +10893,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
             BoundDecisionDag decisionDag = node.DecisionDag;
-            BoundSwitchExpression updatedNode;
+            BoundUnconvertedSwitchExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
@@ -11554,6 +10908,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            BoundConvertedSwitchExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
         }
@@ -11747,24 +11120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
-        {
-            BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            BoundCall updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, node.Type);
-            }
-            return updatedNode;
-        }
-
         public override BoundNode? VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
@@ -11826,12 +11181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, infoAndType.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, node.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11844,12 +11199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(sourceTuple, arguments, infoAndType.Type);
+                updatedNode = node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(sourceTuple, arguments, node.Type);
+                updatedNode = node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12206,12 +11561,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, infoAndType.Type);
+                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, node.OriginalIndexersOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, node.Type);
+                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, node.OriginalIndexersOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12285,16 +11640,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundExpression? operation = node.Operation;
+            BoundExpression? cast = node.Cast;
+            BoundExpression? unoptimizedForm = node.UnoptimizedForm;
             BoundQueryClause updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, infoAndType.Type);
+                updatedNode = node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, node.Type);
+                updatedNode = node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, node.Type);
             }
             return updatedNode;
         }
@@ -12474,65 +11832,75 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyEqualsValue(BoundPropertyEqualsValue node, object? arg) => new TreeDumperNode("propertyEqualsValue", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitParameterEqualsValue(BoundParameterEqualsValue node, object? arg) => new TreeDumperNode("parameterEqualsValue", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parameter", node.Parameter, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitGlobalStatementInitializer(BoundGlobalStatementInitializer node, object? arg) => new TreeDumperNode("globalStatementInitializer", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) })
+            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node, object? arg) => new TreeDumperNode("deconstructValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, object? arg) => new TreeDumperNode("tupleOperandPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, object? arg) => new TreeDumperNode("awaitableValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, object? arg) => new TreeDumperNode("disposableValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDup(BoundDup node, object? arg) => new TreeDumperNode("dup", null, new TreeDumperNode[]
         {
             new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPassByCopy(BoundPassByCopy node, object? arg) => new TreeDumperNode("passByCopy", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBadExpression(BoundBadExpression node, object? arg) => new TreeDumperNode("badExpression", null, new TreeDumperNode[]
@@ -12541,17 +11909,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("symbols", node.Symbols, null),
             new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBadStatement(BoundBadStatement node, object? arg) => new TreeDumperNode("badStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null))
+            new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node, object? arg) => new TreeDumperNode("extractedFinallyBlock", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("finallyBlock", null, new TreeDumperNode[] { Visit(node.FinallyBlock, null) })
+            new TreeDumperNode("finallyBlock", null, new TreeDumperNode[] { Visit(node.FinallyBlock, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeExpression(BoundTypeExpression node, object? arg) => new TreeDumperNode("typeExpression", null, new TreeDumperNode[]
@@ -12561,14 +11932,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("boundDimensionsOpt", null, node.BoundDimensionsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.BoundDimensionsOpt select Visit(x, null)),
             new TreeDumperNode("typeWithAnnotations", node.TypeWithAnnotations, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node, object? arg) => new TreeDumperNode("typeOrValueExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNamespaceExpression(BoundNamespaceExpression node, object? arg) => new TreeDumperNode("namespaceExpression", null, new TreeDumperNode[]
@@ -12576,7 +11949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("namespaceSymbol", node.NamespaceSymbol, null),
             new TreeDumperNode("aliasOpt", node.AliasOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUnaryOperator(BoundUnaryOperator node, object? arg) => new TreeDumperNode("unaryOperator", null, new TreeDumperNode[]
@@ -12586,8 +11960,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIncrementOperator(BoundIncrementOperator node, object? arg) => new TreeDumperNode("incrementOperator", null, new TreeDumperNode[]
@@ -12598,8 +11974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operandConversion", node.OperandConversion, null),
             new TreeDumperNode("resultConversion", node.ResultConversion, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAddressOfOperator(BoundAddressOfOperator node, object? arg) => new TreeDumperNode("addressOfOperator", null, new TreeDumperNode[]
@@ -12607,14 +11985,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("isManaged", node.IsManaged, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, object? arg) => new TreeDumperNode("pointerIndirectionOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPointerElementAccess(BoundPointerElementAccess node, object? arg) => new TreeDumperNode("pointerElementAccess", null, new TreeDumperNode[]
@@ -12623,7 +12003,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRefTypeOperator(BoundRefTypeOperator node, object? arg) => new TreeDumperNode("refTypeOperator", null, new TreeDumperNode[]
@@ -12631,14 +12012,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMakeRefOperator(BoundMakeRefOperator node, object? arg) => new TreeDumperNode("makeRefOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRefValueOperator(BoundRefValueOperator node, object? arg) => new TreeDumperNode("refValueOperator", null, new TreeDumperNode[]
@@ -12646,7 +12029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node, object? arg) => new TreeDumperNode("fromEndIndexExpression", null, new TreeDumperNode[]
@@ -12654,7 +12038,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRangeExpression(BoundRangeExpression node, object? arg) => new TreeDumperNode("rangeExpression", null, new TreeDumperNode[]
@@ -12663,7 +12048,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("rightOperandOpt", null, new TreeDumperNode[] { Visit(node.RightOperandOpt, null) }),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBinaryOperator(BoundBinaryOperator node, object? arg) => new TreeDumperNode("binaryOperator", null, new TreeDumperNode[]
@@ -12672,22 +12058,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node, object? arg) => new TreeDumperNode("tupleBinaryOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
-            new TreeDumperNode("convertedLeft", null, new TreeDumperNode[] { Visit(node.ConvertedLeft, null) }),
-            new TreeDumperNode("convertedRight", null, new TreeDumperNode[] { Visit(node.ConvertedRight, null) }),
             new TreeDumperNode("operatorKind", node.OperatorKind, null),
             new TreeDumperNode("operators", node.Operators, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node, object? arg) => new TreeDumperNode("userDefinedConditionalLogicalOperator", null, new TreeDumperNode[]
@@ -12697,10 +12084,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("trueOperator", node.TrueOperator, null),
             new TreeDumperNode("falseOperator", node.FalseOperator, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, object? arg) => new TreeDumperNode("compoundAssignmentOperator", null, new TreeDumperNode[]
@@ -12711,8 +12100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftConversion", node.LeftConversion, null),
             new TreeDumperNode("finalConversion", node.FinalConversion, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAssignmentOperator(BoundAssignmentOperator node, object? arg) => new TreeDumperNode("assignmentOperator", null, new TreeDumperNode[]
@@ -12721,7 +12112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("isRef", node.IsRef, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, object? arg) => new TreeDumperNode("deconstructionAssignmentOperator", null, new TreeDumperNode[]
@@ -12730,7 +12122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("isUsed", node.IsUsed, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node, object? arg) => new TreeDumperNode("nullCoalescingOperator", null, new TreeDumperNode[]
@@ -12740,7 +12133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftConversion", node.LeftConversion, null),
             new TreeDumperNode("operatorResultKind", node.OperatorResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, object? arg) => new TreeDumperNode("nullCoalescingAssignmentOperator", null, new TreeDumperNode[]
@@ -12748,7 +12142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
             new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalOperator(BoundConditionalOperator node, object? arg) => new TreeDumperNode("conditionalOperator", null, new TreeDumperNode[]
@@ -12759,7 +12154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayAccess(BoundArrayAccess node, object? arg) => new TreeDumperNode("arrayAccess", null, new TreeDumperNode[]
@@ -12767,14 +12163,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("indices", null, from x in node.Indices select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayLength(BoundArrayLength node, object? arg) => new TreeDumperNode("arrayLength", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAwaitExpression(BoundAwaitExpression node, object? arg) => new TreeDumperNode("awaitExpression", null, new TreeDumperNode[]
@@ -12782,7 +12180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("awaitableInfo", node.AwaitableInfo, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOfOperator(BoundTypeOfOperator node, object? arg) => new TreeDumperNode("typeOfOperator", null, new TreeDumperNode[]
@@ -12790,46 +12189,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sourceType", null, new TreeDumperNode[] { Visit(node.SourceType, null) }),
             new TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodDefIndex(BoundMethodDefIndex node, object? arg) => new TreeDumperNode("methodDefIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("method", node.Method, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node, object? arg) => new TreeDumperNode("maximumMethodDefIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node, object? arg) => new TreeDumperNode("instrumentationPayloadRoot", null, new TreeDumperNode[]
         {
             new TreeDumperNode("analysisKind", node.AnalysisKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitModuleVersionId(BoundModuleVersionId node, object? arg) => new TreeDumperNode("moduleVersionId", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitModuleVersionIdString(BoundModuleVersionIdString node, object? arg) => new TreeDumperNode("moduleVersionIdString", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node, object? arg) => new TreeDumperNode("sourceDocumentIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("document", node.Document, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodInfo(BoundMethodInfo node, object? arg) => new TreeDumperNode("methodInfo", null, new TreeDumperNode[]
@@ -12837,7 +12243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("method", node.Method, null),
             new TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFieldInfo(BoundFieldInfo node, object? arg) => new TreeDumperNode("fieldInfo", null, new TreeDumperNode[]
@@ -12845,7 +12252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("getFieldFromHandle", node.GetFieldFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDefaultLiteral(BoundDefaultLiteral node, object? arg) => new TreeDumperNode("defaultLiteral", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDefaultExpression(BoundDefaultExpression node, object? arg) => new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
@@ -12853,7 +12268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIsOperator(BoundIsOperator node, object? arg) => new TreeDumperNode("isOperator", null, new TreeDumperNode[]
@@ -12862,7 +12278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("conversion", node.Conversion, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAsOperator(BoundAsOperator node, object? arg) => new TreeDumperNode("asOperator", null, new TreeDumperNode[]
@@ -12871,7 +12288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("conversion", node.Conversion, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSizeOfOperator(BoundSizeOfOperator node, object? arg) => new TreeDumperNode("sizeOfOperator", null, new TreeDumperNode[]
@@ -12879,7 +12297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sourceType", null, new TreeDumperNode[] { Visit(node.SourceType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConversion(BoundConversion node, object? arg) => new TreeDumperNode("conversion", null, new TreeDumperNode[]
@@ -12891,8 +12310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("explicitCastInCode", node.ExplicitCastInCode, null),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("conversionGroupOpt", node.ConversionGroupOpt, null),
+            new TreeDumperNode("originalUserDefinedConversionsOpt", node.OriginalUserDefinedConversionsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node, object? arg) => new TreeDumperNode("readOnlySpanFromArray", null, new TreeDumperNode[]
@@ -12900,13 +12321,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("conversionMethod", node.ConversionMethod, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArgList(BoundArgList node, object? arg) => new TreeDumperNode("argList", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArgListOperator(BoundArgListOperator node, object? arg) => new TreeDumperNode("argListOperator", null, new TreeDumperNode[]
@@ -12914,7 +12337,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node, object? arg) => new TreeDumperNode("fixedLocalCollectionInitializer", null, new TreeDumperNode[]
@@ -12924,37 +12348,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("getPinnableOpt", node.GetPinnableOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePoint(BoundSequencePoint node, object? arg) => new TreeDumperNode("sequencePoint", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) })
+            new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePointWithSpan(BoundSequencePointWithSpan node, object? arg) => new TreeDumperNode("sequencePointWithSpan", null, new TreeDumperNode[]
         {
             new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) }),
-            new TreeDumperNode("span", node.Span, null)
+            new TreeDumperNode("span", node.Span, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBlock(BoundBlock node, object? arg) => new TreeDumperNode("block", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("localFunctions", node.LocalFunctions, null),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitScope(BoundScope node, object? arg) => new TreeDumperNode("scope", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStateMachineScope(BoundStateMachineScope node, object? arg) => new TreeDumperNode("stateMachineScope", null, new TreeDumperNode[]
         {
             new TreeDumperNode("fields", node.Fields, null),
-            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) })
+            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocalDeclaration(BoundLocalDeclaration node, object? arg) => new TreeDumperNode("localDeclaration", null, new TreeDumperNode[]
@@ -12963,12 +12393,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("declaredTypeOpt", null, new TreeDumperNode[] { Visit(node.DeclaredTypeOpt, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null)),
-            new TreeDumperNode("inferredType", node.InferredType, null)
+            new TreeDumperNode("inferredType", node.InferredType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node, object? arg) => new TreeDumperNode("multipleLocalDeclarations", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
+            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node, object? arg) => new TreeDumperNode("usingLocalDeclarations", null, new TreeDumperNode[]
@@ -12976,52 +12408,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
             new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
             new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
-            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
+            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node, object? arg) => new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("symbol", node.Symbol, null),
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNoOpStatement(BoundNoOpStatement node, object? arg) => new TreeDumperNode("noOpStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("flavor", node.Flavor, null)
+            new TreeDumperNode("flavor", node.Flavor, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitReturnStatement(BoundReturnStatement node, object? arg) => new TreeDumperNode("returnStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("refKind", node.RefKind, null),
-            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) })
+            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitYieldReturnStatement(BoundYieldReturnStatement node, object? arg) => new TreeDumperNode("yieldReturnStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) })
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitYieldBreakStatement(BoundYieldBreakStatement node, object? arg) => new TreeDumperNode("yieldBreakStatement", null, Array.Empty<TreeDumperNode>()
         );
         public override TreeDumperNode VisitThrowStatement(BoundThrowStatement node, object? arg) => new TreeDumperNode("throwStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) })
+            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExpressionStatement(BoundExpressionStatement node, object? arg) => new TreeDumperNode("expressionStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) })
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBreakStatement(BoundBreakStatement node, object? arg) => new TreeDumperNode("breakStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitContinueStatement(BoundContinueStatement node, object? arg) => new TreeDumperNode("continueStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchStatement(BoundSwitchStatement node, object? arg) => new TreeDumperNode("switchStatement", null, new TreeDumperNode[]
@@ -13032,7 +12473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
             new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
             new TreeDumperNode("defaultLabel", null, new TreeDumperNode[] { Visit(node.DefaultLabel, null) }),
-            new TreeDumperNode("breakLabel", node.BreakLabel, null)
+            new TreeDumperNode("breakLabel", node.BreakLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchDispatch(BoundSwitchDispatch node, object? arg) => new TreeDumperNode("switchDispatch", null, new TreeDumperNode[]
@@ -13040,14 +12482,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("equalityMethod", node.EqualityMethod, null)
+            new TreeDumperNode("equalityMethod", node.EqualityMethod, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIfStatement(BoundIfStatement node, object? arg) => new TreeDumperNode("ifStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
-            new TreeDumperNode("alternativeOpt", null, new TreeDumperNode[] { Visit(node.AlternativeOpt, null) })
+            new TreeDumperNode("alternativeOpt", null, new TreeDumperNode[] { Visit(node.AlternativeOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDoStatement(BoundDoStatement node, object? arg) => new TreeDumperNode("doStatement", null, new TreeDumperNode[]
@@ -13056,7 +12500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitWhileStatement(BoundWhileStatement node, object? arg) => new TreeDumperNode("whileStatement", null, new TreeDumperNode[]
@@ -13065,7 +12510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForStatement(BoundForStatement node, object? arg) => new TreeDumperNode("forStatement", null, new TreeDumperNode[]
@@ -13077,7 +12523,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("increment", null, new TreeDumperNode[] { Visit(node.Increment, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForEachStatement(BoundForEachStatement node, object? arg) => new TreeDumperNode("forEachStatement", null, new TreeDumperNode[]
@@ -13093,13 +12540,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForEachDeconstructStep(BoundForEachDeconstructStep node, object? arg) => new TreeDumperNode("forEachDeconstructStep", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructionAssignment", null, new TreeDumperNode[] { Visit(node.DeconstructionAssignment, null) }),
-            new TreeDumperNode("targetPlaceholder", null, new TreeDumperNode[] { Visit(node.TargetPlaceholder, null) })
+            new TreeDumperNode("targetPlaceholder", null, new TreeDumperNode[] { Visit(node.TargetPlaceholder, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUsingStatement(BoundUsingStatement node, object? arg) => new TreeDumperNode("usingStatement", null, new TreeDumperNode[]
@@ -13110,20 +12559,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
-            new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null)
+            new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFixedStatement(BoundFixedStatement node, object? arg) => new TreeDumperNode("fixedStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("declarations", null, new TreeDumperNode[] { Visit(node.Declarations, null) }),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLockStatement(BoundLockStatement node, object? arg) => new TreeDumperNode("lockStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTryStatement(BoundTryStatement node, object? arg) => new TreeDumperNode("tryStatement", null, new TreeDumperNode[]
@@ -13132,7 +12584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("catchBlocks", null, from x in node.CatchBlocks select Visit(x, null)),
             new TreeDumperNode("finallyBlockOpt", null, new TreeDumperNode[] { Visit(node.FinallyBlockOpt, null) }),
             new TreeDumperNode("finallyLabelOpt", node.FinallyLabelOpt, null),
-            new TreeDumperNode("preferFaultHandler", node.PreferFaultHandler, null)
+            new TreeDumperNode("preferFaultHandler", node.PreferFaultHandler, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCatchBlock(BoundCatchBlock node, object? arg) => new TreeDumperNode("catchBlock", null, new TreeDumperNode[]
@@ -13142,38 +12595,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("exceptionTypeOpt", node.ExceptionTypeOpt, null),
             new TreeDumperNode("exceptionFilterOpt", null, new TreeDumperNode[] { Visit(node.ExceptionFilterOpt, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-            new TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, null)
+            new TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLiteral(BoundLiteral node, object? arg) => new TreeDumperNode("literal", null, new TreeDumperNode[]
         {
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitThisReference(BoundThisReference node, object? arg) => new TreeDumperNode("thisReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node, object? arg) => new TreeDumperNode("previousSubmissionReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node, object? arg) => new TreeDumperNode("hostObjectMemberReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBaseReference(BoundBaseReference node, object? arg) => new TreeDumperNode("baseReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocal(BoundLocal node, object? arg) => new TreeDumperNode("local", null, new TreeDumperNode[]
@@ -13183,7 +12642,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("isNullableUnknown", node.IsNullableUnknown, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPseudoVariable(BoundPseudoVariable node, object? arg) => new TreeDumperNode("pseudoVariable", null, new TreeDumperNode[]
@@ -13191,7 +12651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("localSymbol", node.LocalSymbol, null),
             new TreeDumperNode("emitExpressions", node.EmitExpressions, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRangeVariable(BoundRangeVariable node, object? arg) => new TreeDumperNode("rangeVariable", null, new TreeDumperNode[]
@@ -13199,62 +12660,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("rangeVariableSymbol", node.RangeVariableSymbol, null),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitParameter(BoundParameter node, object? arg) => new TreeDumperNode("parameter", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parameterSymbol", node.ParameterSymbol, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabelStatement(BoundLabelStatement node, object? arg) => new TreeDumperNode("labelStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitGotoStatement(BoundGotoStatement node, object? arg) => new TreeDumperNode("gotoStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("caseExpressionOpt", null, new TreeDumperNode[] { Visit(node.CaseExpressionOpt, null) }),
-            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) })
+            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabeledStatement(BoundLabeledStatement node, object? arg) => new TreeDumperNode("labeledStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabel(BoundLabel node, object? arg) => new TreeDumperNode("label", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStatementList(BoundStatementList node, object? arg) => new TreeDumperNode("statementList", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalGoto(BoundConditionalGoto node, object? arg) => new TreeDumperNode("conditionalGoto", null, new TreeDumperNode[]
         {
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("jumpIfTrue", node.JumpIfTrue, null),
-            new TreeDumperNode("label", node.Label, null)
-        }
-        );
-        public override TreeDumperNode VisitSwitchExpression(BoundSwitchExpression node, object? arg) => new TreeDumperNode("switchExpression", null, new TreeDumperNode[]
-        {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
-            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
-            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
-            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
-            new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node, object? arg) => new TreeDumperNode("switchExpressionArm", null, new TreeDumperNode[]
@@ -13263,25 +12721,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
             new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node, object? arg) => new TreeDumperNode("unconvertedSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
+            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, object? arg) => new TreeDumperNode("convertedSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
+            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDecisionDag(BoundDecisionDag node, object? arg) => new TreeDumperNode("decisionDag", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("rootNode", node.RootNode, null)
+            new TreeDumperNode("rootNode", node.RootNode, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, object? arg) => new TreeDumperNode("evaluationDecisionDagNode", null, new TreeDumperNode[]
         {
             new TreeDumperNode("evaluation", null, new TreeDumperNode[] { Visit(node.Evaluation, null) }),
-            new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) })
+            new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTestDecisionDagNode(BoundTestDecisionDagNode node, object? arg) => new TreeDumperNode("testDecisionDagNode", null, new TreeDumperNode[]
         {
             new TreeDumperNode("test", null, new TreeDumperNode[] { Visit(node.Test, null) }),
             new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
+            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node, object? arg) => new TreeDumperNode("whenDecisionDagNode", null, new TreeDumperNode[]
@@ -13289,93 +12776,108 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("bindings", node.Bindings, null),
             new TreeDumperNode("whenExpression", null, new TreeDumperNode[] { Visit(node.WhenExpression, null) }),
             new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
+            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLeafDecisionDagNode(BoundLeafDecisionDagNode node, object? arg) => new TreeDumperNode("leafDecisionDagNode", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTemp(BoundDagTemp node, object? arg) => new TreeDumperNode("dagTemp", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
-            new TreeDumperNode("index", node.Index, null)
+            new TreeDumperNode("index", node.Index, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTypeTest(BoundDagTypeTest node, object? arg) => new TreeDumperNode("dagTypeTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagNonNullTest(BoundDagNonNullTest node, object? arg) => new TreeDumperNode("dagNonNullTest", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node, object? arg) => new TreeDumperNode("dagExplicitNullTest", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagValueTest(BoundDagValueTest node, object? arg) => new TreeDumperNode("dagValueTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", node.Value, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, object? arg) => new TreeDumperNode("dagDeconstructEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructMethod", node.DeconstructMethod, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTypeEvaluation(BoundDagTypeEvaluation node, object? arg) => new TreeDumperNode("dagTypeEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagFieldEvaluation(BoundDagFieldEvaluation node, object? arg) => new TreeDumperNode("dagFieldEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("field", node.Field, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, object? arg) => new TreeDumperNode("dagPropertyEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node, object? arg) => new TreeDumperNode("dagIndexEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("index", node.Index, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchSection(BoundSwitchSection node, object? arg) => new TreeDumperNode("switchSection", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchLabel(BoundSwitchLabel node, object? arg) => new TreeDumperNode("switchLabel", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
-            new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) })
+            new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePointExpression(BoundSequencePointExpression node, object? arg) => new TreeDumperNode("sequencePointExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequence(BoundSequence node, object? arg) => new TreeDumperNode("sequence", null, new TreeDumperNode[]
@@ -13384,7 +12886,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSpillSequence(BoundSpillSequence node, object? arg) => new TreeDumperNode("spillSequence", null, new TreeDumperNode[]
@@ -13393,7 +12896,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node, object? arg) => new TreeDumperNode("dynamicMemberAccess", null, new TreeDumperNode[]
@@ -13404,7 +12908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("invoked", node.Invoked, null),
             new TreeDumperNode("indexed", node.Indexed, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicInvocation(BoundDynamicInvocation node, object? arg) => new TreeDumperNode("dynamicInvocation", null, new TreeDumperNode[]
@@ -13415,7 +12920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalAccess(BoundConditionalAccess node, object? arg) => new TreeDumperNode("conditionalAccess", null, new TreeDumperNode[]
@@ -13423,7 +12929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("accessExpression", null, new TreeDumperNode[] { Visit(node.AccessExpression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node, object? arg) => new TreeDumperNode("loweredConditionalAccess", null, new TreeDumperNode[]
@@ -13434,14 +12941,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenNullOpt", null, new TreeDumperNode[] { Visit(node.WhenNullOpt, null) }),
             new TreeDumperNode("id", node.Id, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalReceiver(BoundConditionalReceiver node, object? arg) => new TreeDumperNode("conditionalReceiver", null, new TreeDumperNode[]
         {
             new TreeDumperNode("id", node.Id, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node, object? arg) => new TreeDumperNode("complexConditionalReceiver", null, new TreeDumperNode[]
@@ -13449,7 +12958,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("valueTypeReceiver", null, new TreeDumperNode[] { Visit(node.ValueTypeReceiver, null) }),
             new TreeDumperNode("referenceTypeReceiver", null, new TreeDumperNode[] { Visit(node.ReferenceTypeReceiver, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodGroup(BoundMethodGroup node, object? arg) => new TreeDumperNode("methodGroup", null, new TreeDumperNode[]
@@ -13463,7 +12973,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyGroup(BoundPropertyGroup node, object? arg) => new TreeDumperNode("propertyGroup", null, new TreeDumperNode[]
@@ -13472,7 +12983,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCall(BoundCall node, object? arg) => new TreeDumperNode("call", null, new TreeDumperNode[]
@@ -13487,9 +12999,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("invokedAsExtensionMethod", node.InvokedAsExtensionMethod, null),
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("originalMethodsOpt", node.OriginalMethodsOpt, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node, object? arg) => new TreeDumperNode("eventAssignmentOperator", null, new TreeDumperNode[]
@@ -13500,7 +13014,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAttribute(BoundAttribute node, object? arg) => new TreeDumperNode("attribute", null, new TreeDumperNode[]
@@ -13513,7 +13028,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("namedArguments", null, from x in node.NamedArguments select Visit(x, null)),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectCreationExpression(BoundObjectCreationExpression node, object? arg) => new TreeDumperNode("objectCreationExpression", null, new TreeDumperNode[]
@@ -13529,24 +13045,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleLiteral(BoundTupleLiteral node, object? arg) => new TreeDumperNode("tupleLiteral", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
             new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
-            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, object? arg) => new TreeDumperNode("convertedTupleLiteral", null, new TreeDumperNode[]
         {
             new TreeDumperNode("sourceTuple", null, new TreeDumperNode[] { Visit(node.SourceTuple, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+            new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node, object? arg) => new TreeDumperNode("dynamicObjectCreationExpression", null, new TreeDumperNode[]
@@ -13558,7 +13079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("applicableMethods", node.ApplicableMethods, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node, object? arg) => new TreeDumperNode("noPiaObjectCreationExpression", null, new TreeDumperNode[]
@@ -13566,14 +13088,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("guidString", node.GuidString, null),
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node, object? arg) => new TreeDumperNode("objectInitializerExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectInitializerMember(BoundObjectInitializerMember node, object? arg) => new TreeDumperNode("objectInitializerMember", null, new TreeDumperNode[]
@@ -13588,7 +13112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverType", node.ReceiverType, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node, object? arg) => new TreeDumperNode("dynamicObjectInitializerMember", null, new TreeDumperNode[]
@@ -13596,14 +13121,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("memberName", node.MemberName, null),
             new TreeDumperNode("receiverType", node.ReceiverType, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node, object? arg) => new TreeDumperNode("collectionInitializerExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node, object? arg) => new TreeDumperNode("collectionElementInitializer", null, new TreeDumperNode[]
@@ -13617,7 +13144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node, object? arg) => new TreeDumperNode("dynamicCollectionElementInitializer", null, new TreeDumperNode[]
@@ -13626,13 +13154,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitImplicitReceiver(BoundImplicitReceiver node, object? arg) => new TreeDumperNode("implicitReceiver", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node, object? arg) => new TreeDumperNode("anonymousObjectCreationExpression", null, new TreeDumperNode[]
@@ -13641,21 +13171,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("declarations", null, from x in node.Declarations select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node, object? arg) => new TreeDumperNode("anonymousPropertyDeclaration", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNewT(BoundNewT node, object? arg) => new TreeDumperNode("newT", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node, object? arg) => new TreeDumperNode("delegateCreationExpression", null, new TreeDumperNode[]
@@ -13664,7 +13197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("isExtensionMethod", node.IsExtensionMethod, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayCreation(BoundArrayCreation node, object? arg) => new TreeDumperNode("arrayCreation", null, new TreeDumperNode[]
@@ -13672,14 +13206,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("bounds", null, from x in node.Bounds select Visit(x, null)),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayInitialization(BoundArrayInitialization node, object? arg) => new TreeDumperNode("arrayInitialization", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node, object? arg) => new TreeDumperNode("stackAllocArrayCreation", null, new TreeDumperNode[]
@@ -13688,7 +13224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, object? arg) => new TreeDumperNode("convertedStackAllocExpression", null, new TreeDumperNode[]
@@ -13697,7 +13234,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFieldAccess(BoundFieldAccess node, object? arg) => new TreeDumperNode("fieldAccess", null, new TreeDumperNode[]
@@ -13709,14 +13247,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("isByValue", node.IsByValue, null),
             new TreeDumperNode("isDeclaration", node.IsDeclaration, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node, object? arg) => new TreeDumperNode("hoistedFieldAccess", null, new TreeDumperNode[]
         {
             new TreeDumperNode("fieldSymbol", node.FieldSymbol, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyAccess(BoundPropertyAccess node, object? arg) => new TreeDumperNode("propertyAccess", null, new TreeDumperNode[]
@@ -13725,7 +13265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("propertySymbol", node.PropertySymbol, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEventAccess(BoundEventAccess node, object? arg) => new TreeDumperNode("eventAccess", null, new TreeDumperNode[]
@@ -13735,7 +13276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("isUsableAsField", node.IsUsableAsField, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIndexerAccess(BoundIndexerAccess node, object? arg) => new TreeDumperNode("indexerAccess", null, new TreeDumperNode[]
@@ -13749,8 +13291,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("useSetterForDefaultArgumentGeneration", node.UseSetterForDefaultArgumentGeneration, null),
+            new TreeDumperNode("originalIndexersOpt", node.OriginalIndexersOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, object? arg) => new TreeDumperNode("indexOrRangePatternIndexerAccess", null, new TreeDumperNode[]
@@ -13760,7 +13304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("patternSymbol", node.PatternSymbol, null),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, object? arg) => new TreeDumperNode("dynamicIndexerAccess", null, new TreeDumperNode[]
@@ -13771,7 +13316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("applicableIndexers", node.ApplicableIndexers, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLambda(BoundLambda node, object? arg) => new TreeDumperNode("lambda", null, new TreeDumperNode[]
@@ -13782,28 +13328,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("diagnostics", node.Diagnostics, null),
             new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUnboundLambda(UnboundLambda node, object? arg) => new TreeDumperNode("unboundLambda", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitQueryClause(BoundQueryClause node, object? arg) => new TreeDumperNode("queryClause", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("definedSymbol", node.DefinedSymbol, null),
+            new TreeDumperNode("operation", null, new TreeDumperNode[] { Visit(node.Operation, null) }),
+            new TreeDumperNode("cast", null, new TreeDumperNode[] { Visit(node.Cast, null) }),
             new TreeDumperNode("binder", node.Binder, null),
+            new TreeDumperNode("unoptimizedForm", null, new TreeDumperNode[] { Visit(node.UnoptimizedForm, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node, object? arg) => new TreeDumperNode("typeOrInstanceInitializers", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNameOfOperator(BoundNameOfOperator node, object? arg) => new TreeDumperNode("nameOfOperator", null, new TreeDumperNode[]
@@ -13811,14 +13364,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitInterpolatedString(BoundInterpolatedString node, object? arg) => new TreeDumperNode("interpolatedString", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parts", null, from x in node.Parts select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStringInsert(BoundStringInsert node, object? arg) => new TreeDumperNode("stringInsert", null, new TreeDumperNode[]
@@ -13827,7 +13382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("alignment", null, new TreeDumperNode[] { Visit(node.Alignment, null) }),
             new TreeDumperNode("format", null, new TreeDumperNode[] { Visit(node.Format, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIsPatternExpression(BoundIsPatternExpression node, object? arg) => new TreeDumperNode("isPatternExpression", null, new TreeDumperNode[]
@@ -13838,19 +13394,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenTrueLabel", node.WhenTrueLabel, null),
             new TreeDumperNode("whenFalseLabel", node.WhenFalseLabel, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConstantPattern(BoundConstantPattern node, object? arg) => new TreeDumperNode("constantPattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("constantValue", node.ConstantValue, null),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDiscardPattern(BoundDiscardPattern node, object? arg) => new TreeDumperNode("discardPattern", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeclarationPattern(BoundDeclarationPattern node, object? arg) => new TreeDumperNode("declarationPattern", null, new TreeDumperNode[]
@@ -13859,7 +13418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
             new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
             new TreeDumperNode("isVar", node.IsVar, null),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRecursivePattern(BoundRecursivePattern node, object? arg) => new TreeDumperNode("recursivePattern", null, new TreeDumperNode[]
@@ -13870,7 +13430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("properties", null, node.Properties.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Properties select Visit(x, null)),
             new TreeDumperNode("variable", node.Variable, null),
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitITuplePattern(BoundITuplePattern node, object? arg) => new TreeDumperNode("iTuplePattern", null, new TreeDumperNode[]
@@ -13878,26 +13439,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("getLengthMethod", node.GetLengthMethod, null),
             new TreeDumperNode("getItemMethod", node.GetItemMethod, null),
             new TreeDumperNode("subpatterns", null, from x in node.Subpatterns select Visit(x, null)),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSubpattern(BoundSubpattern node, object? arg) => new TreeDumperNode("subpattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("symbol", node.Symbol, null),
-            new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) })
+            new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDiscardExpression(BoundDiscardExpression node, object? arg) => new TreeDumperNode("discardExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitThrowExpression(BoundThrowExpression node, object? arg) => new TreeDumperNode("throwExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitOutVariablePendingInference(OutVariablePendingInference node, object? arg) => new TreeDumperNode("outVariablePendingInference", null, new TreeDumperNode[]
@@ -13905,7 +13470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node, object? arg) => new TreeDumperNode("deconstructionVariablePendingInference", null, new TreeDumperNode[]
@@ -13913,19 +13479,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node, object? arg) => new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, object? arg) => new TreeDumperNode("nonConstructorMethodBody", null, new TreeDumperNode[]
         {
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConstructorMethodBody(BoundConstructorMethodBody node, object? arg) => new TreeDumperNode("constructorMethodBody", null, new TreeDumperNode[]
@@ -13933,7 +13502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("initializer", null, new TreeDumperNode[] { Visit(node.Initializer, null) }),
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExpressionWithNullability(BoundExpressionWithNullability node, object? arg) => new TreeDumperNode("expressionWithNullability", null, new TreeDumperNode[]
@@ -13941,7 +13511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
     }

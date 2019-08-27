@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.GetNullability();
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.GetNullability();
-        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => TypeArguments.SelectAsArray(a => a.GetNullability());
+        public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => TypeArguments.SelectAsArray(a => a.GetNullability());
 
         public virtual ITypeSymbol ReceiverType
         {
@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
+        {
+            return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        }
+
+        public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments);
         }

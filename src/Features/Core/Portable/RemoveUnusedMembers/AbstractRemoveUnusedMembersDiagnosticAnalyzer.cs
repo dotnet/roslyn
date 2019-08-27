@@ -152,18 +152,39 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
-                    var hasInvalidOrDynamicOperation = false;
+                    var hasUnsupportedOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                     symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
-                    symbolStartContext.RegisterOperationAction(_ => hasInvalidOrDynamicOperation = true, OperationKind.Invalid,
+
+                    // We bail out reporting diagnostics for named types if it contains following kind of operations:
+                    //  1. Invalid operations, i.e. erroneous code:
+                    //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
+                    //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
+                    //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
+                    //  3. Operations with OperationKind.None which are not operation root nodes. Attributes
+                    //     generate operation blocks with root operation with OperationKind.None, and we don't want to bail out for them.
+                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid,
                         OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
-                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOrDynamicOperation));
+                    symbolStartContext.RegisterOperationAction(AnalyzeOperationNone, OperationKind.None);
+
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
+
+                    return;
+
+                    void AnalyzeOperationNone(OperationAnalysisContext context)
+                    {
+                        if (context.Operation.Kind == OperationKind.None &&
+                            context.Operation.Parent != null)
+                        {
+                            hasUnsupportedOperation = true;
+                        }
+                    }
                 }, SymbolKind.NamedType);
             }
 
@@ -288,6 +309,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
+
+                // If the invoked method is a reduced extension method, also mark the original
+                // method from which it was reduced as "used".
+                if (targetMethod.ReducedFrom != null)
+                {
+                    OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+                }
             }
 
             private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
@@ -332,14 +360,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 OnSymbolUsage(constructor, ValueUsageInfo.Read);
             }
 
-            private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOrDynamicOperation)
+            private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasUnsupportedOperation)
             {
-                // We bail out reporting diagnostics for named types if it contains following kind of operations:
-                //  1. Invalid operations, i.e. erroneous code:
-                //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
-                //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
-                //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
-                if (hasInvalidOrDynamicOperation)
+                if (hasUnsupportedOperation)
                 {
                     return;
                 }
@@ -535,8 +558,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         arg.Kind == TypedConstantKind.Primitive &&
                         arg.Type.SpecialType == SpecialType.System_String)
                     {
-                        var value = arg.Value as string;
-                        if (value != null)
+                        if (arg.Value is string value)
                         {
                             builder.Add(value);
                         }

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -11,7 +14,7 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is null.  This method executes in
         /// all builds
         /// </summary>
-        public static void ThrowIfNull<T>(T value, string message = null) where T : class
+        public static void ThrowIfNull<T>([NotNull] T value, string? message = null) where T : class?
         {
             if (value == null)
             {
@@ -24,7 +27,7 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is false.  This method executes
         /// in all builds
         /// </summary>
-        public static void ThrowIfFalse(bool condition, string message = null)
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string? message = null)
         {
             if (!condition)
             {
@@ -37,7 +40,7 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is true. This method executes in
         /// all builds.
         /// </summary>
-        public static void ThrowIfTrue(bool condition, string message = null)
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string? message = null)
         {
             if (condition)
             {
@@ -47,12 +50,14 @@ namespace Roslyn.Utilities
         }
 
         [DebuggerHidden]
+        [DoesNotReturn]
         public static void Fail(string message = "Unexpected")
         {
             throw new InvalidOperationException(message);
         }
 
         [DebuggerHidden]
+        [DoesNotReturn]
         public static T FailWithReturn<T>(string message = "Unexpected")
         {
             throw new InvalidOperationException(message);

@@ -39,13 +39,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 // otherwise, see whether we can pick it up from reference itself
-                var analyzerFileReference = _reference as AnalyzerFileReference;
-                if (analyzerFileReference == null)
+                if (!(_reference is AnalyzerFileReference analyzerFileReference))
                 {
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<CodeFixProvider>.GetInstance(out var builder);
 
                 try
                 {
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
     }

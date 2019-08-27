@@ -10,11 +10,9 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -36,7 +34,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+        }
+
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
@@ -59,8 +62,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // to an existing matching field/prop if we can find one, or add a new field/prop
             // if we can't.
 
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
+            if (parameterNameParts.BaseName == "")
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
             var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-                document, parameter, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty != null)
             {
@@ -84,16 +94,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Offer to create new one and assign to that.
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
-                // Get the parts of the parameter name and the appropriate naming rules so
-                // that we can name the field/property accordingly.
-                var parameterNameParts = GetParameterWordParts(parameter);
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
 
-                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
-                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -132,7 +137,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
-                        parameter.Type, uniqueName);
+                        parameter.GetTypeWithAnnotatedNullability(), uniqueName);
                 }
             }
 
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         new DeclarationModifiers(),
-                        parameter.Type,
+                        parameter.GetTypeWithAnnotatedNullability(),
                         RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,
@@ -264,8 +269,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Attempt to place the initialization in a good location in the constructor
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
-            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                parameter, blockStatementOpt, cancellationToken);
+            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
 
             InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
@@ -320,9 +324,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
-            IParameterSymbol parameter,
-            IBlockOperation blockStatementOpt,
-            CancellationToken cancellationToken)
+            IParameterSymbol parameter, IBlockOperation blockStatementOpt)
         {
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);
@@ -403,13 +405,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<ISymbol> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-            Document document, IParameterSymbol parameter, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
+            Document document, IParameterSymbol parameter, IBlockOperation blockStatementOpt, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
         {
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
-
-            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-            var parameterWords = GetParameterWordParts(parameter);
 
             var containingType = parameter.ContainingType;
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -473,29 +472,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Get the individual words in the parameter name.  This way we can generate 
-        /// appropriate field/property names based on the user's preference.
-        /// </summary>
-        private ImmutableArray<string> GetParameterWordParts(IParameterSymbol parameter)
-        {
-            var parts = StringBreaker.GetWordParts(parameter.Name);
-            var result = CreateWords(parts, parameter.Name);
-            parts.Free();
-            return result;
-        }
-
-        private ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
-        {
-            var result = ArrayBuilder<string>.GetInstance(parts.Count);
-            foreach (var part in parts)
-            {
-                result.Add(name.Substring(part.Start, part.Length));
-            }
-
-            return result.ToImmutableAndFree();
         }
     }
 }

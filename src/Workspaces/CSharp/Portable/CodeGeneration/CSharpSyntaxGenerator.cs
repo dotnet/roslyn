@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
+        internal static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
             => declaration switch
             {
                 MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var modifierTokens = GetModifierTokens(declaration);
-            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out _);
             return accessibility;
         }
 
@@ -1651,99 +1651,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             foreach (var token in modifierList)
             {
-                switch (token.Kind())
+                accessibility = (token.Kind(), accessibility) switch
                 {
-                    case SyntaxKind.PublicKeyword:
-                        accessibility = Accessibility.Public;
-                        break;
+                    (SyntaxKind.PublicKeyword, _) => Accessibility.Public,
 
-                    case SyntaxKind.PrivateKeyword:
-                        if (accessibility == Accessibility.Protected)
-                        {
-                            accessibility = Accessibility.ProtectedAndInternal;
-                        }
-                        else
-                        {
-                            accessibility = Accessibility.Private;
-                        }
-                        break;
+                    (SyntaxKind.PrivateKeyword, Accessibility.Protected) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.PrivateKeyword, _) => Accessibility.Private,
 
-                    case SyntaxKind.InternalKeyword:
-                        if (accessibility == Accessibility.Protected)
-                        {
-                            accessibility = Accessibility.ProtectedOrInternal;
-                        }
-                        else
-                        {
-                            accessibility = Accessibility.Internal;
-                        }
+                    (SyntaxKind.InternalKeyword, Accessibility.Protected) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.InternalKeyword, _) => Accessibility.Internal,
 
-                        break;
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Private) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Internal) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.ProtectedKeyword, _) => Accessibility.Protected,
 
-                    case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Private)
-                        {
-                            accessibility = Accessibility.ProtectedAndInternal;
-                        }
-                        else if (accessibility == Accessibility.Internal)
-                        {
-                            accessibility = Accessibility.ProtectedOrInternal;
-                        }
+                    _ => accessibility,
+                };
 
-                        {
-                            accessibility = Accessibility.Protected;
-                        }
-
-                        break;
-
-                    case SyntaxKind.AbstractKeyword:
-                        modifiers |= DeclarationModifiers.Abstract;
-                        break;
-
-                    case SyntaxKind.NewKeyword:
-                        modifiers |= DeclarationModifiers.New;
-                        break;
-
-                    case SyntaxKind.OverrideKeyword:
-                        modifiers |= DeclarationModifiers.Override;
-                        break;
-
-                    case SyntaxKind.VirtualKeyword:
-                        modifiers |= DeclarationModifiers.Virtual;
-                        break;
-
-                    case SyntaxKind.StaticKeyword:
-                        modifiers |= DeclarationModifiers.Static;
-                        break;
-
-                    case SyntaxKind.AsyncKeyword:
-                        modifiers |= DeclarationModifiers.Async;
-                        break;
-
-                    case SyntaxKind.ConstKeyword:
-                        modifiers |= DeclarationModifiers.Const;
-                        break;
-
-                    case SyntaxKind.ReadOnlyKeyword:
-                        modifiers |= DeclarationModifiers.ReadOnly;
-                        break;
-
-                    case SyntaxKind.SealedKeyword:
-                        modifiers |= DeclarationModifiers.Sealed;
-                        break;
-
-                    case SyntaxKind.UnsafeKeyword:
-                        modifiers |= DeclarationModifiers.Unsafe;
-                        break;
-
-                    case SyntaxKind.PartialKeyword:
-                        modifiers |= DeclarationModifiers.Partial;
-                        break;
-
-                    case SyntaxKind.RefKeyword:
-                        modifiers |= DeclarationModifiers.Ref;
-                        break;
-                }
+                modifiers |= token.Kind() switch
+                {
+                    SyntaxKind.AbstractKeyword => DeclarationModifiers.Abstract,
+                    SyntaxKind.NewKeyword => DeclarationModifiers.New,
+                    SyntaxKind.OverrideKeyword => DeclarationModifiers.Override,
+                    SyntaxKind.VirtualKeyword => DeclarationModifiers.Virtual,
+                    SyntaxKind.StaticKeyword => DeclarationModifiers.Static,
+                    SyntaxKind.AsyncKeyword => DeclarationModifiers.Async,
+                    SyntaxKind.ConstKeyword => DeclarationModifiers.Const,
+                    SyntaxKind.ReadOnlyKeyword => DeclarationModifiers.ReadOnly,
+                    SyntaxKind.SealedKeyword => DeclarationModifiers.Sealed,
+                    SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
+                    SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
+                    SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
+                    _ => DeclarationModifiers.None,
+                };
             }
         }
 
@@ -1989,8 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.Attribute:
-                    var parentList = declaration.Parent as AttributeListSyntax;
-                    if (parentList == null || parentList.Attributes.Count > 1)
+                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
                     {
                         return DeclarationKind.Attribute;
                     }
@@ -2355,7 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var list = GetParameterList(declaration);
             return list != null
                 ? list.Parameters
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                : declaration is SimpleLambdaExpressionSyntax simpleLambda
+                    ? new[] { simpleLambda.Parameter }
+                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2445,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.SimpleLambdaExpression => SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter)),
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
                 _ => (BaseParameterListSyntax)null,
             };
 
@@ -3198,8 +3139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)declaration;
-                    var attrList = attr.Parent as AttributeListSyntax;
-                    if (attrList != null && attrList.Attributes.Count == 1)
+                    if (attr.Parent is AttributeListSyntax attrList && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
                         return this.RemoveNodeInternal(root, attrList, options);
@@ -3224,8 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.SimpleBaseType:
-                    var baseList = declaration.Parent as BaseListSyntax;
-                    if (baseList != null && baseList.Types.Count == 1)
+                    if (declaration.Parent is BaseListSyntax baseList && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
                         return this.RemoveNodeInternal(root, baseList, options);
@@ -3310,6 +3249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.ThrowExpression((ExpressionSyntax)expression);
         }
+
+        internal override bool SupportsThrowExpression() => true;
 
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
         {

@@ -825,6 +825,86 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void LambdasInArrayType()
+        {
+            var src1 = "var x = new int[F(a => 1)];";
+            var src2 = "var x = new int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[F(a => 1)];", "var x = new int[F(a => 2)];" },
+                { "var x = new int[F(a => 1)]", "var x = new int[F(a => 2)]" },
+                { "x = new int[F(a => 1)]", "x = new int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInArrayInitializer()
+        {
+            var src1 = "var x = new int[] { F(a => 1) };";
+            var src2 = "var x = new int[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[] { F(a => 1) };", "var x = new int[] { F(a => 2) };" },
+                { "var x = new int[] { F(a => 1) }", "var x = new int[] { F(a => 2) }" },
+                { "x = new int[] { F(a => 1) }", "x = new int[] { F(a => 2) }" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc()
+        {
+            var src1 = "var x = stackalloc int[F(a => 1)];";
+            var src2 = "var x = stackalloc int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc int[F(a => 1)];", "var x = stackalloc int[F(a => 2)];" },
+                { "var x = stackalloc int[F(a => 1)]", "var x = stackalloc int[F(a => 2)]" },
+                { "x = stackalloc int[F(a => 1)]", "x = stackalloc int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc_Initializer()
+        {
+            var src1 = "var x = stackalloc[] { F(a => 1) };";
+            var src2 = "var x = stackalloc[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc[] { F(a => 1) };", "var x = stackalloc[] { F(a => 2) };" },
+                { "var x = stackalloc[] { F(a => 1) }", "var x = stackalloc[] { F(a => 2) }" },
+                { "x = stackalloc[] { F(a => 1) }", "x = stackalloc[] { F(a => 2) }" },
+                { "a => 1", "a => 2" },
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Local Functions
@@ -1225,7 +1305,7 @@ var q = from a in await seq1
         select a + 1;
 ";
 
-            var match = GetMethodMatches(src1, src2);
+            var match = GetMethodMatches(src1, src2, MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -1258,7 +1338,7 @@ var q = from a in await seq1
             var src1 = "F(from a in await b from x in y select c);";
             var src2 = "F(from a in await c from x in y select c);";
 
-            var match = GetMethodMatches(src1, src2);
+            var match = GetMethodMatches(src1, src2, MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -1466,13 +1546,13 @@ foreach ((var b3, int b2) in e) { A2(); }
         public void ForeachVariable_Update2()
         {
             var src1 = @"
-foreach (_ in e2) { yield return 4; }
+foreach (_ in e2) { }
 foreach (_ in e3) { A(); }
 ";
 
             var src2 = @"
 foreach (_ in e4) { A(); }
-foreach (var b in e2) { yield return 4; }
+foreach (var b in e2) { }
 ";
 
             var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
@@ -1480,9 +1560,8 @@ foreach (var b in e2) { yield return 4; }
 
             var expected = new MatchingPairs
             {
-                { "foreach (_ in e2) { yield return 4; }", "foreach (var b in e2) { yield return 4; }" },
-                { "{ yield return 4; }", "{ yield return 4; }" },
-                { "yield return 4;", "yield return 4;" },
+                { "foreach (_ in e2) { }", "foreach (var b in e2) { }" },
+                { "{ }", "{ }" },
                 { "foreach (_ in e3) { A(); }", "foreach (_ in e4) { A(); }" },
                 { "{ A(); }", "{ A(); }" },
                 { "A();", "A();" }
@@ -1617,6 +1696,166 @@ if (!(a is int s)) return;
                 { "return;", "return;" },
                 { "if (!(c is int j)) return;", "if (!(c is int)) return;" },
                 { "return;", "return;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void VarPattern()
+        {
+            var src1 = @"
+if (!(o is (var x, var y))) return;
+if (!(o4 is (string a, var (b, c)))) return;
+if (!(o2 is var (e, f, g))) return;
+if (!(o3 is var (k, l, m))) return;
+";
+
+            var src2 = @"
+if (!(o is (int x, int y1)))  return;
+if (!(o1 is (var a, (var b, string c1)))) return;
+if (!(o7 is var (g, e, f))) return;
+if (!(o3 is (string k, int l2, int m))) return;
+";
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if (!(o is (var x, var y))) return;", "if (!(o is (int x, int y1)))  return;" },
+                { "x", "x" },
+                { "y", "y1" },
+                { "return;", "return;" },
+                { "if (!(o4 is (string a, var (b, c)))) return;", "if (!(o1 is (var a, (var b, string c1)))) return;" },
+                { "a", "a" },
+                { "b", "b" },
+                { "c", "c1" },
+                { "return;", "return;" },
+                { "if (!(o2 is var (e, f, g))) return;", "if (!(o7 is var (g, e, f))) return;" },
+                { "e", "e" },
+                { "f", "f" },
+                { "g", "g" },
+                { "return;", "return;" },
+                { "if (!(o3 is var (k, l, m))) return;", "if (!(o3 is (string k, int l2, int m))) return;" },
+                { "k", "k" },
+                { "l", "l2" },
+                { "m", "m" },
+                { "return;", "return;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void PositionalPattern()
+        {
+            var src1 = @"var r = (x, y, z) switch {
+(1, 2, 3) => 0,
+(var a, 3, 4) => a,
+(0, var b, int c) when c > 1 => 2,
+(1, 1, Point { X: 0 } p) => 3,
+_ => 4
+};
+";
+
+            var src2 = @"var r = ((x, y, z)) switch {
+(1, 2, 3) => 0,
+(var a1, 3, 4) => a1 * 2,
+(_, int b1, double c1) when c1 > 2 => c1,
+(1, 1, Point { Y: 0 } p1) => 3,
+_ => 4
+};
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 };", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };" },
+                { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "a", "a1" },
+                { "b", "c1" },
+                { "c", "b1" },
+                { "when c > 1", "when c1 > 2" },
+                { "p", "p1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void PropertyPattern()
+        {
+            var src1 = @"
+if (address is { State: ""WA"" }) return 1;
+if (obj is { Color: Color.Purple }) return 2;
+if (o is string { Length: 5 } s) return 3;
+";
+
+            var src2 = @"
+if (address is { ZipCode: 98052 }) return 4;
+if (obj is { Size: Size.M }) return 2;
+if (o is string { Length: 7 } s7) return 5;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if (address is { State: \"WA\" }) return 1;", "if (address is { ZipCode: 98052 }) return 4;" },
+                { "return 1;", "return 4;" },
+                { "if (obj is { Color: Color.Purple }) return 2;", "if (obj is { Size: Size.M }) return 2;" },
+                { "return 2;", "return 2;" },
+                { "if (o is string { Length: 5 } s) return 3;", "if (o is string { Length: 7 } s7) return 5;" },
+                { "s", "s7" },
+                { "return 3;", "return 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void RecursivePatterns()
+        {
+            var src1 = @"var r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        ("""", Task<int> t) => await t,
+        _ => 0
+    },
+    int i => i * i,
+    _ => -1
+};
+";
+
+            var src2 = @"var r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""b"", decimal i1) => i1,
+        ("""", Task<object> obj2) => await obj2,
+        _ => 0
+    },
+    double i => i * i,
+    _ => -1
+};
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 };", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 };" },
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "s", "s" },
+                { "when s.Length > 0", "when s.Length > 0" },
+                { "i", "i" },
+                { "t", "obj2" },
+                { "await t", "await obj2" },
+                { "i", "i1" }
             };
 
             expected.AssertEqual(actual);

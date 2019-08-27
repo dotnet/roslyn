@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// have a type, null is returned. If the type could not be determined due to an error, then
         /// an IErrorTypeSymbol is returned.
         /// </summary>
-        public ITypeSymbol Type { get; }
+        public ITypeSymbol? Type { get; }
 
         /// <summary>
         /// The top-level nullability information of the expression represented by the syntax node.
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// The type of the expression after it has undergone an implicit conversion. If the type
         /// did not undergo an implicit conversion, returns the same as Type.
         /// </summary>
-        public ITypeSymbol ConvertedType { get; }
+        public ITypeSymbol? ConvertedType { get; }
 
         /// <summary>
         /// The top-level nullability of the expression after it has undergone an implicit conversion.
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public NullabilityInfo ConvertedNullability { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
+        internal TypeInfo(ITypeSymbol? type, ITypeSymbol? convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
             : this()
         {
             this.Type = type;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis
                 && this.ConvertedNullability.Equals(other.ConvertedNullability);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TypeInfo && this.Equals((TypeInfo)obj);
         }

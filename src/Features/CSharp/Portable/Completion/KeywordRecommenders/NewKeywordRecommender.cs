@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                IsNewConstraintContext(context, cancellationToken) ||
+                IsNewConstraintContext(context) ||
                 context.IsAnyExpressionContext ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private static bool IsNewConstraintContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsNewConstraintContext(CSharpSyntaxContext context)
         {
             // cases:
             //    where T : |
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //    where T : Goo, |
             // note: 'new()' can't come after a 'struct' constraint.
 
-            if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken, cancellationToken))
+            if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken))
             {
                 return true;
             }

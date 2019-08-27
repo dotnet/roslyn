@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis
             // TODO: call the compiler API once it's available
             switch (flowState)
             {
-                case NullableFlowState.NotApplicable:
-                    return typeSymbol.WithNullability(NullableAnnotation.NotApplicable);
+                case NullableFlowState.None:
+                    return typeSymbol.WithNullability(NullableAnnotation.None);
                 case NullableFlowState.NotNull:
                     return typeSymbol.WithNullability(NullableAnnotation.NotAnnotated);
                 case NullableFlowState.MaybeNull:
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis
             {
                 // For now, we'll return this while we transition the codebase over to these helpers. Eventually this should throw, since it means somebody got a type from
                 // the compiler API and didn't wrap it properly.
-                return NullableAnnotation.NotApplicable;
+                return NullableAnnotation.None;
             }
         }
 
-        public static T WithoutNullability<T>(this T typeSymbol) where T : ITypeSymbol
+        public static T WithoutNullability<T>(this T typeSymbol) where T : INamespaceOrTypeSymbol
         {
             if (typeSymbol is TypeSymbolWithNullableAnnotation typeSymbolWithNullability)
             {
@@ -110,5 +110,15 @@ namespace Microsoft.CodeAnalysis
 
         public static ITypeSymbol GetTypeWithAnnotatedNullability(this ILocalSymbol localSymbol)
             => localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+
+        public static INamedTypeSymbol ConstructWithNullability(this INamedTypeSymbol typeSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return typeSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
+        }
+
+        public static IMethodSymbol ConstructWithNullability(this IMethodSymbol methodSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return methodSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
+        }
     }
 }

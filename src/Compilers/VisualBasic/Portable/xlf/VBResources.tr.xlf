@@ -9,17 +9,27 @@
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Lütfen satır devamı karakterinden sonra açıklama kullanmak için {0} veya daha yüksek bir dil sürümü kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">satır devamı sonrası açıklamalar</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -338,7 +348,7 @@
                                   veya anycpu (varsayılan) olmalıdır.
 -preferreduilang                  Tercih edilen çıkış dilini belirt.
 -nosdkpath                        Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu
-                                  aramayı devre dışı bırakın.
+								  aramayı devre dışı bırakın.
 -sdkpath:&lt;path&gt;                   .NET Framework SDK (mscorlib.dll) dizininin
                                   konumu.
 -subsystemversion:&lt;version&gt;       Çıkış PE'nin alt sistem sürümünü belirt.
@@ -3243,7 +3253,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">_' satır devam ettirme karakterinden önce en az bir boşluk olması ve bunun satırdaki son karakter olması gerekir.</target>
+        <target state="translated">Satır devamı karakterinin ('_') öncesinde en az bir boşluk olması gerekir ve bu karakterin ardından bir açıklama gelmeli veya satırdaki son karakter '_' olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -5649,7 +5659,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeCharOnAggregation">
         <source>Aggregate function name cannot be used with a type character.</source>
-        <target state="translated">Toplama işlevi bir tür karakteriyle kullanılamaz.</target>
+        <target state="translated">Kümesel işlev bir tür karakteriyle kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedOn">
@@ -7226,7 +7236,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmptyAggregateInitializer">
         <source>An aggregate collection initializer entry must contain at least one element.</source>
-        <target state="translated">Toplama koleksiyon başlatıcısı girdisi en az bir öğe içermelidir.</target>
+        <target state="translated">Küme koleksiyonu başlatıcısı girdisi en az bir öğe içermelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_XmlEndElementNoMatchingStart">
@@ -8767,8 +8777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9113,7 +9123,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
     </body>

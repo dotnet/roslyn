@@ -137,48 +137,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter);
+            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
 
-            if ((object)_staticLocalFunction != null && !IsContainedIn(_staticLocalFunction, symbol))
+            if (_staticLocalFunction is object && Symbol.IsCaptured(symbol, _staticLocalFunction))
             {
                 Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
 
-        private static bool IsContainedIn(LocalFunctionSymbol container, Symbol symbol)
-        {
-            Debug.Assert((object)container != null);
-            Debug.Assert(container != symbol);
-            while (true)
-            {
-                var containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol is null)
-                {
-                    return false;
-                }
-                if (container == containingSymbol)
-                {
-                    return true;
-                }
-                symbol = containingSymbol;
-            }
-        }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
             }
 
-            return base.VisitSwitchExpression(node);
+            return base.VisitConvertedSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             if (!node.HasAnyErrors)
             {
-                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+                CheckForDeconstructionAssignmentToSelf((BoundTupleExpression)node.Left, node.Right);
             }
 
             return base.VisitDeconstructionAssignmentOperator(node);
@@ -367,6 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             CheckReceiverIfField(node.ReceiverOpt);
+            if (node.Method is LocalFunctionSymbol)
+            {
+                CheckReferenceToVariable(node, node.Method);
+            }
             return base.VisitCall(node);
         }
 

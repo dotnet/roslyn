@@ -2730,7 +2730,7 @@ class H
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13716")]
+        [Fact, WorkItem(13716, "https://github.com/dotnet/roslyn/issues/13716")]
         [CompilerTrait(CompilerFeature.Tuples)]
         public void GlobalCode_DeconstructionDeclarationStatement_01()
         {
@@ -2766,54 +2766,36 @@ class H
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (2,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool a, int b) = ((1 is int x1), 1);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(2, 17),
-                // (2,17): error CS1525: Invalid expression term '='
-                // (bool a, int b) = ((1 is int x1), 1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 17),
-                // (6,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool c, int d) = ((2 is int x2), 2);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(6, 17),
-                // (6,17): error CS1525: Invalid expression term '='
-                // (bool c, int d) = ((2 is int x2), 2);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 17),
-                // (8,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool e, int f) = ((3 is int x3), 3);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(8, 17),
-                // (8,17): error CS1525: Invalid expression term '='
-                // (bool e, int f) = ((3 is int x3), 3);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 17),
-                // (11,18): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool g, bool h) = ((41 is int x4),
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(11, 18),
-                // (11,18): error CS1525: Invalid expression term '='
-                // (bool g, bool h) = ((41 is int x4),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(11, 18),
-                // (14,20): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool x5, bool x6) = ((5 is int x5),
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(14, 20),
-                // (14,20): error CS1525: Invalid expression term '='
-                // (bool x5, bool x6) = ((5 is int x5),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(14, 20),
-                // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // (bool c, int d) = ((2 is int x2), 2);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 30),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,32): error CS0102: The type 'Script' already contains a definition for 'x4'
-                //                     (42 is int x4));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 32),
-                // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
-                //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
-                // (19,21): error CS0229: Ambiguity between 'x3' and 'x3'
-                //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
-                // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
-                //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                    // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
+                    // (bool c, int d) = ((2 is int x2), 2);
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 30),
+                    // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                    // object x3;
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                    // (12,32): error CS0102: The type 'Script' already contains a definition for 'x4'
+                    //                     (42 is int x4));
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 32),
+                    // (14,33): error CS0102: The type 'Script' already contains a definition for 'x5'
+                    // (bool x5, bool x6) = ((5 is int x5),
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 33),
+                    // (15,33): error CS0102: The type 'Script' already contains a definition for 'x6'
+                    //                       (6 is int x6));
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 33),
+                    // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                    //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
+                    // (19,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                    //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
+                    // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                    //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                    // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                    //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                    // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                    //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -2839,14 +2821,12 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
                 var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
-                Assert.Equal(2, x5Ref.Length);
-                VerifyModelForDeclarationField(model, x5Decl, x5Ref[1]);
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
                 var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
-                Assert.Equal(2, x6Ref.Length);
-                VerifyModelForDeclarationField(model, x6Decl, x6Ref[1]);
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {

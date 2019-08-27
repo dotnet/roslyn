@@ -1374,7 +1374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
             If conversionExpression.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConvertibleConversion, Conversion)
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),

@@ -338,6 +338,63 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoNullableAttributesInMethodFromMetadata()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document>
+#nullable enable
+
+public interface IInterface
+{
+    void M(string? s1, string s2);
+    string this[string? s1, string s2] { get; set; }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document>
+#nullable enable
+
+using System;
+
+class C : [|IInterface|]
+{
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C : IInterface
+{
+    public string this[string? s1, string s2]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public void M(string? s1, string s2)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -6036,6 +6093,56 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementationOfIndexerWithInaccessibleAttributes()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+internal class ShouldBeRemovedAttribute : Attribute { }
+public interface I
+{
+    string this[[ShouldBeRemovedAttribute] int i] { get; set; }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class C : [|I|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+using System;
+
+class C : I
+{
+    public string this[int i]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+        ";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
 #if false
         [WorkItem(13677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -7996,7 +8103,7 @@ public class Test : ITest
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableDisabled()
         {
             await TestInRegularAndScriptAsync(

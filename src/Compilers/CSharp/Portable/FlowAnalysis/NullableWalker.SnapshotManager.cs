@@ -49,20 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode nodeToAnalyze,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMap,
                 SnapshotManager.Builder newManagerOpt)
             {
-                var snapshotPosition = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
-
-                if (snapshotPosition < 0)
-                {
-                    // BinarySearch returns the next higher position. Always take the one most close but behind the requested position
-                    snapshotPosition = (~snapshotPosition) - 1;
-
-                    // If there was none in the snapshots before the target position, just take index 0
-                    if (snapshotPosition < 0) snapshotPosition = 0;
-                }
-
-                (_, Snapshot incrementalSnapshot) = _incrementalSnapshots[snapshotPosition];
+                Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
                 var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 var method = sharedState.Symbol as MethodSymbol;
@@ -76,10 +66,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            variableState,
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
+                                           updatedMethodSymbolMap,
                                            snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
                         variableState,
                         sharedState.Symbol);
+            }
+
+            internal ImmutableDictionary<Symbol, TypeWithAnnotations> GetVariableTypesForPosition(int position)
+            {
+                var snapshot = GetSnapshotForPosition(position);
+                var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
+                return sharedState.VariableTypes;
+            }
+
+            private Snapshot GetSnapshotForPosition(int position)
+            {
+                var snapshotIndex = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
+
+                if (snapshotIndex < 0)
+                {
+                    // BinarySearch returns the next higher position. Always take the one closest but behind the requested position
+                    snapshotIndex = (~snapshotIndex) - 1;
+
+                    // If there was none in the snapshots before the target position, just take index 0
+                    if (snapshotIndex < 0) snapshotIndex = 0;
+                }
+
+                return _incrementalSnapshots[snapshotIndex].snapshot;
             }
 
 #if DEBUG

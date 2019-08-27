@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -71,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 originalNodes,
                 t =>
                 {
-                    var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
+                    using var additionalNodesToTrackDisposer = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
 
-                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
+                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
                 },
                 (_1, _2, _3) => true,
                 (semanticModel, currentRoot, t, currentNode)

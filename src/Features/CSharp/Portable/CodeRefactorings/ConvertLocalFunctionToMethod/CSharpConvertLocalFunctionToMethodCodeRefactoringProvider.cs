@@ -33,17 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var localFunction = await refactoringHelperService.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
-            if (localFunction == default)
+            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
+            if (localFunction == null)
             {
                 return;
             }
@@ -55,8 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                localFunction.Span);
         }
 
         private static async Task<Document> UpdateDocumentAsync(

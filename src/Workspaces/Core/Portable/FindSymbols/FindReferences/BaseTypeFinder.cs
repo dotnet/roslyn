@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
@@ -22,17 +21,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var baseClassesAndInterfaces = FindBaseTypesAndInterfaces(symbol.ContainingType);
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var interfaceImplementations = ArrayBuilder<ISymbol>.GetInstance();
 
-            // These are implicit interface implementations not matching by name such as void I.M();
-            results.AddRange(
-                await ConvertToSymbolAndProjectIdsAsync(
-                    symbol.ExplicitInterfaceImplementations(),
-                    project,
-                    cancellationToken).ConfigureAwait(false));
+            // This is called for all: class, struct or interface member.
+            interfaceImplementations.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
 
-            foreach (var type in baseClassesAndInterfaces)
+            // The type scenario. Iterate over all base classes to find overridden and hidden (new/Shadows) methods.
+            foreach (var type in FindBaseTypes(symbol.ContainingType))
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
@@ -43,35 +39,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 
                     if (sourceMember.Symbol != null)
                     {
-                        // These are explicit interface implementations matching by name.
-                        if (type?.TypeKind == TypeKind.Interface)
-                        {
-                            if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
-                            {
-                                var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
-
-                                if (implementation != null &&
-                                    SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
-                                {
-                                    results.Add(sourceMember);
-                                }
-                            }
-                        }
-                        else if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
+                        // Add to results overridden members only. Do not add hidden members.
+                        if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
                         {
                             results.Add(sourceMember);
                         }
+
+                        // For both overridden and inherited members, 
+                        // find all explicit and implicit interface implementations.
+                        // We need to start from each base class for cases like N() Implements I.M() 
+                        // where N() can be hidden or overwritted in a nested class later on.
+                        interfaceImplementations.AddRange(member.ExplicitOrImplicitInterfaceImplementations());
                     }
                 }
             }
 
-            return results.ToImmutableAndFree();
+            // Remove duplicates from interface implementations before adding their projects.
+            results.AddRange(
+                await ConvertToSymbolAndProjectIdsAsync(
+                    interfaceImplementations.ToImmutableAndFree().Distinct(),
+                    project,
+                    cancellationToken).ConfigureAwait(false));
+
+            return results.ToImmutableAndFree().Distinct();
         }
 
         private static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+            => FindBaseTypes(type).AddRange(type.AllInterfaces);
+
+        private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
         {
             var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-            typesBuilder.AddRange(type.AllInterfaces);
 
             var currentType = type.BaseType;
             while (currentType != null)

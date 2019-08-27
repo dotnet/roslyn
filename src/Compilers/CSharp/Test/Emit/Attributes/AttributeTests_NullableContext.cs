@@ -186,6 +186,109 @@ public class Program
         }
 
         [Fact]
+        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        public void AttributeUsage()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    private object _f1;
+    private object _f2;
+    private object _f3;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullableContextAttribute");
+                AttributeUsageInfo attributeUsage = attributeType.GetAttributeUsageInfo();
+                Assert.False(attributeUsage.Inherited);
+                Assert.False(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.HasValidAttributeTargets);
+                var expectedTargets = AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct;
+                Assert.Equal(expectedTargets, attributeUsage.ValidTargets);
+            });
+        }
+
+        [Fact]
+        public void MissingAttributeUsageAttribute()
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+#nullable enable
+public class Program
+{
+    private object _f1 = null!;
+    private object _f2 = null!;
+    private object _f3 = null!;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
+        }
+
+        /// <summary>
+        /// Module-level NullableContextAttribute is ignored.
+        /// </summary>
+        [Fact]
+        public void ExplicitAttribute_Module()
+        {
+            var source0 =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableContextAttribute : Attribute
+    {
+        public NullableContextAttribute(byte b) { }
+    }
+}";
+            var comp0 = CreateCompilation(source0);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source1 =
+@"Imports System.Runtime.CompilerServices
+<Module: NullableContext(2)>
+Public Class A
+    Public Shared FA As Object
+End Class
+<NullableContext(2)>
+Public Class B
+    Public Shared FB As Object
+End Class";
+            var comp1 = CreateVisualBasicCompilation(source1, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(ref0));
+            var ref1 = comp1.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class Program
+{
+    static void Main()
+    {
+        A.FA.ToString();
+        B.FB.ToString(); // warning
+    }
+}";
+            var comp2 = CreateCompilation(source2, references: new[] { ref1 });
+            comp2.VerifyDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         B.FB.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "B.FB").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void AttributeField()
         {
             var source =

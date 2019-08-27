@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.CaptureVariable(method.ThisParameter, node.Syntax);
             }
 
-            var variablesToHoist = walker._variablesToHoist;
             var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
             var allVariables = walker.variableBySlot;
 
@@ -91,11 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var variablesToHoist = new OrderedSet<Symbol>();
             if (compilation.Options.OptimizationLevel != OptimizationLevel.Release)
             {
-                Debug.Assert(variablesToHoist.Count == 0);
-
-                // In debug build we hoist all locals and parameters:
+                // In debug build we hoist long-lived locals and parameters
                 foreach (var v in allVariables)
                 {
                     var symbol = v.Symbol;
@@ -106,38 +104,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Hoist anything determined to be live across an await or yield
+            variablesToHoist.AddRange(walker._variablesToHoist);
+
             return variablesToHoist;
         }
 
         private static bool HoistInDebugBuild(Symbol symbol)
         {
-            // in Debug build hoist all parameters that can be hoisted:
-            if (symbol.Kind == SymbolKind.Parameter)
+            return (symbol) switch
             {
-                var parameter = (ParameterSymbol)symbol;
-                return !parameter.TypeWithAnnotations.IsRestrictedType();
-            }
-
-            if (symbol.Kind == SymbolKind.Local)
-            {
-                LocalSymbol local = (LocalSymbol)symbol;
-
-                if (local.IsConst || local.IsPinned)
-                {
-                    return false;
-                }
-
-                // hoist all user-defined locals that can be hoisted:
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
-                {
-                    return !local.TypeWithAnnotations.IsRestrictedType();
-                }
-
-                // hoist all synthesized variables that have to survive state machine suspension:
-                return local.SynthesizedKind.MustSurviveStateMachineSuspension();
-            }
-
-            return false;
+                ParameterSymbol parameter =>
+                    // in Debug build hoist all parameters that can be hoisted:
+                    !parameter.Type.IsRestrictedType(),
+                LocalSymbol { IsConst: false, IsPinned: false } local =>
+                    // hoist all user-defined locals and long-lived temps that can be hoisted:
+                    local.SynthesizedKind.MustSurviveStateMachineSuspension() &&
+                    !local.Type.IsRestrictedType(),
+                _ => false
+            };
         }
 
         private void MarkLocalsUnassigned()
@@ -203,20 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
-                // error has already been reported.
-                if (variable is SynthesizedLocal local && local.SynthesizedKind != SynthesizedLocalKind.Spill)
-                {
-                    return;
-                }
-
-                if (_lazyDisallowedCaptures == null)
-                {
-                    _lazyDisallowedCaptures = new MultiDictionary<Symbol, SyntaxNode>();
-                }
-
-                _lazyDisallowedCaptures.Add(variable, syntax);
+                (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }
-            else if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            else
             {
                 _variablesToHoist.Add(variable);
             }

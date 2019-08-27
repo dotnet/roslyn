@@ -270,6 +270,10 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
@@ -283,6 +287,10 @@
     <Field Name="OperandConversion" Type="Conversion"/>
     <Field Name="ResultConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!-- Not really an operator since overload resolution is never required. -->
@@ -362,19 +370,17 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-
-    <!-- Converted nodes are meant for semantic model and IOperation use only -->
-    <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
-    <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
-
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
@@ -385,6 +391,10 @@
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
@@ -423,6 +433,10 @@
     <Field Name="LeftConversion" Type="Conversion"/>
     <Field Name="FinalConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this operator's method was chosen.
+        Only kept in the tree if the operator was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
   
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
@@ -588,9 +602,21 @@
     <Field Name="GetFieldFromHandle" Type="MethodSymbol?"/>
   </Node>
 
+  <!--
+  Default literals can convert to the target type.
+  Does not survive initial lowering.
+  -->
+   <Node Name="BoundDefaultLiteral" Base="BoundExpression">
+    <!-- Type is null. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+  </Node>
+
+  <!--
+  The default expression is `default(T)` expression or `default` literal which has been already converted to a target type.
+  -->
   <Node Name="BoundDefaultExpression" Base="BoundExpression">
-    <!-- Type is null in the case of a default literal, and non-null for default(T). -->
-    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
+    <!-- Converted default expression must have a type. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TargetType" Type="BoundTypeExpression?" SkipInVisitor="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
@@ -646,6 +672,10 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
+    <!--The set of method symbols from which this conversion's method was chosen.
+        Only kept in the tree if the conversion was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
   </Node>
 
   <!--
@@ -1184,19 +1214,35 @@
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
-  <Node Name="BoundSwitchExpression" Base="BoundExpression">
+  <AbstractNode Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol?"/>
     <Field Name="ReportedNotExhaustive" Type="bool"/>
-  </Node>
+  </AbstractNode>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="WhenClause" Type="BoundExpression?"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression">
+  </Node>
+
+  <!-- 
+  Switch expressions can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted switch expression is one which has been already converted to a target type.
+  Converted switch expressions always has a type.
+  -->
+  <Node Name="BoundConvertedSwitchExpression" Base="BoundSwitchExpression">
+    <!-- Converted switch expression must have a type, even if that's `void` for a statement. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">
@@ -1422,7 +1468,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression">
+  <Node Name="BoundCall" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -1436,6 +1482,10 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <!--The set of method symbols from which this call's method was chosen.
+        Only kept in the tree if the call was an error and overload resolution
+        was unable to choose a best method.-->
+    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
     
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder?"/>
@@ -1498,11 +1548,16 @@
   -->
   <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+
+    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
+    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </AbstractNode>
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
+  Once converted to a target type, they cannot be target-typed again.
   The tuple literal is one which has not been converted to a target type.
   -->
   <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
@@ -1511,26 +1566,21 @@
     Ex: 
      (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
-    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
-
-    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
-    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
-  The Converted tuple literal is one which has been already converted to a target type.
+  Once converted to a target type, they cannot be target-typed again.
+  The Converted tuple literal is one which has already been converted to a target type.
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
-    <!-- Converted tuple must have a type -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <!-- Original tuple is preserved for the purpose of semantic model -->
-    <Field Name="SourceTuple" Type="BoundTupleLiteral" SkipInVisitor="ExceptNullabilityRewriter" />
+    <!-- Original tuple is preserved for the purpose of semantic model.
+         When tuples are created as part of lowering, this could be null. -->
+    <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
   </Node>
-  
+
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1755,6 +1805,10 @@
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder?"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
+    <!--The set of indexer symbols from which this call's indexer was chosen.
+        Only kept in the tree if the call was an error and overload resolution
+        was unable to choose a best indexer.-->
+    <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow"/>
   </Node>
 
   <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
@@ -1779,7 +1833,7 @@
     <Field Name="ApplicableIndexers" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundLambda" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="BoundLambda" Base="BoundExpression">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
@@ -1795,15 +1849,22 @@
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundQueryClause" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="BoundQueryClause" Base="BoundExpression">
     <!-- Equal to Value.Type. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- The value computed for this query clause. -->
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <!-- The query variable introduced by this query clause, if any. -->
     <Field Name="DefinedSymbol" Type="RangeVariableSymbol?"/>
+    <!-- The bound expression that invokes the operation of the query clause. -->
+    <Field Name="Operation" Type="BoundExpression?" SkipInVisitor="true"/>
+    <!-- The bound expression that is the invocation of a "Cast" method specified by the query translation. -->
+    <Field Name="Cast" Type="BoundExpression?" SkipInVisitor="true"/>
     <!-- The enclosing binder in which the query clause was evaluated. -->
     <Field Name="Binder" Type="Binder" Null="disallow" />
+    <!-- The bound expression that is the query expression in "unoptimized" form.  Specifically, a final ".Select"
+         invocation that is omitted by the specification is included here. -->
+    <Field Name="UnoptimizedForm" Type="BoundExpression?" SkipInVisitor="true"/>
   </Node>
 
   <!-- 
@@ -1927,7 +1988,7 @@
   <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
-  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression" SkipShallowClone="true">
+  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>

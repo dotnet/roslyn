@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _constructors;
 
         public SynthesizedEmbeddedNullableContextAttributeSymbol(
-            CSharpCompilation compilation,
-            DiagnosticBag diagnostics)
-            : base(AttributeDescription.NullableContextAttribute, compilation, diagnostics)
+            string name,
+            NamespaceSymbol containingNamespace,
+            ModuleSymbol containingModule,
+            NamedTypeSymbol systemAttributeType,
+            TypeSymbol systemByteType)
+            : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
         {
-            var byteType = compilation.GetSpecialType(SpecialType.System_Byte);
-            Binder.ReportUseSiteDiagnostics(byteType, diagnostics, Location.None);
-
             _fields = ImmutableArray.Create<FieldSymbol>(
                 new SynthesizedFieldSymbol(
                     this,
-                    byteType,
+                    systemByteType,
                     "Flag",
                     isPublic: true,
                     isReadOnly: true,
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _constructors = ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                     this,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(byteType), 0, RefKind.None)),
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(systemByteType), 0, RefKind.None)),
                     GenerateConstructorBody));
 
             // Ensure we never get out of sync with the description
@@ -43,6 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            return new AttributeUsageInfo(
+                AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct,
+                allowMultiple: false,
+                inherited: false);
+        }
 
         private void GenerateConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
         {

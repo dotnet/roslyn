@@ -28,8 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3"})
             End Using
         End Function
 
@@ -46,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -65,8 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(""""c)
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -84,16 +81,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
                 state.SendTypeChars("("c)
                 Await state.AssertNoCompletionSession()
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
                 state.SendTypeChars(""""c)
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -111,8 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -147,8 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
             End Using
         End Function
 
@@ -179,7 +171,6 @@ namespace A
                     Async Function()
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
-                        Await state.WaitForAsynchronousOperationsAsync()
                         Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
@@ -203,10 +194,8 @@ using System.Reflection;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 If hasItems Then
-                    Await state.AssertCompletionSession()
-                    state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                    Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
                 Else
                     Await state.AssertNoCompletionSession
                 End If
@@ -320,8 +309,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -338,8 +326,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsDoNotContainAny({"TestAssembly"})
+                Await state.AssertCompletionItemsDoNotContainAny({"TestAssembly"})
             End Using
         End Function
 
@@ -359,7 +346,6 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1"")]")
             End Using
         End Function
@@ -383,7 +369,6 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
@@ -409,7 +394,6 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
@@ -434,7 +418,6 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
@@ -484,9 +467,8 @@ namespace Test
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
-                state.AssertCompletionItemsContainAll({"ClassLibrary3"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary3"})
             End Using
         End Function
 
@@ -518,9 +500,8 @@ namespace A {
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
-                state.AssertCompletionItemsContainAll({"ClassLibrary3"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary3"})
             End Using
         End Function
 
@@ -562,9 +543,8 @@ namespace A {
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7", "ClassLibrary8"})
-                state.AssertCompletionItemsContainAll({"ClassLibrary9"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7", "ClassLibrary8"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary9"})
             End Using
         End Function
 
@@ -585,9 +565,8 @@ using System.Reflection;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
                 ' ClassLibrary1 must be listed because the existing attribute argument can't be resolved to a constant.
-                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -613,9 +592,8 @@ using System.Reflection;
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
-                state.AssertCompletionItemsContainAll({"ClassLibrary2"})
+                Await state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                Await state.AssertCompletionItemsContainAll({"ClassLibrary2"})
             End Using
         End Function
 
@@ -654,7 +632,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
             End Using
         End Function
@@ -675,7 +652,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name")
             End Using
         End Function
@@ -696,7 +672,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
             End Using
         End Function
@@ -717,7 +692,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"")]")
             End Using
         End Function
@@ -738,7 +712,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@""Dotted1.Dotted2.Assembly.Dotted3"")]")
             End Using
         End Function
@@ -759,7 +732,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@""Dotted1.Dotted2.Assembly.Dotted3")
             End Using
         End Function
@@ -784,7 +756,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""\""Dotted1.Dotted2.Assembly.Dotted3"""")]")
             End Using
         End Function
@@ -805,7 +776,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
             End Using
         End Function
@@ -826,7 +796,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
             End Using
         End Function
@@ -857,7 +826,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"" +")
                 state.AssertMatchesTextStartingAtLine(2, "                                                              ""0000000602000000240000525341310004000"" +")
             End Using
@@ -879,7 +847,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
             End Using
         End Function
@@ -904,7 +871,6 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
                 state.AssertMatchesTextStartingAtLine(2, "")
             End Using

@@ -1745,6 +1745,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_CommentsAfterLineContinuationNotAvailable1 = 37306
 
+        ERR_DefaultInterfaceImplementationInNoPIAType = 37307
+        ERR_ReAbstractionInNoPIAType = 37308
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001

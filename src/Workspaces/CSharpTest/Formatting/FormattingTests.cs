@@ -6268,6 +6268,7 @@ class Program
         }
 
         [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
+        [WorkItem(37031, "https://github.com/dotnet/roslyn/issues/37031")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
@@ -6306,6 +6307,9 @@ class Program
 
         lock (somevar)
         { }
+
+        fixed (somevar)
+        { }
     }
 }";
             var expected = @"
@@ -6342,6 +6346,9 @@ class Program
         { }
 
         lock(somevar)
+        { }
+
+        fixed(somevar)
         { }
     }
 }";
@@ -9280,5 +9287,122 @@ class Program
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ClassConstraint()
+        {
+            await AssertFormatAsync(
+                @"
+class Program<T>
+    where T : class?
+{
+}",
+                @"
+class Program<T>
+    where T : class ?
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLinePropertyPattern1()
+        {
+            await AssertFormatAsync(
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType()
+    {
+        _ = new List<int>() is
+        {
+            Count: { },
+        };
+    }
+}",
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType()
+    {
+        _ = new List<int>() is
+        {
+            Count:{},
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLinePropertyPattern2()
+        {
+            await AssertFormatAsync(
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType(object o)
+    {
+        _ = o is List<int> { Count: { } };
+    }
+}",
+                @"
+using System.Collections.Generic;
+class Program
+{
+    public void FixMyType(object o)
+    {
+        _ = o is List<int>{Count:{}};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        public async Task SpaceAroundEnumMemberDeclarationIgnored()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true }
+            };
+            await AssertFormatAsync(
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}",
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
+        public async Task SpaceAroundEnumMemberDeclarationSingle()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, false }
+            };
+            await AssertFormatAsync(
+                @"
+enum TestEnum
+{
+    Short = 1,
+    LongItemName = 2
+}",
+                @"
+enum TestEnum
+{
+    Short           = 1,
+    LongItemName    = 2
+}", changedOptionSet: changingOptions);
+        }
+
     }
 }

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _backingField; }
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == null)
                 {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  consider properties the same is the owning types are the same and 
                 //  the names are equal
                 return ((object)other != null) && other.Name == this.Name
-                    && other.ContainingType.Equals(this.ContainingType);
+                    && other.ContainingType.Equals(this.ContainingType, compareKind);
             }
 
             public override int GetHashCode()

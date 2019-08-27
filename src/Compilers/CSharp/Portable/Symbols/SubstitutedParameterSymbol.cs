@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var other = obj as SubstitutedParameterSymbol;
             return (object)other != null &&
                 this.Ordinal == other.Ordinal &&
-                this.ContainingSymbol.Equals(other.ContainingSymbol);
+                this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()

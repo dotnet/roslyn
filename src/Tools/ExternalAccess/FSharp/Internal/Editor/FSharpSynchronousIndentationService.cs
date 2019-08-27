@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public IndentationResult GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult GetIndentation(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var result = _service.GetDesiredIndentation(document, lineNumber, cancellationToken);
             if (result.HasValue)
@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             {
                 return default;
             }
-        }
-
-        IndentationResult IIndentationService.GetBlankLineIndentation(
-            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
-        {
-            return default;
         }
     }
 }

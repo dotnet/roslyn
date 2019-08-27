@@ -2,6 +2,7 @@
 
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForEachToFor;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -25,24 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
         protected override string Title => CSharpFeaturesResources.Convert_to_for;
 
-        protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)
-        {
-            var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
-            // https://github.com/dotnet/roslyn/issues/30584: Add tests for this scenario
-            if (foreachStatement == null || foreachStatement.AwaitKeyword != default)
-            {
-                return null;
-            }
-
-            // support refactoring only if caret is in between "foreach" and ")"
-            var scope = TextSpan.FromBounds(foreachStatement.ForEachKeyword.Span.Start, foreachStatement.CloseParenToken.Span.End);
-            if (!scope.IntersectsWith(selection))
-            {
-                return null;
-            }
-
-            return foreachStatement;
-        }
+        // https://github.com/dotnet/roslyn/issues/30584: Add tests for this scenario
+        protected override bool IsValid(ForEachStatementSyntax foreachStatement)
+            => foreachStatement.AwaitKeyword == default;
 
         protected override bool ValidLocation(ForEachInfo foreachInfo)
         {
@@ -137,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                     generator, foreachInfo.ForEachElementType.GenerateTypeSyntax(),
                     foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
+                if (IsForEachVariableWrittenInside)
+                {
+                    variableStatement = variableStatement.WithAdditionalAnnotations(CreateWarningAnnotation());
+                }
+
                 bodyBlock = bodyBlock.InsertNodesBefore(
                     bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(
                         variableStatement.WithAdditionalAnnotations(Formatter.Annotation)));
@@ -144,5 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             return bodyBlock;
         }
+
+        protected override bool IsSupported(ILocalSymbol foreachVariable, IForEachLoopOperation forEachOperation, ForEachStatementSyntax foreachStatement)
+            => true;
     }
 }
