@@ -1520,6 +1520,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
 
+        public bool IsExpressionOfForeach(SyntaxNode node)
+            => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
+
         public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);

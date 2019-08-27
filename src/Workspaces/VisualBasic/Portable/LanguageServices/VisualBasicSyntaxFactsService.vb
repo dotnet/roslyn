@@ -1588,6 +1588,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
+        Public Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfForeach
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
+        End Function
+
         Public Function IsPossibleTupleContext(
             syntaxTree As SyntaxTree,
             position As Integer,

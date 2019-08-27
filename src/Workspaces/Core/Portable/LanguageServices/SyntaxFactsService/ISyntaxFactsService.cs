@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
+        bool IsExpressionOfForeach(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalOrExpression(SyntaxNode node);
