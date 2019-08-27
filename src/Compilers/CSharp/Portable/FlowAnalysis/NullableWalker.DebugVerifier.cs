@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(originalSymbol.Equals(updatedSymbol, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames), @$"Symbol for `{expr.Syntax}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
-Now {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
+Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 }
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.

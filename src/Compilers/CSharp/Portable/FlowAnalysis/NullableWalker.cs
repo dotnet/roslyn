@@ -7423,6 +7423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal static readonly ExpressionAndSymbolEqualityComparer Instance = new ExpressionAndSymbolEqualityComparer();
 
+            private ExpressionAndSymbolEqualityComparer() { }
+
             public bool Equals((BoundNode expr, Symbol sym) x, (BoundNode expr, Symbol sym) y)
             {
                 Debug.Assert(x is ({ }, { }) && y is ({ }, { }));
