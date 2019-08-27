@@ -840,6 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
@@ -1054,9 +1055,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     {
                         var conversion = (BoundConversion)expr;
-                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                        var conversionKind = conversion.Conversion.Kind;
+                        return (conversionKind == ConversionKind.DefaultLiteral || conversionKind == ConversionKind.NullLiteral) &&
                             IsDefaultValue(conversion.Operand);
                     }
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                     return true;
                 default:
@@ -2608,30 +2611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Return top-level nullability for the expression. This method should be called on a limited
-        /// set of expressions only. It should not be called on expressions tracked by flow analysis
-        /// other than <see cref="BoundKind.ExpressionWithNullability"/> which is an expression
-        /// specifically created in NullableWalker to represent the flow analysis state.
-        /// </summary>
-        private static NullableAnnotation GetNullableAnnotation(BoundExpression expr)
-        {
-            switch (expr.Kind)
-            {
-                case BoundKind.DefaultExpression:
-                case BoundKind.Literal:
-                    return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
-                case BoundKind.ExpressionWithNullability:
-                    return ((BoundExpressionWithNullability)expr).NullableAnnotation;
-                case BoundKind.MethodGroup:
-                case BoundKind.UnboundLambda:
-                    return NullableAnnotation.NotAnnotated;
-                default:
-                    Debug.Assert(false); // unexpected value
-                    return NullableAnnotation.Oblivious;
-            }
-        }
-
         private static TypeWithState GetNullCoalescingResultType(TypeWithState rightResult, TypeSymbol resultType)
         {
             NullableFlowState resultState = rightResult.State;
@@ -3952,6 +3931,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
             }
 
+            /// <summary>
+            /// Return top-level nullability for the expression. This method should be called on a limited
+            /// set of expressions only. It should not be called on expressions tracked by flow analysis
+            /// other than <see cref="BoundKind.ExpressionWithNullability"/> which is an expression
+            /// specifically created in NullableWalker to represent the flow analysis state.
+            /// </summary>
+            private static NullableAnnotation GetNullableAnnotation(BoundExpression expr)
+            {
+                switch (expr.Kind)
+                {
+                    case BoundKind.DefaultLiteral:
+                    case BoundKind.DefaultExpression:
+                    case BoundKind.Literal:
+                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                    case BoundKind.ExpressionWithNullability:
+                        return ((BoundExpressionWithNullability)expr).NullableAnnotation;
+                    case BoundKind.MethodGroup:
+                    case BoundKind.UnboundLambda:
+                        return NullableAnnotation.NotAnnotated;
+                    default:
+                        Debug.Assert(false); // unexpected value
+                        return NullableAnnotation.Oblivious;
+                }
+            }
+
             internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
             {
                 if (_walker.TryGetMethodGroupReceiverNullability(group.ReceiverOpt, out TypeWithState receiverType))
@@ -4546,7 +4550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (conversion.Kind)
                 {
                     case ConversionKind.Identity:
-                    case ConversionKind.DefaultOrNullLiteral:
+                    case ConversionKind.NullLiteral:
+                    case ConversionKind.DefaultLiteral:
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ExplicitReference:
                     case ConversionKind.Boxing:
@@ -4854,7 +4859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = operandType.State;
                     break;
 
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultLiteral:
                     if (checkConversion && RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability) && !isSuppressed)
                     {
                         // For type parameters that cannot be annotated, the analysis must report those
@@ -6810,6 +6816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            // Can occur in error scenarios
+            var result = base.VisitDefaultLiteral(node);
+            SetUnknownResultNullability(node);
+            return result;
+        }
+
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             Debug.Assert(!this.IsConditionalState);
@@ -6829,13 +6843,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
             // (should produce nullable element types for those elements that are of reference types)
             SetResultType(node, TypeWithState.ForType(type));
-            if (node.TargetType != null &&
-                RequiresSafetyWarningWhenNullIntroduced(node.TargetType.TypeWithAnnotations) &&
+            if (node.TargetType is object && RequiresSafetyWarningWhenNullIntroduced(node.Type) &&
                 !node.IsSuppressed)
             {
                 // For type parameters that cannot be annotated, the analysis must report those
                 // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
                 // This is one of those places.
+                // `default(...)` is handled here to get a better behavior with an oblivious target type, while `default` is handled in VisitConversions.
                 ReportDiagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, node.Syntax, GetTypeAsDiagnosticArgument(ResultType.Type));
             }
 

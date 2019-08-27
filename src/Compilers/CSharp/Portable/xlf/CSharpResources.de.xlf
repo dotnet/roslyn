@@ -107,6 +107,11 @@
         <target state="translated">Der Typ "{0}" kann nicht eingebettet werden, weil er einen nicht abstrakten Member aufweist. Legen Sie die Eigenschaft "Interoptypen einbetten" ggf. auf FALSE fest.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Ein Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder "null"). Verwenden Sie zum Abgleich aller Elemente ein discard-Muster "_".</target>
@@ -9460,11 +9465,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Der Typ "dynamic" darf nicht in einem Muster verwendet werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Ein Standardliteral kann nicht als Argument für einen dynamisch verteilten Vorgang verwenden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">Der angegebene Dokumentationsmodus wird nicht unterstützt oder ist ungültig: "{0}".</target>
@@ -9663,11 +9663,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Ein bedingter Ausdruck kann nicht direkt in einer Zeichenfolgeninterpolation verwendet werden, weil ":" die Interpolation beendet. Setzen Sie den bedingten Ausdruck in Klammern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Das Standardliteral "default" ist als case-Konstante ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Wenn Sie die Standardbezeichnung schreiben möchten, verwenden Sie "default" ohne "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

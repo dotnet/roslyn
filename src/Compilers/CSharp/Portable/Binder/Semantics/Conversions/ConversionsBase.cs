@@ -869,13 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultExpression:
-                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultOrNullLiteral;
-                    }
-                    break;
+                case BoundKind.DefaultLiteral:
+                    return Conversion.DefaultLiteral;
 
                 case BoundKind.ExpressionWithNullability:
                     {
@@ -970,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.DefaultOrNullLiteral;
+                return Conversion.NullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 

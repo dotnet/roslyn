@@ -107,6 +107,11 @@
         <target state="translated">型 '{0}' には非抽象メンバーがあるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">既定のリテラル 'default' はパターンとして無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。すべてと一致させるには、破棄パターン '_' をご使用ください。</target>
@@ -9460,11 +9465,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">パターン内で型 'dynamic' を使用することはできません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">既定のリテラルを、動的にディスパッチされる操作に対する引数として使うことはできません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">指定されたドキュメント モードがサポートされていないか無効です: '{0}'。</target>
@@ -9663,11 +9663,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">':' は文字列補間を終了させるため、条件式を文字列補間で直接使用することはできません。条件式をかっこで囲んでください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">既定のリテラル 'default' は case 定数として無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。既定のラベルを作成する予定だった場合は、'case' を使用せずに 'default:' をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
