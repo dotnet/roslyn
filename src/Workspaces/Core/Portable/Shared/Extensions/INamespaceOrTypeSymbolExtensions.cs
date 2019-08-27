@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => s_namespaceOrTypeToNameMap.GetValue(symbol, s_getNamePartsCallBack);
 
         public static int CompareNameParts(
-           IReadOnlyList<string> names1, IReadOnlyList<string> names2,
-           bool placeSystemNamespaceFirst)
+            IReadOnlyList<string> names1, IReadOnlyList<string> names2,
+            bool placeSystemNamespaceFirst)
         {
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {
@@ -73,30 +73,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return names1.Count - names2.Count;
-        }
-
-        public static IEnumerable<IComparable> GetComparisonComponents(IReadOnlyList<string> names, bool placeSystemNamespaceFirst)
-        {
-            bool isFirstItem = true;
-            foreach (var name in names)
-            {
-                // For each item iteration, compare if one of list is over. The shorter wins in the case (-1 in Compare).
-                yield return true;
-
-                if (isFirstItem && placeSystemNamespaceFirst)
-                {
-                    isFirstItem = false;
-
-                    // If one has System in the beginning and another does not,
-                    // the one with System should win (-1 in Compare).
-                    yield return name != nameof(System);
-                }
-
-                yield return name;
-            }
-
-            // Items are over in the current list. This list should win (Compare == -1) if another one still produces items.
-            yield return false;
         }
 
         private static void GetNameParts(INamespaceOrTypeSymbol? namespaceOrTypeSymbol, List<string> result)

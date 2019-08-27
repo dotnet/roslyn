@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 return ComparerWithState.CompareTo(x, y, s_comparers);
             }
 
-            private readonly static ImmutableArray<ComparerWithState<SyntaxToken>> s_comparers =
-                ComparerWithState.CreateComparers<SyntaxToken>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
+            private readonly static ImmutableArray<Func<SyntaxToken, IComparable>> s_comparers =
+                ImmutableArray.Create<Func<SyntaxToken, IComparable>>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
 
             private static Ordering GetOrdering(SyntaxToken token)
             {

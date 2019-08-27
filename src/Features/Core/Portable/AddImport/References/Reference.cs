@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -53,8 +52,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                         placeSystemNamespaceFirst: true);
             }
 
-            private readonly static ImmutableArray<ComparerWithState<Reference, Document>> s_comparers
-                = ComparerWithState.CreateComparers<Reference, Document>(
+            private readonly static ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
+                = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
                     // If references have different weights, order by the ones with lower weight (i.e.
                     // they are better matches).
                     (r, d) => r.SearchResult.Weight,

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -80,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private readonly static ImmutableArray<ComparerWithState<VirtualTreePoint>> s_comparers =
-            ComparerWithState.CreateComparers<VirtualTreePoint>(p => p.Position, prop => prop.VirtualSpaces);
+        private readonly static ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<VirtualTreePoint, IComparable>>(p => p.Position, prop => prop.VirtualSpaces);
 
         public bool Equals(VirtualTreePoint other)
         {

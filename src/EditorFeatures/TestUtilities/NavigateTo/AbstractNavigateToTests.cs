@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected static int CompareNavigateToItems(NavigateToItem a, NavigateToItem b)
             => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
-        private readonly static ImmutableArray<ComparerWithState<NavigateToItem>> s_comparisonComponents =
-            ComparerWithState.CreateComparers<NavigateToItem>(
+        private readonly static ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
+            ImmutableArray.Create<Func<NavigateToItem, IComparable>>(
                 item => (int)item.PatternMatch.Kind,
                 item => item.Name,
                 item => item.Kind,

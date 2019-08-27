@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return codeActions.Sort((d1, d2) => ComparerWithState.CompareTo(d1, d2, (mruTitles, codeActions), s_comparers));
         }
 
-        private static readonly ImmutableArray<ComparerWithState<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>)>> s_comparers =
-            ComparerWithState.CreateComparers<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>)>(
+        private static readonly ImmutableArray<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>> s_comparers =
+            ImmutableArray.Create<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>>(
                 // one of these has never been invoked.  It's always after an item that has been
                 // invoked.
                 // we've invoked both of these before.  Order by how recently it was invoked.

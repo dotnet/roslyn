@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -60,8 +59,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public int CompareTo(PatternMatch other, bool ignoreCase)
             => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
 
-        private readonly static ImmutableArray<ComparerWithState<PatternMatch, bool>> s_comparers =
-            ComparerWithState.CreateComparers<PatternMatch, bool>(
+        private readonly static ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
                 // Compare types
                 (p, b) => p.Kind,
                 // Compare cases

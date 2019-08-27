@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public int CompareTo(PackageWithAssemblyResult other)
          => ComparerWithState.CompareTo(this, other, s_comparers);
 
-        private readonly static ImmutableArray<ComparerWithState<PackageWithAssemblyResult>> s_comparers =
-            ComparerWithState.CreateComparers<PackageWithAssemblyResult>(p => p.Rank, p => p.PackageName);
+        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
     internal class ReferenceAssemblyWithTypeResult
