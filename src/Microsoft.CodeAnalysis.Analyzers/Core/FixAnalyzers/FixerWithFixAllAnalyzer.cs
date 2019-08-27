@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            IMethodSymbol getFixAllProviderMethod = codeFixProviderSymbol.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().SingleOrDefault();
+            IMethodSymbol getFixAllProviderMethod = codeFixProviderSymbol.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
             if (getFixAllProviderMethod == null)
             {
                 return;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            IPropertySymbol equivalenceKeyProperty = codeActionSymbol.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
+            IPropertySymbol equivalenceKeyProperty = codeActionSymbol.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().FirstOrDefault();
             if (equivalenceKeyProperty == null)
             {
                 return;
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     {
                         if (!type.Equals(_codeFixProviderSymbol))
                         {
-                            IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().SingleOrDefault();
+                            IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
                             if (getFixAllProviderMethod != null && getFixAllProviderMethod.IsOverride)
                             {
                                 return true;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 static bool IsViolatingCodeActionCreateInvocation(IInvocationOperation invocation)
                 {
-                    IParameterSymbol param = invocation.TargetMethod.Parameters.SingleOrDefault(p => p.Name == EquivalenceKeyParameterName);
+                    IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
                         return true;
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     return false;
                 }
 
-                IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
+                IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().FirstOrDefault();
                 return equivalenceKeyProperty != null && equivalenceKeyProperty.IsOverride;
             }
         }
