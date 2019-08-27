@@ -96,7 +96,7 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
-    & ".\azure-pipelines\Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
+    & "$PSScriptRoot\azure-pipelines\Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
 }
 catch {
     Write-Error $error[0]
