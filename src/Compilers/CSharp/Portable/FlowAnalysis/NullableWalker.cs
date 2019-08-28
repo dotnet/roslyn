@@ -5399,7 +5399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isLifted)
             {
                 var type = typeWithState.Type;
-                if (type.IsNullableType())
+                if (type?.IsNullableType() == true)
                 {
                     return type.GetNullableUnderlyingTypeWithAnnotations().ToTypeWithState();
                 }
