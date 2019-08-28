@@ -55,6 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public void Enable()
             {
+                // experimentation service unfortunately uses JTF to jump to UI thread in certain cases
+                // which can cause deadlock if 2 parties try to enable OOP from BG and then FG before 
+                // experimentation service tries to jump to UI thread.
+                // 
+                // this doesn't attempt to solve our JTF and some services being not free-thread issue here, but
+                // try to fix this particular deadlock issue only. we already have long discussion on
+                // how we need to deal with JTF, Roslyn service requirements and VS services reality conflicting
+                // each others. architectural fix should come from the result of that discussion.
+                var experimentationService = _workspace.Services.GetService<IExperimentationService>();
+
                 lock (_gate)
                 {
                     if (_remoteClientTask != null)
@@ -82,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // set bitness
-                    SetRemoteHostBitness();
+                    SetRemoteHostBitness(experimentationService);
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -176,13 +186,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return remoteClientTask;
             }
 
-            private void SetRemoteHostBitness()
+            private void SetRemoteHostBitness(IExperimentationService experimentationService)
             {
                 var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
                 if (!x64)
                 {
-                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
-                        WellKnownExperimentNames.RoslynOOP64bit);
+                    x64 = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
                 }
 
                 // log OOP bitness
