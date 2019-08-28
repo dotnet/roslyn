@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Revert all textual change made in unchangeable documents.. 
+        /// Revert all textual change made in unchangeable documents.
         /// </summary>
         /// <remark>A document is unchangeable if `Document.CanApplyChange()` returns false</remark>
         /// <param name="newSolution">New solution with changes</param>
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     containsDisallowedChange = true;
 
-                    var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var newDocument = newSolution.GetDocument(changedDocumentId)!;
-                    var revertedDocument = newDocument.WithSyntaxRoot(oldRoot);
+                    var revertedDocument = newDocument.WithText(oldText);
 
                     newSolution = revertedDocument.Project.Solution;
                 }

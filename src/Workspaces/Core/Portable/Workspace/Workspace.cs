@@ -1220,9 +1220,9 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true);
+            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Any())
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }

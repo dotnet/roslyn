@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (context.CanChangeSignature)
             {
-                return ChangeSignatureWithContext(context, cancellationToken);
+                return ChangeSignatureWithContextAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 document.Project, symbol, parameterConfiguration);
         }
 
-        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context, CancellationToken.None);
             if (options.IsCancelled)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureResult(succeeded: false);
             }
 
-            return ChangeSignatureWithContextAsync(context, options, cancellationToken).WaitAndGetResult(cancellationToken);
+            return await ChangeSignatureWithContextAsync(context, options, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)

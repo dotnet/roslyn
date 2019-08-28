@@ -752,14 +752,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (testDocumentServiceProvider != null)
             {
-                AssertEx.Fail("A non-null documentServiceProvider is provided when creating TestWorkspace from XML, which might conflict with the valued provided in document attributes.");
+                AssertEx.Fail($"The document attributes on file {filePath} conflicted");
             }
 
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
-        private static TestDocumentServiceProvider GetDocumentServiceProvider(XElement documentElement)
+#nullable enable
+
+        private static TestDocumentServiceProvider? GetDocumentServiceProvider(XElement documentElement)
         {
             var canApplyChange = (bool?)documentElement.Attribute("CanApplyChange");
             var supportDiagnostics = (bool?)documentElement.Attribute("SupportDiagnostics");
@@ -773,6 +775,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 canApplyChange ?? true,
                 supportDiagnostics ?? true);
         }
+
+#nullable restore
 
         private static string GetFilePath(
             TestWorkspace workspace,
