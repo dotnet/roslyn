@@ -24,10 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup, options))
-            {
-                await TestWithOptionsAsync(workspace, expectedResults);
-            }
+            using var workspace = TestWorkspace.CreateCSharp(markup, options);
+            await TestWithOptionsAsync(workspace, expectedResults);
         }
 
         private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
@@ -86,28 +84,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = TestWorkspace.Create(xmlString))
+            using var workspace = TestWorkspace.Create(xmlString);
+            var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+
+            var service = QuickInfoService.GetService(document);
+
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+
+            if (expectedResults.Length == 0)
             {
-                var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                Assert.Null(info);
+            }
+            else
+            {
+                Assert.NotNull(info);
 
-                var service = QuickInfoService.GetService(document);
-
-                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
-
-                if (expectedResults.Length == 0)
+                foreach (var expected in expectedResults)
                 {
-                    Assert.Null(info);
-                }
-                else
-                {
-                    Assert.NotNull(info);
-
-                    foreach (var expected in expectedResults)
-                    {
-                        expected(info);
-                    }
+                    expected(info);
                 }
             }
         }
@@ -232,28 +228,26 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
-            using (var workspace = TestWorkspace.Create(xmlString))
+            using var workspace = TestWorkspace.Create(xmlString);
+            var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+
+            var service = QuickInfoService.GetService(document);
+
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+
+            if (expectedResults.Length == 0)
             {
-                var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                Assert.Null(info);
+            }
+            else
+            {
+                Assert.NotNull(info);
 
-                var service = QuickInfoService.GetService(document);
-
-                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
-
-                if (expectedResults.Length == 0)
+                foreach (var expected in expectedResults)
                 {
-                    Assert.Null(info);
-                }
-                else
-                {
-                    Assert.NotNull(info);
-
-                    foreach (var expected in expectedResults)
-                    {
-                        expected(info);
-                    }
+                    expected(info);
                 }
             }
         }
@@ -5704,10 +5698,8 @@ class C
     </Submission>
 </Workspace>
 ";
-            using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
-            {
-                await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
-            }
+            using var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
+            await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6650,6 +6642,23 @@ class X
 }",
                 MainDescription($"({FeaturesResources.local_constant}) string? s = null"),
                 NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineSummary()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
         }
     }
 }

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             if (components.Length > 0 && hashCodeType != null)
             {
                 return CreateGetHashCodeStatementsUsingSystemHashCode(
-                    factory, compilation, hashCodeType, components, cancellationToken);
+                    factory, compilation, hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
             SyntaxGenerator factory, Compilation compilation, INamedTypeSymbol hashCodeType,
-            ImmutableArray<SyntaxNode> memberReferences, CancellationToken cancellationToken)
+            ImmutableArray<SyntaxNode> memberReferences)
         {
             if (memberReferences.Length <= 8)
             {

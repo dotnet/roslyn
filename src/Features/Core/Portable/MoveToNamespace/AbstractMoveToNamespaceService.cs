@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             Document document, SyntaxNode node, int position, CancellationToken cancellationToken)
         {
             var declarationSyntax = node.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
-            if (declarationSyntax == default || !IsContainedInNamespaceDeclaration(declarationSyntax, position))
+            if (declarationSyntax == null || !IsContainedInNamespaceDeclaration(declarationSyntax, position))
             {
                 return null;
             }

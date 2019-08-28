@@ -103,15 +103,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestEmptySpan4()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class C
 {
     void M(Action action)
     {
         M(() => { var x [||]= y; });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:p|} = () => { var x[||] = y; };
+        M(p);
     }
 }");
         }
@@ -1431,12 +1441,20 @@ index: 1);
         [WorkItem(10743, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeBody()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            await TestInRegularAndScriptAsync(
+@"class Program
 {
-    void M()
+    void Main()
     {
         var a = new [|{ A = 0 }|];
+    }
+}",
+@"class Program
+{
+    void Main()
+    {
+        var {|Rename:p|} = new { A = 0 };
+        var a = p;
     }
 }");
         }
@@ -5523,14 +5541,23 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSimpleParamterName_SmallSelection()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int parameter)
     {
         System.Console.Write([|par|]ameter);
+    }
+}",
+@"class C
+{
+    void M(int parameter)
+    {
+        int {|Rename:parameter1|} = parameter;
+        System.Console.Write(parameter1);
     }
 }");
         }
@@ -5722,9 +5749,10 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestWithLineBreak_WithSingleLineComments()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5733,7 +5761,19 @@ class C
             5 * 2 |]
             ;
     }
-}");
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 5 * 2;
+
+    void M()
+    {
+        int x = /*comment1*/
+            V
+            ;
+    }
+}"
+);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -5839,7 +5879,7 @@ class C
 }",
 @"class C
 {
-    private const int {|Rename:V|} = 2;
+    private const int {|Rename:V|} = (2);
 
     void Goo()
     {

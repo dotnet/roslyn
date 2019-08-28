@@ -22,28 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInComputePreview()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         [WpfFact]
         public void TestExceptionInDisplayText()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         [WpfFact]
         public async Task TestExceptionInActionSets()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         private async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, namedType, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
+            return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
                 (t, m) => (matched: true, reason: CandidateReason.None),
                 cancellationToken);

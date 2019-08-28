@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
-    <MinorVersion>3</MinorVersion>
-    <PatchVersion>1</PatchVersion>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <MinorVersion>4</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
@@ -20,8 +20,10 @@
       Arcade overrides our VersionPrefix when MajorVersion and MinorVersion are specified. Clear them so that
       we can keep the PatchVersion until we are using an SDK that includes https://github.com/dotnet/arcade/pull/3601
     -->
-    <MajorVersion></MajorVersion>
-    <MinorVersion></MinorVersion>
+    <MajorVersion>
+    </MajorVersion>
+    <MinorVersion>
+    </MinorVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->

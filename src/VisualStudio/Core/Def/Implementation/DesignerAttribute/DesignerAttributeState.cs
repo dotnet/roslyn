@@ -72,13 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    writer.WriteString(FormatVersion);
-                    data.TextVersion.WriteTo(writer);
-                    data.SemanticVersion.WriteTo(writer);
-                    writer.WriteString(data.DesignerAttributeArgument);
-                }
+                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
+                writer.WriteString(FormatVersion);
+                data.TextVersion.WriteTo(writer);
+                data.SemanticVersion.WriteTo(writer);
+                writer.WriteString(data.DesignerAttributeArgument);
             }
 
             public override bool Remove(DocumentId id)

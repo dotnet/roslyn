@@ -11,6 +11,12 @@ resources:
 #  IbcSourceBranchName: 'default'
 #  IbcDropId: 'default'
 
+variables:
+  - name: _DotNetArtifactsCategory
+    value: .NETCore
+  - name: _DotNetValidationArtifactsCategory
+    value: .NETCoreValidation
+
 stages:
 - stage: build
   displayName: Build and Test
@@ -81,6 +87,8 @@ stages:
                 /p:PublishToSymbolServer=true
                 /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
                 /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                /p:DotnetPublishUsingPipelines=true
       displayName: Build
       condition: succeeded()
 
@@ -228,6 +236,7 @@ stages:
   # Publish to Build Asset Registry
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
+      publishUsingPipelines: true
       dependsOn:
         - OfficialBuild
       queue:
